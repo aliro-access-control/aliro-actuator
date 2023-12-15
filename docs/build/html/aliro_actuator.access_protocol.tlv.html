@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>aliro_actuator.access_protocol.tlv module &#8212; Aliro_Actuator  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="aliro_actuator.access_protocol.user_device module" href="aliro_actuator.access_protocol.user_device.html" />
+    <link rel="prev" title="aliro_actuator.access_protocol.reader module" href="aliro_actuator.access_protocol.reader.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-aliro_actuator.access_protocol.tlv">
+<span id="aliro-actuator-access-protocol-tlv-module"></span><h1>aliro_actuator.access_protocol.tlv module<a class="headerlink" href="#module-aliro_actuator.access_protocol.tlv" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.tlv.</span></span><span class="sig-name descname"><span class="pre">TLV</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to handle TLV structures (BER-TLV, ISO 7816-4)
+(use the from_bytes method to create this struct from a bytestring)</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>data (list[tuple[int, bytes  |  list]]): list of tuples. The tuples consist of
+tags and values. The values can be either bytes or a list of tag/value tuples.
+(length is calculated using the data and does not need to be specified)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.add_value">
+<span class="sig-name descname"><span class="pre">add_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.add_value" title="Link to this definition">¶</a></dt>
+<dd><p>add a new tag/value pair to the TLV</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>tag (int): tag
+data (bytes): value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.from_bytes">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_bytes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aliro_actuator.access_protocol.tlv.TLV" title="aliro_actuator.access_protocol.tlv.TLV"><span class="pre">TLV</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.from_bytes" title="Link to this definition">¶</a></dt>
+<dd><p>Converts tlv value (BER-TLV, ISO 7816-4) from bytestring to TLV class
+Value is b”” if the tlv tag has no value.
+(length is not represented in the class, but can be derived from the value)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.get_all_bytes_of_tag">
+<span class="sig-name descname"><span class="pre">get_all_bytes_of_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.get_all_bytes_of_tag" title="Link to this definition">¶</a></dt>
+<dd><p>Similar to get_all_of_tag, but the list only contains bytes objects.
+Raises an error when a no byte object is found.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>tag (int): tag number</p>
+</dd>
+<dt>Raises:</dt><dd><p>TlvError: Raised when value is not of type bytes.</p>
+</dd>
+<dt>Returns:</dt><dd><p>list[bytes]: list with all values with given tag</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.get_all_of_tag">
+<span class="sig-name descname"><span class="pre">get_all_of_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#aliro_actuator.access_protocol.tlv.TLV" title="aliro_actuator.access_protocol.tlv.TLV"><span class="pre">TLV</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.get_all_of_tag" title="Link to this definition">¶</a></dt>
+<dd><p>returns a list with all values with a given tag.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>tag (int): tag number</p>
+</dd>
+<dt>Returns:</dt><dd><p>list[bytes | TLV]: list with all values with given tag.
+Can be empty if tag was not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.get_bytes">
+<span class="sig-name descname"><span class="pre">get_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.get_bytes" title="Link to this definition">¶</a></dt>
+<dd><p>Similar to get_value, but always returns a bytestring.
+Raises error when requested element is not a bytestring</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>tag (int): tag number
+index (int, optional): when there are multiple elements with the same tag,
+use this to differentiate them. Defaults to 0.</p>
+</dd>
+<dt>Raises:</dt><dd><p>IndexError: Raised when a tag is not found.
+TlvError: Raised when value is not of type bytes.</p>
+</dd>
+<dt>Returns:</dt><dd><p>bytes: value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.get_tlv">
+<span class="sig-name descname"><span class="pre">get_tlv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aliro_actuator.access_protocol.tlv.TLV" title="aliro_actuator.access_protocol.tlv.TLV"><span class="pre">TLV</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.get_tlv" title="Link to this definition">¶</a></dt>
+<dd><p>Similar to get_value, but always returns a TLV object.
+Raises error when requested element is not a TLV object</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>tag (int): tag number
+index (int, optional): when there are multiple elements with the same tag,
+use this to differentiate them. Defaults to 0.</p>
+</dd>
+<dt>Raises:</dt><dd><p>IndexError: Raised when a tag is not found.
+TlvError: Raised when value is not of type TLV.</p>
+</dd>
+<dt>Returns:</dt><dd><p>TLV: value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.get_value">
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#aliro_actuator.access_protocol.tlv.TLV" title="aliro_actuator.access_protocol.tlv.TLV"><span class="pre">TLV</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.get_value" title="Link to this definition">¶</a></dt>
+<dd><p>Get the value of a tag. use index if there are multiple tags with the same name</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>tag (int): tag to find.
+index (int, optional): use to differentiate multiple values with the same
+tag. Defaults to 0.</p>
+</dd>
+<dt>Raises:</dt><dd><p>IndexError: Raised when a tag is not found.</p>
+</dd>
+<dt>Returns:</dt><dd><p>bytes | TLV: the value as bytes or TLV. Type depends on the structure of
+the TLV.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.to_bytes">
+<span class="sig-name descname"><span class="pre">to_bytes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.to_bytes" title="Link to this definition">¶</a></dt>
+<dd><p>Converts tlv value (BER-TLV, ISO 7816-4) to bytestring.
+(length is derived from the value)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.to_data">
+<span class="sig-name descname"><span class="pre">to_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.to_data" title="Link to this definition">¶</a></dt>
+<dd><p>returns the tlv as a list of tuples</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TlvError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.tlv.</span></span><span class="sig-name descname"><span class="pre">TlvError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TlvError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+<p>Raised when a TLV is malformed, has unexpected items or is missing items.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Aliro_Actuator</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">aliro_actuator</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="aliro_actuator.html">aliro_actuator package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="aliro_actuator.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#module-aliro_actuator">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">aliro_actuator</a><ul>
+  <li><a href="aliro_actuator.html">aliro_actuator package</a><ul>
+  <li><a href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a><ul>
+      <li>Previous: <a href="aliro_actuator.access_protocol.reader.html" title="previous chapter">aliro_actuator.access_protocol.reader module</a></li>
+      <li>Next: <a href="aliro_actuator.access_protocol.user_device.html" title="next chapter">aliro_actuator.access_protocol.user_device module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Mike Jongen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/aliro_actuator.access_protocol.tlv.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,49 @@
+-----------------------------------------------------------
+Release Name: Aliro Actuator V0.1.1
+Release Version: V0.1.1
+-----------------------------------------------------------
+
+aliro_actuator
+-   Name: aliro actuator
+-   Version: v0.1.1
+-   Outgoing License: Apache v2.0
+-   Format: python source
+-   Description: aliro actuator for aliro test framework
+-   Origin: NXP Internal
+-   Location: /src/aliro_actuator
+
+Documentation
+-   Name: Documentation
+-   Version: v0.1.1
+-   Outgoing License: Apache v2.0
+-   Format: source, pdf, html
+-   Description: documentation for the aliro actuator
+-   Origin: NXP Internal
+-   Location: /docs, README.md, patchnotes.md
+
+Tests
+-   Name: Tests
+-   Version: v0.1.1
+-   Outgoing License: Apache v2.0
+-   Format: python source
+-   Description: test scripts to test the functionality of the aliro actuator
+-   Origin: NXP Internal
+-   Location: /tests
+
+scripts
+-   Name: scripts
+-   Version: v0.1.1
+-   Outgoing License: Apache v2.0
+-   Format: docker, shell source
+-   Description: supporting scripts
+-   Origin: NXP Internal
+-   Location: /scripts, Dockerfile
+
+examples
+-   Name: examples
+-   Version: v0.1.1
+-   Outgoing License: Apache v2.0
+-   Format: python source
+-   Description: example python scripts, for examples on how to use the actuator
+-   Origin: NXP Internal
+-   Location: /examples

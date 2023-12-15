@@ -1,0 +1,24 @@
+@startuml main
+
+start
+:create keys and certificates;
+if (ble or nfc?) then (BLE)
+  :Create ble and uwb instance;
+else (nfc)
+  :Create nfc instance;
+endif
+if (Reader or user?) then (Reader)
+  :Create reader instance;
+else (User)
+  :Create user instance;
+endif
+:execute test;
+if (succeeded?) then (yes)
+  :return 0;
+else (no)
+  :log error and return error code;
+endif
+
+end
+
+@enduml

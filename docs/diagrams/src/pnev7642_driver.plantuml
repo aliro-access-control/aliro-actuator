@@ -1,0 +1,28 @@
+@startuml pnev7642_driver
+
+package "pnev7642 driver" {
+    class Driver
+    class Serial
+    class Frame
+    class Version
+    class Secfw
+    class Rf_ops
+
+    Driver : Serial
+    Driver : Version
+    Driver : Secfw
+    Driver : Rf_ops
+    Driver : init()
+    Serial : open()
+    Serial : close()
+    Serial : read()
+    Serial : write()
+    Frame : Serial
+    Frame : command()
+
+    Version : Frame
+    Secfw : Frame
+    Rf_ops : Frame
+}
+
+@enduml

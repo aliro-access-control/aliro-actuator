@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>aliro_actuator.access_protocol.errors module &#8212; Aliro_Actuator  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="aliro_actuator.access_protocol.mailbox module" href="aliro_actuator.access_protocol.mailbox.html" />
+    <link rel="prev" title="aliro_actuator.access_protocol.encryption module" href="aliro_actuator.access_protocol.encryption.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-aliro_actuator.access_protocol.errors">
+<span id="aliro-actuator-access-protocol-errors-module"></span><h1>aliro_actuator.access_protocol.errors module<a class="headerlink" href="#module-aliro_actuator.access_protocol.errors" title="Link to this heading">¶</a></h1>
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.AccessProtocolError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">AccessProtocolError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Parent class of all errors related to the access protocol.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.CreateCommandError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">CreateCommandError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.CreateCommandError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.CreateResponseError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">CreateResponseError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.CreateResponseError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidAIDError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidAIDError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidAIDError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.InvalidCommandDataError" title="aliro_actuator.access_protocol.errors.InvalidCommandDataError"><code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidCommandDataError</span></code></a></p>
+<p>Raised when a command with an invalid AID is received.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidCLAError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidCLAError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidCLAError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.InvalidCommandError" title="aliro_actuator.access_protocol.errors.InvalidCommandError"><code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidCommandError</span></code></a></p>
+<p>Raised when the received command has an invalid CLA.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidCommandDataError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidCommandDataError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidCommandDataError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.InvalidCommandError" title="aliro_actuator.access_protocol.errors.InvalidCommandError"><code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidCommandError</span></code></a></p>
+<p>Raised when the received command has an invalid Data field.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidCommandError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidCommandError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidCommandError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+<p>Raised when the received command is invalid.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidINSError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidINSError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidINSError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.InvalidCommandError" title="aliro_actuator.access_protocol.errors.InvalidCommandError"><code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidCommandError</span></code></a></p>
+<p>Raised when the received command has an invalid INS.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidLcError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidLcError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidLcError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.InvalidCommandError" title="aliro_actuator.access_protocol.errors.InvalidCommandError"><code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidCommandError</span></code></a></p>
+<p>Raised when the received command has an invalid LC.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidParameterError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidParameterError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidParameterError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.InvalidCommandError" title="aliro_actuator.access_protocol.errors.InvalidCommandError"><code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidCommandError</span></code></a></p>
+<p>Raised when the received command has an invalid Paramenter (P1 or P2).</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidResponseDataError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidResponseDataError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">other_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidResponseDataError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.InvalidResponseError" title="aliro_actuator.access_protocol.errors.InvalidResponseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidResponseError</span></code></a></p>
+<p>Raised when the received Response has an invalid data.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidResponseError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidResponseError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidResponseError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+<p>Raised when the received response is invalid.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.InvalidStatusError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidStatusError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.InvalidStatusError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.InvalidResponseError" title="aliro_actuator.access_protocol.errors.InvalidResponseError"><code class="xref py py-class docutils literal notranslate"><span class="pre">InvalidResponseError</span></code></a></p>
+<p>Raised when the received Response has an invalid status.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.KeyLookupFailed">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">KeyLookupFailed</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.KeyLookupFailed" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.MessageTooLongError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">MessageTooLongError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.MessageTooLongError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+<p>Raised when the received command is too long.
+See 8.3 of the Aliro Spec.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.SessionError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">SessionError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.SessionError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.UnexpectedCommandError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">UnexpectedCommandError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.UnexpectedCommandError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+<p>Raised when a different command is received than expected.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.UnexpectedResponseError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">UnexpectedResponseError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.UnexpectedResponseError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+<p>Raised when a different Response is received than expected.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.errors.VersionError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.errors.</span></span><span class="sig-name descname"><span class="pre">VersionError</span></span><a class="headerlink" href="#aliro_actuator.access_protocol.errors.VersionError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.access_protocol.errors.AccessProtocolError" title="aliro_actuator.access_protocol.errors.AccessProtocolError"><code class="xref py py-class docutils literal notranslate"><span class="pre">AccessProtocolError</span></code></a></p>
+<p>Raised when the requested version is not supported.</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Aliro_Actuator</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">aliro_actuator</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="aliro_actuator.html">aliro_actuator package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="aliro_actuator.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#module-aliro_actuator">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">aliro_actuator</a><ul>
+  <li><a href="aliro_actuator.html">aliro_actuator package</a><ul>
+  <li><a href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a><ul>
+      <li>Previous: <a href="aliro_actuator.access_protocol.encryption.html" title="previous chapter">aliro_actuator.access_protocol.encryption module</a></li>
+      <li>Next: <a href="aliro_actuator.access_protocol.mailbox.html" title="next chapter">aliro_actuator.access_protocol.mailbox module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Mike Jongen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/aliro_actuator.access_protocol.errors.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
