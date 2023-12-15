@@ -1,0 +1,14 @@
+.mypy_cache
+.coverage
+htmlcov
+__pycache__
+aliro_actuator.egg-info
+logs
+.DS_Store
+venv/
+dist/
+
+docs/diagrams/out
+.idea/
+
+third_party/

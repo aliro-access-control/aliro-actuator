@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Welcome to Aliro_Actuator’s documentation! &#8212; Aliro_Actuator  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="aliro_actuator" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="welcome-to-aliro-actuator-s-documentation">
+<h1>Welcome to Aliro_Actuator’s documentation!<a class="headerlink" href="#welcome-to-aliro-actuator-s-documentation" title="Link to this heading">¶</a></h1>
+<p>The code is separated into 5 parts: the 4 parts as described in the Architecture
+overview of the specification (chapter 5.1) and the hardware drivers.</p>
+<p>This actuator supports both the reader side and the user side of the protocol. The class
+that implements the reader side is the
+<a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader" title="aliro_actuator.access_protocol.reader.Reader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reader</span></code></a>, and the user side is
+implemented by the <a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice" title="aliro_actuator.access_protocol.user_device.UserDevice"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserDevice</span></code></a>.</p>
+<p>Both <a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader" title="aliro_actuator.access_protocol.reader.Reader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reader</span></code></a> and
+<a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice" title="aliro_actuator.access_protocol.user_device.UserDevice"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserDevice</span></code></a> have a similar structure.
+They both have a parameter transport_protocol (of type <a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.TransportProtocol" title="aliro_actuator.access_protocol.defines.TransportProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">TransportProtocol</span></code></a>)
+which indicates which transport protocol to use (NFC or BLE/UWB). After instantiating
+the class, the <a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.transaction_initiation" title="aliro_actuator.access_protocol.user_device.UserDevice.transaction_initiation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">transaction_initiation()</span></code></a>
+or <a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader.transaction_initiation" title="aliro_actuator.access_protocol.reader.Reader.transaction_initiation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">transaction_initiation()</span></code></a> method
+is used to set up the connection to a device.
+This method blocks until the connection is established.</p>
+<p>The <a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice" title="aliro_actuator.access_protocol.user_device.UserDevice"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserDevice</span></code></a> and
+<a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader" title="aliro_actuator.access_protocol.reader.Reader"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reader</span></code></a> can now be used in one of
+two ways: using the handle functions for an easy to use approach, or the command/response
+methods for more control.</p>
+<section id="approach-1-handle">
+<h2>Approach 1 (handle)<a class="headerlink" href="#approach-1-handle" title="Link to this heading">¶</a></h2>
+<p>This approach uses the attributes set during instantation, and the ones received from
+commands, to make the actuator easier to use. Start by using the
+<a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.start_new_session" title="aliro_actuator.access_protocol.user_device.UserDevice.start_new_session"><code class="xref py py-meth docutils literal notranslate"><span class="pre">start_new_session()</span></code></a> or
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">start_new_session()</span></code>
+to start a session. All data received will be stored in this session.
+The <a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice" title="aliro_actuator.access_protocol.user_device.UserDevice"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserDevice</span></code></a> now needs to wait
+for a command. This is done with the
+<a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.wait_for_command" title="aliro_actuator.access_protocol.user_device.UserDevice.wait_for_command"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wait_for_command()</span></code></a> method,
+which returns a <a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Command" title="aliro_actuator.access_protocol.apdu.Command"><code class="xref py py-class docutils literal notranslate"><span class="pre">Command</span></code></a> to pass to a handle method.
+Now, use the methods that start with ‘handle’ to handle the commands:</p>
+<div class="line-block">
+<div class="line">User methods:</div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.handle_select" title="aliro_actuator.access_protocol.user_device.UserDevice.handle_select"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_select()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.handle_auth0" title="aliro_actuator.access_protocol.user_device.UserDevice.handle_auth0"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_auth0()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.handle_auth1" title="aliro_actuator.access_protocol.user_device.UserDevice.handle_auth1"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_auth1()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.handle_control_flow" title="aliro_actuator.access_protocol.user_device.UserDevice.handle_control_flow"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_control_flow()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.handle_exchange" title="aliro_actuator.access_protocol.user_device.UserDevice.handle_exchange"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_exchange()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.user_device.html#aliro_actuator.access_protocol.user_device.UserDevice.handle_load_cert" title="aliro_actuator.access_protocol.user_device.UserDevice.handle_load_cert"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_load_cert()</span></code></a></div>
+</div>
+<div class="line-block">
+<div class="line">Reader methods:</div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader.handle_select" title="aliro_actuator.access_protocol.reader.Reader.handle_select"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_select()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader.handle_auth0" title="aliro_actuator.access_protocol.reader.Reader.handle_auth0"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_auth0()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader.handle_auth1" title="aliro_actuator.access_protocol.reader.Reader.handle_auth1"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_auth1()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader.handle_control_flow" title="aliro_actuator.access_protocol.reader.Reader.handle_control_flow"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_control_flow()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader.handle_exchange" title="aliro_actuator.access_protocol.reader.Reader.handle_exchange"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_exchange()</span></code></a></div>
+<div class="line"><a class="reference internal" href="aliro_actuator.access_protocol.reader.html#aliro_actuator.access_protocol.reader.Reader.handle_load_cert" title="aliro_actuator.access_protocol.reader.Reader.handle_load_cert"><code class="xref py py-meth docutils literal notranslate"><span class="pre">handle_load_cert()</span></code></a></div>
+</div>
+</section>
+<section id="approach-2-command-response">
+<h2>Approach 2 (command/response)<a class="headerlink" href="#approach-2-command-response" title="Link to this heading">¶</a></h2>
+<p>This approach gives more control to the programmer. The methods that start with
+‘command’/’response’ require a value for every piece of data they will send. The data
+received will also need to be manually processed by the programmer (unlike Approach 1,
+there is no session to save received data).
+Note that Approach 1 also uses these ‘command’/’response’ methods, so you can use the
+Approach 1 methods as an example.</p>
+</section>
+</section>
+<section id="modules">
+<h1>Modules<a class="headerlink" href="#modules" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">aliro_actuator</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.html">aliro_actuator package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#submodules">Submodules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.log.html">aliro_actuator.log module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#module-aliro_actuator">Module contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.html#aliro_actuator.Global"><code class="docutils literal notranslate"><span class="pre">Global</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Aliro_Actuator</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">aliro_actuator</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="modules.html" title="next chapter">aliro_actuator</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Mike Jongen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

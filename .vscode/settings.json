@@ -1,0 +1,37 @@
+{
+    "black-formatter.importStrategy": "fromEnvironment",
+    "isort.args": [
+        "--profile",
+        "black"
+    ],
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "--no-cov",
+    ],
+    "python.testing.autoTestDiscoverOnSaveEnabled": true,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+    },
+    "mypy.configFile": "mypy.ini",
+    "mypy.runUsingActiveInterpreter": true,
+    "mypy.targets": [
+        "src/aliro_actuator",
+        "tests",
+    ],
+    "editor.rulers": [
+        88
+    ],
+    "files.exclude": {
+        "**/__pycache__": true,
+        ".mypy_cache": true,
+        ".pytest_cache": true,
+        ".coverage": true
+    },
+    "plantuml.exportOutDir": "docs/diagrams/out",
+    "plantuml.diagramsRoot": "docs/diagrams/src"
+
+}

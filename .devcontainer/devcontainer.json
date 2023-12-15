@@ -1,0 +1,37 @@
+{
+	"name": "python-dev",
+	"build": {
+		"dockerfile": "../Dockerfile",
+		"args": {
+			"INSTALL_DEV": "true"
+		}
+	},
+	// 👇 Features to add to the Dev Container. More info: https://containers.dev/implementors/features.
+	// "features": {},
+	// 👇 Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// 👇 Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "poetry install --no-interaction --no-root",
+	"workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
+	"workspaceFolder": "/app",
+	// 👇 Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/local/bin/python3"
+			},
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"ms-python.python",
+				"ms-python.isort",
+				"ms-python.black-formatter",
+				"ms-python.flake8",
+				"streetsidesoftware.code-spell-checker",
+				"ms-azuretools.vscode-docker",
+				"matangover.mypy",
+				"njpwerner.autodocstring"
+			]
+		}
+	},
+	"remoteUser": "root"
+}

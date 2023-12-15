@@ -1,0 +1,961 @@
+\begin{sphinxtheindex}
+\let\bigletter\sphinxstyleindexlettergroup
+\let\spxpagem \sphinxstyleindexpagemain
+\let\spxentry \sphinxstyleindexentry
+\let\spxextra \sphinxstyleindexextra
+
+  \bigletter A
+  \item \spxentry{ACCESS\_RESPONSE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{AccessCredential}\spxextra{class in aliro\_actuator.credential.access\_credential}, 
+		\hyperpage{31}
+  \item \spxentry{AccessProtocolError}, \hyperpage{18}
+  \item \spxentry{add\_set()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}, 
+		\hyperpage{26}
+  \item \spxentry{add\_value()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}, 
+		\hyperpage{24}
+  \item \spxentry{add\_write()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}, 
+		\hyperpage{26}
+  \item \spxentry{AID\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+  \item \spxentry{aliro\_actuator}
+    \subitem \spxentry{module}, \hyperpage{39}
+  \item \spxentry{aliro\_actuator.access\_protocol}
+    \subitem \spxentry{module}, \hyperpage{30}
+  \item \spxentry{aliro\_actuator.access\_protocol.apdu}
+    \subitem \spxentry{module}, \hyperpage{7}
+  \item \spxentry{aliro\_actuator.access\_protocol.authentication}
+    \subitem \spxentry{module}, \hyperpage{13}
+  \item \spxentry{aliro\_actuator.access\_protocol.defines}
+    \subitem \spxentry{module}, \hyperpage{13}
+  \item \spxentry{aliro\_actuator.access\_protocol.encryption}
+    \subitem \spxentry{module}, \hyperpage{16}
+  \item \spxentry{aliro\_actuator.access\_protocol.errors}
+    \subitem \spxentry{module}, \hyperpage{18}
+  \item \spxentry{aliro\_actuator.access\_protocol.mailbox}
+    \subitem \spxentry{module}, \hyperpage{19}
+  \item \spxentry{aliro\_actuator.access\_protocol.reader}
+    \subitem \spxentry{module}, \hyperpage{21}
+  \item \spxentry{aliro\_actuator.access\_protocol.tlv}
+    \subitem \spxentry{module}, \hyperpage{24}
+  \item \spxentry{aliro\_actuator.access\_protocol.user\_device}
+    \subitem \spxentry{module}, \hyperpage{26}
+  \item \spxentry{aliro\_actuator.credential}
+    \subitem \spxentry{module}, \hyperpage{31}
+  \item \spxentry{aliro\_actuator.credential.access\_credential}
+    \subitem \spxentry{module}, \hyperpage{31}
+  \item \spxentry{aliro\_actuator.credential.errors}
+    \subitem \spxentry{module}, \hyperpage{31}
+  \item \spxentry{aliro\_actuator.credential.revocation\_document}
+    \subitem \spxentry{module}, \hyperpage{31}
+  \item \spxentry{aliro\_actuator.hw\_driver}
+    \subitem \spxentry{module}, \hyperpage{34}
+  \item \spxentry{aliro\_actuator.hw\_driver.pn7160\_driver}
+    \subitem \spxentry{module}, \hyperpage{34}
+  \item \spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.api}
+    \subitem \spxentry{module}, \hyperpage{32}
+  \item \spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.errors}
+    \subitem \spxentry{module}, \hyperpage{33}
+  \item \spxentry{aliro\_actuator.log}
+    \subitem \spxentry{module}, \hyperpage{38}
+  \item \spxentry{aliro\_actuator.transport\_protocol}
+    \subitem \spxentry{module}, \hyperpage{35}
+  \item \spxentry{aliro\_actuator.transport\_protocol.ble\_uwb}
+    \subitem \spxentry{module}, \hyperpage{34}
+  \item \spxentry{aliro\_actuator.transport\_protocol.errors}
+    \subitem \spxentry{module}, \hyperpage{34}
+  \item \spxentry{aliro\_actuator.transport\_protocol.nfc}
+    \subitem \spxentry{module}, \hyperpage{35}
+  \item \spxentry{aliro\_actuator.transport\_protocol.socket}
+    \subitem \spxentry{module}, \hyperpage{35}
+  \item \spxentry{aliro\_actuator.trust\_framework}
+    \subitem \spxentry{module}, \hyperpage{38}
+  \item \spxentry{aliro\_actuator.trust\_framework.certificate}
+    \subitem \spxentry{module}, \hyperpage{36}
+  \item \spxentry{aliro\_actuator.trust\_framework.endpoint}
+    \subitem \spxentry{module}, \hyperpage{36}
+  \item \spxentry{aliro\_actuator.trust\_framework.errors}
+    \subitem \spxentry{module}, \hyperpage{37}
+  \item \spxentry{aliro\_actuator.trust\_framework.key}
+    \subitem \spxentry{module}, \hyperpage{37}
+  \item \spxentry{APDU}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, \hyperpage{7}
+  \item \spxentry{as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}, 
+		\hyperpage{38}
+  \item \spxentry{as\_pem()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}, 
+		\hyperpage{38}
+  \item \spxentry{as\_pem()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}, 
+		\hyperpage{38}
+  \item \spxentry{AUTH0}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}, 
+		\hyperpage{10}
+  \item \spxentry{Auth0}\spxextra{class in aliro\_actuator.access\_protocol.defines}, 
+		\hyperpage{13}
+  \item \spxentry{AUTH0\_FAST\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}, 
+		\hyperpage{30}
+  \item \spxentry{AUTH0\_STD\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}, 
+		\hyperpage{30}
+  \item \spxentry{AUTH1}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}, 
+		\hyperpage{10}
+  \item \spxentry{Auth1}\spxextra{class in aliro\_actuator.access\_protocol.defines}, 
+		\hyperpage{13}
+  \item \spxentry{AUTH1\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}, 
+		\hyperpage{30}
+  \item \spxentry{Auth1Response}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, 
+		\hyperpage{8}
+
+  \indexspace
+  \bigletter B
+  \item \spxentry{BLE\_UWB}\spxextra{aliro\_actuator.access\_protocol.defines.TransportProtocol attribute}, 
+		\hyperpage{15}
+  \item \spxentry{BLEUWB}\spxextra{class in aliro\_actuator.transport\_protocol.ble\_uwb}, 
+		\hyperpage{34}
+
+  \indexspace
+  \bigletter C
+  \item \spxentry{can\_retrieve\_access\_credential()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{can\_retrieve\_revocation\_document()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{CARD\_EMULATION}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}, 
+		\hyperpage{35}
+  \item \spxentry{Certificate}\spxextra{class in aliro\_actuator.trust\_framework.certificate}, 
+		\hyperpage{36}
+  \item \spxentry{CERTIFICATE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{CertificateDecodingError}, \hyperpage{37}
+  \item \spxentry{check\_boundaries()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}, 
+		\hyperpage{19}
+  \item \spxentry{check\_counters\_valid()}\spxextra{aliro\_actuator.access\_protocol.encryption.EncryptionEngine method}, 
+		\hyperpage{16}
+  \item \spxentry{check\_endpoint\_authentication()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{Command}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, \hyperpage{9}
+  \item \spxentry{command\_auth0()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{21}
+  \item \spxentry{command\_auth1()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{21}
+  \item \spxentry{command\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{21}
+  \item \spxentry{command\_envelope()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{21}
+  \item \spxentry{command\_exchange()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{command\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{command\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{COMMAND\_NOT\_ALLOWED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{11}
+  \item \spxentry{COMMAND\_NOT\_COMPLIANT}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{11}
+  \item \spxentry{command\_select()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{COMMAND\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{COMMAND\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{compute\_shared\_key()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}, 
+		\hyperpage{38}
+  \item \spxentry{CONDITIONS\_OF\_USE\_NOT\_SATISFIED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{11}
+  \item \spxentry{configure\_logging()}\spxextra{in module aliro\_actuator.log}, \hyperpage{39}
+  \item \spxentry{CONTROL\_FLOW}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}, 
+		\hyperpage{10}
+  \item \spxentry{ControlFlow}\spxextra{class in aliro\_actuator.access\_protocol.defines}, 
+		\hyperpage{14}
+  \item \spxentry{create\_auth0\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{7}
+  \item \spxentry{create\_auth0\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{7}
+  \item \spxentry{create\_auth1\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{7}
+  \item \spxentry{create\_auth1\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{7}
+  \item \spxentry{create\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_control\_flow\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_control\_flow\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_endpoint\_authentication()}\spxextra{in module aliro\_actuator.access\_protocol.authentication}, 
+		\hyperpage{13}
+  \item \spxentry{create\_envelope\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_envelope\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_error\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_exchange\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_exchange\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_from\_bytestring()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command class method}, 
+		\hyperpage{9}
+  \item \spxentry{create\_from\_bytestring()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response class method}, 
+		\hyperpage{10}
+  \item \spxentry{create\_from\_parameters()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command class method}, 
+		\hyperpage{9}
+  \item \spxentry{create\_from\_parameters()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response class method}, 
+		\hyperpage{10}
+  \item \spxentry{create\_get\_response\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_get\_response\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_load\_cert\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_load\_cert\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_proprietary\_information()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}, 
+		\hyperpage{16}
+  \item \spxentry{create\_reader\_authentication()}\spxextra{in module aliro\_actuator.access\_protocol.authentication}, 
+		\hyperpage{13}
+  \item \spxentry{create\_salt()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}, 
+		\hyperpage{17}
+  \item \spxentry{create\_select\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{create\_select\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{CreateCommandError}, \hyperpage{18}
+  \item \spxentry{CreateResponseError}, \hyperpage{18}
+  \item \spxentry{Credential}\spxextra{class in aliro\_actuator.credential}, \hyperpage{31}
+  \item \spxentry{CREDENTIAL\_TIMESTAMP\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{CREDENTIAL\_TIMESTAMP\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{CredentialError}, \hyperpage{31}
+  \item \spxentry{CRYPTOGRAM\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{current\_ndef\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}, 
+		\hyperpage{32}
+
+  \indexspace
+  \bigletter D
+  \item \spxentry{data\_is\_set()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}, 
+		\hyperpage{19}
+  \item \spxentry{DATA\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}, 
+		\hyperpage{19}
+  \item \spxentry{DataElement}\spxextra{class in aliro\_actuator.credential.access\_credential}, 
+		\hyperpage{31}
+  \item \spxentry{decode()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate class method}, 
+		\hyperpage{36}
+  \item \spxentry{decode\_compressed()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate class method}, 
+		\hyperpage{36}
+  \item \spxentry{decrypt()}\spxextra{aliro\_actuator.access\_protocol.encryption.EncryptionEngine method}, 
+		\hyperpage{16}
+  \item \spxentry{decrypt\_payload()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{DEFAULT}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute}, 
+		\hyperpage{32}
+  \item \spxentry{default\_issuer}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}, 
+		\hyperpage{36}
+  \item \spxentry{default\_serial\_number}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}, 
+		\hyperpage{36}
+  \item \spxentry{default\_subject}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}, 
+		\hyperpage{36}
+  \item \spxentry{default\_validity\_not\_after}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}, 
+		\hyperpage{36}
+  \item \spxentry{default\_validity\_not\_before}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}, 
+		\hyperpage{36}
+  \item \spxentry{derive\_key()}\spxextra{in module aliro\_actuator.trust\_framework.key}, 
+		\hyperpage{38}
+  \item \spxentry{derive\_key\_persistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{29}
+  \item \spxentry{derive\_key\_volatile()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{derive\_key\_volatile()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{29}
+  \item \spxentry{Device}\spxextra{class in aliro\_actuator.access\_protocol}, \hyperpage{30}
+  \item \spxentry{DeviceType}\spxextra{class in aliro\_actuator.access\_protocol.encryption}, 
+		\hyperpage{16}
+  \item \spxentry{DISARM}\spxextra{aliro\_actuator.access\_protocol.apdu.TransactionCode attribute}, 
+		\hyperpage{12}
+  \item \spxentry{DISARM\_WITH\_FORCE\_USER\_AUTHENTICATION}\spxextra{aliro\_actuator.access\_protocol.apdu.TransactionCode attribute}, 
+		\hyperpage{12}
+  \item \spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}, 
+		\hyperpage{35}
+  \item \spxentry{DOMAIN\_SPECIFIC\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}, 
+		\hyperpage{14}
+  \item \spxentry{Driver}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver}, 
+		\hyperpage{34}
+  \item \spxentry{DriverNotInitializedError}, \hyperpage{33}
+
+  \indexspace
+  \bigletter E
+  \item \spxentry{ElementSizeError}, \hyperpage{31}
+  \item \spxentry{emit()}\spxextra{aliro\_actuator.log.InterceptHandler method}, \hyperpage{39}
+  \item \spxentry{encode\_compressed()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}, 
+		\hyperpage{36}
+  \item \spxentry{encrypt()}\spxextra{aliro\_actuator.access\_protocol.encryption.EncryptionEngine method}, 
+		\hyperpage{16}
+  \item \spxentry{encrypt\_payload()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{EncryptionEngine}\spxextra{class in aliro\_actuator.access\_protocol.encryption}, 
+		\hyperpage{16}
+  \item \spxentry{Endpoint}\spxextra{class in aliro\_actuator.trust\_framework.endpoint}, 
+		\hyperpage{36}
+  \item \spxentry{ENDPOINT\_EPUBK\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{ENDPOINT\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{ENDPOINT\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{ENDPOINT\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.EndpointAuth attribute}, 
+		\hyperpage{14}
+  \item \spxentry{ENDPOINT\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}, 
+		\hyperpage{15}
+  \item \spxentry{ENDPOINT\_PUBLIC\_KEY}\spxextra{aliro\_actuator.access\_protocol.apdu.Auth1Response attribute}, 
+		\hyperpage{8}
+  \item \spxentry{ENDPOINT\_SIG\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{ENDPOINT\_SIG\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{EndpointAuth}\spxextra{class in aliro\_actuator.access\_protocol.defines}, 
+		\hyperpage{14}
+  \item \spxentry{ENVELOPE}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}, 
+		\hyperpage{10}
+  \item \spxentry{ETPV\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{ETSPV\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+  \item \spxentry{EXCHANGE}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}, 
+		\hyperpage{10}
+  \item \spxentry{Exchange}\spxextra{class in aliro\_actuator.access\_protocol.defines}, 
+		\hyperpage{14}
+  \item \spxentry{EXCHANGE\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}, 
+		\hyperpage{30}
+  \item \spxentry{execute\_commands()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}, 
+		\hyperpage{26}
+  \item \spxentry{expedited\_transaction\_fast()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{expedited\_transaction\_standard()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{EXTENDED\_INFO\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+
+  \indexspace
+  \bigletter F
+  \item \spxentry{FAST}\spxextra{aliro\_actuator.access\_protocol.apdu.Transaction attribute}, 
+		\hyperpage{12}
+  \item \spxentry{FCI\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+  \item \spxentry{FILE\_OR\_APP\_NOT\_FOUND}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{11}
+  \item \spxentry{FINISHED\_WITH\_FAILURE}\spxextra{aliro\_actuator.access\_protocol.apdu.S1 attribute}, 
+		\hyperpage{11}
+  \item \spxentry{FINISHED\_WITH\_SUCCESS}\spxextra{aliro\_actuator.access\_protocol.apdu.S1 attribute}, 
+		\hyperpage{11}
+  \item \spxentry{from\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV static method}, 
+		\hyperpage{24}
+  \item \spxentry{FUNCTION\_NOT\_SUPPORTED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{FUNCTIONS\_IN\_CLA\_NOT\_SUPPORTED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+
+  \indexspace
+  \bigletter G
+  \item \spxentry{generate\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{generate\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{generate\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}, 
+		\hyperpage{38}
+  \item \spxentry{GENERIC\_ERROR}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{get\_all\_bytes\_of\_tag()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}, 
+		\hyperpage{25}
+  \item \spxentry{get\_all\_of\_tag()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}, 
+		\hyperpage{25}
+  \item \spxentry{get\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}, 
+		\hyperpage{25}
+  \item \spxentry{get\_data()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}, 
+		\hyperpage{19}
+  \item \spxentry{get\_endpoint\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{get\_endpoint\_epubkey()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{get\_endpoint\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.endpoint.Endpoint method}, 
+		\hyperpage{36}
+  \item \spxentry{get\_endpoint\_reader\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}, 
+		\hyperpage{34}
+  \item \spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}, 
+		\hyperpage{35}
+  \item \spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}, 
+		\hyperpage{35}
+  \item \spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}, 
+		\hyperpage{35}
+  \item \spxentry{get\_private\_key()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}, 
+		\hyperpage{37}
+  \item \spxentry{get\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}, 
+		\hyperpage{36}
+  \item \spxentry{get\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}, 
+		\hyperpage{37}
+  \item \spxentry{get\_public\_key\_as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}, 
+		\hyperpage{37}
+  \item \spxentry{get\_raw()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}, 
+		\hyperpage{20}
+  \item \spxentry{get\_reader\_epubkey()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{get\_reader\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{get\_reader\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.endpoint.Endpoint method}, 
+		\hyperpage{36}
+  \item \spxentry{GET\_RESPONSE}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}, 
+		\hyperpage{10}
+  \item \spxentry{get\_tlv()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}, 
+		\hyperpage{20}
+  \item \spxentry{get\_tlv()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}, 
+		\hyperpage{25}
+  \item \spxentry{get\_transaction\_type()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{get\_value()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}, 
+		\hyperpage{25}
+  \item \spxentry{get\_x()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}, 
+		\hyperpage{38}
+  \item \spxentry{get\_y()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}, 
+		\hyperpage{38}
+  \item \spxentry{Global}\spxextra{class in aliro\_actuator}, \hyperpage{39}
+
+  \indexspace
+  \bigletter H
+  \item \spxentry{handle}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}, 
+		\hyperpage{33}
+  \item \spxentry{handle\_auth0()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{handle\_auth0()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{27}
+  \item \spxentry{handle\_auth1()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{handle\_auth1()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{27}
+  \item \spxentry{handle\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{22}
+  \item \spxentry{handle\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{27}
+  \item \spxentry{handle\_exchange()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{23}
+  \item \spxentry{handle\_exchange()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{27}
+  \item \spxentry{handle\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{23}
+  \item \spxentry{handle\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{27}
+  \item \spxentry{handle\_select()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{23}
+  \item \spxentry{handle\_select()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{27}
+  \item \spxentry{has\_identifier()}\spxextra{aliro\_actuator.trust\_framework.endpoint.Endpoint method}, 
+		\hyperpage{36}
+
+  \indexspace
+  \bigletter I
+  \item \spxentry{INCORRECT\_P1\_P2}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{INCORRECT\_PARAMETERS\_IN\_DATA}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{INCORRECT\_SECURE\_MESSAGING\_DOS}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{INDEX\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}, 
+		\hyperpage{19}
+  \item \spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}, 
+		\hyperpage{34}
+  \item \spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}, 
+		\hyperpage{35}
+  \item \spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}, 
+		\hyperpage{35}
+  \item \spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}, 
+		\hyperpage{35}
+  \item \spxentry{initialize()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}, 
+		\hyperpage{34}
+  \item \spxentry{INS}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, \hyperpage{10}
+  \item \spxentry{InterceptHandler}\spxextra{class in aliro\_actuator.log}, \hyperpage{38}
+  \item \spxentry{INVALID\_CLASS}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{INVALID\_INSTRUCTION}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{InvalidAIDError}, \hyperpage{18}
+  \item \spxentry{InvalidCLAError}, \hyperpage{18}
+  \item \spxentry{InvalidCommandDataError}, \hyperpage{18}
+  \item \spxentry{InvalidCommandError}, \hyperpage{18}
+  \item \spxentry{InvalidINSError}, \hyperpage{18}
+  \item \spxentry{InvalidKeyError}, \hyperpage{37}
+  \item \spxentry{InvalidKeyFormatError}, \hyperpage{37}
+  \item \spxentry{InvalidLcError}, \hyperpage{18}
+  \item \spxentry{InvalidModeError}, \hyperpage{34}
+  \item \spxentry{InvalidParameterError}, \hyperpage{18}
+  \item \spxentry{InvalidResponseDataError}, \hyperpage{18}
+  \item \spxentry{InvalidResponseError}, \hyperpage{18}
+  \item \spxentry{InvalidStatusError}, \hyperpage{18}
+  \item \spxentry{is\_def}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}, 
+		\hyperpage{32}
+  \item \spxentry{is\_started()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}, 
+		\hyperpage{26}
+  \item \spxentry{is\_writable}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}, 
+		\hyperpage{32}
+  \item \spxentry{IssuerAuth}\spxextra{class in aliro\_actuator.credential.access\_credential}, 
+		\hyperpage{31}
+
+  \indexspace
+  \bigletter K
+  \item \spxentry{Key}\spxextra{class in aliro\_actuator.trust\_framework.key}, \hyperpage{37}
+  \item \spxentry{KEY\_SLOT}\spxextra{aliro\_actuator.access\_protocol.apdu.Auth1Response attribute}, 
+		\hyperpage{9}
+  \item \spxentry{KEY\_SLOT\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{KEY\_SLOT\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{KeyLookupFailed}, \hyperpage{19}
+  \item \spxentry{KeyPair}\spxextra{class in aliro\_actuator.trust\_framework.key}, \hyperpage{37}
+
+  \indexspace
+  \bigletter L
+  \item \spxentry{LOAD\_CERT}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}, 
+		\hyperpage{10}
+  \item \spxentry{LOCK}\spxextra{aliro\_actuator.access\_protocol.apdu.TransactionCode attribute}, 
+		\hyperpage{12}
+  \item \spxentry{LOCK\_USING\_RKE}\spxextra{aliro\_actuator.access\_protocol.apdu.TransactionCode attribute}, 
+		\hyperpage{12}
+  \item \spxentry{LOCK\_WITH\_FORCE\_USER\_AUTHENTICATION}\spxextra{aliro\_actuator.access\_protocol.apdu.TransactionCode attribute}, 
+		\hyperpage{12}
+  \item \spxentry{logger}\spxextra{aliro\_actuator.Global attribute}, \hyperpage{39}
+  \item \spxentry{LoggingConfigError}, \hyperpage{39}
+  \item \spxentry{LOGICAL\_CHANNEL\_NOT\_SUPPORTED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{loglevel\_mapping}\spxextra{aliro\_actuator.log.InterceptHandler attribute}, 
+		\hyperpage{39}
+
+  \indexspace
+  \bigletter M
+  \item \spxentry{Mailbox}\spxextra{class in aliro\_actuator.access\_protocol.mailbox}, 
+		\hyperpage{19}
+  \item \spxentry{MAILBOX\_DATA\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{MailboxFormatError}, \hyperpage{20}
+  \item \spxentry{MailboxPermissionError}, \hyperpage{20}
+  \item \spxentry{MailboxSession}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}, 
+		\hyperpage{26}
+  \item \spxentry{MailboxSession.Command}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}, 
+		\hyperpage{26}
+  \item \spxentry{main\_loop()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{27}
+  \item \spxentry{MASK\_A}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute}, 
+		\hyperpage{32}
+  \item \spxentry{MAX\_COMMAND\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+  \item \spxentry{max\_ndef\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}, 
+		\hyperpage{32}
+  \item \spxentry{MAX\_RESPONSE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+  \item \spxentry{MEMORY\_FAILURE}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{Message}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, \hyperpage{10}
+  \item \spxentry{MessageTooLongError}, \hyperpage{19}
+  \item \spxentry{Mode}\spxextra{class in aliro\_actuator.transport\_protocol}, \hyperpage{35}
+  \item \spxentry{module}
+    \subitem \spxentry{aliro\_actuator}, \hyperpage{39}
+    \subitem \spxentry{aliro\_actuator.access\_protocol}, \hyperpage{30}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.apdu}, \hyperpage{7}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.authentication}, \hyperpage{13}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.defines}, \hyperpage{13}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.encryption}, \hyperpage{16}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.errors}, \hyperpage{18}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.mailbox}, \hyperpage{19}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.reader}, \hyperpage{21}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.tlv}, \hyperpage{24}
+    \subitem \spxentry{aliro\_actuator.access\_protocol.user\_device}, \hyperpage{26}
+    \subitem \spxentry{aliro\_actuator.credential}, \hyperpage{31}
+    \subitem \spxentry{aliro\_actuator.credential.access\_credential}, \hyperpage{31}
+    \subitem \spxentry{aliro\_actuator.credential.errors}, \hyperpage{31}
+    \subitem \spxentry{aliro\_actuator.credential.revocation\_document}, \hyperpage{31}
+    \subitem \spxentry{aliro\_actuator.hw\_driver}, \hyperpage{34}
+    \subitem \spxentry{aliro\_actuator.hw\_driver.pn7160\_driver}, \hyperpage{34}
+    \subitem \spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.api}, \hyperpage{32}
+    \subitem \spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.errors}, \hyperpage{33}
+    \subitem \spxentry{aliro\_actuator.log}, \hyperpage{38}
+    \subitem \spxentry{aliro\_actuator.transport\_protocol}, \hyperpage{35}
+    \subitem \spxentry{aliro\_actuator.transport\_protocol.ble\_uwb}, \hyperpage{34}
+    \subitem \spxentry{aliro\_actuator.transport\_protocol.errors}, \hyperpage{34}
+    \subitem \spxentry{aliro\_actuator.transport\_protocol.nfc}, \hyperpage{35}
+    \subitem \spxentry{aliro\_actuator.transport\_protocol.socket}, \hyperpage{35}
+    \subitem \spxentry{aliro\_actuator.trust\_framework}, \hyperpage{38}
+    \subitem \spxentry{aliro\_actuator.trust\_framework.certificate}, \hyperpage{36}
+    \subitem \spxentry{aliro\_actuator.trust\_framework.endpoint}, \hyperpage{36}
+    \subitem \spxentry{aliro\_actuator.trust\_framework.errors}, \hyperpage{37}
+    \subitem \spxentry{aliro\_actuator.trust\_framework.key}, \hyperpage{37}
+
+  \indexspace
+  \bigletter N
+  \item \spxentry{NCIError}, \hyperpage{33}
+  \item \spxentry{NCINotFoundError}, \hyperpage{33}
+  \item \spxentry{ndef\_info\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}, 
+		\hyperpage{32}
+  \item \spxentry{NFC}\spxextra{aliro\_actuator.access\_protocol.defines.TransportProtocol attribute}, 
+		\hyperpage{15}
+  \item \spxentry{NFC}\spxextra{class in aliro\_actuator.transport\_protocol.nfc}, \hyperpage{35}
+  \item \spxentry{nfc\_tag\_info\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}, 
+		\hyperpage{32}
+  \item \spxentry{nfcHostCardEmulationCallback\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}, 
+		\hyperpage{32}
+  \item \spxentry{nfcTagCallback\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}, 
+		\hyperpage{32}
+  \item \spxentry{NO\_PRECISE\_DIAGNOSIS}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{NoDataReceivedError}, \hyperpage{33, 34}
+  \item \spxentry{NONE}\spxextra{aliro\_actuator.access\_protocol.apdu.S2 attribute}, 
+		\hyperpage{11}
+  \item \spxentry{NoReaderError}, \hyperpage{33}
+  \item \spxentry{NoTagError}, \hyperpage{33}
+  \item \spxentry{NOTIFY\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}, 
+		\hyperpage{14}
+
+  \indexspace
+  \bigletter O
+  \item \spxentry{onDataReceived}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}, 
+		\hyperpage{32}
+  \item \spxentry{onHostCardEmulationActivated}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}, 
+		\hyperpage{32}
+  \item \spxentry{onHostCardEmulationDeactivated}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}, 
+		\hyperpage{32}
+  \item \spxentry{onTagArrival}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute}, 
+		\hyperpage{32}
+  \item \spxentry{onTagDeparture}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute}, 
+		\hyperpage{32}
+
+  \indexspace
+  \bigletter P
+  \item \spxentry{parse()}\spxextra{aliro\_actuator.credential.access\_credential.AccessCredential method}, 
+		\hyperpage{31}
+  \item \spxentry{parse\_as\_auth0()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}, 
+		\hyperpage{9}
+  \item \spxentry{parse\_as\_auth0()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}, 
+		\hyperpage{10}
+  \item \spxentry{parse\_as\_auth1()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}, 
+		\hyperpage{9}
+  \item \spxentry{parse\_as\_auth1()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}, 
+		\hyperpage{10}
+  \item \spxentry{parse\_as\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}, 
+		\hyperpage{9}
+  \item \spxentry{parse\_as\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}, 
+		\hyperpage{10}
+  \item \spxentry{parse\_as\_envelope()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}, 
+		\hyperpage{9}
+  \item \spxentry{parse\_as\_envelope()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}, 
+		\hyperpage{11}
+  \item \spxentry{parse\_as\_exchange()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}, 
+		\hyperpage{9}
+  \item \spxentry{parse\_as\_exchange()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}, 
+		\hyperpage{11}
+  \item \spxentry{parse\_as\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}, 
+		\hyperpage{9}
+  \item \spxentry{parse\_as\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}, 
+		\hyperpage{11}
+  \item \spxentry{parse\_as\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}, 
+		\hyperpage{9}
+  \item \spxentry{parse\_as\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}, 
+		\hyperpage{11}
+  \item \spxentry{parse\_as\_select()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}, 
+		\hyperpage{9}
+  \item \spxentry{parse\_as\_select()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}, 
+		\hyperpage{11}
+  \item \spxentry{parse\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{parse\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}, 
+		\hyperpage{8}
+  \item \spxentry{PN7160DriverError}, \hyperpage{33}
+  \item \spxentry{PrivateKey}\spxextra{class in aliro\_actuator.trust\_framework.key}, 
+		\hyperpage{37}
+  \item \spxentry{PROPRIETARY\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+  \item \spxentry{protocol}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}, 
+		\hyperpage{33}
+  \item \spxentry{PROTOCOL\_VERSION\_NOT\_SUPPORTED}\spxextra{aliro\_actuator.access\_protocol.apdu.S2 attribute}, 
+		\hyperpage{11}
+  \item \spxentry{PublicKey}\spxextra{class in aliro\_actuator.trust\_framework.key}, 
+		\hyperpage{38}
+
+  \indexspace
+  \bigletter R
+  \item \spxentry{RE\_VENDOR\_SPECIFIC\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{read()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}, 
+		\hyperpage{20}
+  \item \spxentry{READ\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}, 
+		\hyperpage{14}
+  \item \spxentry{READER}\spxextra{aliro\_actuator.access\_protocol.encryption.DeviceType attribute}, 
+		\hyperpage{16}
+  \item \spxentry{READER}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}, 
+		\hyperpage{35}
+  \item \spxentry{Reader}\spxextra{class in aliro\_actuator.access\_protocol.reader}, 
+		\hyperpage{21}
+  \item \spxentry{READER\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{READER\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.EndpointAuth attribute}, 
+		\hyperpage{14}
+  \item \spxentry{READER\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}, 
+		\hyperpage{15}
+  \item \spxentry{READER\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{READER\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.EndpointAuth attribute}, 
+		\hyperpage{14}
+  \item \spxentry{READER\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}, 
+		\hyperpage{15}
+  \item \spxentry{READER\_SIG\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{ReaderAuth}\spxextra{class in aliro\_actuator.access\_protocol.defines}, 
+		\hyperpage{15}
+  \item \spxentry{ReaderSession}\spxextra{class in aliro\_actuator.access\_protocol.reader}, 
+		\hyperpage{24}
+  \item \spxentry{receive\_message()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}, 
+		\hyperpage{34}
+  \item \spxentry{Response}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, 
+		\hyperpage{10}
+  \item \spxentry{response\_auth0()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{28}
+  \item \spxentry{response\_auth1()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{28}
+  \item \spxentry{response\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{28}
+  \item \spxentry{response\_envelope()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{28}
+  \item \spxentry{response\_error()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{28}
+  \item \spxentry{response\_exchange()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{28}
+  \item \spxentry{response\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{28}
+  \item \spxentry{response\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{28}
+  \item \spxentry{response\_select()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{29}
+  \item \spxentry{retrieve()}\spxextra{aliro\_actuator.credential.Credential method}, 
+		\hyperpage{31}
+  \item \spxentry{return\_exchange\_error\_and\_close\_channel()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{29}
+  \item \spxentry{REVOCATION\_TIMESTAMP\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{REVOCATION\_TIMESTAMP\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{RevocationDocument}\spxextra{class in aliro\_actuator.credential.revocation\_document}, 
+		\hyperpage{31}
+
+  \indexspace
+  \bigletter S
+  \item \spxentry{S1}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, \hyperpage{11}
+  \item \spxentry{S1\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}, 
+		\hyperpage{14}
+  \item \spxentry{S2}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, \hyperpage{11}
+  \item \spxentry{S2\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}, 
+		\hyperpage{14}
+  \item \spxentry{SECURITY\_STATUS\_NOT\_SATISFIED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{SELECT}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}, 
+		\hyperpage{10}
+  \item \spxentry{Select}\spxextra{class in aliro\_actuator.access\_protocol.defines}, 
+		\hyperpage{15}
+  \item \spxentry{SELECT\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}, 
+		\hyperpage{30}
+  \item \spxentry{send\_message()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}, 
+		\hyperpage{34}
+  \item \spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}, 
+		\hyperpage{34}
+  \item \spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}, 
+		\hyperpage{35}
+  \item \spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}, 
+		\hyperpage{35}
+  \item \spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}, 
+		\hyperpage{35}
+  \item \spxentry{SESSION\_START}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}, 
+		\hyperpage{30}
+  \item \spxentry{SessionError}, \hyperpage{19}
+  \item \spxentry{SET}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute}, 
+		\hyperpage{26}
+  \item \spxentry{set()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}, 
+		\hyperpage{20}
+  \item \spxentry{set\_auth0\_data()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{set\_auth1\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{set\_cert\_and\_verify()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{set\_endpoint()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{set\_endpoint\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{set\_flag()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{set\_logger()}\spxextra{aliro\_actuator.Global class method}, \hyperpage{39}
+  \item \spxentry{set\_reader\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{set\_select\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{set\_shared\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{set\_shared\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{SET\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}, 
+		\hyperpage{14}
+  \item \spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.endpoint.Endpoint method}, 
+		\hyperpage{36}
+  \item \spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}, 
+		\hyperpage{37}
+  \item \spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}, 
+		\hyperpage{38}
+  \item \spxentry{SIGNALING\_BITMAP\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}, 
+		\hyperpage{14}
+  \item \spxentry{Socket}\spxextra{class in aliro\_actuator.transport\_protocol.socket}, 
+		\hyperpage{35}
+  \item \spxentry{SOCKET\_BLE}\spxextra{aliro\_actuator.access\_protocol.defines.TransportProtocol attribute}, 
+		\hyperpage{15}
+  \item \spxentry{SOCKET\_NFC}\spxextra{aliro\_actuator.access\_protocol.defines.TransportProtocol attribute}, 
+		\hyperpage{15}
+  \item \spxentry{STANDARD}\spxextra{aliro\_actuator.access\_protocol.apdu.Transaction attribute}, 
+		\hyperpage{12}
+  \item \spxentry{start()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}, 
+		\hyperpage{26}
+  \item \spxentry{start\_new\_session()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{23}
+  \item \spxentry{start\_new\_session()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{29}
+  \item \spxentry{START\_OF\_DATA\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}, 
+		\hyperpage{19}
+  \item \spxentry{state\_valid()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{StatusBytes}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, 
+		\hyperpage{11}
+  \item \spxentry{step\_up\_aid\_select\_required()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}, 
+		\hyperpage{24}
+  \item \spxentry{step\_up\_transaction()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{23}
+  \item \spxentry{stop()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}, 
+		\hyperpage{26}
+  \item \spxentry{store()}\spxextra{aliro\_actuator.credential.Credential method}, \hyperpage{31}
+  \item \spxentry{SUCCESS}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+  \item \spxentry{support\_extended\_length\_apdu}\spxextra{aliro\_actuator.access\_protocol.Device property}, 
+		\hyperpage{30}
+  \item \spxentry{sw1}\spxextra{aliro\_actuator.access\_protocol.apdu.Response property}, 
+		\hyperpage{11}
+  \item \spxentry{sw2}\spxextra{aliro\_actuator.access\_protocol.apdu.Response property}, 
+		\hyperpage{11}
+
+  \indexspace
+  \bigletter T
+  \item \spxentry{technology}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}, 
+		\hyperpage{33}
+  \item \spxentry{TECHNOLOGY\_MASK}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}, 
+		\hyperpage{32}
+  \item \spxentry{TLV}\spxextra{class in aliro\_actuator.access\_protocol.tlv}, \hyperpage{24}
+  \item \spxentry{TlvError}, \hyperpage{26}
+  \item \spxentry{to\_bytes()}\spxextra{aliro\_actuator.access\_protocol.apdu.Message method}, 
+		\hyperpage{10}
+  \item \spxentry{to\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}, 
+		\hyperpage{26}
+  \item \spxentry{to\_data()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}, 
+		\hyperpage{26}
+  \item \spxentry{Transaction}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, 
+		\hyperpage{12}
+  \item \spxentry{TRANSACTION\_CODE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{TRANSACTION\_ID\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{transaction\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}, 
+		\hyperpage{24}
+  \item \spxentry{TRANSACTION\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.EndpointAuth attribute}, 
+		\hyperpage{14}
+  \item \spxentry{TRANSACTION\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}, 
+		\hyperpage{15}
+  \item \spxentry{transaction\_initiation()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}, 
+		\hyperpage{23}
+  \item \spxentry{transaction\_initiation()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{29}
+  \item \spxentry{TransactionCode}\spxextra{class in aliro\_actuator.access\_protocol.apdu}, 
+		\hyperpage{12}
+  \item \spxentry{TransportProtocol}\spxextra{class in aliro\_actuator.access\_protocol.defines}, 
+		\hyperpage{15}
+  \item \spxentry{TransportProtocolBase}\spxextra{class in aliro\_actuator.transport\_protocol}, 
+		\hyperpage{35}
+  \item \spxentry{TransportProtocolError}, \hyperpage{34}
+  \item \spxentry{TrustFrameworkError}, \hyperpage{37}
+  \item \spxentry{TYPE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+
+  \indexspace
+  \bigletter U
+  \item \spxentry{uid}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}, 
+		\hyperpage{33}
+  \item \spxentry{uid\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}, 
+		\hyperpage{33}
+  \item \spxentry{UnexpectedCommandError}, \hyperpage{19}
+  \item \spxentry{UnexpectedResponseError}, \hyperpage{19}
+  \item \spxentry{UNLOCK}\spxextra{aliro\_actuator.access\_protocol.apdu.TransactionCode attribute}, 
+		\hyperpage{12}
+  \item \spxentry{UNLOCK\_USING\_RKE}\spxextra{aliro\_actuator.access\_protocol.apdu.TransactionCode attribute}, 
+		\hyperpage{12}
+  \item \spxentry{UNLOCK\_WITH\_FORCE\_USER\_AUTHENTICATION}\spxextra{aliro\_actuator.access\_protocol.apdu.TransactionCode attribute}, 
+		\hyperpage{12}
+  \item \spxentry{UPDATE\_DOC\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}, 
+		\hyperpage{14}
+  \item \spxentry{update\_state()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}, 
+		\hyperpage{30}
+  \item \spxentry{URSK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}, 
+		\hyperpage{14}
+  \item \spxentry{USAGE}\spxextra{aliro\_actuator.access\_protocol.defines.EndpointAuth attribute}, 
+		\hyperpage{14}
+  \item \spxentry{USAGE}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}, 
+		\hyperpage{15}
+  \item \spxentry{USAGE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.EndpointAuth attribute}, 
+		\hyperpage{14}
+  \item \spxentry{USAGE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}, 
+		\hyperpage{15}
+  \item \spxentry{USER}\spxextra{aliro\_actuator.access\_protocol.encryption.DeviceType attribute}, 
+		\hyperpage{16}
+  \item \spxentry{UserDevice}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}, 
+		\hyperpage{26}
+  \item \spxentry{UserSession}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}, 
+		\hyperpage{29}
+  \item \spxentry{UserSessionState}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}, 
+		\hyperpage{30}
+
+  \indexspace
+  \bigletter V
+  \item \spxentry{validate\_credential()}\spxextra{aliro\_actuator.credential.access\_credential.AccessCredential method}, 
+		\hyperpage{31}
+  \item \spxentry{VENDOR\_SPECIFIC\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}, 
+		\hyperpage{13}
+  \item \spxentry{VENDOR\_SPECIFIC\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}, 
+		\hyperpage{15}
+  \item \spxentry{VerificationError}, \hyperpage{16}
+  \item \spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}, 
+		\hyperpage{36}
+  \item \spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}, 
+		\hyperpage{37}
+  \item \spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}, 
+		\hyperpage{38}
+  \item \spxentry{VersionError}, \hyperpage{19}
+
+  \indexspace
+  \bigletter W
+  \item \spxentry{wait\_for\_command()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}, 
+		\hyperpage{29}
+  \item \spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}, 
+		\hyperpage{34}
+  \item \spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}, 
+		\hyperpage{35}
+  \item \spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}, 
+		\hyperpage{35}
+  \item \spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}, 
+		\hyperpage{35}
+  \item \spxentry{wait\_for\_reader()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}, 
+		\hyperpage{34}
+  \item \spxentry{wait\_for\_tag()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}, 
+		\hyperpage{34}
+  \item \spxentry{WRITE}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute}, 
+		\hyperpage{26}
+  \item \spxentry{write()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}, 
+		\hyperpage{20}
+  \item \spxentry{WRITE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}, 
+		\hyperpage{14}
+  \item \spxentry{WRONG\_LENGTH\_IN\_LC}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}, 
+		\hyperpage{12}
+
+\end{sphinxtheindex}

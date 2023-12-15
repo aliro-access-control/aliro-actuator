@@ -1,0 +1,41 @@
+@startuml trust_framework
+
+package "Trust Framework" {
+    class ReaderTrust
+    class UserTrust
+    class Endpoint {
+        endpoint_key: KeyPair
+        reader_key: list[PublicKey]
+        identifier: list[int]
+        key_slot: bytes
+        access_credential: AccessCredential
+    }
+    class KeyPair
+    class Key
+    class PublicKey
+    class PrivateKey
+    class Certificate
+
+    Key <|-- PublicKey
+    Key <|-- PrivateKey
+
+    ReaderTrust : identifier
+    ReaderTrust : KeyPair
+    ReaderTrust : Certificate [0..1]
+    ReaderTrust : PublicKey [0..*]
+    ReaderTrust : Certificate [0..*]
+    UserTrust : Endpoint [0..*]
+
+    KeyPair : sign(data)
+    KeyPair : verify(data, signature)
+    Key : verify(data, signature) -> bool
+    PrivateKey : sign(data) -> signature
+    PrivateKey : generate_public_key() -> Public_Key
+    Certificate : get_public_key()
+
+    KeyPair : PublicKey
+    KeyPair : PrivateKey
+
+}
+
+@enduml
