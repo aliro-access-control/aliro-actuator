@@ -1,5 +1,8 @@
 # Patchnotes
 
+## V0.1.2
+* Fixes the install and use of the nfc drivers
+
 ## V0.1.1
 * bugfixes
     * Reader main_loop can receive new select command at any time (not just at the start of a session).
