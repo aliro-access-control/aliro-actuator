@@ -1,0 +1,108 @@
+import subprocess
+import unittest
+from binascii import hexlify
+from time import sleep
+
+from aliro_actuator.access_protocol.apdu import Response, Transaction, TransactionCode
+from aliro_actuator.access_protocol.defines import (
+    EXPEDITED_PHASE_AID,
+    TransportProtocol,
+)
+from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
+from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.transport_protocol.socket import Mode, Socket
+from aliro_actuator.trust_framework.key import KeyPair
+from tests.access_protocol.testvectors import (
+    AID,
+    AUTH0_COMMAND,
+    AUTH0_RESPONSE,
+    AUTH1_COMMAND,
+    AUTH1_RESPONSE,
+    AUTH1_RESPONSE_PAYLOAD,
+    CONTROL_FLOW_COMMAND,
+    CONTROL_FLOW_RESPONSE,
+    EXCHANGE_SK_DEVICE,
+    EXCHANGE_SK_READER,
+    PROTOCOL_VERSION,
+    READER_AUTHENTICATION_DATA,
+    READER_IDENTIFIER,
+    READER_SIGNATURE,
+    SALT,
+    SELECT_COMMAND,
+    SELECT_RESPONSE,
+    SHARED_KEY,
+    TRANSACTION_IDENTIFIER,
+    USER_SIGNATURE,
+)
+
+
+class Test_Testvectors(unittest.TestCase):
+    def test_user(self) -> None:
+        user = subprocess.Popen(
+            ["python3", "tests/access_protocol/user_test_testvectors.py"]
+        )
+        sleep(0.5)
+
+        reader = Socket()
+        reader.initialization(Mode.READER)
+        reader.wait_for_connection()
+
+        reader.send_message(SELECT_COMMAND)
+        message_1 = reader.get_message()
+        self.assertEqual(message_1[-2:], bytes.fromhex("9000"), "Errorstatus returned")
+        self.assertEqual(message_1, SELECT_RESPONSE)
+
+        reader.send_message(AUTH0_COMMAND)
+        message_2 = reader.get_message()
+        self.assertEqual(message_2[-2:], bytes.fromhex("9000"), "Errorstatus returned")
+        self.assertEqual(message_2, AUTH0_RESPONSE)
+
+        reader.send_message(AUTH1_COMMAND)
+        message_3 = reader.get_message()
+        self.assertEqual(message_3[-2:], bytes.fromhex("9000"), "Errorstatus returned")
+        # message contains signature which is generated with RNG, and might differ.
+        # only check the other parts
+        response = Response.create_from_bytestring(message_3)
+        response.parse_as_auth1()
+        decryption = EncryptionEngine(
+            DeviceType.READER, EXCHANGE_SK_READER, EXCHANGE_SK_DEVICE
+        )
+        decrypted_data = decryption.decrypt(
+            response.encrypted_payload, response.authentication_tag
+        )
+
+        self.assertEqual(decrypted_data[:69], AUTH1_RESPONSE_PAYLOAD[:69])
+        # outdated auth1 response, signaling_bitmap is now 2 bytes
+        # self.assertEqual(decrypted_data[133:], AUTH1_RESPONSE_PAYLOAD[133:])
+
+        reader.send_message(CONTROL_FLOW_COMMAND)
+        message_4 = reader.get_message()
+        self.assertEqual(message_4[-2:], bytes.fromhex("9000"), "Errorstatus returned")
+        self.assertEqual(message_4, CONTROL_FLOW_RESPONSE)
+
+    def test_reader(self) -> None:
+        self.other = subprocess.Popen(
+            ["python3", "tests/access_protocol/reader_test_testvectors.py"]
+        )
+
+        user = Socket()
+        user.initialization(Mode.CARD_EMULATION)
+        user.wait_for_connection()
+
+        message_1 = user.get_message()
+        self.assertEqual(message_1, SELECT_COMMAND)
+        user.send_message(SELECT_RESPONSE)
+
+        message_2 = user.get_message()
+        self.assertEqual(message_2, AUTH0_COMMAND)
+        user.send_message(AUTH0_RESPONSE)
+
+        message_3 = user.get_message()
+        # reader signature is generated using a random number, so cannot be checked
+        self.assertEqual(message_3[:0x0A], AUTH1_COMMAND[:0x0A])
+        self.assertEqual(message_3[0x4A:], AUTH1_COMMAND[0x4A:])
+        user.send_message(AUTH1_RESPONSE)
+
+        message_4 = user.get_message()
+        self.assertEqual(message_4, CONTROL_FLOW_COMMAND)
+        user.send_message(CONTROL_FLOW_RESPONSE)

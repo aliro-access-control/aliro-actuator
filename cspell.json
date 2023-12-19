@@ -1,0 +1,54 @@
+// cSpell Settings
+{
+    // Version of the setting file.  Always 0.2
+    "version": "0.2",
+    // language - current active spelling language
+    "language": "en,en-US",
+    // words - list of words to be always considered correct
+    "words": [
+        "aliro",
+        "APDU",
+        "epubk",
+        "epubkey",
+        "fips",
+        "hexlify",
+        "isort",
+        "libavahi",
+        "loguru",
+        "matangover",
+        "mypy",
+        "njpwerner",
+        "noqa",
+        "pubk",
+        "pydantic",
+        "pyenv",
+        "pyint",
+        "pysolr",
+        "pytest",
+        "pyyaml",
+        "transceive",
+        "type",
+        "urandom",
+        "ursk",
+        "wlan"
+    ],
+    "ignoreWords": [
+        "pasor",
+        "rcvd",
+        "struct",
+        "timeoutms",
+        "venv"
+    ],
+    "allowCompoundWords": true,
+    "ignorePaths": [
+        "*.ini",
+        "*.toml",
+        "*ockerfile",
+        "*.pyc",
+        ".vscode/*",
+        "logs/*"
+    ],
+    "enableFiletypes": [
+        "shellscript"
+    ]
+}

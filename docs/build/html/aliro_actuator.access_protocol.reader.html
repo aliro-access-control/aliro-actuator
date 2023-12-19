@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>aliro_actuator.access_protocol.reader module &#8212; Aliro_Actuator  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="aliro_actuator.access_protocol.tlv module" href="aliro_actuator.access_protocol.tlv.html" />
+    <link rel="prev" title="aliro_actuator.access_protocol.mailbox module" href="aliro_actuator.access_protocol.mailbox.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-aliro_actuator.access_protocol.reader">
+<span id="aliro-actuator-access-protocol-reader-module"></span><h1>aliro_actuator.access_protocol.reader module<a class="headerlink" href="#module-aliro_actuator.access_protocol.reader" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.reader.</span></span><span class="sig-name descname"><span class="pre">Reader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport_protocol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.TransportProtocol" title="aliro_actuator.access_protocol.defines.TransportProtocol"><span class="pre">TransportProtocol</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transport_override</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.transport_protocol.html#aliro_actuator.transport_protocol.TransportProtocolBase" title="aliro_actuator.transport_protocol.TransportProtocolBase"><span class="pre">TransportProtocolBase</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_group_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_group_sub_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_cert</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.KeyPair" title="aliro_actuator.trust_framework.key.KeyPair"><span class="pre">KeyPair</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="aliro_actuator.access_protocol.html#aliro_actuator.access_protocol.Device" title="aliro_actuator.access_protocol.Device"><code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code></a></p>
+<p>Simulates a reader device.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transport_protocol (TransportProtocol): Transport protocol to use.
+transport_override (TransportProtocolBase | None, optional): Override the
+transport protocol. Mainly used for testing. Defaults to None.
+reader_group_identifier (bytes | None, optional): Part of the reader_identifier. Defaults to None.
+reader_group_sub_identifier (bytes | None, optional): Part of the reader_identifier. Defaults to None.
+reader_cert (bytes | None, optional): Reader certificate. Defaults to None.
+reader_key (KeyPair | None, optional): Reader Key. Defaults to None.</p>
+</dd>
+<dt>Raises:</dt><dd><p>AccessProtocolError: Raised when arguments have invalid format.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.command_auth0">
+<span class="sig-name descname"><span class="pre">command_auth0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transaction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Transaction" title="aliro_actuator.access_protocol.apdu.Transaction"><span class="pre">Transaction</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.TransactionCode" title="aliro_actuator.access_protocol.apdu.TransactionCode"><span class="pre">TransactionCode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">protocol_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_epubk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.command_auth0" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a auth0 command.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transaction (Transaction): fast or standard
+transaction_code (TransactionCode): code with instruction (ex. Lock/Unlock)
+protocol_version (int):
+reader_epubk (bytes): Reader Ephemeral Key as bytes
+transaction_identifier (bytes):
+reader_identifier (bytes):</p>
+</dd>
+<dt>Returns:</dt><dd><p>Response: Response containing the received data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.command_auth1">
+<span class="sig-name descname"><span class="pre">command_auth1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected_response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Auth1Response" title="aliro_actuator.access_protocol.apdu.Auth1Response"><span class="pre">Auth1Response</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_access_credentials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint_epubk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PublicKey" title="aliro_actuator.trust_framework.key.PublicKey"><span class="pre">PublicKey</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_epubk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PublicKey" title="aliro_actuator.trust_framework.key.PublicKey"><span class="pre">PublicKey</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encryption</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.encryption.html#aliro_actuator.access_protocol.encryption.EncryptionEngine" title="aliro_actuator.access_protocol.encryption.EncryptionEngine"><span class="pre">EncryptionEngine</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.command_auth1" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a auth1 command.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>expected_response (Auth1Response): key slot or endpoint public key
+request_access_credentials (bool): request the access credentials if true
+reader_identifier (bytes):
+endpoint_epubk (PublicKey):
+reader_epubk (PublicKey):
+transaction_identifier (bytes):
+encryption (EncryptionEngine | None, optional): Encryption engine to decrypt the response.
+Response will not be decrypted if this is None. Defaults to None.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Response: Response containing the received data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.command_control_flow">
+<span class="sig-name descname"><span class="pre">command_control_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain_specific_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.command_control_flow" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a exchange command.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>s1 (int):
+s2 (int):
+domain_specific_data (bytes | None, optional): Defaults to None.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Response: Response containing the received data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.command_envelope">
+<span class="sig-name descname"><span class="pre">command_envelope</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.command_envelope" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.command_exchange">
+<span class="sig-name descname"><span class="pre">command_exchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atomic_session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">payload</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.tlv.html#aliro_actuator.access_protocol.tlv.TLV" title="aliro_actuator.access_protocol.tlv.TLV"><span class="pre">TLV</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">encryption</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.encryption.html#aliro_actuator.access_protocol.encryption.EncryptionEngine" title="aliro_actuator.access_protocol.encryption.EncryptionEngine"><span class="pre">EncryptionEngine</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.command_exchange" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a exchange command.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>atomic_session (bool): if True, this is part of an atomic session
+payload (TLV): The payload to send.
+encryption (EncryptionEngine): Encryption engine to encrypt the message and decode the response.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Response: Response containing the received data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.command_get_response">
+<span class="sig-name descname"><span class="pre">command_get_response</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.command_get_response" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.command_load_cert">
+<span class="sig-name descname"><span class="pre">command_load_cert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compressed_cert</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.command_load_cert" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a load_cert command.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>compressed_cert (bytes): compressed certificate to send.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Response: Response containing the received data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.command_select">
+<span class="sig-name descname"><span class="pre">command_select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.command_select" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a select command.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>aid (bytes): AID to be send.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Response: Response containing the received data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.expedited_transaction_fast">
+<span class="sig-name descname"><span class="pre">expedited_transaction_fast</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.expedited_transaction_fast" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.expedited_transaction_standard">
+<span class="sig-name descname"><span class="pre">expedited_transaction_standard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transaction_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.TransactionCode" title="aliro_actuator.access_protocol.apdu.TransactionCode"><span class="pre">TransactionCode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_cert</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.expedited_transaction_standard" title="Link to this definition">¶</a></dt>
+<dd><p>Runs the Expedited Standard Phase.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transaction_code (TransactionCode): Passed during AUTH0.
+load_cert (bool, optional): Runs the load_cert command if True. Defaults to False.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.handle_auth0">
+<span class="sig-name descname"><span class="pre">handle_auth0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transaction_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Transaction" title="aliro_actuator.access_protocol.apdu.Transaction"><span class="pre">Transaction</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.TransactionCode" title="aliro_actuator.access_protocol.apdu.TransactionCode"><span class="pre">TransactionCode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.handle_auth0" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a AUTH0 command.
+Required data from is retrieved from the Reader (self) and the session.
+The data contained in the response is stored in the session.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transaction_type (Transaction): fast or standard
+transaction_code (TransactionCode): code with instruction (ex. Lock/Unlock)</p>
+</dd>
+<dt>Raises:</dt><dd><p>SessionError: Raised if no session is found.
+AccessProtocolError: Raised if the response has invalid data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.handle_auth1">
+<span class="sig-name descname"><span class="pre">handle_auth1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.handle_auth1" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a AUTH1 command.
+Required data from is retrieved from the Reader (self) and the session.
+The data contained in the response is stored in the session.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>SessionError: Raised if no session is found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.handle_control_flow">
+<span class="sig-name descname"><span class="pre">handle_control_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.handle_control_flow" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a control_flow command.
+Required data from is retrieved from the Reader (self) and the session.
+The data contained in the response is stored in the session.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>success (bool): if True, the command will indicate a success status.</p>
+</dd>
+<dt>Raises:</dt><dd><p>SessionError: Raised if no session is found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.handle_exchange">
+<span class="sig-name descname"><span class="pre">handle_exchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atomic_session</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_requests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_requests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_requests</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notify</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.tlv.html#aliro_actuator.access_protocol.tlv.TLV" title="aliro_actuator.access_protocol.tlv.TLV"><span class="pre">TLV</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ursk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">update_doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.handle_exchange" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a exchange command.
+Required data from is retrieved from the Reader (self) and the session.
+The data contained in the response is stored in the session.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>atomic_session (bool): if True, this is part of an atomic session
+read_requests (list[tuple[int, int]] | None): List of (offset, length) tuples.
+write_requests (list[tuple[int, bytes]] | None): list of (offset, data) tuples.
+set_requests (list[tuple[int, int, int]] | None): list of (offset, length, value) tuples.
+notify (TLV | None): Notify TLV
+ursk (bytes | None): URSK, for BLE
+update_doc (bytes | None): request update of an existing Access Document</p>
+</dd>
+<dt>Raises:</dt><dd><p>SessionError: Raised if no session is found.</p>
+</dd>
+<dt>Returns:</dt><dd><p>list[bytes]: list of read data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.handle_load_cert">
+<span class="sig-name descname"><span class="pre">handle_load_cert</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.handle_load_cert" title="Link to this definition">¶</a></dt>
+<dd><p>Create and send a load_cert command.
+Required data from is retrieved from the Reader (self) and the session.
+The data contained in the response is stored in the session.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>SessionError: Raised if no session is found.
+AccessProtocolError: Raised if the response has invalid data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.handle_select">
+<span class="sig-name descname"><span class="pre">handle_select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.handle_select" title="Link to this definition">¶</a></dt>
+<dd><p>create and send a select command.
+Required data from is retrieved from the Reader (self) and the session.
+The data contained in the response is stored in the session.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>aid (bytes): AID to be send.</p>
+</dd>
+<dt>Raises:</dt><dd><p>SessionError: Raised if no session is found.
+AccessProtocolError: Raised if the response has invalid data.
+UnexpectedResponseError: Raised if the response has status/data that cannot be handled</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.start_new_session">
+<span class="sig-name descname"><span class="pre">start_new_session</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transaction_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ephemeral_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.KeyPair" title="aliro_actuator.trust_framework.key.KeyPair"><span class="pre">KeyPair</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.start_new_session" title="Link to this definition">¶</a></dt>
+<dd><p>Start a new reader session. Must be done before using handle commands.
+This sessions stores all information received from commands.
+Start a new session to delete all received info and start over.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transaction_identifier (bytes | None, optional): Transaction identifier used
+for this session. Randomly generated if None. Defaults to None.
+ephemeral_key (KeyPair | None, optional): ephemeral reader key used for the
+session. Randomly generated if None. Defaults to None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.step_up_transaction">
+<span class="sig-name descname"><span class="pre">step_up_transaction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.step_up_transaction" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.Reader.transaction_initiation">
+<span class="sig-name descname"><span class="pre">transaction_initiation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.Reader.transaction_initiation" title="Link to this definition">¶</a></dt>
+<dd><p>Initializes the hardware and sets up a connection to the card.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.reader.</span></span><span class="sig-name descname"><span class="pre">ReaderSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reader_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.KeyPair" title="aliro_actuator.trust_framework.key.KeyPair"><span class="pre">KeyPair</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Contains info from a single session (with one User Device)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.can_retrieve_access_credential">
+<span class="sig-name descname"><span class="pre">can_retrieve_access_credential</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.can_retrieve_access_credential" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.can_retrieve_revocation_document">
+<span class="sig-name descname"><span class="pre">can_retrieve_revocation_document</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.can_retrieve_revocation_document" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.check_endpoint_authentication">
+<span class="sig-name descname"><span class="pre">check_endpoint_authentication</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.check_endpoint_authentication" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.decrypt_payload">
+<span class="sig-name descname"><span class="pre">decrypt_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encrypted_payload</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authentication_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.decrypt_payload" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.derive_key_volatile">
+<span class="sig-name descname"><span class="pre">derive_key_volatile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport_protocol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.TransportProtocol" title="aliro_actuator.access_protocol.defines.TransportProtocol"><span class="pre">TransportProtocol</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.derive_key_volatile" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.encrypt_payload">
+<span class="sig-name descname"><span class="pre">encrypt_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">payload</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.encrypt_payload" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.generate_ephemeral_key">
+<span class="sig-name descname"><span class="pre">generate_ephemeral_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ephemeral_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.KeyPair" title="aliro_actuator.trust_framework.key.KeyPair"><span class="pre">KeyPair</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.generate_ephemeral_key" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.get_endpoint_ephemeral_key">
+<span class="sig-name descname"><span class="pre">get_endpoint_ephemeral_key</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.get_endpoint_ephemeral_key" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.get_reader_epubkey">
+<span class="sig-name descname"><span class="pre">get_reader_epubkey</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PublicKey" title="aliro_actuator.trust_framework.key.PublicKey"><span class="pre">PublicKey</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.get_reader_epubkey" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.set_auth1_info">
+<span class="sig-name descname"><span class="pre">set_auth1_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth1_response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Auth1Response" title="aliro_actuator.access_protocol.apdu.Auth1Response"><span class="pre">Auth1Response</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.set_auth1_info" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.set_endpoint_ephemeral_key">
+<span class="sig-name descname"><span class="pre">set_endpoint_ephemeral_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.set_endpoint_ephemeral_key" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.set_flag">
+<span class="sig-name descname"><span class="pre">set_flag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transaction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Transaction" title="aliro_actuator.access_protocol.apdu.Transaction"><span class="pre">Transaction</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.TransactionCode" title="aliro_actuator.access_protocol.apdu.TransactionCode"><span class="pre">TransactionCode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.set_flag" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.set_select_info">
+<span class="sig-name descname"><span class="pre">set_select_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">select_response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.set_select_info" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.set_shared_key">
+<span class="sig-name descname"><span class="pre">set_shared_key</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.set_shared_key" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.step_up_aid_select_required">
+<span class="sig-name descname"><span class="pre">step_up_aid_select_required</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.step_up_aid_select_required" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.reader.ReaderSession.transaction_identifier">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transaction_identifier</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bytes</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.reader.ReaderSession.transaction_identifier" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Aliro_Actuator</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">aliro_actuator</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="aliro_actuator.html">aliro_actuator package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="aliro_actuator.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.html#module-aliro_actuator">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">aliro_actuator</a><ul>
+  <li><a href="aliro_actuator.html">aliro_actuator package</a><ul>
+  <li><a href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a><ul>
+      <li>Previous: <a href="aliro_actuator.access_protocol.mailbox.html" title="previous chapter">aliro_actuator.access_protocol.mailbox module</a></li>
+      <li>Next: <a href="aliro_actuator.access_protocol.tlv.html" title="next chapter">aliro_actuator.access_protocol.tlv module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Mike Jongen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/aliro_actuator.access_protocol.reader.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
