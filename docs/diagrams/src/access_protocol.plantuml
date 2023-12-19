@@ -1,0 +1,74 @@
+@startuml access_protocol
+
+package "Access Protocol" {
+    class Device
+    class Reader
+    class UserDevice
+    class APDU
+
+    Device <|-- Reader
+    Device <|-- UserDevice
+
+    Device : APDU
+    Device : support_extended_length_apdu
+
+    Reader : Transport_Protocol
+    Reader : Reader_Trust
+
+    Reader : transaction_initiation()
+    Reader : expedited_transaction_fast()
+    Reader : expedited_transaction_standard()
+    Reader : step_up_transaction()
+
+    Reader : command_auth0()
+    Reader : command_auth1() 
+    Reader : command_select()
+    Reader : command_envelope()
+    Reader : command_get_response()
+    Reader : command_load_cert()
+    Reader : command_exchange()
+    Reader : command_control_flow()
+
+    UserDevice : Transport_Protocol
+    UserDevice : User_Trust
+    UserDevice : Access_Credential
+    UserDevice : Revocation_Document
+
+    UserDevice : transaction_initiation()
+    UserDevice : expedited_transaction_fast()
+    UserDevice : expedited_transaction_standard()
+    UserDevice : step_up_transaction()
+
+    UserDevice : get_command()
+    UserDevice : response_auth0()
+    UserDevice : response_auth1() 
+    UserDevice : response_select()
+    UserDevice : response_envelope()
+    UserDevice : response_get_response()
+    UserDevice : response_load_cert()
+    UserDevice : response_exchange()
+    UserDevice : response_control_flow()
+
+    APDU : parse_command()
+    APDU : parse_response()
+
+    APDU : create_select_command()
+    APDU : create_auth0_command()
+    APDU : create_load_cert_command()
+    APDU : create_auth1_command()
+    APDU : create_control_flow_command()
+    APDU : create_exchange_command()
+    APDU : create_envelope_command()
+    APDU : create_get_response_command()
+
+    APDU : create_select_response()
+    APDU : create_load_cert_response()
+    APDU : create_auth1_response()
+    APDU : create_control_flow_response()
+    APDU : create_exchange_response()
+    APDU : create_envelope_response()
+    APDU : create_get_response_response()
+
+}
+
+@enduml

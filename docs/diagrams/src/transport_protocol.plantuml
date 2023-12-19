@@ -1,0 +1,17 @@
+@startuml transport_protocol
+
+package "Transport Protocol" {
+    abstract TransportProtocol
+    class NFC
+    class BLE_UWB
+
+    TransportProtocol : initialization()
+    TransportProtocol : wait_for_connection()
+    TransportProtocol : send_message(Message: bytes)
+    TransportProtocol : receive_message() -> bytes
+
+    TransportProtocol <|-- NFC
+    TransportProtocol <|-- BLE_UWB
+}
+
+@enduml
