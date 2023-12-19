@@ -13,6 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+ACTUATOR_PATH=$(realpath $(dirname "$0")/..)
+cd $ACTUATOR_PATH
+mkdir -p third_party
 
 cd third_party
 if [ $? -ne 0 ]; then
@@ -25,7 +28,7 @@ cd nxp_nfc
 echo "######################"
 echo "Installing build tools"
 echo "######################"
-apt install automake autoconf libtool
+sudo apt install automake autoconf libtool
 
 echo "################"
 echo "Cloning git repo"
@@ -36,6 +39,7 @@ cd linux_libnfc-nci
 if [ $? -ne 0 ]; then
     exit 1
 fi
+
 git apply ../../../scripts/patch_file.patch 
 
 echo "####################"

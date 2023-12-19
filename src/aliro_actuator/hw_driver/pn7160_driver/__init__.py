@@ -15,6 +15,7 @@
 import ctypes
 import threading
 from binascii import hexlify
+from pathlib import Path
 
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.pn7160_driver.api import (
@@ -32,6 +33,10 @@ from aliro_actuator.hw_driver.pn7160_driver.errors import (
     NoTagError,
 )
 from aliro_actuator.transport_protocol import Mode
+
+DRIVER_PATH = Path(__file__).parent
+ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[3]  # 4 levels up: aliro_actuator/src/aliro_actuator/hw_driver/pn7160_driver
+DEFAULT_NCI_LIB_PATH = ACTUATOR_ROOT_PATH /"third_party"/"nxp_nfc"/"lib"/"libnfc_nci_linux-1.so.0.0.0"
 
 RX_MAX = 0x100
 
@@ -111,11 +116,11 @@ class Driver:
     def __init__(self, nci_location: str | None = None):
         self.mode: Mode | None = None
         self.nci_location = nci_location
+        if nci_location is None:
+            self.nci_location = DEFAULT_NCI_LIB_PATH
+            
         try:
-            if nci_location is None:
-                self.nci = ctypes.CDLL("third_party/nxp_nfc/lib/libnfc_nci_linux.so")
-            else:
-                self.nci = ctypes.CDLL(self.nci_location)
+            self.nci = ctypes.CDLL(self.nci_location)
         except OSError:
             Global.logger.error(
                 "nci .so file not found at {}".format(self.nci_location)
