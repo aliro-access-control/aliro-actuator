@@ -40,7 +40,9 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-git apply ../../../scripts/patch_file.patch 
+git apply --whitespace=fix 64bit_patch/ROOT_src.patch
+sed -i 's/NXP_TRANSPORT=0x00/NXP_TRANSPORT=0x03/g' conf/libnfc-nxp.conf
+sed -i 's/NXP_NFC_DEV_NODE="\/dev\/nxpnfc"/NXP_NFC_DEV_NODE="\/dev\/spidev0.0"/g' conf/libnfc-nxp.conf
 
 echo "####################"
 echo "building nfc library"
