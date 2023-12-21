@@ -64,7 +64,7 @@
 
 
 \title{Aliro\_Actuator}
-\date{Dec 13, 2023}
+\date{Dec 21, 2023}
 \release{}
 \author{Mike Jongen}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -200,7 +200,7 @@ Class for creating and parsing APDU messages.
 
 \sphinxAtStartPar
 Use the parse\_command/response functions to parse the received commands/responses.
-Use the {\color{red}\bfseries{}create\_}…\_command/response to create new command/responses.
+Use the create\_\textless{}cmd\textgreater{}\_command/response to create new command/responses.
 The as\_bytes attribute of these commands/responses gives a bytestring which can be send.
 
 \sphinxAtStartPar
@@ -2978,7 +2978,7 @@ AccessProtocolError: Raised if the response has invalid data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.handle_auth1}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_auth1}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_auth1}}}{\sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{Auth1Response.ENDPOINT\_PUBLIC\_KEY}}\sphinxparamcomma \sphinxparam{\DUrole{n}{request\_access\_credentials}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a AUTH1 command.
@@ -3748,14 +3748,14 @@ SessionError: Raised when the session is missing or in an invalid state.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.handle_exchange}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_exchange}}}{\sphinxparam{\DUrole{n}{control\_flow\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_exchange}}}{\sphinxparam{\DUrole{n}{exchange\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Parse an exchange command and send the appropriate response.
 \begin{description}
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
-control\_flow\_command (Command): The command to respond to.
+exchange\_command (Command): The command to respond to.
 
 \sphinxlineitem{Raises:}
 \sphinxAtStartPar
@@ -5523,7 +5523,7 @@ Verifies the data. Returns True when the verification succeeds.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PrivateKey}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.trust\_framework.key.}}\sphinxbfcode{\sphinxupquote{PrivateKey}}}{\sphinxparam{\DUrole{n}{key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{str\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.trust\_framework.key.}}\sphinxbfcode{\sphinxupquote{PrivateKey}}}{\sphinxparam{\DUrole{n}{key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }str\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{}
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: {\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.Key}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{Key}}}}}

@@ -3,6 +3,9 @@
 ## V0.1.3
 * Fixes to the installation of the nfc drivers
 * Moved dependencies from default to dev to speedup build
+* Can select expected_response and request_access_credentials for handle_auth1
+* Private keys can now also be created with DER encoded bytes
+* User device handle functions check the ins of the command, to prevent partial handling
 
 ## V0.1.2
 * Fixes the install and use of the nfc drivers

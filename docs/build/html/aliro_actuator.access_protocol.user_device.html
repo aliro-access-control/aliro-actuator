@@ -143,10 +143,10 @@ AccessProtocolError: Raised if the response has invalid data.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.access_protocol.user_device.UserDevice.handle_exchange">
-<span class="sig-name descname"><span class="pre">handle_exchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">control_flow_command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Command" title="aliro_actuator.access_protocol.apdu.Command"><span class="pre">Command</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.user_device.UserDevice.handle_exchange" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">handle_exchange</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exchange_command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html#aliro_actuator.access_protocol.apdu.Command" title="aliro_actuator.access_protocol.apdu.Command"><span class="pre">Command</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.user_device.UserDevice.handle_exchange" title="Link to this definition">¶</a></dt>
 <dd><p>Parse an exchange command and send the appropriate response.</p>
 <dl class="simple">
-<dt>Args:</dt><dd><p>control_flow_command (Command): The command to respond to.</p>
+<dt>Args:</dt><dd><p>exchange_command (Command): The command to respond to.</p>
 </dd>
 <dt>Raises:</dt><dd><p>SessionError: Raised when the session is missing or in an invalid state.
 AccessProtocolError: Raised if the response has invalid data.</p>
