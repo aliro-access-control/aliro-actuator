@@ -291,7 +291,11 @@ class Reader(Device):
             raise AccessProtocolError("No reader cert available")
         self.command_load_cert(self.reader_cert.encode_compressed())
 
-    def handle_auth1(self) -> None:
+    def handle_auth1(
+        self,
+        expected_response: Auth1Response = Auth1Response.ENDPOINT_PUBLIC_KEY,
+        request_access_credentials: bool = False,
+    ) -> None:
         """
         Create and send a AUTH1 command.
         Required data from is retrieved from the Reader (self) and the session.
@@ -303,8 +307,6 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        expected_response = Auth1Response.ENDPOINT_PUBLIC_KEY
-
         Global.logger.info("Create shared keys")
         self.session.set_shared_key()
         self.session.derive_key_volatile(self.transport_protocol_type)
@@ -312,7 +314,7 @@ class Reader(Device):
         Global.logger.info("AUTH1 Command")
         auth1_response = self.command_auth1(
             expected_response=expected_response,
-            request_access_credentials=False,
+            request_access_credentials=request_access_credentials,
             reader_identifier=self.reader_group_identifier
             + self.reader_group_sub_identifier,
             endpoint_epubk=self.session.endpoint_ephemeral_key,
@@ -325,8 +327,8 @@ class Reader(Device):
         self.session.set_auth1_info(auth1_response, expected_response)
 
         Global.logger.info("Checking endpoint authentication data")
-        # if not self.session.check_endpoint_authentication():
-        #     raise AccessProtocolError("Endpoint authentication failed")
+        if not self.session.check_endpoint_authentication():
+            raise AccessProtocolError("Endpoint authentication failed")
 
     def handle_control_flow(self, success: bool) -> None:
         """
