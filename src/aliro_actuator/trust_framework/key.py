@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ssl
 from binascii import hexlify
 
 from cryptography.exceptions import InvalidSignature
@@ -124,16 +125,26 @@ class PrivateKey(Key):
     Private Key
     """
 
-    def __init__(self, key: str | None = None) -> None:
+    def __init__(self, key: bytes | str | None = None) -> None:
         """
-        A key is randomly generated, or key is used.
+        A key is randomly generated, created from a pem, or created from DER (in bytes).
         """
-        # generate a key
-
         if key is None:
+            # Generate a key
             self.key: EllipticCurvePrivateKey = ec.generate_private_key(ec.SECP256R1())
             Global.logger.debug("generated private key")
+        elif isinstance(key, bytes):
+            # Create key from DER bytes
+            key_str = ssl.DER_cert_to_PEM_cert(key)
+            key_str = key_str.replace("CERTIFICATE", "PRIVATE KEY")
+            key_str = key_str.rstrip()
+            loaded_key = load_pem_private_key(bytes(key_str, "utf-8"), password=None)
+            if not isinstance(loaded_key, EllipticCurvePrivateKey):
+                raise InvalidKeyFormatError
+            self.key = loaded_key
+            Global.logger.debug("loaded private key from bytes")
         elif isinstance(key, str):
+            # Create key from PEM
             loaded_key = load_pem_private_key(bytes(key, "utf-8"), password=None)
             if not isinstance(loaded_key, EllipticCurvePrivateKey):
                 raise InvalidKeyFormatError
