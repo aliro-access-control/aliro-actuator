@@ -187,6 +187,12 @@ class UserDevice(Device):
             SessionError: Raised if no session is found.
             InvalidAIDError: Raised when the AID is invalid.
         """
+        if select_command.ins != INS.SELECT:
+            raise AccessProtocolError(
+                "Tried to handle Select command, "
+                "but received command is not a select command"
+            )
+
         if self.session is None:
             raise SessionError("No Session")
 
@@ -217,6 +223,12 @@ class UserDevice(Device):
             VersionError: Raised when the protocol version is not supported.
             NotImplementedError:
         """
+        if auth0_command.ins != INS.AUTH0:
+            raise AccessProtocolError(
+                "Tried to handle auth0 command, "
+                "but received command is not a auth0 command"
+            )
+
         if self.session is None:
             raise SessionError("No Session")
         if not self.session.state_valid(UserSessionState.SELECT_DONE):
@@ -259,6 +271,12 @@ class UserDevice(Device):
             SessionError: Raised when the session is missing or in an invalid state.
             KeyLookupFailed: When the reader public key cannot be found.
         """
+        if load_cert_command.ins != INS.LOAD_CERT:
+            raise AccessProtocolError(
+                "Tried to handle load_cert command, "
+                "but received command is not a load_cert command"
+            )
+
         if self.session is None:
             raise SessionError("No Session")
         if not self.session.state_valid(
@@ -296,6 +314,12 @@ class UserDevice(Device):
             KeyLookupFailed: When the reader public key cannot be found.
             AccessProtocolError: Raised if the response has invalid data.
         """
+        if auth1_command.ins != INS.AUTH1:
+            raise AccessProtocolError(
+                "Tried to handle auth1 command, "
+                "but received command is not a auth1 command"
+            )
+
         if self.session is None:
             raise SessionError("No Session")
         if not self.session.state_valid(
@@ -391,17 +415,23 @@ class UserDevice(Device):
             write_mailbox=mailbox_write,
         )
 
-    def handle_exchange(self, control_flow_command: Command) -> None:
+    def handle_exchange(self, exchange_command: Command) -> None:
         """
         Parse an exchange command and send the appropriate response.
 
         Args:
-            control_flow_command (Command): The command to respond to.
+            exchange_command (Command): The command to respond to.
 
         Raises:
             SessionError: Raised when the session is missing or in an invalid state.
             AccessProtocolError: Raised if the response has invalid data.
         """
+        if exchange_command.ins != INS.EXCHANGE:
+            raise AccessProtocolError(
+                "Tried to handle exchange command, "
+                "but received command is not a exchange command"
+            )
+
         if self.session is None:
             raise SessionError("No Session")
         if self.session.encryption is None:
@@ -428,16 +458,16 @@ class UserDevice(Device):
         self.session.update_state(UserSessionState.EXCHANGE_DONE)
 
         if (
-            len(control_flow_command.read_requests)
-            + len(control_flow_command.write_requests)
-            + len(control_flow_command.set_requests)
+            len(exchange_command.read_requests)
+            + len(exchange_command.write_requests)
+            + len(exchange_command.set_requests)
             > 0
         ):
             if self.mailbox is None:
                 self.return_exchange_error_and_close_channel()
                 return
 
-            for read in control_flow_command.read_requests:
+            for read in exchange_command.read_requests:
                 if read is None:
                     raise AccessProtocolError
                 if not self.mailbox.check_boundaries(
@@ -446,7 +476,7 @@ class UserDevice(Device):
                     self.return_exchange_error_and_close_channel()
                     return
 
-            for write in control_flow_command.write_requests:
+            for write in exchange_command.write_requests:
                 if write is None:
                     raise AccessProtocolError
                 if not self.mailbox.check_boundaries(
@@ -455,7 +485,7 @@ class UserDevice(Device):
                     self.return_exchange_error_and_close_channel()
                     return
 
-            for set in control_flow_command.set_requests:
+            for set in exchange_command.set_requests:
                 if set is None:
                     raise AccessProtocolError
                 if not self.mailbox.check_boundaries(
@@ -465,8 +495,8 @@ class UserDevice(Device):
                     return
 
         # handle notifications
-        if control_flow_command.notify is not None:
-            errors = control_flow_command.notify.get_all_bytes_of_tag(0xC1)
+        if exchange_command.notify is not None:
+            errors = exchange_command.notify.get_all_bytes_of_tag(0xC1)
             for error in errors:
                 if error is None:
                     raise AccessProtocolError
@@ -477,7 +507,7 @@ class UserDevice(Device):
         # handle reads
         read_data: list[tuple[int, bytes]] = []
         if self.mailbox is not None:
-            for read in control_flow_command.read_requests:
+            for read in exchange_command.read_requests:
                 if read is None:
                     raise AccessProtocolError
                 mailbox_read = self.mailbox.read(
@@ -488,25 +518,25 @@ class UserDevice(Device):
 
         # Handle write/sets
         if self.mailbox is not None:
-            if control_flow_command.atomic_session:
+            if exchange_command.atomic_session:
                 self.mailbox_session.start()
 
             if self.mailbox_session.is_started():
-                for set in control_flow_command.set_requests:
+                for set in exchange_command.set_requests:
                     self.mailbox_session.add_set(set)
-                for write in control_flow_command.write_requests:
+                for write in exchange_command.write_requests:
                     self.mailbox_session.add_write(write)
-                if not control_flow_command.atomic_session:
+                if not exchange_command.atomic_session:
                     self.mailbox_session.execute_commands(self.mailbox)
                     self.mailbox_session.stop()
             else:
                 # no started sessions, so only execute this command
                 mailbox_session = MailboxSession()
-                for set in control_flow_command.set_requests:
+                for set in exchange_command.set_requests:
                     mailbox_session.add_set(set)
-                for write in control_flow_command.write_requests:
+                for write in exchange_command.write_requests:
                     mailbox_session.add_write(write)
-                if not control_flow_command.atomic_session:
+                if not exchange_command.atomic_session:
                     mailbox_session.execute_commands(self.mailbox)
 
         # generate payload
@@ -545,6 +575,12 @@ class UserDevice(Device):
         Raises:
             SessionError: Raised when the session is missing or in an invalid state.
         """
+        if control_flow_command.ins != INS.CONTROL_FLOW:
+            raise AccessProtocolError(
+                "Tried to handle control_flow command, "
+                "but received command is not a control_flow command"
+            )
+
         if self.session is None:
             raise SessionError("No Session")
 
