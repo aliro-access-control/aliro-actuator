@@ -1031,7 +1031,7 @@ class APDU:
     Class for creating and parsing APDU messages.
 
     Use the parse_command/response functions to parse the received commands/responses.
-    Use the create_..._command/response to create new command/responses.
+    Use the create_<cmd>_command/response to create new command/responses.
     The as_bytes attribute of these commands/responses gives a bytestring which can be send.
 
     has the following attributes:
