@@ -47,3 +47,5 @@ echo "####################"
 ./configure -prefix $PWD/..
 make
 sudo make install
+
+cp conf/*.conf /usr/local/etc/
