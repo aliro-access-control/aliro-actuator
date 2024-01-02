@@ -13,17 +13,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+set -e
+
 ACTUATOR_PATH=$(realpath $(dirname "$0")/..)
 cd $ACTUATOR_PATH
-mkdir -p third_party
 
-cd third_party
-if [ $? -ne 0 ]; then
-    exit 1
-fi
-[ -d "nxp_nfc" ] && rm -r nxp_nfc
-mkdir nxp_nfc
-cd nxp_nfc
+mkdir -p third_party/nxp_nfc
+cd third_party/nxp_nfc
+
 
 echo "######################"
 echo "Installing build tools"
@@ -33,12 +30,11 @@ sudo apt install automake autoconf libtool
 echo "################"
 echo "Cloning git repo"
 echo "################"
-git clone https://github.com/NXPNFCLinux/linux_libnfc-nci.git -b NCI2.0_PN7160
-
+[ -d "linux_libnfc-nci" ] || git clone https://github.com/NXPNFCLinux/linux_libnfc-nci.git -b NCI2.0_PN7160
 cd linux_libnfc-nci
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+
+git reset --hard
+git checkout NCI2.0_PN7160
 
 git apply --whitespace=fix 64bit_patch/ROOT_src.patch
 sed -i 's/NXP_TRANSPORT=0x00/NXP_TRANSPORT=0x03/g' conf/libnfc-nxp.conf
