@@ -48,4 +48,4 @@ echo "####################"
 make
 sudo make install
 
-cp conf/*.conf /usr/local/etc/
+sudo cp conf/*.conf /usr/local/etc/
