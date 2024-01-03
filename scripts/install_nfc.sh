@@ -26,7 +26,7 @@ echo "######################"
 echo "Installing build tools"
 echo "######################"
 sudo apt update
-sudo apt install automake autoconf libtool
+sudo apt -y install automake autoconf libtool
 
 echo "################"
 echo "Cloning git repo"
