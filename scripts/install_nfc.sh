@@ -25,6 +25,7 @@ cd third_party/nxp_nfc
 echo "######################"
 echo "Installing build tools"
 echo "######################"
+sudo apt update
 sudo apt install automake autoconf libtool
 
 echo "################"
