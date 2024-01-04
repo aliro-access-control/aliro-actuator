@@ -125,7 +125,9 @@ class PrivateKey(Key):
     Private Key
     """
 
-    def __init__(self, key: bytes | str | None = None) -> None:
+    def __init__(
+        self, key: bytes | str | None = None, public_key: bytes | None = None
+    ) -> None:
         """
         A key is randomly generated, created from a pem, or created from DER (in bytes).
         """
@@ -134,15 +136,42 @@ class PrivateKey(Key):
             self.key: EllipticCurvePrivateKey = ec.generate_private_key(ec.SECP256R1())
             Global.logger.debug("generated private key")
         elif isinstance(key, bytes):
-            # Create key from DER bytes
-            key_str = ssl.DER_cert_to_PEM_cert(key)
-            key_str = key_str.replace("CERTIFICATE", "PRIVATE KEY")
-            key_str = key_str.rstrip()
-            loaded_key = load_pem_private_key(bytes(key_str, "utf-8"), password=None)
-            if not isinstance(loaded_key, EllipticCurvePrivateKey):
+            if len(key) == 138:
+                # Create key from DER bytes
+                key_str = ssl.DER_cert_to_PEM_cert(key)
+                key_str = key_str.replace("CERTIFICATE", "PRIVATE KEY")
+                key_str = key_str.rstrip()
+                loaded_key = load_pem_private_key(
+                    bytes(key_str, "utf-8"), password=None
+                )
+                if not isinstance(loaded_key, EllipticCurvePrivateKey):
+                    raise InvalidKeyFormatError
+                self.key = loaded_key
+                Global.logger.debug("loaded private key from DER")
+            elif len(key) == 32:
+                # Create key from raw bytes
+                if not isinstance(public_key, bytes):
+                    raise InvalidKeyFormatError
+                der_key = bytes.fromhex(
+                    "308187020100301306072a8648ce3d020106082a8648ce3d030107046d306b0201"
+                    "010420"
+                )
+                der_key += key
+                der_key += bytes.fromhex("a144034200")
+                der_key += public_key
+
+                key_str = ssl.DER_cert_to_PEM_cert(der_key)
+                key_str = key_str.replace("CERTIFICATE", "PRIVATE KEY")
+                key_str = key_str.rstrip()
+                loaded_key = load_pem_private_key(
+                    bytes(key_str, "utf-8"), password=None
+                )
+                if not isinstance(loaded_key, EllipticCurvePrivateKey):
+                    raise InvalidKeyFormatError
+                self.key = loaded_key
+                Global.logger.debug("loaded private key from bytes")
+            else:
                 raise InvalidKeyFormatError
-            self.key = loaded_key
-            Global.logger.debug("loaded private key from bytes")
         elif isinstance(key, str):
             # Create key from PEM
             loaded_key = load_pem_private_key(bytes(key, "utf-8"), password=None)
@@ -201,13 +230,18 @@ class KeyPair:
     """
 
     def __init__(
-        self, private_key: str | None = None, public_key: bytes | str | None = None
+        self,
+        private_key: str | bytes | None = None,
+        public_key: bytes | str | None = None,
     ):
         """
         If None is passed for the public_key,
         the public key is generated from the private key.
         """
-        self.private_key = PrivateKey(private_key)
+        if isinstance(public_key, bytes):
+            self.private_key = PrivateKey(private_key, public_key)
+        else:
+            self.private_key = PrivateKey(private_key)
         if public_key is None:
             self.public_key = self.private_key.generate_public_key()
         else:

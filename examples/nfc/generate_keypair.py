@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sys
+
+PROJECT_PATH = os.path.join(os.getcwd(), "src/")
+sys.path.append(PROJECT_PATH)
+
 from aliro_actuator.trust_framework.key import KeyPair
 
 if __name__ == "__main__":

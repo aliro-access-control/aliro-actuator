@@ -20,11 +20,14 @@ import pytest
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
 
-PRIVATE_KEY_BYTES = bytes.fromhex(
+PRIVATE_KEY_BYTES_DER = bytes.fromhex(
     "308187020100301306072a8648ce3d020106082a8648ce3d030107046d306b0201010420a168118f3a"
     "11e5dc05d155d63a65d1d13c266e7054a3e48fcc9db32eab20e74ea1440342000448172190e162bcaf"
     "77107de1a53e401a2b46890a03625a47c89af0b2ec91896aa1ff1c6f455d8283836a1137ac476f5e25"
     "4caf56a081958fac6e557526d8699d"
+)
+PRIVATE_KEY_BYTES = bytes.fromhex(
+    "a168118f3a11e5dc05d155d63a65d1d13c266e7054a3e48fcc9db32eab20e74e"
 )
 PUBLIC_KEY_BYTES = bytes.fromhex(
     "0448172190e162bcaf77107de1a53e401a2b46890a03625a47c89af0b2ec91896aa1ff1c6f455d8283"
@@ -113,5 +116,15 @@ class Test_key(unittest.TestCase):
         private_key_pem = f.read()
         private_key_pem = PrivateKey(private_key_pem)
 
-        private_key_bytes = PrivateKey(PRIVATE_KEY_BYTES)
+        private_key_bytes = PrivateKey(PRIVATE_KEY_BYTES_DER)
         self.assertEqual(private_key_bytes.as_pem(), private_key_pem.as_pem())
+
+    def test_keypair_from_hex(self) -> None:
+        f = open("tests/trust_framework/myprivatekey.pem", "rt")
+        private_key_pem = f.read()
+        private_key_pem = PrivateKey(private_key_pem)
+
+        keypair_bytes = KeyPair(PRIVATE_KEY_BYTES, PUBLIC_KEY_BYTES)
+        self.assertEqual(
+            keypair_bytes.get_private_key().as_pem(), private_key_pem.as_pem()
+        )
