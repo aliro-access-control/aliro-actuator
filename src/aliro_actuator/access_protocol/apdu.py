@@ -41,7 +41,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidStatusError,
     MessageTooLongError,
 )
-from aliro_actuator.access_protocol.tlv import TLV
+from aliro_actuator.access_protocol.tlv import TLV, TlvError
 
 # See Aliro spec 8.3
 APDU_COMMAND_MAX_LENGTH = 255
@@ -742,66 +742,132 @@ class Response(Message):
 
         self._check_status()
 
+        if self.data is None:
+            raise InvalidResponseDataError(self.as_bytes, "No data available")
+        data_tlv = TLV.from_bytes(self.data)
+
         try:
-            if self.data is None:
-                raise InvalidResponseDataError(self.as_bytes)
-            data_tlv = TLV.from_bytes(self.data)
-
             FCI_tlv = data_tlv.get_tlv(Select.FCI_TAG)
+        except IndexError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes,
+                "missing File Control Information (FCI), tag: {:#x}".format(
+                    error.args[0]
+                ),
+            )
+        except TlvError:
+            raise InvalidResponseDataError(
+                self.as_bytes, "File Control Information (FCI) is not a valid TLV"
+            )
 
+        try:
             self.compl_aid = FCI_tlv.get_bytes(Select.AID_TAG)
+            if len(self.compl_aid) != Select.AID_LEN:
+                raise InvalidResponseDataError(self.as_bytes, "AID has invalid length")
+        except IndexError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes,
+                "missing AID, tag: {:#x}".format(error.args[0]),
+            )
+
+        try:
             self.proprietary_tlv = FCI_tlv.get_tlv(Select.PROPRIETARY_TAG)
             Global.logger.debug("compl aid: {!r}".format(hexlify(self.compl_aid)))
-
-            self.type = int.from_bytes(
-                self.proprietary_tlv.get_bytes(Select.TYPE_TAG), byteorder="big"
+        except IndexError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes,
+                "missing Proprietary information, tag: {:#x}".format(error.args[0]),
             )
-            Global.logger.debug("type: {}".format(self.type))
+        except TlvError:
+            raise InvalidResponseDataError(
+                self.as_bytes, "Proprietary information is not a valid TLV"
+            )
 
+        try:
+            type_bytes = self.proprietary_tlv.get_bytes(Select.TYPE_TAG)
+            if len(type_bytes) != Select.TYPE_LEN:
+                raise InvalidResponseDataError(self.as_bytes, "Type has invalid length")
+            self.type = int.from_bytes(type_bytes, byteorder="big")
+            Global.logger.debug("type: {}".format(self.type))
+        except IndexError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes,
+                "missing Type, tag: {:#x}".format(error.args[0]),
+            )
+
+        try:
+            etspv_bytes = self.proprietary_tlv.get_bytes(Select.ETSPV_TAG)
+            if (len(etspv_bytes) % 2) == 1:
+                raise InvalidResponseDataError(
+                    self.as_bytes,
+                    "expedited_phase_supported_protocol_versions has invalid length",
+                )
             self.expedited_phase_supported_protocol_versions = self._data_to_2byte_list(
-                self.proprietary_tlv.get_bytes(Select.ETSPV_TAG)
+                etspv_bytes
             )
             Global.logger.debug(
                 "expedited transaction supported protocol versions: {}".format(
                     self.expedited_phase_supported_protocol_versions
                 )
             )
-
-            self.maximum_command_apdu = None
-            self.maximum_response_apdu = None
-            try:
-                extended_length = self.proprietary_tlv.get_tlv(Select.EXTENDED_INFO_TAG)
-                self.maximum_command_apdu = int.from_bytes(
-                    extended_length.get_bytes(Select.MAX_COMMAND_TAG), "big"
-                )
-                self.maximum_response_apdu = int.from_bytes(
-                    extended_length.get_bytes(Select.MAX_RESPONSE_TAG), "big"
-                )
-            except IndexError:
-                pass
-            Global.logger.debug(
-                "maximum command apdu: {}".format(self.maximum_command_apdu)
-            )
-            Global.logger.debug(
-                "maximum response apdu: {}".format(self.maximum_response_apdu)
-            )
-
-            self.vendor_specific_extensions = None
-            try:
-                self.vendor_specific_extensions = self.proprietary_tlv.get_tlv(
-                    Select.VENDOR_SPECIFIC_TAG
-                )
-                Global.logger.debug(
-                    "vendor specific extensions: {!r}".format(
-                        hexlify(self.vendor_specific_extensions.to_bytes())
-                    )
-                )
-            except IndexError:
-                pass
-
         except IndexError as error:
             raise InvalidResponseDataError(
-                self.as_bytes, "missing tag: {:#x}".format(error.args[0])
+                self.as_bytes,
+                "missing expedited_phase_supported_protocol_versions, tag: {:#x}".format(
+                    error.args[0]
+                ),
+            )
+
+        self.maximum_command_apdu = None
+        self.maximum_response_apdu = None
+        try:
+            extended_length = self.proprietary_tlv.get_tlv(Select.EXTENDED_INFO_TAG)
+            if len(extended_length.to_bytes()) == Select.EXTENDED_INFO_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "Extended Length Information has invalid length"
+                )
+            try:
+                self.maximum_command_apdu = int.from_bytes(
+                    extended_length.get_bytes(Select.MAX_COMMAND_TAG, index=0), "big"
+                )
+            except IndexError as error:
+                raise InvalidResponseDataError(
+                    self.as_bytes,
+                    "missing Maximum Command APDU, tag: {:#x}".format(error.args[0]),
+                )
+            try:
+                self.maximum_response_apdu = int.from_bytes(
+                    extended_length.get_bytes(Select.MAX_RESPONSE_TAG, index=1), "big"
+                )
+            except IndexError as error:
+                raise InvalidResponseDataError(
+                    self.as_bytes,
+                    "missing Maximum response, tag: {:#x}".format(error.args[0]),
+                )
+        except IndexError:
+            pass
+        Global.logger.debug(
+            "maximum command apdu: {}".format(self.maximum_command_apdu)
+        )
+        Global.logger.debug(
+            "maximum response apdu: {}".format(self.maximum_response_apdu)
+        )
+
+        self.vendor_specific_extensions = None
+        try:
+            self.vendor_specific_extensions = self.proprietary_tlv.get_tlv(
+                Select.VENDOR_SPECIFIC_TAG
+            )
+            Global.logger.debug(
+                "vendor specific extensions: {!r}".format(
+                    hexlify(self.vendor_specific_extensions.to_bytes())
+                )
+            )
+        except IndexError:
+            pass
+        except TlvError:
+            raise InvalidResponseDataError(
+                self.as_bytes, "Vendor specific extensions is not a valid TLV"
             )
 
     def parse_as_envelope(self) -> None:
