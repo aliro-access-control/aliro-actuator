@@ -46,6 +46,14 @@ class InvalidKeyFormatError(TrustFrameworkError):
     pass
 
 
+class MissingPublicKeyError(TrustFrameworkError):
+    """
+    Passed when initializing private key with 32 bytes data, and no public key.
+    """
+
+    pass
+
+
 class InvalidKeyError(TrustFrameworkError):
     """
     Passed when a key is invalid.
