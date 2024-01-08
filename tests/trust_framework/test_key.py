@@ -16,7 +16,6 @@ import os
 import unittest
 
 import pytest
-
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
 
@@ -118,6 +117,7 @@ class Test_key(unittest.TestCase):
 
         private_key_bytes = PrivateKey(PRIVATE_KEY_BYTES_DER)
         self.assertEqual(private_key_bytes.as_pem(), private_key_pem.as_pem())
+        self.assertEqual(PRIVATE_KEY_BYTES_DER, private_key_bytes.as_bytes(short=False))
 
     def test_keypair_from_hex(self) -> None:
         f = open("tests/trust_framework/myprivatekey.pem", "rt")
@@ -128,3 +128,17 @@ class Test_key(unittest.TestCase):
         self.assertEqual(
             keypair_bytes.get_private_key().as_pem(), private_key_pem.as_pem()
         )
+        self.assertEqual(
+            PRIVATE_KEY_BYTES, keypair_bytes.get_private_key().as_bytes(short=True)
+        )
+
+    def test_keypair_from_private_and_public_key(self) -> None:
+        priv_f = open("tests/trust_framework/myprivatekey.pem", "rt")
+        private_key = PrivateKey(priv_f.read())
+
+        pub_f = open("tests/trust_framework/mypublickey.pem", "rt")
+        public_key = PublicKey(pub_f.read())
+
+        keypair_bytes = KeyPair(private_key, public_key)
+        self.assertEqual(keypair_bytes.get_private_key().as_pem(), private_key.as_pem())
+        self.assertEqual(keypair_bytes.get_public_key().as_pem(), public_key.as_pem())
