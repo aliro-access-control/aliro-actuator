@@ -38,7 +38,11 @@ from cryptography.hazmat.primitives.serialization import (
 )
 
 from aliro_actuator import Global
-from aliro_actuator.trust_framework.errors import InvalidKeyError, InvalidKeyFormatError
+from aliro_actuator.trust_framework.errors import (
+    InvalidKeyError,
+    InvalidKeyFormatError,
+    MissingPublicKeyError,
+)
 
 
 class Key:
@@ -213,6 +217,20 @@ class PrivateKey(Key):
         ).derive(shared_key)
         return derived_key
 
+    def as_bytes(self, short: bool = True) -> bytes:
+        """
+        Returns the key as raw bytes.
+        """
+        private_bytes = self.key.private_bytes(
+            encoding=Encoding.DER,
+            format=PrivateFormat.PKCS8,
+            encryption_algorithm=NoEncryption(),
+        )
+        if short:
+            return private_bytes[36:-70]
+        else:
+            return private_bytes
+
     def as_pem(self) -> str:
         """
         Returns the key as PEM.
@@ -231,21 +249,31 @@ class KeyPair:
 
     def __init__(
         self,
-        private_key: str | bytes | None = None,
-        public_key: bytes | str | None = None,
+        private_key: str | bytes | PrivateKey | None = None,
+        public_key: bytes | str | PublicKey | None = None,
     ):
         """
         If None is passed for the public_key,
         the public key is generated from the private key.
         """
-        if isinstance(public_key, bytes):
-            self.private_key = PrivateKey(private_key, public_key)
+        if isinstance(public_key, PublicKey):
+            self.public_key = public_key
+        elif isinstance(public_key, str) or isinstance(public_key, bytes):
+            self.public_key = PublicKey(public_key)
+
+        if isinstance(private_key, PrivateKey):
+            self.private_key = private_key
+        elif isinstance(private_key, bytes) and len(private_key) == 32:
+            # Initializing private key from 32 bytes, require public key bytes
+            if self.public_key is None:
+                raise MissingPublicKeyError()
+            else:
+                self.private_key = PrivateKey(private_key, self.public_key.as_bytes())
         else:
             self.private_key = PrivateKey(private_key)
+
         if public_key is None:
             self.public_key = self.private_key.generate_public_key()
-        else:
-            self.public_key = PublicKey(public_key)
 
     def sign(self, data: bytes) -> bytes:
         """
