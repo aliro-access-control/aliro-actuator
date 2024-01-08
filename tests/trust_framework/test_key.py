@@ -16,9 +16,22 @@ import os
 import unittest
 
 import pytest
-
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
+
+PRIVATE_KEY_BYTES_DER = bytes.fromhex(
+    "308187020100301306072a8648ce3d020106082a8648ce3d030107046d306b0201010420a168118f3a"
+    "11e5dc05d155d63a65d1d13c266e7054a3e48fcc9db32eab20e74ea1440342000448172190e162bcaf"
+    "77107de1a53e401a2b46890a03625a47c89af0b2ec91896aa1ff1c6f455d8283836a1137ac476f5e25"
+    "4caf56a081958fac6e557526d8699d"
+)
+PRIVATE_KEY_BYTES = bytes.fromhex(
+    "a168118f3a11e5dc05d155d63a65d1d13c266e7054a3e48fcc9db32eab20e74e"
+)
+PUBLIC_KEY_BYTES = bytes.fromhex(
+    "0448172190e162bcaf77107de1a53e401a2b46890a03625a47c89af0b2ec91896aa1ff1c6f455d8283"
+    "836a1137ac476f5e254caf56a081958fac6e557526d8699d"
+)
 
 
 class Test_key(unittest.TestCase):
@@ -87,3 +100,45 @@ class Test_key(unittest.TestCase):
         public_key_bytes = bytes.fromhex("04" + "00" * 64)
         with pytest.raises(InvalidKeyError):
             PublicKey(public_key_bytes)
+
+    def test_public_key_from_hex(self) -> None:
+        f = open("tests/trust_framework/mypublickey.pem", "rt")
+        public_key_pem = f.read()
+
+        public_key_bytes = PublicKey(PUBLIC_KEY_BYTES)
+        public_key_pem = PublicKey(public_key_pem)
+
+        self.assertEqual(public_key_bytes.as_pem(), public_key_pem.as_pem())
+
+    def test_private_key_from_hex(self) -> None:
+        f = open("tests/trust_framework/myprivatekey.pem", "rt")
+        private_key_pem = f.read()
+        private_key_pem = PrivateKey(private_key_pem)
+
+        private_key_bytes = PrivateKey(PRIVATE_KEY_BYTES_DER)
+        self.assertEqual(private_key_bytes.as_pem(), private_key_pem.as_pem())
+        self.assertEqual(PRIVATE_KEY_BYTES_DER, private_key_bytes.as_bytes(short=False))
+
+    def test_keypair_from_hex(self) -> None:
+        f = open("tests/trust_framework/myprivatekey.pem", "rt")
+        private_key_pem = f.read()
+        private_key_pem = PrivateKey(private_key_pem)
+
+        keypair_bytes = KeyPair(PRIVATE_KEY_BYTES, PUBLIC_KEY_BYTES)
+        self.assertEqual(
+            keypair_bytes.get_private_key().as_pem(), private_key_pem.as_pem()
+        )
+        self.assertEqual(
+            PRIVATE_KEY_BYTES, keypair_bytes.get_private_key().as_bytes(short=True)
+        )
+
+    def test_keypair_from_private_and_public_key(self) -> None:
+        priv_f = open("tests/trust_framework/myprivatekey.pem", "rt")
+        private_key = PrivateKey(priv_f.read())
+
+        pub_f = open("tests/trust_framework/mypublickey.pem", "rt")
+        public_key = PublicKey(pub_f.read())
+
+        keypair_bytes = KeyPair(private_key, public_key)
+        self.assertEqual(keypair_bytes.get_private_key().as_pem(), private_key.as_pem())
+        self.assertEqual(keypair_bytes.get_public_key().as_pem(), public_key.as_pem())

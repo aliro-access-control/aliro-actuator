@@ -20,6 +20,15 @@ board. This library can be build by running the following command:
 ./scripts/install_nfc.sh
 ```
 
+This actuator use poetry for dependency management. To setup the environment, run:
+```
+sudo apt install python3-pip
+pip install poetry
+PATH="$PATH:/home/<user-name>/.local/bin"
+sudo -E $(which poetry) install --no-root
+sudo -E $(which poetry) shell
+```
+
 ### (re)building the nci library
 In case the install script does not work as expected, the following steps can be followed for a manual install.
 
@@ -56,10 +65,10 @@ sudo make install
 
 ## Examples
 The examples can be found in the examples folder. 
-You can run an example with
+You can run an example in the poetry shell with:
 ```
-sudo python3 -m examples.nfc.reader
-sudo python3 -m examples.nfc.user_device
+python3 -m examples.nfc.reader
+python3 -m examples.nfc.user_device
 ```
 
 ## Using the Actuator
