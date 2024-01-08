@@ -92,13 +92,13 @@ class Test_apdu(unittest.TestCase):
         )
 
     def test_select_response_parse(self):
-        aid = bytes("test_aid", "utf-8")
+        aid = bytes("test__aid", "utf-8")
         response_bytes = bytes(
             [
                 0x6F,
-                0x16,
+                0x17,
                 0x84,
-                0x8,
+                0x9,
                 *aid,
                 0xA5,
                 0x0A,

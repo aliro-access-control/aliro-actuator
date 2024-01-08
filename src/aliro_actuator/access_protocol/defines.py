@@ -41,6 +41,10 @@ class Select:
     MAX_RESPONSE_TAG = 0x02
     VENDOR_SPECIFIC_TAG = 0xB3
 
+    AID_LEN = 9
+    TYPE_LEN = 2
+    EXTENDED_INFO_LEN = 8
+
 
 # Auth0 defines
 class Auth0:
