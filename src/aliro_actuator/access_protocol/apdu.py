@@ -36,6 +36,8 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCommandDataError,
     InvalidCommandError,
     InvalidINSError,
+    InvalidLcError,
+    InvalidLeError,
     InvalidParameterError,
     InvalidResponseDataError,
     InvalidStatusError,
@@ -288,7 +290,7 @@ class Command(Message):
     @staticmethod
     def _parse_data(command: bytes) -> tuple[int, bytes | None, int]:
         """
-        Returns the lc, data and lc fields from a bytestring.
+        Returns the lc, data and le fields from a bytestring.
         """
         if len(command) < 4:
             raise InvalidCommandError(command)
@@ -310,7 +312,16 @@ class Command(Message):
             # extended lc
             lc = int.from_bytes(command[5:7], "big")
             data_start = 7
-            le = int.from_bytes(command[data_start + lc : data_start + lc + 2], "big")
+            if len(command) == data_start + lc + 2:
+                # has a le
+                le = int.from_bytes(
+                    command[data_start + lc : data_start + lc + 2], "big"
+                )
+            elif len(command) == data_start + lc:
+                # has no le
+                pass
+            else:
+                raise InvalidLcError(command)
         else:
             # short lc
             lc = command[4]
@@ -320,6 +331,11 @@ class Command(Message):
                 le = command[data_start + lc]
                 if le == 0x00:
                     le = 256
+            elif len(command) == (data_start + lc):
+                # has no le
+                pass
+            else:
+                raise InvalidLcError(command)
 
         data = bytes(command[data_start : data_start + lc])
         return lc, data, le
@@ -357,6 +373,16 @@ class Command(Message):
         if self.p1 != expected_p1 or self.p2 != expected_p2:
             raise InvalidParameterError(self.as_bytes)
 
+    def _check_le(self, expected_le: int = 256) -> None:
+        """
+        Check if le is valid.
+
+        Most commands require the send value to be 0,
+        which means a maximum expected response of 256
+        """
+        if self.le != expected_le:
+            raise InvalidLeError(self.as_bytes)
+
     def parse_as_select(self) -> None:
         """
         Parse this command as a Select command.
@@ -366,11 +392,13 @@ class Command(Message):
         Global.logger.debug("Parsing select command:")
         self._check_cla(True)
         self._check_parameters(0x04, 0x00)
+        self._check_le()
 
-        if self.lc > 0x10:
+        if self.lc > Select.AID_LEN:
             raise InvalidCommandDataError(self.as_bytes, "AID too long")
         if self.data is None:
             raise InvalidCommandDataError(self.as_bytes, "No AID found")
+
         self.aid = self.data
         Global.logger.debug("AID: {!r}".format(hexlify(self.aid)))
 
@@ -417,43 +445,130 @@ class Command(Message):
         self._check_cla(False)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
+        self._check_le()
 
-        self.command_parameters = int.from_bytes(
-            self.tlv_data.get_bytes(Auth0.COMMAND_TAG), byteorder="big"
-        )
-        Global.logger.debug("Command parameters: {}".format(self.command_parameters))
-
-        self.transaction_code = int.from_bytes(
-            self.tlv_data.get_bytes(Auth0.TRANSACTION_CODE_TAG), byteorder="big"
-        )
-        Global.logger.debug("Transaction code: {}".format(self.transaction_code))
-
-        self.expedited_phase_protocol_version = int.from_bytes(
-            self.tlv_data.get_bytes(Auth0.ETPV_TAG), byteorder="big"
-        )
-        Global.logger.debug(
-            "expedited transaction protocol version: {}".format(
-                self.expedited_phase_protocol_version
+        try:
+            command_parameters_bytes = self.tlv_data.get_bytes(Auth0.COMMAND_TAG)
+            if len(command_parameters_bytes) != Auth0.COMMAND_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes, "command parameters has invalid length"
+                )
+            self.command_parameters = int.from_bytes(
+                command_parameters_bytes, byteorder="big"
             )
-        )
+            Global.logger.debug(
+                "Command parameters: {}".format(self.command_parameters)
+            )
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing command parameters, tag: {:#x}".format(error.args[0]),
+            ) from error
 
-        self.reader_epubk = self.tlv_data.get_bytes(Auth0.READER_EPUBK_TAG)
-        Global.logger.debug("reader epubk: {!r}".format(hexlify(self.reader_epubk)))
+        try:
+            transaction_code_bytes = self.tlv_data.get_bytes(Auth0.TRANSACTION_CODE_TAG)
+            if len(transaction_code_bytes) != Auth0.TRANSACTION_CODE_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes, "transaction code has invalid length"
+                )
+            self.transaction_code = int.from_bytes(
+                transaction_code_bytes, byteorder="big"
+            )
+            Global.logger.debug("Transaction code: {}".format(self.transaction_code))
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing transaction code, tag: {:#x}".format(error.args[0]),
+            ) from error
 
-        self.transaction_identifier = self.tlv_data.get_bytes(Auth0.TRANSACTION_ID_TAG)
-        Global.logger.debug(
-            "transaction identifier: {!r}".format(hexlify(self.transaction_identifier))
-        )
+        try:
+            expedited_phase_protocol_version_bytes = self.tlv_data.get_bytes(
+                Auth0.ETPV_TAG
+            )
+            if len(expedited_phase_protocol_version_bytes) != Auth0.ETPV_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes,
+                    "expedited transaction protocol version has invalid length",
+                )
+            self.expedited_phase_protocol_version = int.from_bytes(
+                expedited_phase_protocol_version_bytes, byteorder="big"
+            )
+            Global.logger.debug(
+                "expedited transaction protocol version: {}".format(
+                    self.expedited_phase_protocol_version
+                )
+            )
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing expedited transaction protocol version, tag: {:#x}".format(
+                    error.args[0]
+                ),
+            ) from error
 
-        self.reader_identifier = self.tlv_data.get_bytes(Auth0.READER_IDENTIFIER_TAG)
-        Global.logger.debug(
-            "reader identifier: {!r}".format(hexlify(self.reader_identifier))
-        )
+        try:
+            self.reader_epubk = self.tlv_data.get_bytes(Auth0.READER_EPUBK_TAG)
+            if len(self.reader_epubk) != Auth0.READER_EPUBK_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes,
+                    "reader epubk has invalid length",
+                )
+            Global.logger.debug(
+                "reader ephemeral public key: {!r}".format(hexlify(self.reader_epubk))
+            )
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing reader ephemeral public key, tag: {:#x}".format(error.args[0]),
+            ) from error
+
+        try:
+            self.transaction_identifier = self.tlv_data.get_bytes(
+                Auth0.TRANSACTION_ID_TAG
+            )
+            if len(self.transaction_identifier) != Auth0.TRANSACTION_ID_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes,
+                    "transaction identifier has invalid length",
+                )
+            Global.logger.debug(
+                "transaction identifier: {!r}".format(
+                    hexlify(self.transaction_identifier)
+                )
+            )
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing transaction identifier, tag: {:#x}".format(error.args[0]),
+            ) from error
+
+        try:
+            self.reader_identifier = self.tlv_data.get_bytes(
+                Auth0.READER_IDENTIFIER_TAG
+            )
+            if len(self.reader_identifier) != Auth0.READER_IDENTIFIER_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes,
+                    "reader identifier has invalid length",
+                )
+            Global.logger.debug(
+                "reader identifier: {!r}".format(hexlify(self.reader_identifier))
+            )
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing reader identifier, tag: {:#x}".format(error.args[0]),
+            ) from error
 
         try:
             self.vendor_specific_extension: bytes | None = self.tlv_data.get_bytes(
                 Auth0.VENDOR_SPECIFIC_TAG
             )
+            if len(self.vendor_specific_extension) > Auth0.VENDOR_SPECIFIC_MAX_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes,
+                    "vendor specific extension has invalid length",
+                )
             Global.logger.debug(
                 "vendor specific extension: {!r}".format(
                     hexlify(self.vendor_specific_extension)
@@ -472,6 +587,7 @@ class Command(Message):
         Global.logger.debug("Parsing load_cert command:")
         self._check_cla(False)
         self._check_parameters(0x00, 0x00)
+        self._check_le()
 
         if self.data is None:
             raise InvalidCommandDataError(self.as_bytes)
@@ -497,24 +613,48 @@ class Command(Message):
         self._check_cla(False)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
+        self._check_le()
 
-        self.command_parameters = int.from_bytes(
-            self.tlv_data.get_bytes(Auth1.COMMAND_TAG), "big"
-        )
-        Global.logger.debug("command parameters: {!r}".format(self.command_parameters))
-        if self.command_parameters & 0x01 == 0x01:
-            self.expected_response = Auth1Response.ENDPOINT_PUBLIC_KEY
-        else:
-            self.expected_response = Auth1Response.KEY_SLOT
-        if self.command_parameters & 0x02 == 0x02:
-            self.request_access_credentials = True
-        else:
-            self.request_access_credentials = False
+        try:
+            command_parameters_bytes = self.tlv_data.get_bytes(Auth1.COMMAND_TAG)
+            if len(command_parameters_bytes) != Auth1.COMMAND_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes,
+                    "command parameters has invalid length",
+                )
+            self.command_parameters = int.from_bytes(command_parameters_bytes, "big")
+            Global.logger.debug(
+                "command parameters: {!r}".format(self.command_parameters)
+            )
+            if self.command_parameters & 0x01 == 0x01:
+                self.expected_response = Auth1Response.ENDPOINT_PUBLIC_KEY
+            else:
+                self.expected_response = Auth1Response.KEY_SLOT
+            if self.command_parameters & 0x02 == 0x02:
+                self.request_access_credentials = True
+            else:
+                self.request_access_credentials = False
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing command parameters, tag: {:#x}".format(error.args[0]),
+            ) from error
 
-        self.reader_signature = self.tlv_data.get_bytes(Auth1.READER_SIG_TAG)
-        Global.logger.debug(
-            "reader signature: {!r}".format(hexlify(self.reader_signature))
-        )
+        try:
+            self.reader_signature = self.tlv_data.get_bytes(Auth1.READER_SIG_TAG)
+            if len(self.reader_signature) != Auth1.READER_SIG_LEN:
+                raise InvalidCommandDataError(
+                    self.as_bytes,
+                    "reader signature has invalid length",
+                )
+            Global.logger.debug(
+                "reader signature: {!r}".format(hexlify(self.reader_signature))
+            )
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing reader signature, tag: {:#x}".format(error.args[0]),
+            ) from error
 
         try:
             self.certificate_data: bytes | None = self.tlv_data.get_bytes(
@@ -548,6 +688,7 @@ class Command(Message):
         Global.logger.debug("Parsing exchange command:")
         self._check_cla(False)
         self._check_parameters(0x00, 0x00)
+        self._check_le()
 
         if self.data is None:
             raise InvalidCommandDataError(self.as_bytes)
@@ -625,6 +766,7 @@ class Command(Message):
         self._check_cla(False)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
+        self._check_le(0)
 
         self.s1 = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S1_TAG), "big")
         self.s2 = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S2_TAG), "big")

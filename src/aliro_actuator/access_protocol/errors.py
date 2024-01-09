@@ -116,6 +116,14 @@ class InvalidLcError(InvalidCommandError):
     pass
 
 
+class InvalidLeError(InvalidCommandError):
+    """
+    Raised when the received command has an invalid Le.
+    """
+
+    pass
+
+
 class InvalidCommandDataError(InvalidCommandError):
     """
     Raised when the received command has an invalid Data field.

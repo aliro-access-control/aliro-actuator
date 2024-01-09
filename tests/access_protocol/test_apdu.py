@@ -446,42 +446,51 @@ class Test_apdu(unittest.TestCase):
     def test_parse_data(self) -> None:
         self.apdu.support_extended_length_apdu = True
 
-        command = [0x00, 0x00, 0x00]
+        # No P2
+        command = bytes([0x00, 0x00, 0x00])
         with pytest.raises(InvalidCommandError):
             Command._parse_data(command)
 
-        command = [0x00, 0x00, 0x00, 0x00]
+        # CLA + INS + P1 + P2
+        command = bytes([0x00, 0x00, 0x00, 0x00])
         self.assertEqual(Command._parse_data(command), (0, None, 0))
 
-        command = [0x00, 0x00, 0x00, 0x00, 0x00]
+        # CLA + INS + P1 + P2 + short le
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x00])
         self.assertEqual(Command._parse_data(command), (0, None, 256))
 
-        command = [0x00, 0x00, 0x00, 0x00, 0x01]
+        # CLA + INS + P1 + P2 + short le
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x01])
         self.assertEqual(Command._parse_data(command), (0, None, 1))
 
-        command = [0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34]
+        # CLA + INS + P1 + P2 + long le
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x12, 0x34])
         self.assertEqual(Command._parse_data(command), (0, None, 0x1234))
 
-        command = [0x00, 0x00, 0x00, 0x00, 0x01, 0x35]
+        # CLA + INS + P1 + P2 + short lc + data
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x01, 0x35])
         self.assertEqual(Command._parse_data(command), (1, bytes([0x35]), 0))
 
-        command = [
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x0A,
-            0x35,
-            0x45,
-            0x65,
-            0x75,
-            0x85,
-            0x95,
-            0x05,
-            0x12,
-            0x23,
-            0x34,
-        ]
+        # CLA + INS + P1 + P2 + short lc + data
+        command = bytes(
+            [
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x0A,
+                0x35,
+                0x45,
+                0x65,
+                0x75,
+                0x85,
+                0x95,
+                0x05,
+                0x12,
+                0x23,
+                0x34,
+            ]
+        )
         self.assertEqual(
             Command._parse_data(command),
             (
@@ -504,19 +513,43 @@ class Test_apdu(unittest.TestCase):
             ),
         )
 
+        # CLA + INS + P1 + P2 + long lc + data
         random_data = os.urandom(0x200)
-        command = [0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, *random_data]
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, *random_data])
         self.assertEqual(Command._parse_data(command), (0x200, random_data, 0))
 
-        command = [0x00, 0x00, 0x00, 0x00, 0x01, 0x35, 0x00]
+        # CLA + INS + P1 + P2 + short lc + data + short le
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x01, 0x35, 0x00])
         self.assertEqual(Command._parse_data(command), (1, bytes([0x35]), 0x100))
 
-        command = [0x00, 0x00, 0x00, 0x00, 0x01, 0x35, 0xA0]
+        # CLA + INS + P1 + P2 + short lc + data + short le
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x01, 0x35, 0xA0])
         self.assertEqual(Command._parse_data(command), (1, bytes([0x35]), 0xA0))
 
+        # CLA + INS + P1 + P2 + long lc + data + long le
         random_data = os.urandom(0x200)
-        command = [0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, *random_data, 0x12, 0x43]
+        command = bytes(
+            [0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, *random_data, 0x12, 0x43]
+        )
         self.assertEqual(Command._parse_data(command), (0x200, random_data, 0x1243))
+
+        # CLA + INS + P1 + P2 + long lc + data + short le
+        random_data = os.urandom(0x200)
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, *random_data, 0x12])
+        with pytest.raises(InvalidCommandError):
+            Command._parse_data(command)
+
+        # CLA + INS + P1 + P2 + long lc + data (too short)
+        random_data = os.urandom(0x1FF)
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, *random_data])
+        with pytest.raises(InvalidCommandError):
+            Command._parse_data(command)
+
+        # CLA + INS + P1 + P2 + long lc + data (too long)
+        random_data = os.urandom(0x201)
+        command = bytes([0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, *random_data])
+        with pytest.raises(InvalidCommandError):
+            Command._parse_data(command)
 
     def test_parse_tlv(self) -> None:
         data = bytes([0x41, 0x00])
