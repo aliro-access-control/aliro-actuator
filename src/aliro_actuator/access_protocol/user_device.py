@@ -245,7 +245,10 @@ class UserDevice(Device):
             self.response_error(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
             raise VersionError
 
-        self.session.set_auth0_data(auth0_command)
+        try:
+            self.session.set_auth0_data(auth0_command)
+        except InvalidKeyError:
+            AccessProtocolError("Reader ephemeral key is invalid")
 
         for endpoint in self.endpoints:
             if endpoint.has_identifier(self.session.reader_identifier):
@@ -365,7 +368,7 @@ class UserDevice(Device):
         )
         if not verified:
             self.response_error(StatusBytes.GENERIC_ERROR)
-            raise AccessProtocolError("signature not verified")
+            raise AccessProtocolError("reader authentication data not verified")
         Global.logger.info("reader authentication data verified successfully")
 
         Global.logger.info("creating shared keys")
