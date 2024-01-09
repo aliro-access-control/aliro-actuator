@@ -744,7 +744,12 @@ class Response(Message):
 
         if self.data is None:
             raise InvalidResponseDataError(self.as_bytes, "No data available")
-        data_tlv = TLV.from_bytes(self.data)
+        try:
+            data_tlv = TLV.from_bytes(self.data)
+        except TlvError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes, "Data is an invalid TLV"
+            ) from error
 
         try:
             FCI_tlv = data_tlv.get_tlv(Select.FCI_TAG)
@@ -754,11 +759,11 @@ class Response(Message):
                 "missing File Control Information (FCI), tag: {:#x}".format(
                     error.args[0]
                 ),
-            )
-        except TlvError:
+            ) from error
+        except TlvError as error:
             raise InvalidResponseDataError(
                 self.as_bytes, "File Control Information (FCI) is not a valid TLV"
-            )
+            ) from error
 
         try:
             self.compl_aid = FCI_tlv.get_bytes(Select.AID_TAG)
@@ -768,7 +773,7 @@ class Response(Message):
             raise InvalidResponseDataError(
                 self.as_bytes,
                 "missing AID, tag: {:#x}".format(error.args[0]),
-            )
+            ) from error
 
         try:
             self.proprietary_tlv = FCI_tlv.get_tlv(Select.PROPRIETARY_TAG)
@@ -777,11 +782,11 @@ class Response(Message):
             raise InvalidResponseDataError(
                 self.as_bytes,
                 "missing Proprietary information, tag: {:#x}".format(error.args[0]),
-            )
-        except TlvError:
+            ) from error
+        except TlvError as error:
             raise InvalidResponseDataError(
                 self.as_bytes, "Proprietary information is not a valid TLV"
-            )
+            ) from error
 
         try:
             type_bytes = self.proprietary_tlv.get_bytes(Select.TYPE_TAG)
@@ -793,7 +798,7 @@ class Response(Message):
             raise InvalidResponseDataError(
                 self.as_bytes,
                 "missing Type, tag: {:#x}".format(error.args[0]),
-            )
+            ) from error
 
         try:
             etspv_bytes = self.proprietary_tlv.get_bytes(Select.ETSPV_TAG)
@@ -816,7 +821,7 @@ class Response(Message):
                 "missing expedited_phase_supported_protocol_versions, tag: {:#x}".format(
                     error.args[0]
                 ),
-            )
+            ) from error
 
         self.maximum_command_apdu = None
         self.maximum_response_apdu = None
@@ -834,7 +839,7 @@ class Response(Message):
                 raise InvalidResponseDataError(
                     self.as_bytes,
                     "missing Maximum Command APDU, tag: {:#x}".format(error.args[0]),
-                )
+                ) from error
             try:
                 self.maximum_response_apdu = int.from_bytes(
                     extended_length.get_bytes(Select.MAX_RESPONSE_TAG, index=1), "big"
@@ -843,7 +848,7 @@ class Response(Message):
                 raise InvalidResponseDataError(
                     self.as_bytes,
                     "missing Maximum response, tag: {:#x}".format(error.args[0]),
-                )
+                ) from error
         except IndexError:
             pass
         Global.logger.debug(
@@ -865,10 +870,10 @@ class Response(Message):
             )
         except IndexError:
             pass
-        except TlvError:
+        except TlvError as error:
             raise InvalidResponseDataError(
                 self.as_bytes, "Vendor specific extensions is not a valid TLV"
-            )
+            ) from error
 
     def parse_as_envelope(self) -> None:
         """
@@ -891,22 +896,59 @@ class Response(Message):
         creates the following attributes:
         endpoint_epubk: bytes
         cryptogram: bytes (if present)
+        vendor_specific_extensions: tlv (if present)
         """
         Global.logger.debug("Parsing auth0 response:")
         self._check_status()
 
         if self.data is None:
-            raise InvalidResponseDataError(self.as_bytes)
-        data_tlv = TLV.from_bytes(self.data)
+            raise InvalidResponseDataError(self.as_bytes, "No data available")
+        try:
+            data_tlv = TLV.from_bytes(self.data)
+        except TlvError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes, "Data is an invalid TLV"
+            ) from error
 
-        self.endpoint_epubk = data_tlv.get_bytes(Auth0.ENDPOINT_EPUBK_TAG)
-        Global.logger.debug("endpoint epubk: {!r}".format(hexlify(self.endpoint_epubk)))
+        try:
+            self.endpoint_epubk = data_tlv.get_bytes(Auth0.ENDPOINT_EPUBK_TAG)
+            if len(self.endpoint_epubk) != Auth0.ENDPOINT_EPUBK_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "Endpoint Ephemeral Public Key has invalid length"
+                )
+            Global.logger.debug(
+                "endpoint epubk: {!r}".format(hexlify(self.endpoint_epubk))
+            )
+        except IndexError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes,
+                "missing Endpoint Ephemeral Public Key, tag: {:#x}".format(
+                    error.args[0]
+                ),
+            ) from error
+
         try:
             self.cryptogram: bytes | None = data_tlv.get_bytes(Auth0.CRYPTOGRAM_TAG)
             Global.logger.debug("cryptogram: {!r}".format(self.cryptogram))
         except IndexError:
             self.cryptogram = None
             Global.logger.debug("No cryptogram found")
+
+        try:
+            self.vendor_specific_extensions = data_tlv.get_tlv(Auth0.CRYPTOGRAM_TAG)
+            if (
+                len(self.vendor_specific_extensions.to_bytes())
+                > Auth0.CRYPTOGRAM_MAX_LEN
+            ):
+                raise InvalidResponseDataError(
+                    self.as_bytes, "vendor specific extensions have invalid length"
+                )
+            Global.logger.debug(
+                "vendor specific extensions: {!r}".format(self.cryptogram)
+            )
+        except IndexError:
+            self.vendor_specific_extensions = None
+            Global.logger.debug("No vendor specific extensions found")
 
     def parse_as_auth1(self, encryption: EncryptionEngine | None = None) -> None:
         """
@@ -930,7 +972,7 @@ class Response(Message):
         self._check_status()
 
         if self.data is None:
-            raise InvalidResponseDataError(self.as_bytes)
+            raise InvalidResponseDataError(self.as_bytes, "No data available")
         self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
         Global.logger.debug(
             "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
@@ -941,101 +983,138 @@ class Response(Message):
             "authentication tag: {!r}".format(hexlify(self.authentication_tag))
         )
 
-        if encryption is not None:
-            self.decrypted_payload = encryption.decrypt(
-                self.encrypted_payload, self.authentication_tag
-            )
-            Global.logger.debug(
-                "decrypted payload: {!r}".format(hexlify(self.decrypted_payload))
-            )
+        if encryption is None:
+            Global.logger.debug("No EncryptionEngine available, cannot decrypt payload")
+            return
 
+        self.decrypted_payload = encryption.decrypt(
+            self.encrypted_payload, self.authentication_tag
+        )
+        Global.logger.debug(
+            "decrypted payload: {!r}".format(hexlify(self.decrypted_payload))
+        )
+
+        try:
             self.payload_tlv = TLV.from_bytes(self.decrypted_payload)
+        except TlvError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes, "Data is an invalid TLV"
+            ) from error
 
-            try:
-                self.key_slot: bytes | None = self.payload_tlv.get_bytes(
-                    Auth1.KEY_SLOT_TAG
+        try:
+            self.key_slot: bytes | None = self.payload_tlv.get_bytes(Auth1.KEY_SLOT_TAG)
+            if len(self.key_slot) != Auth1.KEY_SLOT_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "Key slot has invalid length"
                 )
-                Global.logger.debug("keyslot: {!r}".format(hexlify(self.key_slot)))
-            except IndexError:
-                self.key_slot = None
-                Global.logger.debug("no keyslot found")
+            Global.logger.debug("keyslot: {!r}".format(hexlify(self.key_slot)))
+        except IndexError:
+            self.key_slot = None
+            Global.logger.debug("no keyslot found")
 
-            try:
-                self.endpoint_public_key: bytes | None = self.payload_tlv.get_bytes(
-                    Auth1.ENDPOINT_EPUBK_TAG
+        try:
+            self.endpoint_public_key: bytes | None = self.payload_tlv.get_bytes(
+                Auth1.ENDPOINT_PUBK_TAG
+            )
+            if len(self.endpoint_public_key) != Auth1.ENDPOINT_PUBK_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "endpoint public key has invalid length"
                 )
-                Global.logger.debug(
-                    "endpoint public key: {!r}".format(
-                        hexlify(self.endpoint_public_key)
-                    )
-                )
-            except IndexError:
-                self.endpoint_public_key = None
-                Global.logger.debug("endpoint public key found")
+            Global.logger.debug(
+                "endpoint public key: {!r}".format(hexlify(self.endpoint_public_key))
+            )
+        except IndexError:
+            self.endpoint_public_key = None
+            Global.logger.debug("no endpoint public key found")
 
+        if self.key_slot is None and self.endpoint_public_key is None:
+            raise InvalidResponseDataError(
+                self.as_bytes, "No key slot or endpoint public key found"
+            )
+
+        try:
             self.endpoint_signature = self.payload_tlv.get_bytes(Auth1.ENDPOINT_SIG_TAG)
             Global.logger.debug(
                 "endpoint signature: {!r}".format(hexlify(self.endpoint_signature))
             )
+        except IndexError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes, "No endpoint signature tag found"
+            ) from error
 
-            try:
-                self.private_mailbox_data: bytes | None = self.payload_tlv.get_bytes(
-                    Auth1.MAILBOX_DATA_TAG
-                )
-                Global.logger.debug(
-                    "private_mailbox_data: {!r}".format(
-                        hexlify(self.private_mailbox_data)
-                    )
-                )
-            except IndexError:
-                self.private_mailbox_data = None
-                Global.logger.debug("no private_mailbox_data found")
+        try:
+            self.private_mailbox_data: bytes | None = self.payload_tlv.get_bytes(
+                Auth1.MAILBOX_DATA_TAG
+            )
+            Global.logger.debug(
+                "private_mailbox_data: {!r}".format(hexlify(self.private_mailbox_data))
+            )
+        except IndexError:
+            self.private_mailbox_data = None
+            Global.logger.debug("no private_mailbox_data found")
 
+        try:
             self.signaling_bitmap = self.payload_tlv.get_bytes(
                 Auth1.SIGNALING_BITMAP_TAG
             )
+            if len(self.signaling_bitmap) != Auth1.SIGNALING_BITMAP_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "signaling bitmap has invalid length"
+                )
             Global.logger.debug(
-                "singaling bitmap: {!r}".format(hexlify(self.signaling_bitmap))
+                "signaling bitmap: {!r}".format(hexlify(self.signaling_bitmap))
             )
+        except IndexError as error:
+            raise InvalidResponseDataError(
+                self.as_bytes, "No signaling bitmap found"
+            ) from error
 
-            try:
-                self.credential_signed_timestamp: bytes | None = (
-                    self.payload_tlv.get_bytes(Auth1.CREDENTIAL_TIMESTAMP_TAG)
+        try:
+            self.credential_signed_timestamp: bytes | None = self.payload_tlv.get_bytes(
+                Auth1.CREDENTIAL_TIMESTAMP_TAG
+            )
+            if len(self.credential_signed_timestamp) != Auth1.CREDENTIAL_TIMESTAMP_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "Credential signed timestamp has invalid length"
                 )
-                Global.logger.debug(
-                    "credential_signed_timestamp: {!r}".format(
-                        hexlify(self.credential_signed_timestamp)
-                    )
+            Global.logger.debug(
+                "credential_signed_timestamp: {!r}".format(
+                    hexlify(self.credential_signed_timestamp)
                 )
-            except IndexError:
-                self.credential_signed_timestamp = None
-                Global.logger.debug("no credential_signed_timestamp found")
+            )
+        except IndexError:
+            self.credential_signed_timestamp = None
+            Global.logger.debug("no credential_signed_timestamp found")
 
-            try:
-                self.revocation_signed_timestamp: bytes | None = (
-                    self.payload_tlv.get_bytes(Auth1.REVOCATION_TIMESTAMP_TAG)
+        try:
+            self.revocation_signed_timestamp: bytes | None = self.payload_tlv.get_bytes(
+                Auth1.REVOCATION_TIMESTAMP_TAG
+            )
+            if len(self.revocation_signed_timestamp) != Auth1.REVOCATION_TIMESTAMP_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "Revocation signed timestamp has invalid length"
                 )
-                Global.logger.debug(
-                    "revocation_signed_timestamp: {!r}".format(
-                        hexlify(self.revocation_signed_timestamp)
-                    )
+            Global.logger.debug(
+                "revocation_signed_timestamp: {!r}".format(
+                    hexlify(self.revocation_signed_timestamp)
                 )
-            except IndexError:
-                self.revocation_signed_timestamp = None
-                Global.logger.debug("no revocation_signed_timestamp found")
+            )
+        except IndexError:
+            self.revocation_signed_timestamp = None
+            Global.logger.debug("no revocation_signed_timestamp found")
 
-            try:
-                self.access_credential_response: bytes | None = (
-                    self.payload_tlv.get_bytes(Auth1.ACCESS_RESPONSE_TAG)
+        try:
+            self.access_credential_response: bytes | None = self.payload_tlv.get_bytes(
+                Auth1.ACCESS_RESPONSE_TAG
+            )
+            Global.logger.debug(
+                "access_credential_response: {!r}".format(
+                    hexlify(self.access_credential_response)
                 )
-                Global.logger.debug(
-                    "access_credential_response: {!r}".format(
-                        hexlify(self.access_credential_response)
-                    )
-                )
-            except IndexError:
-                self.access_credential_response = None
-                Global.logger.debug("no access_credential_response found")
+            )
+        except IndexError:
+            self.access_credential_response = None
+            Global.logger.debug("no access_credential_response found")
 
     def parse_as_load_cert(self) -> None:
         """
@@ -1332,13 +1411,13 @@ class APDU:
                 raise CreateCommandError(
                     "no public key passed while expected_response is ENDPOINT_PUBLIC_KEY"
                 )
-            if len(public_key) != Auth1.ENDPOINT_EPUBK_LEN:
+            if len(public_key) != Auth1.ENDPOINT_PUBK_LEN:
                 raise CreateCommandError(
                     "Endpoint public key has invalid length, expected {}, actual: {}".format(
-                        Auth1.ENDPOINT_EPUBK_LEN, len(public_key)
+                        Auth1.ENDPOINT_PUBK_LEN, len(public_key)
                     )
                 )
-            auth1_payload.append((Auth1.ENDPOINT_EPUBK_TAG, public_key))
+            auth1_payload.append((Auth1.ENDPOINT_PUBK_TAG, public_key))
 
         if len(signature) != Auth1.ENDPOINT_SIG_LEN:
             raise CreateCommandError(
