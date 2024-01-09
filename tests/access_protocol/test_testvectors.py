@@ -101,8 +101,12 @@ class Test_Testvectors(unittest.TestCase):
         # reader signature is generated using a random number, so cannot be checked
         self.assertEqual(message_3[:0x0A], AUTH1_COMMAND[:0x0A])
         self.assertEqual(message_3[0x4A:], AUTH1_COMMAND[0x4A:])
-        user.send_message(AUTH1_RESPONSE)
 
-        message_4 = user.get_message()
-        self.assertEqual(message_4, CONTROL_FLOW_COMMAND)
-        user.send_message(CONTROL_FLOW_RESPONSE)
+        # TODO signaling bitmap has invalid length under current spec,
+        # these following tests are no longer valid
+
+        # user.send_message(AUTH1_RESPONSE)
+
+        # message_4 = user.get_message()
+        # self.assertEqual(message_4, CONTROL_FLOW_COMMAND)
+        # user.send_message(CONTROL_FLOW_RESPONSE)

@@ -677,7 +677,7 @@ class Response(Message):
 
     def _check_status(self, valid_codes: list[int] = [StatusBytes.SUCCESS]) -> None:
         if self.status not in valid_codes:
-            raise InvalidStatusError(self.as_bytes)
+            raise InvalidStatusError(self.as_bytes, self.status)
 
     @classmethod
     def create_from_bytestring(cls, bytestring: bytes) -> Response:
