@@ -40,10 +40,10 @@ from aliro_actuator.access_protocol.tlv import TLV
 
 
 class Test_apdu(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.apdu = APDU()
 
-    def test_select(self):
+    def test_select(self) -> None:
         message = self.apdu.create_select_command(bytes("DUMMY01", "utf-8"))
         self.assertEqual(
             message.to_bytes(),
@@ -60,7 +60,7 @@ class Test_apdu(unittest.TestCase):
             ),
         )
 
-    def test_select_response(self):
+    def test_select_response(self) -> None:
         aid = bytes("test_aid", "utf-8")
         etspv = [0x100, 0x0020]
         response = self.apdu.create_select_response(aid, 0x0000, etspv, status=0x9000)
@@ -91,7 +91,7 @@ class Test_apdu(unittest.TestCase):
             ),
         )
 
-    def test_select_response_parse(self):
+    def test_select_response_parse(self) -> None:
         aid = bytes("test__aid", "utf-8")
         response_bytes = bytes(
             [
@@ -125,7 +125,7 @@ class Test_apdu(unittest.TestCase):
             response.expedited_phase_supported_protocol_versions, [0x100, 0x0020]
         )
 
-    def test_select_response_parse_missing(self):
+    def test_select_response_parse_missing(self) -> None:
         response_bytes = bytes(
             [
                 0x6F,
@@ -152,7 +152,7 @@ class Test_apdu(unittest.TestCase):
 
         self.assertIn("0x84", str(context.exception))
 
-    def test_auth0(self):
+    def test_auth0(self) -> None:
         reader_epubk = os.urandom(65)
         transaction_identifier = os.urandom(16)
         reader_identifier = os.urandom(32)
@@ -200,7 +200,7 @@ class Test_apdu(unittest.TestCase):
             ),
         )
 
-    def test_auth0_response(self):
+    def test_auth0_response(self) -> None:
         endpoint_epubk = os.urandom(0x41)
         cryptogram = os.urandom(0x10)
 
@@ -215,7 +215,7 @@ class Test_apdu(unittest.TestCase):
             bytes([0x86, 0x41, *endpoint_epubk, 0x9D, 0x10, *cryptogram, 0x90, 0x00]),
         )
 
-    def test_load_cert(self):
+    def test_load_cert(self) -> None:
         compressed_reader_cert = os.urandom(0x65)
 
         message = self.apdu.create_load_cert_command(compressed_reader_cert)
@@ -227,11 +227,11 @@ class Test_apdu(unittest.TestCase):
             ),
         )
 
-    def test_load_cert_response(self):
+    def test_load_cert_response(self) -> None:
         response = self.apdu.create_load_cert_response(0x9000)
         self.assertEqual(response.to_bytes(), bytes([0x90, 0x00]))
 
-    def test_auth1(self):
+    def test_auth1(self) -> None:
         reader_sig = os.urandom(0x40)
 
         message = self.apdu.create_auth1_command(
@@ -344,7 +344,7 @@ class Test_apdu(unittest.TestCase):
             ),
         )
 
-    def test_control_flow(self):
+    def test_control_flow(self) -> None:
         message = self.apdu.create_control_flow_command(
             S1.FINISHED_WITH_FAILURE, S2.PROTOCOL_VERSION_NOT_SUPPORTED
         )
@@ -389,7 +389,7 @@ class Test_apdu(unittest.TestCase):
             ),
         )
 
-    def test_exchange(self):
+    def test_exchange(self) -> None:
         exchange_SK_reader = os.urandom(0x20)
         exchange_SK_device = os.urandom(0x20)
 
@@ -421,7 +421,7 @@ class Test_apdu(unittest.TestCase):
             ),
         )
 
-    def test_parse_cla(self):
+    def test_parse_cla(self) -> None:
         with pytest.raises(InvalidCLAError):
             self.apdu.parse_command(bytes([0x81, INS.AUTH0, 0x00, 0x00]))
 
@@ -431,11 +431,11 @@ class Test_apdu(unittest.TestCase):
         with pytest.raises(InvalidCLAError):
             self.apdu.parse_command(bytes([0x80, INS.ENVELOPE, 0x00, 0x00]))
 
-    def test_parse_ins(self):
+    def test_parse_ins(self) -> None:
         with pytest.raises(InvalidINSError):
             self.apdu.parse_command(bytes([0x80, 0xFF, 0x00, 0x00]))
 
-    def test_parse_parameters(self):
+    def test_parse_parameters(self) -> None:
         with pytest.raises(InvalidParameterError):
             self.apdu.parse_command(bytes([0x80, INS.AUTH0, 0x01, 0x00]))
         with pytest.raises(InvalidParameterError):
@@ -444,7 +444,7 @@ class Test_apdu(unittest.TestCase):
         with pytest.raises(InvalidParameterError):
             self.apdu.parse_command(bytes([0x00, INS.SELECT, 0x03, 0x00]))
 
-    def test_parse_data(self):
+    def test_parse_data(self) -> None:
         self.apdu.support_extended_length_apdu = True
 
         command = [0x00, 0x00, 0x00]
@@ -519,7 +519,7 @@ class Test_apdu(unittest.TestCase):
         command = [0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, *random_data, 0x12, 0x43]
         self.assertEqual(Command._parse_data(command), (0x200, random_data, 0x1243))
 
-    def test_parse_tlv(self):
+    def test_parse_tlv(self) -> None:
         data = bytes([0x41, 0x00])
         command = Command.create_from_bytestring(
             bytes([0x00, 0x00, 0x00, 0x00, len(data), *data])
