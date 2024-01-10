@@ -37,3 +37,4 @@ if __name__ == "__main__":
     )
     reader.transaction_initiation()
     reader.expedited_transaction_standard(TransactionCode.LOCK)
+    reader.handle_control_flow(True)

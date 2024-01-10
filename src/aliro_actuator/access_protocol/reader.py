@@ -47,12 +47,14 @@ from aliro_actuator.access_protocol.encryption import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseDataError,
+    InvalidStatusError,
     SessionError,
     UnexpectedResponseError,
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.trust_framework.certificate import Certificate
+from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 
 
@@ -156,7 +158,7 @@ class Reader(Device):
             transaction_code (TransactionCode): Passed during AUTH0.
             load_cert (bool, optional): Runs the load_cert command if True. Defaults to False.
         """
-        if self.session == None:
+        if self.session is None:
             self.start_new_session()
 
         Global.logger.info("Start Expedited Transaction (standard)")
@@ -215,23 +217,23 @@ class Reader(Device):
             raise SessionError("No Session")
 
         Global.logger.info("SELECT Command")
-        response = self.command_select(aid)
-        if response.status == StatusBytes.FILE_OR_APP_NOT_FOUND:
-            raise AccessProtocolError("User does not recognize AID")
-        if response.status != StatusBytes.SUCCESS:
-            raise UnexpectedResponseError
-        self.session.set_select_info(response)
-        if self.session.compl_aid != EXPEDITED_PHASE_AID:
+        try:
+            response = self.command_select(aid)
+        except InvalidStatusError as error:
+            if error.status == StatusBytes.FILE_OR_APP_NOT_FOUND:
+                Global.logger.error("User does not recognize AID")
+            raise error
+
+        if response.compl_aid != EXPEDITED_PHASE_AID:
             raise AccessProtocolError("User send unknown AID")
-        if self.session.application_type != CSA_APPLICATION_TYPE:
-            raise AccessProtocolError("User send application type")
-        if (
-            PROTOCOL_VERSION
-            not in self.session.expedited_phase_supported_protocol_versions
-        ):
+        if response.type != CSA_APPLICATION_TYPE:
+            raise AccessProtocolError("User send unknown application type")
+        if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
             )
+
+        self.session.set_select_info(response)
 
     def handle_auth0(
         self, transaction_type: Transaction, transaction_code: TransactionCode
@@ -262,13 +264,26 @@ class Reader(Device):
             reader_identifier=self.reader_group_identifier
             + self.reader_group_sub_identifier,
         )
-        self.session.set_flag(Transaction.STANDARD, transaction_code)
-        self.session.set_endpoint_ephemeral_key(auth0_response.endpoint_epubk)
+
         if transaction_type == Transaction.STANDARD:
+            Global.logger.info("checking Auth0 response fields")
             if auth0_response.cryptogram is not None:
                 raise AccessProtocolError(
                     "User send cryptogram during a standard transaction"
                 )
+            try:
+                endpoint_ephemeral_public_key = PublicKey(auth0_response.endpoint_epubk)
+            except InvalidKeyError as error:
+                raise AccessProtocolError(
+                    "invalid endpoint ephemeral public key received: {!r}".format(
+                        hexlify(auth0_response.endpoint_epubk)
+                    )
+                ) from error
+
+            Global.logger.info("saving Auth0 response data")
+            self.session.set_flag(Transaction.STANDARD, transaction_code)
+            self.session.set_endpoint_ephemeral_key(endpoint_ephemeral_public_key)
+
         elif transaction_type == Transaction.FAST:
             raise NotImplementedError
 
@@ -323,12 +338,29 @@ class Reader(Device):
             encryption=self.session.encryption,
         )
 
-        Global.logger.info("Decode AUTH1 response")
-        self.session.set_auth1_info(auth1_response, expected_response)
+        Global.logger.info("Checking Auth1 response fields")
+        if expected_response == Auth1Response.ENDPOINT_PUBLIC_KEY:
+            if auth1_response.endpoint_public_key is None:
+                raise AccessProtocolError(
+                    "Requested endpoint public key, but none was received"
+                )
+            endpoint_public_key = PublicKey(auth1_response.endpoint_public_key)
+        elif expected_response == Auth1Response.KEY_SLOT:
+            if auth1_response.key_slot is None:
+                raise AccessProtocolError("Requested keyslot, but none was received")
+            endpoint_public_key = self.session.lookup_endpoint_public_key(
+                auth1_response.key_slot
+            )
 
         Global.logger.info("Checking endpoint authentication data")
-        if not self.session.check_endpoint_authentication():
-            raise AccessProtocolError("Endpoint authentication failed")
+        self.session.set_endpoint_public_key(endpoint_public_key)
+        if not self.session.check_endpoint_authentication(
+            auth1_response.endpoint_signature
+        ):
+            raise AccessProtocolError("Endpoint signature authentication failed")
+
+        Global.logger.info("Save AUTH1 response")
+        self.session.set_auth1_info(auth1_response)
 
     def handle_control_flow(self, success: bool) -> None:
         """
@@ -679,9 +711,11 @@ class ReaderSession:
     ) -> None:
         self.flag = bytes([transaction, transaction_code])
 
-    def set_endpoint_ephemeral_key(self, key: bytes) -> None:
-        self.endpoint_ephemeral_key = PublicKey(key)
-        Global.logger.debug("set endpoint ephemeral key: {!r}".format(hexlify(key)))
+    def set_endpoint_ephemeral_key(self, key: PublicKey) -> None:
+        self.endpoint_ephemeral_key = key
+        Global.logger.debug(
+            "set endpoint ephemeral key: {!r}".format(hexlify(key.as_bytes()))
+        )
 
     def get_endpoint_ephemeral_key(self) -> bytes:
         return self.endpoint_ephemeral_key.as_bytes()
@@ -706,34 +740,30 @@ class ReaderSession:
     def get_reader_epubkey(self) -> PublicKey:
         return self.reader_ephemeral.get_public_key()
 
+    def lookup_endpoint_public_key(self, key_slot: bytes) -> PublicKey:
+        raise NotImplementedError
+
+    def set_endpoint_public_key(self, key: PublicKey) -> None:
+        self.endpoint_pubk = key
+
     def set_auth1_info(
         self,
         auth1_response: Response,
-        expected_response: Auth1Response,
     ) -> None:
-        if expected_response == Auth1Response.KEY_SLOT:
-            self.key_slot = auth1_response.key_slot
-        elif (
-            expected_response == Auth1Response.ENDPOINT_PUBLIC_KEY
-            and auth1_response.endpoint_public_key is not None
-        ):
-            self.endpoint_pubk = PublicKey(auth1_response.endpoint_public_key)
-        self.endpoint_signature = auth1_response.endpoint_signature
-
         self.private_mailbox_data = auth1_response.private_mailbox_data
         self.signaling_bitmap = auth1_response.signaling_bitmap
         self.credential_signed_timestamp = auth1_response.credential_signed_timestamp
         self.revocation_signed_timestamp = auth1_response.revocation_signed_timestamp
         self.access_credential_response = auth1_response.access_credential_response
 
-    def check_endpoint_authentication(self) -> bool:
+    def check_endpoint_authentication(self, endpoint_signature: bytes) -> bool:
         data = create_endpoint_authentication(
             self.reader_identifier,
             self.endpoint_ephemeral_key,
             self.reader_ephemeral.get_public_key(),
             self.transaction_identifier,
         )
-        return self.endpoint_pubk.verify(data.to_bytes(), self.endpoint_signature)
+        return self.endpoint_pubk.verify(data.to_bytes(), endpoint_signature)
 
     def can_retrieve_access_credential(self) -> bool:
         return (self.signaling_bitmap[-1] & 0x01) == 0x01

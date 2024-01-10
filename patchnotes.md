@@ -1,5 +1,8 @@
 # Patchnotes
 
+## V0.1.4
+* More checks and better error handling.
+
 ## V0.1.3
 * Fixes to the installation of the nfc drivers
 * Moved dependencies from default to dev to speedup build

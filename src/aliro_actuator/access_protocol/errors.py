@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from binascii import hexlify
+
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, STEPUP_PHASE_AID
 
 
@@ -114,6 +116,14 @@ class InvalidLcError(InvalidCommandError):
     pass
 
 
+class InvalidLeError(InvalidCommandError):
+    """
+    Raised when the received command has an invalid Le.
+    """
+
+    pass
+
+
 class InvalidCommandDataError(InvalidCommandError):
     """
     Raised when the received command has an invalid Data field.
@@ -155,7 +165,12 @@ class InvalidStatusError(InvalidResponseError):
     Raised when the received Response has an invalid status.
     """
 
-    pass
+    def __init__(self, response: bytes, status: int):
+        self.status = status
+        message = "invalid status found: 0x{:04x}, complete response: {!r}".format(
+            status, response
+        )
+        AccessProtocolError.__init__(self, message)
 
 
 class InvalidResponseDataError(InvalidResponseError):
