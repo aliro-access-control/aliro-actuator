@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from ber_tlv.tlv import Tlv
+from ber_tlv.tlv import BadLength, BadParameter, BadTag, Tlv, UnexpectedEnd
 
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 
@@ -172,9 +172,15 @@ class TLV:
         Converts tlv value (BER-TLV, ISO 7816-4) from bytestring to TLV class
         Value is b"" if the tlv tag has no value.
         (length is not represented in the class, but can be derived from the value)
+
+        Raises:
+            TlvError: error during parsing of the bytestring
         """
         data: list[tuple[int, bytes | list]] = []
-        data = Tlv.parse(data_bytes)
+        try:
+            data = Tlv.parse(data_bytes)
+        except (BadTag, BadLength, BadParameter, UnexpectedEnd) as error:
+            raise TlvError(error) from error
 
         return TLV(data)
 
@@ -182,8 +188,14 @@ class TLV:
         """
         Converts tlv value (BER-TLV, ISO 7816-4) to bytestring.
         (length is derived from the value)
+
+        Raises:
+            TlvError: error during construction of the bytestring
         """
-        return Tlv.build(self.data)
+        try:
+            return Tlv.build(self.data)
+        except (BadTag, BadLength, BadParameter, UnexpectedEnd) as error:
+            raise TlvError(error) from error
 
     def to_data(self) -> list:
         """

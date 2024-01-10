@@ -78,13 +78,13 @@ class Test_user(unittest.TestCase):
     def test_select_command_invalid_aid(self, mock_nfc: Mock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_select_command(
-            bytes.fromhex("0002030405004343444B410000")
+            bytes.fromhex("000203040500434344")
         ).to_bytes()
 
         user = UserDevice(TransportProtocol.NFC, mock_nfc)
         user.start_new_session()
         command = user.wait_for_command()
-        with pytest.raises(InvalidAIDError):
+        with pytest.raises(InvalidCommandDataError):
             user.handle_select(command)
 
         mock_nfc.send_message.assert_called_with(
