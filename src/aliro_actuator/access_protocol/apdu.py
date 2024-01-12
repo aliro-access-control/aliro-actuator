@@ -969,7 +969,7 @@ class Response(Message):
         self.maximum_response_apdu = None
         try:
             extended_length = self.proprietary_tlv.get_tlv(Select.EXTENDED_INFO_TAG)
-            if len(extended_length.to_bytes()) == Select.EXTENDED_INFO_LEN:
+            if len(extended_length.to_bytes()) != Select.EXTENDED_INFO_LEN:
                 raise InvalidResponseDataError(
                     self.as_bytes, "Extended Length Information has invalid length"
                 )
