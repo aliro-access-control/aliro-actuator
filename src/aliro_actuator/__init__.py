@@ -17,6 +17,10 @@ from loguru import logger
 
 from aliro_actuator.log import configure_logging
 
+READER_GROUP_ID_LENGTH = 16
+READER_GROUP_SUB_ID_LENGTH = 16
+READER_ID_LENGTH = READER_GROUP_ID_LENGTH + READER_GROUP_SUB_ID_LENGTH
+
 
 class Global:
     logger = logger
