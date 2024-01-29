@@ -65,3 +65,16 @@ class InvalidKeyError(TrustFrameworkError):
             error_message += ", {}".format(message)
         Global.logger.error(error_message)
         super().__init__(error_message)
+
+
+class InvalidIdentifierError(TrustFrameworkError):
+    """
+    Passed when a identifier is invalid.
+    """
+
+    def __init__(self, identifier: bytes, message: str | None = None):
+        error_message = "Identifier not valid: {!r}".format(hexlify(identifier))
+        if message is not None:
+            error_message += ", {}".format(message)
+        Global.logger.error(error_message)
+        super().__init__(error_message)
