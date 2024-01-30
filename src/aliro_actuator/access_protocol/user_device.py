@@ -56,7 +56,7 @@ from aliro_actuator.access_protocol.errors import (
 from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.trust_framework.certificate import Certificate
-from aliro_actuator.trust_framework.endpoint import Endpoint
+from aliro_actuator.trust_framework.endpoint import Endpoint, ReaderIdentifier
 from aliro_actuator.trust_framework.errors import (
     CertificateDecodingError,
     InvalidKeyError,
@@ -251,7 +251,7 @@ class UserDevice(Device):
             AccessProtocolError("Reader ephemeral key is invalid")
 
         for endpoint in self.endpoints:
-            if endpoint.has_identifier(self.session.reader_identifier):
+            if endpoint.has_identifier(self.session.reader_group_identifier):
                 self.session.set_endpoint(endpoint)
 
         if self.session.get_transaction_type() == Transaction.STANDARD:
@@ -827,6 +827,22 @@ class UserSession:
         self.supported_versions = supported_version
         self.encryption: EncryptionEngine | None = None
 
+    @property
+    def reader_identifier(self) -> bytes:
+        return self._reader_identifier.as_bytes()
+
+    @reader_identifier.setter
+    def reader_identifier(self, reader_identifier: bytes) -> None:
+        self._reader_identifier = ReaderIdentifier(reader_identifier)
+
+    @property
+    def reader_group_identifier(self) -> bytes:
+        return self._reader_identifier.get_group()
+
+    @property
+    def reader_group_sub_identifier(self) -> bytes:
+        return self._reader_identifier.get_group_sub()
+
     def update_state(self, state: UserSessionState) -> None:
         self.state = state
 
@@ -939,7 +955,7 @@ class UserSession:
         self, endpoints: list[Endpoint]
     ) -> PublicKey | None:
         for endpoint in endpoints:
-            if endpoint.has_identifier(self.reader_identifier):
+            if endpoint.has_identifier(self.reader_group_identifier):
                 return endpoint.get_reader_public_key()
         return None
 
@@ -956,7 +972,7 @@ class UserSession:
             )
             return
         for endpoint in endpoints:
-            if endpoint.has_identifier(self.reader_identifier):
+            if endpoint.has_identifier(self.reader_group_identifier):
                 self.reader_public_key = endpoint.get_reader_public_key()
                 Global.logger.info(
                     "set reader public key from endpoints: {!r}".format(

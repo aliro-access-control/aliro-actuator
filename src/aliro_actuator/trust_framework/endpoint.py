@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from aliro_actuator import READER_GROUP_ID_LENGTH, READER_ID_LENGTH
+from aliro_actuator.trust_framework.errors import InvalidIdentifierError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 
 
@@ -25,12 +27,26 @@ class Endpoint:
     ):
         self.user_device_key_pair = user_device_key_pair
         self.reader_public_key = reader_public_key
-        self.identifier = reader_identifier
+
+        self.reader_identifier_list = []
+        for identifier in reader_identifier:
+            self.reader_identifier_list.append(ReaderIdentifier(identifier))
+
         self.key_slot = key_slot
 
-    def has_identifier(self, identifier: bytes) -> bool:
-        for endpoint_id in self.identifier:
-            if endpoint_id == identifier:
+    def has_identifier(self, group_identifier: bytes) -> bool:
+        """
+        Checks if this Endpoint has the given reader group identifier, and the reader
+        public key can be used for this reader device.
+
+        Args:
+            group_identifier (bytes): reader group identifier to check.
+
+        Returns:
+            bool: True if this endpoint has the given reader group identifier.
+        """
+        for endpoint_id in self.reader_identifier_list:
+            if endpoint_id.get_group() == group_identifier:
                 return True
         return False
 
@@ -42,3 +58,24 @@ class Endpoint:
 
     def get_endpoint_public_key(self) -> PublicKey:
         return self.user_device_key_pair.get_public_key()
+
+
+class ReaderIdentifier:
+    def __init__(self, identifier: bytes) -> None:
+        if len(identifier) != READER_ID_LENGTH:
+            raise InvalidIdentifierError(
+                identifier,
+                "invalid length ({}), should be {}".format(
+                    len(identifier), READER_ID_LENGTH
+                ),
+            )
+        self._identifier = identifier
+
+    def get_group(self) -> bytes:
+        return self._identifier[:READER_GROUP_ID_LENGTH]
+
+    def get_group_sub(self) -> bytes:
+        return self._identifier[READER_GROUP_ID_LENGTH:]
+
+    def as_bytes(self) -> bytes:
+        return self._identifier

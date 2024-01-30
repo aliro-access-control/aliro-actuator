@@ -15,7 +15,7 @@
 import os
 from binascii import hexlify
 
-from aliro_actuator import Global
+from aliro_actuator import READER_GROUP_ID_LENGTH, READER_GROUP_SUB_ID_LENGTH, Global
 from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
     INS,
@@ -33,8 +33,6 @@ from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
-    READER_GROUP_ID_LENGTH,
-    READER_GROUP_SUB_ID_LENGTH,
     Exchange,
     TransportProtocol,
 )
@@ -54,6 +52,7 @@ from aliro_actuator.access_protocol.errors import (
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.trust_framework.certificate import Certificate
+from aliro_actuator.trust_framework.endpoint import ReaderIdentifier
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 
@@ -115,13 +114,7 @@ class Reader(Device):
             reader_group_identifier = os.urandom(READER_GROUP_ID_LENGTH)
         if reader_group_sub_identifier is None:
             reader_group_sub_identifier = os.urandom(READER_GROUP_SUB_ID_LENGTH)
-        if (
-            len(reader_group_identifier) != READER_GROUP_ID_LENGTH
-            or len(reader_group_sub_identifier) != READER_GROUP_SUB_ID_LENGTH
-        ):
-            raise AccessProtocolError("Invalid reader group id length")
-        self.reader_group_identifier = reader_group_identifier
-        self.reader_group_sub_identifier = reader_group_sub_identifier
+        self.reader_identifier = reader_group_identifier + reader_group_sub_identifier
         Global.logger.info(
             "Reader group identifier set to: {!r}".format(
                 hexlify(self.reader_group_identifier)
@@ -135,6 +128,22 @@ class Reader(Device):
 
         self.session: ReaderSession | None = None
         Global.logger.info("Initialized Reader")
+
+    @property
+    def reader_identifier(self) -> bytes:
+        return self._reader_identifier.as_bytes()
+
+    @reader_identifier.setter
+    def reader_identifier(self, reader_identifier: bytes) -> None:
+        self._reader_identifier = ReaderIdentifier(reader_identifier)
+
+    @property
+    def reader_group_identifier(self) -> bytes:
+        return self._reader_identifier.get_group()
+
+    @property
+    def reader_group_sub_identifier(self) -> bytes:
+        return self._reader_identifier.get_group_sub()
 
     def transaction_initiation(self) -> None:
         """
@@ -191,7 +200,7 @@ class Reader(Device):
         Global.logger.info("Starting new session")
         self.session = ReaderSession(
             self.reader_key,
-            self.reader_group_identifier + self.reader_group_sub_identifier,
+            self.reader_identifier,
         )
         if transaction_identifier is None:
             self.session.transaction_identifier = os.urandom(16)
@@ -261,8 +270,7 @@ class Reader(Device):
             protocol_version=PROTOCOL_VERSION,
             reader_epubk=self.session.get_reader_epubkey().as_bytes(),
             transaction_identifier=self.session.transaction_identifier,
-            reader_identifier=self.reader_group_identifier
-            + self.reader_group_sub_identifier,
+            reader_identifier=self.reader_identifier,
         )
 
         if transaction_type == Transaction.STANDARD:
@@ -330,8 +338,7 @@ class Reader(Device):
         auth1_response = self.command_auth1(
             expected_response=expected_response,
             request_access_credentials=request_access_credentials,
-            reader_identifier=self.reader_group_identifier
-            + self.reader_group_sub_identifier,
+            reader_identifier=self.reader_identifier,
             endpoint_epubk=self.session.endpoint_ephemeral_key,
             reader_epubk=self.session.get_reader_epubkey(),
             transaction_identifier=self.session.transaction_identifier,
@@ -672,6 +679,22 @@ class ReaderSession:
         self.reader_key = reader_key
         self.reader_identifier = reader_identifier
         self.vendor_specific_extension = None
+
+    @property
+    def reader_identifier(self) -> bytes:
+        return self._reader_identifier.as_bytes()
+
+    @reader_identifier.setter
+    def reader_identifier(self, reader_identifier: bytes) -> None:
+        self._reader_identifier = ReaderIdentifier(reader_identifier)
+
+    @property
+    def reader_group_identifier(self) -> bytes:
+        return self._reader_identifier.get_group()
+
+    @property
+    def reader_group_sub_identifier(self) -> bytes:
+        return self._reader_identifier.get_group_sub()
 
     def set_select_info(self, select_response: Response) -> None:
         self.compl_aid = select_response.compl_aid
