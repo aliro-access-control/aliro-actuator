@@ -26,8 +26,8 @@ from aliro_actuator.access_protocol.apdu import (
     Transaction,
 )
 from aliro_actuator.access_protocol.authentication import (
-    create_endpoint_authentication,
     create_reader_authentication,
+    create_user_device_authentication,
 )
 from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
@@ -382,21 +382,21 @@ class UserDevice(Device):
         self.session.derive_key_volatile(self.transport_protocol_type)
         self.session.derive_key_persistent(self.transport_protocol_type)
 
-        Global.logger.info("creating endpoint authentication")
-        data = create_endpoint_authentication(
+        Global.logger.info("creating user device authentication")
+        data = create_user_device_authentication(
             self.session.reader_identifier,
             self.session.get_credential_epubkey(),
             self.session.reader_epubk,
             self.session.transaction_identifier,
         )
         Global.logger.debug(
-            "created endpoint authentication_data: {!r}".format(
+            "created user device authentication_data: {!r}".format(
                 hexlify(data.to_bytes())
             )
         )
         signature = self.session.access_credential.sign(data.to_bytes())
         Global.logger.debug(
-            "created endpoint authentication_data signature: {!r}".format(
+            "created user device authentication_data signature: {!r}".format(
                 hexlify(signature)
             )
         )
@@ -697,7 +697,7 @@ class UserDevice(Device):
             key_slot (bytes | None): First 8 byes of the keyIdentifier.
             credential_public_key (bytes | None): Credential long term public key.
             expected_response (Auth1Response): expected response (keyslot or credential public key)
-            signature (bytes): Endpoint authentication signature.
+            signature (bytes): User device authentication signature.
             encryption (EncryptionEngine): Encryption engine to encrypt the response.
             status (int, optional): response status. Defaults to StatusBytes.SUCCESS.
             private_mailbox_data (bytes | None, optional): Defaults to None.

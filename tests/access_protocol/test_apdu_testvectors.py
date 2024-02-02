@@ -11,8 +11,8 @@ from aliro_actuator.access_protocol.apdu import (
     TransactionCode,
 )
 from aliro_actuator.access_protocol.authentication import (
-    create_endpoint_authentication,
     create_reader_authentication,
+    create_user_device_authentication,
 )
 from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
@@ -204,15 +204,15 @@ class Test_apdu_testvectors(unittest.TestCase):
         credential_pubk = payload_tlv.get_value(0x5A)
         self.assertEqual(user_public.as_bytes(), credential_pubk)
 
-        endpoint_signature = payload_tlv.get_bytes(0x9E)
+        user_device_signature = payload_tlv.get_bytes(0x9E)
 
-        data = create_endpoint_authentication(
+        data = create_user_device_authentication(
             READER_IDENTIFIER,
             user_ephemeral_public,
             reader_ephemeral_public,
             TRANSACTION_IDENTIFIER,
         )
-        reader_public.verify(data.to_bytes(), endpoint_signature)
+        reader_public.verify(data.to_bytes(), user_device_signature)
 
         signaling_bitmap = payload_tlv.get_value(0x5E)
         self.assertEqual(signaling_bitmap, bytes([0x00]))
