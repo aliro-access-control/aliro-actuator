@@ -8,7 +8,7 @@ from aliro_actuator.trust_framework.key import PublicKey
 
 def create_reader_authentication(
     reader_identifier: bytes,
-    endpoint_epubk: PublicKey,
+    credential_epubk: PublicKey,
     reader_epubk: PublicKey,
     transaction_identifier: bytes,
 ) -> TLV:
@@ -16,7 +16,7 @@ def create_reader_authentication(
     data_fields: list[tuple[int, bytes | list]] = []
     data_fields.append((ReaderAuth.READER_IDENTIFIER_TAG, reader_identifier))
     data_fields.append(
-        (ReaderAuth.ENDPOINT_EPUBK_TAG, endpoint_epubk.get_x().to_bytes(32, "big"))
+        (ReaderAuth.CREDENTIAL_EPUBK_TAG, credential_epubk.get_x().to_bytes(32, "big"))
     )
     data_fields.append(
         (ReaderAuth.READER_EPUBK_TAG, reader_epubk.get_x().to_bytes(32, "big"))
@@ -34,7 +34,7 @@ def create_reader_authentication(
 
 def create_endpoint_authentication(
     reader_identifier: bytes,
-    endpoint_epubk: PublicKey,
+    credential_epubk: PublicKey,
     reader_epubk: PublicKey,
     transaction_identifier: bytes,
 ) -> TLV:
@@ -42,7 +42,10 @@ def create_endpoint_authentication(
     data_fields: list[tuple[int, bytes | list]] = []
     data_fields.append((EndpointAuth.READER_IDENTIFIER_TAG, reader_identifier))
     data_fields.append(
-        (EndpointAuth.ENDPOINT_EPUBK_TAG, endpoint_epubk.get_x().to_bytes(32, "big"))
+        (
+            EndpointAuth.CREDENTIAL_EPUBK_TAG,
+            credential_epubk.get_x().to_bytes(32, "big"),
+        )
     )
     data_fields.append(
         (EndpointAuth.READER_EPUBK_TAG, reader_epubk.get_x().to_bytes(32, "big"))

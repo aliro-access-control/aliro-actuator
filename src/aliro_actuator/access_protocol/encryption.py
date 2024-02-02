@@ -157,7 +157,7 @@ def create_salt(
     maximum_command_apdu: int | None = None,
     maximum_response_apdu: int | None = None,
     vendor_specific_tlv: TLV | None = None,
-    endpoint_ephemeral_public_key: PublicKey | None = None,
+    credential_ephemeral_public_key: PublicKey | None = None,
 ) -> bytes:
     """
     Generates the salt used for key generation
@@ -176,7 +176,7 @@ def create_salt(
         maximum_command_apdu (int | None, optional): (for proprietary_information generation). Defaults to None.
         maximum_response_apdu (int | None, optional): (for proprietary_information generation). Defaults to None.
         vendor_specific_tlv (TLV | None, optional): (for proprietary_information generation). Defaults to None.
-        endpoint_ephemeral_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
+        credential_ephemeral_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
 
     Returns:
         bytes: the salt as bytes
@@ -215,8 +215,8 @@ def create_salt(
         bytes([Select.PROPRIETARY_TAG, len(proprietary_information)])
         + proprietary_information
     )
-    if endpoint_ephemeral_public_key is not None:
-        salt.extend(endpoint_ephemeral_public_key.get_x().to_bytes(32, "big"))
+    if credential_ephemeral_public_key is not None:
+        salt.extend(credential_ephemeral_public_key.get_x().to_bytes(32, "big"))
 
     Global.logger.debug("created salt: {!r}".format(hexlify(salt)))
     return bytes(salt)

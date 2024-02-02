@@ -56,7 +56,7 @@ class AccessCredential:
     def get_reader_public_key(self) -> PublicKey:
         return self.reader_public_key
 
-    def get_endpoint_public_key(self) -> PublicKey:
+    def get_credential_public_key(self) -> PublicKey:
         return self.user_device_key_pair.get_public_key()
 
 

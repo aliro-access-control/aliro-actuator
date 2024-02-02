@@ -280,17 +280,19 @@ class Reader(Device):
                     "User send cryptogram during a standard transaction"
                 )
             try:
-                endpoint_ephemeral_public_key = PublicKey(auth0_response.endpoint_epubk)
+                credential_ephemeral_public_key = PublicKey(
+                    auth0_response.credential_epubk
+                )
             except InvalidKeyError as error:
                 raise AccessProtocolError(
-                    "invalid endpoint ephemeral public key received: {!r}".format(
-                        hexlify(auth0_response.endpoint_epubk)
+                    "invalid credential ephemeral public key received: {!r}".format(
+                        hexlify(auth0_response.credential_epubk)
                     )
                 ) from error
 
             Global.logger.info("saving Auth0 response data")
             self.session.set_flag(Transaction.STANDARD, transaction_code)
-            self.session.set_endpoint_ephemeral_key(endpoint_ephemeral_public_key)
+            self.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
 
         elif transaction_type == Transaction.FAST:
             raise NotImplementedError
@@ -316,7 +318,7 @@ class Reader(Device):
 
     def handle_auth1(
         self,
-        expected_response: Auth1Response = Auth1Response.ENDPOINT_PUBLIC_KEY,
+        expected_response: Auth1Response = Auth1Response.CREDENTIAL_PUBLIC_KEY,
         request_access_credentials: bool = False,
     ) -> None:
         """
@@ -339,28 +341,28 @@ class Reader(Device):
             expected_response=expected_response,
             request_access_credentials=request_access_credentials,
             reader_identifier=self.reader_identifier,
-            endpoint_epubk=self.session.endpoint_ephemeral_key,
+            credential_epubk=self.session.credential_ephemeral_key,
             reader_epubk=self.session.get_reader_epubkey(),
             transaction_identifier=self.session.transaction_identifier,
             encryption=self.session.encryption,
         )
 
         Global.logger.info("Checking Auth1 response fields")
-        if expected_response == Auth1Response.ENDPOINT_PUBLIC_KEY:
-            if auth1_response.endpoint_public_key is None:
+        if expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
+            if auth1_response.credential_public_key is None:
                 raise AccessProtocolError(
-                    "Requested endpoint public key, but none was received"
+                    "Requested credential public key, but none was received"
                 )
-            endpoint_public_key = PublicKey(auth1_response.endpoint_public_key)
+            credential_public_key = PublicKey(auth1_response.credential_public_key)
         elif expected_response == Auth1Response.KEY_SLOT:
             if auth1_response.key_slot is None:
                 raise AccessProtocolError("Requested keyslot, but none was received")
-            endpoint_public_key = self.session.lookup_endpoint_public_key(
+            credential_public_key = self.session.lookup_credential_public_key(
                 auth1_response.key_slot
             )
 
-        Global.logger.info("Checking endpoint authentication data")
-        self.session.set_endpoint_public_key(endpoint_public_key)
+        Global.logger.info("Checking credential authentication data")
+        self.session.set_credential_public_key(credential_public_key)
         if not self.session.check_endpoint_authentication(
             auth1_response.endpoint_signature
         ):
@@ -533,7 +535,7 @@ class Reader(Device):
         expected_response: Auth1Response,
         request_access_credentials: bool,
         reader_identifier: bytes,
-        endpoint_epubk: PublicKey,
+        credential_epubk: PublicKey,
         reader_epubk: PublicKey,
         transaction_identifier: bytes,
         encryption: EncryptionEngine | None = None,
@@ -542,10 +544,10 @@ class Reader(Device):
         Create and send a auth1 command.
 
         Args:
-            expected_response (Auth1Response): key slot or endpoint public key
+            expected_response (Auth1Response): key slot or credential public key
             request_access_credentials (bool): request the access credentials if true
             reader_identifier (bytes):
-            endpoint_epubk (PublicKey):
+            credential_epubk (PublicKey):
             reader_epubk (PublicKey):
             transaction_identifier (bytes):
             encryption (EncryptionEngine | None, optional): Encryption engine to decrypt the response.
@@ -555,7 +557,7 @@ class Reader(Device):
             Response: Response containing the received data.
         """
         data = create_reader_authentication(
-            reader_identifier, endpoint_epubk, reader_epubk, transaction_identifier
+            reader_identifier, credential_epubk, reader_epubk, transaction_identifier
         )
         reader_sig = self.reader_key.sign(data.to_bytes())
         Global.logger.debug(
@@ -734,14 +736,14 @@ class ReaderSession:
     ) -> None:
         self.flag = bytes([transaction, transaction_code])
 
-    def set_endpoint_ephemeral_key(self, key: PublicKey) -> None:
-        self.endpoint_ephemeral_key = key
+    def set_credential_ephemeral_key(self, key: PublicKey) -> None:
+        self.credential_ephemeral_key = key
         Global.logger.debug(
-            "set endpoint ephemeral key: {!r}".format(hexlify(key.as_bytes()))
+            "set credential ephemeral key: {!r}".format(hexlify(key.as_bytes()))
         )
 
-    def get_endpoint_ephemeral_key(self) -> bytes:
-        return self.endpoint_ephemeral_key.as_bytes()
+    def get_credential_ephemeral_key(self) -> bytes:
+        return self.credential_ephemeral_key.as_bytes()
 
     def generate_ephemeral_key(self, ephemeral_key: KeyPair | None = None) -> None:
         if ephemeral_key is None:
@@ -763,11 +765,11 @@ class ReaderSession:
     def get_reader_epubkey(self) -> PublicKey:
         return self.reader_ephemeral.get_public_key()
 
-    def lookup_endpoint_public_key(self, key_slot: bytes) -> PublicKey:
+    def lookup_credential_public_key(self, key_slot: bytes) -> PublicKey:
         raise NotImplementedError
 
-    def set_endpoint_public_key(self, key: PublicKey) -> None:
-        self.endpoint_pubk = key
+    def set_credential_public_key(self, key: PublicKey) -> None:
+        self.credential_pubk = key
 
     def set_auth1_info(
         self,
@@ -782,11 +784,11 @@ class ReaderSession:
     def check_endpoint_authentication(self, endpoint_signature: bytes) -> bool:
         data = create_endpoint_authentication(
             self.reader_identifier,
-            self.endpoint_ephemeral_key,
+            self.credential_ephemeral_key,
             self.reader_ephemeral.get_public_key(),
             self.transaction_identifier,
         )
-        return self.endpoint_pubk.verify(data.to_bytes(), endpoint_signature)
+        return self.credential_pubk.verify(data.to_bytes(), endpoint_signature)
 
     def can_retrieve_access_credential(self) -> bool:
         return (self.signaling_bitmap[-1] & 0x01) == 0x01
@@ -799,11 +801,11 @@ class ReaderSession:
 
     def set_shared_key(self) -> None:
         self.shared_key = self.reader_ephemeral.get_private_key().compute_shared_key(
-            self.endpoint_ephemeral_key, self.transaction_identifier
+            self.credential_ephemeral_key, self.transaction_identifier
         )
 
     def derive_key_volatile(self, transport_protocol: TransportProtocol) -> None:
-        info = bytearray(self.endpoint_ephemeral_key.get_x().to_bytes(32, "big"))
+        info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         # TODO implement vendor_specific_extension
         # if self.vendor_specific_extension is not None:
         #     info.extend(self.vendor_specific_extension)

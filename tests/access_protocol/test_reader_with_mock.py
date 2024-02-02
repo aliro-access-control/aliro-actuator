@@ -155,7 +155,7 @@ class Test_reader(unittest.TestCase):
         reader.start_new_session()
         reader.handle_auth0(Transaction.STANDARD, TransactionCode.LOCK)
         self.assertEqual(
-            reader.session.get_endpoint_ephemeral_key(),
+            reader.session.get_credential_ephemeral_key(),
             user_ephemeral.get_public_key_as_bytes(),
         )
 
@@ -188,20 +188,20 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     def test_auth1_command(self, mock_nfc: Mock) -> None:
         reader_ephemeral_keypair = KeyPair()
-        endpoint_ephemeral_keypair = KeyPair()
+        credential_ephemeral_keypair = KeyPair()
         reader_keypair = KeyPair()
-        endpoint_keypair = KeyPair()
+        credential_keypair = KeyPair()
         reader_group_identifier = os.urandom(0x10)
         reader_group_sub_identifier = os.urandom(0x10)
         reader_identifier = reader_group_identifier + reader_group_sub_identifier
         transaction_identifier = os.urandom(0x10)
 
         shared_key = reader_ephemeral_keypair.get_private_key().compute_shared_key(
-            endpoint_ephemeral_keypair.get_public_key(),
+            credential_ephemeral_keypair.get_public_key(),
             transaction_identifier,
         )
         info = bytearray(
-            endpoint_ephemeral_keypair.get_public_key().get_x().to_bytes(32, "big")
+            credential_ephemeral_keypair.get_public_key().get_x().to_bytes(32, "big")
         )
 
         salt = create_salt(
@@ -229,7 +229,7 @@ class Test_reader(unittest.TestCase):
                 (0x4D, reader_identifier),
                 (
                     0x86,
-                    endpoint_ephemeral_keypair.get_public_key()
+                    credential_ephemeral_keypair.get_public_key()
                     .get_x()
                     .to_bytes(32, "big"),
                 ),
@@ -243,13 +243,13 @@ class Test_reader(unittest.TestCase):
                 (0x93, bytes.fromhex("4E887B4C")),
             ]
         )
-        reader_sig = endpoint_keypair.sign(reader_auth.to_bytes())
+        reader_sig = credential_keypair.sign(reader_auth.to_bytes())
 
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth1_response(
             key_slot=None,
-            public_key=endpoint_keypair.get_public_key_as_bytes(),
-            expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY,
+            public_key=credential_keypair.get_public_key_as_bytes(),
+            expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
             signature=reader_sig,
             encryption=encryption,
             status=StatusBytes.SUCCESS,
@@ -263,8 +263,8 @@ class Test_reader(unittest.TestCase):
             reader_key=reader_keypair,
         )
         reader.start_new_session(transaction_identifier)
-        reader.session.endpoint_ephemeral_key = (
-            endpoint_ephemeral_keypair.get_public_key()
+        reader.session.credential_ephemeral_key = (
+            credential_ephemeral_keypair.get_public_key()
         )
         reader.session.reader_ephemeral = reader_ephemeral_keypair
         reader.session.application_type = CSA_APPLICATION_TYPE

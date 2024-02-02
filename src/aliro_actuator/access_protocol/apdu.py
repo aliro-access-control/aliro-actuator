@@ -105,7 +105,7 @@ class Auth1Response(IntEnum):
     """
 
     KEY_SLOT = 0x00
-    ENDPOINT_PUBLIC_KEY = 0x01
+    CREDENTIAL_PUBLIC_KEY = 0x01
 
 
 class S1(IntEnum):
@@ -627,7 +627,7 @@ class Command(Message):
                 "command parameters: {!r}".format(self.command_parameters)
             )
             if self.command_parameters & 0x01 == 0x01:
-                self.expected_response = Auth1Response.ENDPOINT_PUBLIC_KEY
+                self.expected_response = Auth1Response.CREDENTIAL_PUBLIC_KEY
             else:
                 self.expected_response = Auth1Response.KEY_SLOT
             if self.command_parameters & 0x02 == 0x02:
@@ -1036,7 +1036,7 @@ class Response(Message):
         Parse this response as a Auth0 response.
 
         creates the following attributes:
-        endpoint_epubk: bytes
+        credential_epubk: bytes
         cryptogram: bytes (if present)
         vendor_specific_extensions: tlv (if present)
         """
@@ -1053,18 +1053,18 @@ class Response(Message):
             ) from error
 
         try:
-            self.endpoint_epubk = data_tlv.get_bytes(Auth0.ENDPOINT_EPUBK_TAG)
-            if len(self.endpoint_epubk) != Auth0.ENDPOINT_EPUBK_LEN:
+            self.credential_epubk = data_tlv.get_bytes(Auth0.CREDENTIAL_EPUBK_TAG)
+            if len(self.credential_epubk) != Auth0.CREDENTIAL_EPUBK_LEN:
                 raise InvalidResponseDataError(
-                    self.as_bytes, "Endpoint Ephemeral Public Key has invalid length"
+                    self.as_bytes, "Credential Ephemeral Public Key has invalid length"
                 )
             Global.logger.debug(
-                "endpoint epubk: {!r}".format(hexlify(self.endpoint_epubk))
+                "credential epubk: {!r}".format(hexlify(self.credential_epubk))
             )
         except IndexError as error:
             raise InvalidResponseDataError(
                 self.as_bytes,
-                "missing Endpoint Ephemeral Public Key, tag: {:#x}".format(
+                "missing Credential Ephemeral Public Key, tag: {:#x}".format(
                     error.args[0]
                 ),
             ) from error
@@ -1102,7 +1102,7 @@ class Response(Message):
         decrypted_payload: bytes
         payload_tlv: TLV
         key_slot: bytes | None
-        endpoint_public_key: bytes | None
+        credential_public_key: bytes | None
         endpoint_signature: bytes
         private_mailbox_data: bytes | None
         signaling_bitmap: bytes
@@ -1155,23 +1155,25 @@ class Response(Message):
             Global.logger.debug("no keyslot found")
 
         try:
-            self.endpoint_public_key: bytes | None = self.payload_tlv.get_bytes(
-                Auth1.ENDPOINT_PUBK_TAG
+            self.credential_public_key: bytes | None = self.payload_tlv.get_bytes(
+                Auth1.CREDENTIAL_PUBK_TAG
             )
-            if len(self.endpoint_public_key) != Auth1.ENDPOINT_PUBK_LEN:
+            if len(self.credential_public_key) != Auth1.CREDENTIAL_PUBK_LEN:
                 raise InvalidResponseDataError(
-                    self.as_bytes, "endpoint public key has invalid length"
+                    self.as_bytes, "credential public key has invalid length"
                 )
             Global.logger.debug(
-                "endpoint public key: {!r}".format(hexlify(self.endpoint_public_key))
+                "credential public key: {!r}".format(
+                    hexlify(self.credential_public_key)
+                )
             )
         except IndexError:
-            self.endpoint_public_key = None
-            Global.logger.debug("no endpoint public key found")
+            self.credential_public_key = None
+            Global.logger.debug("no credential public key found")
 
-        if self.key_slot is None and self.endpoint_public_key is None:
+        if self.key_slot is None and self.credential_public_key is None:
             raise InvalidResponseDataError(
-                self.as_bytes, "No key slot or endpoint public key found"
+                self.as_bytes, "No key slot or credential public key found"
             )
 
         try:
@@ -1459,10 +1461,10 @@ class APDU:
         )
 
     def create_auth0_response(
-        self, endpoint_epubk: bytes, status: int, cryptogram: bytes | None = None
+        self, credential_epubk: bytes, status: int, cryptogram: bytes | None = None
     ) -> Response:
         data_tlv: list[tuple[int, bytes | list]] = [
-            (Auth0.ENDPOINT_EPUBK_TAG, endpoint_epubk)
+            (Auth0.CREDENTIAL_EPUBK_TAG, credential_epubk)
         ]
         if cryptogram is not None:
             data_tlv.append((Auth0.CRYPTOGRAM_TAG, cryptogram))
@@ -1548,22 +1550,22 @@ class APDU:
                     )
                 )
             auth1_payload.append((Auth1.KEY_SLOT_TAG, key_slot))
-        elif expected_response == Auth1Response.ENDPOINT_PUBLIC_KEY:
+        elif expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
             if public_key is None:
                 raise CreateCommandError(
-                    "no public key passed while expected_response is ENDPOINT_PUBLIC_KEY"
+                    "no public key passed while expected_response is CREDENTIAL_PUBLIC_KEY"
                 )
-            if len(public_key) != Auth1.ENDPOINT_PUBK_LEN:
+            if len(public_key) != Auth1.CREDENTIAL_PUBK_LEN:
                 raise CreateCommandError(
-                    "Endpoint public key has invalid length, expected {}, actual: {}".format(
-                        Auth1.ENDPOINT_PUBK_LEN, len(public_key)
+                    "Credential public key has invalid length, expected {}, actual: {}".format(
+                        Auth1.CREDENTIAL_PUBK_LEN, len(public_key)
                     )
                 )
-            auth1_payload.append((Auth1.ENDPOINT_PUBK_TAG, public_key))
+            auth1_payload.append((Auth1.CREDENTIAL_PUBK_TAG, public_key))
 
         if len(signature) != Auth1.ENDPOINT_SIG_LEN:
             raise CreateCommandError(
-                "Endpoint signature has invalid length, expected {}, actual: {}".format(
+                "Credential signature has invalid length, expected {}, actual: {}".format(
                     Auth1.ENDPOINT_SIG_LEN, len(signature)
                 )
             )

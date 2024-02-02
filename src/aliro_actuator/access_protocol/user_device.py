@@ -261,7 +261,7 @@ class UserDevice(Device):
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
             Global.logger.info("Sending AUTH0 Response")
-            self.response_auth0(self.session.get_endpoint_epubkey().as_bytes())
+            self.response_auth0(self.session.get_credential_epubkey().as_bytes())
         if self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
             raise NotImplementedError
@@ -357,7 +357,7 @@ class UserDevice(Device):
 
         data = create_reader_authentication(
             self.session.reader_identifier,
-            self.session.get_endpoint_epubkey(),
+            self.session.get_credential_epubkey(),
             self.session.reader_epubk,
             self.session.transaction_identifier,
         )
@@ -382,7 +382,7 @@ class UserDevice(Device):
         Global.logger.info("creating endpoint authentication")
         data = create_endpoint_authentication(
             self.session.reader_identifier,
-            self.session.get_endpoint_epubkey(),
+            self.session.get_credential_epubkey(),
             self.session.reader_epubk,
             self.session.transaction_identifier,
         )
@@ -411,7 +411,7 @@ class UserDevice(Device):
             data_in_mailbox = self.mailbox.data_is_set()
         self.response_auth1(
             self.session.endpoint.key_slot,
-            self.session.endpoint.get_endpoint_public_key().as_bytes(),
+            self.session.endpoint.get_credential_public_key().as_bytes(),
             auth1_command.expected_response,
             signature,
             self.session.encryption,
@@ -652,24 +652,24 @@ class UserDevice(Device):
         return command
 
     def response_auth0(
-        self, endpoint_epubk: bytes, cryptogram: bytes | None = None
+        self, credential_epubk: bytes, cryptogram: bytes | None = None
     ) -> None:
         """
         Create and send an auth0 response.
 
         Args:
-            endpoint_epubk (bytes): Endpoint Ephemeral public key.
+            credential_epubk (bytes): Credential Ephemeral public key.
             cryptogram (bytes | None, optional): authentication cryptogram. Defaults to None.
         """
         auth0_response = self.apdu.create_auth0_response(
-            endpoint_epubk, StatusBytes.SUCCESS, cryptogram
+            credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
         self.transport_protocol.send_message(auth0_response.to_bytes())
 
     def response_auth1(
         self,
         key_slot: bytes | None,
-        endpoint_public_key: bytes | None,
+        credential_public_key: bytes | None,
         expected_response: Auth1Response,
         signature: bytes,
         encryption: EncryptionEngine,
@@ -692,8 +692,8 @@ class UserDevice(Device):
 
         Args:
             key_slot (bytes | None): First 8 byes of the keyIdentifier.
-            endpoint_public_key (bytes | None): Endpoint long term public key.
-            expected_response (Auth1Response): expected response (keyslot or endpoint public key)
+            credential_public_key (bytes | None): Credential long term public key.
+            expected_response (Auth1Response): expected response (keyslot or credential public key)
             signature (bytes): Endpoint authentication signature.
             encryption (EncryptionEngine): Encryption engine to encrypt the response.
             status (int, optional): response status. Defaults to StatusBytes.SUCCESS.
@@ -712,7 +712,7 @@ class UserDevice(Device):
         """
         auth1_response = self.apdu.create_auth1_response(
             key_slot,
-            endpoint_public_key,
+            credential_public_key,
             expected_response,
             signature,
             encryption,
@@ -875,12 +875,12 @@ class UserSession:
 
     def generate_ephemeral_key(self, ephemeral_key: KeyPair | None = None) -> None:
         if ephemeral_key is None:
-            self.endpoint_ephemeral = KeyPair()
+            self.credential_ephemeral = KeyPair()
         else:
-            self.endpoint_ephemeral = ephemeral_key
+            self.credential_ephemeral = ephemeral_key
 
-    def get_endpoint_epubkey(self) -> PublicKey:
-        return self.endpoint_ephemeral.get_public_key()
+    def get_credential_epubkey(self) -> PublicKey:
+        return self.credential_ephemeral.get_public_key()
 
     def get_transaction_type(self) -> Transaction:
         if self.command_parameters == Transaction.FAST:
@@ -891,13 +891,15 @@ class UserSession:
             raise IndexError
 
     def set_shared_key(self) -> None:
-        self.shared_key = self.endpoint_ephemeral.get_private_key().compute_shared_key(
-            self.reader_epubk, self.transaction_identifier
+        self.shared_key = (
+            self.credential_ephemeral.get_private_key().compute_shared_key(
+                self.reader_epubk, self.transaction_identifier
+            )
         )
 
     def derive_key_volatile(self, transport_protocol: TransportProtocol) -> None:
         info = bytearray(
-            self.endpoint_ephemeral.get_public_key().get_x().to_bytes(32, "big")
+            self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
         )
         if self.vendor_specific_extension is not None:
             info.extend(self.vendor_specific_extension)
@@ -926,7 +928,7 @@ class UserSession:
 
     def derive_key_persistent(self, transport_protocol: TransportProtocol) -> None:
         info = bytearray(
-            self.endpoint_ephemeral.get_public_key().get_x().to_bytes(32, "big")
+            self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
         )
         if self.vendor_specific_extension is not None:
             info.extend(self.vendor_specific_extension)
@@ -941,7 +943,7 @@ class UserSession:
             flag=bytes([self.command_parameters, self.transaction_code]),
             application_type=CSA_APPLICATION_TYPE,
             expedited_phase_supported_protocol_versions=self.supported_versions,
-            endpoint_ephemeral_public_key=self.endpoint.get_endpoint_public_key(),
+            credential_ephemeral_public_key=self.endpoint.get_credential_public_key(),
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         self.k_persistent = derived_key[0:32]

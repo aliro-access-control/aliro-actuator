@@ -105,7 +105,7 @@ class Test_apdu_testvectors(unittest.TestCase):
         user_epub_key = PublicKey(f.read())
 
         response = self.apdu.create_auth0_response(
-            endpoint_epubk=user_epub_key.as_bytes(), status=StatusBytes.SUCCESS
+            credential_epubk=user_epub_key.as_bytes(), status=StatusBytes.SUCCESS
         )
         self.assertEqual(response.to_bytes(), AUTH0_RESPONSE)
 
@@ -114,20 +114,20 @@ class Test_apdu_testvectors(unittest.TestCase):
         user_epub_key = PublicKey(f.read())
 
         response = self.apdu.parse_response(AUTH0_RESPONSE, INS.AUTH0)
-        self.assertEqual(response.endpoint_epubk, user_epub_key.as_bytes())
+        self.assertEqual(response.credential_epubk, user_epub_key.as_bytes())
         self.assertEqual(response.status, StatusBytes.SUCCESS)
 
     def test_reader_auth1_command(self) -> None:
         f = open("tests/access_protocol/testvector_lock_ephemeral_public.pem", "rt")
         reader_epubk = PublicKey(f.read())
         f = open("tests/access_protocol/testvector_user_ephemeral_public.pem", "rt")
-        endpoint_epubk = PublicKey(f.read())
+        credential_epubk = PublicKey(f.read())
         f = open("tests/access_protocol/testvector_lock_private.pem", "rt")
         reader_privk = PrivateKey(f.read())
 
         data = create_reader_authentication(
             READER_IDENTIFIER,
-            endpoint_epubk,
+            credential_epubk,
             reader_epubk,
             TRANSACTION_IDENTIFIER,
         )
@@ -135,7 +135,7 @@ class Test_apdu_testvectors(unittest.TestCase):
         reader_sig = reader_privk.sign(data.to_bytes())
 
         command = self.apdu.create_auth1_command(
-            response=Auth1Response.ENDPOINT_PUBLIC_KEY,
+            response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
             request_access_credentials=False,
             reader_sig=reader_sig,
         )
@@ -146,20 +146,20 @@ class Test_apdu_testvectors(unittest.TestCase):
         f = open("tests/access_protocol/testvector_lock_ephemeral_public.pem", "rt")
         reader_epubk = PublicKey(f.read())
         f = open("tests/access_protocol/testvector_user_ephemeral_public.pem", "rt")
-        endpoint_epubk = PublicKey(f.read())
+        credential_epubk = PublicKey(f.read())
         f = open("tests/access_protocol/testvector_lock_public.pem", "rt")
         lock_public = PublicKey(f.read())
 
         command = self.apdu.parse_command(AUTH1_COMMAND)
         self.assertEqual(command.command_parameters, 0x01)
-        self.assertEqual(command.expected_response, Auth1Response.ENDPOINT_PUBLIC_KEY)
+        self.assertEqual(command.expected_response, Auth1Response.CREDENTIAL_PUBLIC_KEY)
         self.assertEqual(command.request_access_credentials, False)
         self.assertEqual(command.reader_signature, READER_SIGNATURE)
         self.assertEqual(command.certificate_data, None)
 
         data = create_reader_authentication(
             READER_IDENTIFIER,
-            endpoint_epubk,
+            credential_epubk,
             reader_epubk,
             TRANSACTION_IDENTIFIER,
         )
@@ -176,7 +176,7 @@ class Test_apdu_testvectors(unittest.TestCase):
         response = self.apdu.create_auth1_response(
             key_slot=None,
             public_key=user_public.as_bytes(),
-            expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY,
+            expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
             signature=USER_SIGNATURE,
             status=StatusBytes.SUCCESS,
             encryption=encryption,
@@ -201,8 +201,8 @@ class Test_apdu_testvectors(unittest.TestCase):
         )
 
         payload_tlv = TLV.from_bytes(decrypted_payload)
-        endpoint_pubk = payload_tlv.get_value(0x5A)
-        self.assertEqual(user_public.as_bytes(), endpoint_pubk)
+        credential_pubk = payload_tlv.get_value(0x5A)
+        self.assertEqual(user_public.as_bytes(), credential_pubk)
 
         endpoint_signature = payload_tlv.get_bytes(0x9E)
 

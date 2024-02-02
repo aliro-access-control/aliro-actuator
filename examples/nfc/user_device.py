@@ -30,11 +30,11 @@ if __name__ == "__main__":
     reader_public_key_pem = open("examples/nfc/reader_public_key.pem", "rt")
     reader_public_key = PublicKey(reader_public_key_pem.read())
 
-    private_key_pem = open("examples/nfc/endpoint_private_key.pem", "rt")
-    public_key_pem = open("examples/nfc/endpoint_public_key.pem", "rt")
-    endpoint_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
+    private_key_pem = open("examples/nfc/credential_private_key.pem", "rt")
+    public_key_pem = open("examples/nfc/credential_public_key.pem", "rt")
+    credential_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
     endpoints = [
-        AccessCredential(endpoint_keypair, reader_public_key, reader_identifier_list)
+        AccessCredential(credential_keypair, reader_public_key, reader_identifier_list)
     ]
 
     reader = UserDevice(

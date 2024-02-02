@@ -222,9 +222,9 @@ class Test_user(unittest.TestCase):
         )
 
         reader_ephemeral_keypair = KeyPair()
-        endpoint_ephemeral_keypair = KeyPair()
+        credential_ephemeral_keypair = KeyPair()
         reader_keypair = KeyPair()
-        endpoint_keypair = KeyPair()
+        credential_keypair = KeyPair()
         reader_identifier = os.urandom(0x20)
         transaction_identifier = os.urandom(0x10)
 
@@ -233,7 +233,7 @@ class Test_user(unittest.TestCase):
                 (0x4D, reader_identifier),
                 (
                     0x86,
-                    endpoint_ephemeral_keypair.get_public_key()
+                    credential_ephemeral_keypair.get_public_key()
                     .get_x()
                     .to_bytes(32, "big"),
                 ),
@@ -251,12 +251,12 @@ class Test_user(unittest.TestCase):
 
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth1_command(
-            Auth1Response.ENDPOINT_PUBLIC_KEY, False, reader_sig
+            Auth1Response.CREDENTIAL_PUBLIC_KEY, False, reader_sig
         ).to_bytes()
 
         endpoints = [
             AccessCredential(
-                endpoint_keypair, reader_keypair.get_public_key(), [reader_identifier]
+                credential_keypair, reader_keypair.get_public_key(), [reader_identifier]
             )
         ]
         user = UserDevice(TransportProtocol.NFC, mock_nfc, endpoints)
@@ -267,7 +267,7 @@ class Test_user(unittest.TestCase):
         user.session.transaction_code = TransactionCode.LOCK
         user.session.expedited_phase_protocol_version = PROTOCOL_VERSION
         user.session.vendor_specific_extension = None
-        user.session.endpoint_ephemeral = endpoint_ephemeral_keypair
+        user.session.credential_ephemeral = credential_ephemeral_keypair
         user.session.reader_epubk = reader_ephemeral_keypair.get_public_key()
         user.session.reader_identifier = reader_identifier
         user.session.transaction_identifier = transaction_identifier
