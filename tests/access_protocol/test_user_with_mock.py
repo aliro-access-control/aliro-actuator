@@ -38,8 +38,8 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
-from aliro_actuator.trust_framework.endpoint import Endpoint
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
 
 
@@ -189,7 +189,7 @@ class Test_user(unittest.TestCase):
         ).to_bytes()
 
         endpoints = [
-            Endpoint(
+            AccessCredential(
                 KeyPair(),
                 PublicKey(
                     bytes.fromhex(
@@ -255,7 +255,7 @@ class Test_user(unittest.TestCase):
         ).to_bytes()
 
         endpoints = [
-            Endpoint(
+            AccessCredential(
                 endpoint_keypair, reader_keypair.get_public_key(), [reader_identifier]
             )
         ]

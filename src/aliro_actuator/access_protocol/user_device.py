@@ -55,8 +55,11 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.trust_framework.access_credential import (
+    AccessCredential,
+    ReaderIdentifier,
+)
 from aliro_actuator.trust_framework.certificate import Certificate
-from aliro_actuator.trust_framework.endpoint import Endpoint, ReaderIdentifier
 from aliro_actuator.trust_framework.errors import (
     CertificateDecodingError,
     InvalidKeyError,
@@ -82,7 +85,7 @@ class UserDevice(Device):
         self,
         transport_protocol: TransportProtocol,
         transport_override: TransportProtocolBase | None = None,
-        endpoints: list[Endpoint] = [],
+        endpoints: list[AccessCredential] = [],
         supported_versions: list[int] = [PROTOCOL_VERSION],
         mailbox: int | list[tuple[bytes, int, bytes]] | None = None,
         mailbox_read: bool = True,
@@ -867,7 +870,7 @@ class UserSession:
         self.reader_identifier = auth0_command.reader_identifier
         self.vendor_specific_extension = auth0_command.vendor_specific_extension
 
-    def set_endpoint(self, endpoint: Endpoint) -> None:
+    def set_endpoint(self, endpoint: AccessCredential) -> None:
         self.endpoint = endpoint
 
     def generate_ephemeral_key(self, ephemeral_key: KeyPair | None = None) -> None:
@@ -952,7 +955,7 @@ class UserSession:
         return self.cert.verify(public_key, data)
 
     def get_endpoint_reader_public_key(
-        self, endpoints: list[Endpoint]
+        self, endpoints: list[AccessCredential]
     ) -> PublicKey | None:
         for endpoint in endpoints:
             if endpoint.has_identifier(self.reader_group_identifier):
@@ -962,7 +965,7 @@ class UserSession:
     def get_reader_public_key(self) -> PublicKey:
         return self.reader_public_key
 
-    def set_reader_public_key(self, endpoints: list[Endpoint]) -> None:
+    def set_reader_public_key(self, endpoints: list[AccessCredential]) -> None:
         if hasattr(self, "cert"):
             self.reader_public_key = self.cert.get_public_key()
             Global.logger.info(
