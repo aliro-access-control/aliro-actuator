@@ -43,10 +43,10 @@ class AccessCredential:
             group_identifier (bytes): reader group identifier to check.
 
         Returns:
-            bool: True if this endpoint has the given reader group identifier.
+            bool: True if this access_credential has the given reader group identifier.
         """
-        for endpoint_id in self.reader_identifier_list:
-            if endpoint_id.get_group() == group_identifier:
+        for access_credential_id in self.reader_identifier_list:
+            if access_credential_id.get_group() == group_identifier:
                 return True
         return False
 

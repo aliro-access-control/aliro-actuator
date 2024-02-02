@@ -188,7 +188,7 @@ class Test_user(unittest.TestCase):
             cert.encode_compressed()
         ).to_bytes()
 
-        endpoints = [
+        access_credentials = [
             AccessCredential(
                 KeyPair(),
                 PublicKey(
@@ -202,7 +202,7 @@ class Test_user(unittest.TestCase):
                 [reader_id],
             )
         ]
-        user = UserDevice(TransportProtocol.NFC, mock_nfc, endpoints)
+        user = UserDevice(TransportProtocol.NFC, mock_nfc, access_credentials)
         user.start_new_session()
         user.session.reader_identifier = reader_id
         user.session.update_state(UserSessionState.AUTH0_STD_DONE)
@@ -254,15 +254,15 @@ class Test_user(unittest.TestCase):
             Auth1Response.CREDENTIAL_PUBLIC_KEY, False, reader_sig
         ).to_bytes()
 
-        endpoints = [
+        access_credentials = [
             AccessCredential(
                 credential_keypair, reader_keypair.get_public_key(), [reader_identifier]
             )
         ]
-        user = UserDevice(TransportProtocol.NFC, mock_nfc, endpoints)
+        user = UserDevice(TransportProtocol.NFC, mock_nfc, access_credentials)
         user.start_new_session()
         user.session.update_state(UserSessionState.AUTH0_STD_DONE)
-        user.session.set_endpoint(endpoints[0])
+        user.session.set_access_credential(access_credentials[0])
         user.session.command_parameters = Transaction.STANDARD
         user.session.transaction_code = TransactionCode.LOCK
         user.session.expedited_phase_protocol_version = PROTOCOL_VERSION
