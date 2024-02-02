@@ -35,8 +35,12 @@ if __name__ == "__main__":
     f = open("tests/access_protocol/testvector_user_ephemeral_private.pem", "rt")
     user_ephemeral_key = KeyPair(f.read())
 
-    endpoints = [AccessCredential(user_key, reader_public_key, [READER_IDENTIFIER])]
-    card = UserDevice(TransportProtocol.SOCKET_NFC, endpoints=endpoints)
+    access_credentials = [
+        AccessCredential(user_key, reader_public_key, [READER_IDENTIFIER])
+    ]
+    card = UserDevice(
+        TransportProtocol.SOCKET_NFC, access_credentials=access_credentials
+    )
 
     card.transaction_initiation()
     card.start_new_session(user_ephemeral_key)

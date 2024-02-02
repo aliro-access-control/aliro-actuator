@@ -33,12 +33,14 @@ if __name__ == "__main__":
     private_key_pem = open("examples/nfc/credential_private_key.pem", "rt")
     public_key_pem = open("examples/nfc/credential_public_key.pem", "rt")
     credential_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
-    endpoints = [
+    access_credentials = [
         AccessCredential(credential_keypair, reader_public_key, reader_identifier_list)
     ]
 
     reader = UserDevice(
-        transport_protocol=TransportProtocol.NFC, endpoints=endpoints, mailbox=0x20
+        transport_protocol=TransportProtocol.NFC,
+        access_credentials=access_credentials,
+        mailbox=0x20,
     )
     reader.transaction_initiation()
     reader.main_loop()

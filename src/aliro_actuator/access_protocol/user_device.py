@@ -73,7 +73,8 @@ class UserDevice(Device):
 
     Args:
         transport_protocol (TransportProtocol): The transport protocol to use.
-        endpoints (list[bytes], optional): list of endpoints. Defaults to [].
+        access_credentials (list[bytes], optional): list of access_credentials.
+        Defaults to [].
         supported_versions (list[int], optional): List of supported protocol
         versions. Defaults to [PROTOCOL_VERSION].
         mailbox (int | list[tuple[bytes, int, bytes]] | None): If None, don't use
@@ -85,7 +86,7 @@ class UserDevice(Device):
         self,
         transport_protocol: TransportProtocol,
         transport_override: TransportProtocolBase | None = None,
-        endpoints: list[AccessCredential] = [],
+        access_credentials: list[AccessCredential] = [],
         supported_versions: list[int] = [PROTOCOL_VERSION],
         mailbox: int | list[tuple[bytes, int, bytes]] | None = None,
         mailbox_read: bool = True,
@@ -93,7 +94,7 @@ class UserDevice(Device):
     ):
         super().__init__(transport_protocol, transport_override)
 
-        self.endpoints = endpoints
+        self.access_credentials = access_credentials
         self.supported_versions = supported_versions
         self.session: None | UserSession = None
 
@@ -253,9 +254,9 @@ class UserDevice(Device):
         except InvalidKeyError:
             AccessProtocolError("Reader ephemeral key is invalid")
 
-        for endpoint in self.endpoints:
-            if endpoint.has_identifier(self.session.reader_group_identifier):
-                self.session.set_endpoint(endpoint)
+        for access_credential in self.access_credentials:
+            if access_credential.has_identifier(self.session.reader_group_identifier):
+                self.session.set_access_credential(access_credential)
 
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
@@ -295,8 +296,8 @@ class UserDevice(Device):
 
         Global.logger.info("Received LOAD CERT Command")
         try:
-            reader_public_key = self.session.get_endpoint_reader_public_key(
-                self.endpoints
+            reader_public_key = self.session.get_access_credential_reader_public_key(
+                self.access_credentials
             )
             if reader_public_key is None:
                 raise KeyLookupFailed
@@ -340,8 +341,10 @@ class UserDevice(Device):
         if auth1_command.certificate_data is not None:
             Global.logger.info("AUTH1 Command contains certificate")
             try:
-                reader_public_key = self.session.get_endpoint_reader_public_key(
-                    self.endpoints
+                reader_public_key = (
+                    self.session.get_access_credential_reader_public_key(
+                        self.access_credentials
+                    )
                 )
                 if reader_public_key is None:
                     raise KeyLookupFailed
@@ -353,7 +356,7 @@ class UserDevice(Device):
                 self.response_error(StatusBytes.GENERIC_ERROR)
                 return
 
-        self.session.set_reader_public_key(self.endpoints)
+        self.session.set_reader_public_key(self.access_credentials)
 
         data = create_reader_authentication(
             self.session.reader_identifier,
@@ -391,7 +394,7 @@ class UserDevice(Device):
                 hexlify(data.to_bytes())
             )
         )
-        signature = self.session.endpoint.sign(data.to_bytes())
+        signature = self.session.access_credential.sign(data.to_bytes())
         Global.logger.debug(
             "created endpoint authentication_data signature: {!r}".format(
                 hexlify(signature)
@@ -410,8 +413,8 @@ class UserDevice(Device):
             mailbox_write = self.mailbox.write_permission
             data_in_mailbox = self.mailbox.data_is_set()
         self.response_auth1(
-            self.session.endpoint.key_slot,
-            self.session.endpoint.get_credential_public_key().as_bytes(),
+            self.session.access_credential.key_slot,
+            self.session.access_credential.get_credential_public_key().as_bytes(),
             auth1_command.expected_response,
             signature,
             self.session.encryption,
@@ -870,8 +873,8 @@ class UserSession:
         self.reader_identifier = auth0_command.reader_identifier
         self.vendor_specific_extension = auth0_command.vendor_specific_extension
 
-    def set_endpoint(self, endpoint: AccessCredential) -> None:
-        self.endpoint = endpoint
+    def set_access_credential(self, access_credential: AccessCredential) -> None:
+        self.access_credential = access_credential
 
     def generate_ephemeral_key(self, ephemeral_key: KeyPair | None = None) -> None:
         if ephemeral_key is None:
@@ -906,7 +909,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Volatile****",
-            reader_public_key=self.endpoint.get_reader_public_key(),
+            reader_public_key=self.access_credential.get_reader_public_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -935,7 +938,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Persistent**",
-            reader_public_key=self.endpoint.get_reader_public_key(),
+            reader_public_key=self.access_credential.get_reader_public_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -943,7 +946,7 @@ class UserSession:
             flag=bytes([self.command_parameters, self.transaction_code]),
             application_type=CSA_APPLICATION_TYPE,
             expedited_phase_supported_protocol_versions=self.supported_versions,
-            credential_ephemeral_public_key=self.endpoint.get_credential_public_key(),
+            credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         self.k_persistent = derived_key[0:32]
@@ -956,18 +959,18 @@ class UserSession:
         data = b""
         return self.cert.verify(public_key, data)
 
-    def get_endpoint_reader_public_key(
-        self, endpoints: list[AccessCredential]
+    def get_access_credential_reader_public_key(
+        self, access_credentials: list[AccessCredential]
     ) -> PublicKey | None:
-        for endpoint in endpoints:
-            if endpoint.has_identifier(self.reader_group_identifier):
-                return endpoint.get_reader_public_key()
+        for access_credential in access_credentials:
+            if access_credential.has_identifier(self.reader_group_identifier):
+                return access_credential.get_reader_public_key()
         return None
 
     def get_reader_public_key(self) -> PublicKey:
         return self.reader_public_key
 
-    def set_reader_public_key(self, endpoints: list[AccessCredential]) -> None:
+    def set_reader_public_key(self, access_credentials: list[AccessCredential]) -> None:
         if hasattr(self, "cert"):
             self.reader_public_key = self.cert.get_public_key()
             Global.logger.info(
@@ -976,11 +979,11 @@ class UserSession:
                 )
             )
             return
-        for endpoint in endpoints:
-            if endpoint.has_identifier(self.reader_group_identifier):
-                self.reader_public_key = endpoint.get_reader_public_key()
+        for access_credential in access_credentials:
+            if access_credential.has_identifier(self.reader_group_identifier):
+                self.reader_public_key = access_credential.get_reader_public_key()
                 Global.logger.info(
-                    "set reader public key from endpoints: {!r}".format(
+                    "set reader public key from access_credentials: {!r}".format(
                         hexlify(self.reader_public_key.as_bytes())
                     )
                 )
