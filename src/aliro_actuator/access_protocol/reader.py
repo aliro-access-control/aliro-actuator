@@ -26,8 +26,8 @@ from aliro_actuator.access_protocol.apdu import (
     TransactionCode,
 )
 from aliro_actuator.access_protocol.authentication import (
-    create_endpoint_authentication,
     create_reader_authentication,
+    create_user_device_authentication,
 )
 from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
@@ -363,10 +363,10 @@ class Reader(Device):
 
         Global.logger.info("Checking credential authentication data")
         self.session.set_credential_public_key(credential_public_key)
-        if not self.session.check_endpoint_authentication(
-            auth1_response.endpoint_signature
+        if not self.session.check_user_device_authentication(
+            auth1_response.user_device_signature
         ):
-            raise AccessProtocolError("Endpoint signature authentication failed")
+            raise AccessProtocolError("User device signature authentication failed")
 
         Global.logger.info("Save AUTH1 response")
         self.session.set_auth1_info(auth1_response)
@@ -781,14 +781,14 @@ class ReaderSession:
         self.revocation_signed_timestamp = auth1_response.revocation_signed_timestamp
         self.access_credential_response = auth1_response.access_credential_response
 
-    def check_endpoint_authentication(self, endpoint_signature: bytes) -> bool:
-        data = create_endpoint_authentication(
+    def check_user_device_authentication(self, user_device_signature: bytes) -> bool:
+        data = create_user_device_authentication(
             self.reader_identifier,
             self.credential_ephemeral_key,
             self.reader_ephemeral.get_public_key(),
             self.transaction_identifier,
         )
-        return self.credential_pubk.verify(data.to_bytes(), endpoint_signature)
+        return self.credential_pubk.verify(data.to_bytes(), user_device_signature)
 
     def can_retrieve_access_credential(self) -> bool:
         return (self.signaling_bitmap[-1] & 0x01) == 0x01

@@ -1103,7 +1103,7 @@ class Response(Message):
         payload_tlv: TLV
         key_slot: bytes | None
         credential_public_key: bytes | None
-        endpoint_signature: bytes
+        user_device_signature: bytes
         private_mailbox_data: bytes | None
         signaling_bitmap: bytes
         credential_signed_timestamp: bytes | None
@@ -1177,13 +1177,17 @@ class Response(Message):
             )
 
         try:
-            self.endpoint_signature = self.payload_tlv.get_bytes(Auth1.ENDPOINT_SIG_TAG)
+            self.user_device_signature = self.payload_tlv.get_bytes(
+                Auth1.USER_DEVICE_SIG_TAG
+            )
             Global.logger.debug(
-                "endpoint signature: {!r}".format(hexlify(self.endpoint_signature))
+                "user device signature: {!r}".format(
+                    hexlify(self.user_device_signature)
+                )
             )
         except IndexError as error:
             raise InvalidResponseDataError(
-                self.as_bytes, "No endpoint signature tag found"
+                self.as_bytes, "No user device signature tag found"
             ) from error
 
         try:
@@ -1563,13 +1567,13 @@ class APDU:
                 )
             auth1_payload.append((Auth1.CREDENTIAL_PUBK_TAG, public_key))
 
-        if len(signature) != Auth1.ENDPOINT_SIG_LEN:
+        if len(signature) != Auth1.USER_DEVICE_SIG_LEN:
             raise CreateCommandError(
                 "Credential signature has invalid length, expected {}, actual: {}".format(
-                    Auth1.ENDPOINT_SIG_LEN, len(signature)
+                    Auth1.USER_DEVICE_SIG_LEN, len(signature)
                 )
             )
-        auth1_payload.append((Auth1.ENDPOINT_SIG_TAG, signature))
+        auth1_payload.append((Auth1.USER_DEVICE_SIG_TAG, signature))
         if private_mailbox_data is not None:
             auth1_payload.append((Auth1.MAILBOX_DATA_TAG, private_mailbox_data))
 
