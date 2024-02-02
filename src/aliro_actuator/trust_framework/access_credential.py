@@ -17,7 +17,7 @@ from aliro_actuator.trust_framework.errors import InvalidIdentifierError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 
 
-class Endpoint:
+class AccessCredential:
     def __init__(
         self,
         user_device_key_pair: KeyPair,
@@ -36,8 +36,8 @@ class Endpoint:
 
     def has_identifier(self, group_identifier: bytes) -> bool:
         """
-        Checks if this Endpoint has the given reader group identifier, and the reader
-        public key can be used for this reader device.
+        Checks if this AccessCredential has the given reader group identifier, and the
+        reader public key can be used for this reader device.
 
         Args:
             group_identifier (bytes): reader group identifier to check.

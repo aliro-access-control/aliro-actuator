@@ -20,7 +20,7 @@ sys.path.append(PROJECT_PATH)
 
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.user_device import UserDevice
-from aliro_actuator.trust_framework.endpoint import Endpoint
+from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from examples.nfc.common import READER_GROUP_IDENTIFIER, READER_SUB_GROUP_IDENTIFIER
 
@@ -33,7 +33,9 @@ if __name__ == "__main__":
     private_key_pem = open("examples/nfc/endpoint_private_key.pem", "rt")
     public_key_pem = open("examples/nfc/endpoint_public_key.pem", "rt")
     endpoint_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
-    endpoints = [Endpoint(endpoint_keypair, reader_public_key, reader_identifier_list)]
+    endpoints = [
+        AccessCredential(endpoint_keypair, reader_public_key, reader_identifier_list)
+    ]
 
     reader = UserDevice(
         transport_protocol=TransportProtocol.NFC, endpoints=endpoints, mailbox=0x20

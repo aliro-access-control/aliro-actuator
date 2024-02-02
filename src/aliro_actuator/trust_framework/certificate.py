@@ -20,7 +20,6 @@ from asn1 import Classes, Decoder, Encoder, Error, Numbers
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from OpenSSL.crypto import FILETYPE_ASN1, load_certificate
 
-from aliro_actuator.trust_framework.endpoint import Endpoint
 from aliro_actuator.trust_framework.errors import CertificateDecodingError
 from aliro_actuator.trust_framework.key import PublicKey
 
