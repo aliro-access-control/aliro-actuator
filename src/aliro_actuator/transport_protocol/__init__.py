@@ -27,6 +27,10 @@ class TransportProtocolBase(ABC):
         pass
 
     @abstractmethod
+    def deinitialization(self) -> None:
+        pass
+
+    @abstractmethod
     def wait_for_connection(self) -> None:
         pass
 

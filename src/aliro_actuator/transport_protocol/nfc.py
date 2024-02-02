@@ -25,6 +25,9 @@ class NFC(TransportProtocolBase):
         self.mode = mode
         self.driver.initialize(mode)
 
+    def deinitialization(self) -> None:
+        self.driver.deinitialize()
+
     def wait_for_connection(self) -> None:
         if self.mode == Mode.CARD_EMULATION:
             self.driver.wait_for_reader()

@@ -22,6 +22,9 @@ class BLEUWB(TransportProtocolBase):
     def initialization(self, mode: Mode) -> None:
         pass
 
+    def deinitialization(self) -> None:
+        pass
+
     def wait_for_connection(self) -> None:
         pass
 

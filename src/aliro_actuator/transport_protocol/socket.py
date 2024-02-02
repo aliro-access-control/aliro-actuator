@@ -49,6 +49,9 @@ class Socket(TransportProtocolBase):
             self.host.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.host.settimeout(TIMEOUT)
 
+    def deinitialization(self) -> None:
+        pass
+
     def wait_for_connection(self) -> None:
         if self.mode == Mode.READER:
             self.client.connect((socket.gethostname(), PORT))

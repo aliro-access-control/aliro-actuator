@@ -35,8 +35,16 @@ from aliro_actuator.hw_driver.pn7160_driver.errors import (
 from aliro_actuator.transport_protocol import Mode
 
 DRIVER_PATH = Path(__file__).parent
-ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[3]  # 4 levels up: aliro_actuator/src/aliro_actuator/hw_driver/pn7160_driver
-DEFAULT_NCI_LIB_PATH = ACTUATOR_ROOT_PATH /"third_party"/"nxp_nfc"/"lib"/"libnfc_nci_linux-1.so.0.0.0"
+ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[
+    3
+]  # 4 levels up: aliro_actuator/src/aliro_actuator/hw_driver/pn7160_driver
+DEFAULT_NCI_LIB_PATH = (
+    ACTUATOR_ROOT_PATH
+    / "third_party"
+    / "nxp_nfc"
+    / "lib"
+    / "libnfc_nci_linux-1.so.0.0.0"
+)
 
 RX_MAX = 0x100
 
@@ -118,7 +126,7 @@ class Driver:
         self.nci_location = nci_location
         if nci_location is None:
             self.nci_location = DEFAULT_NCI_LIB_PATH
-            
+
         try:
             self.nci = ctypes.CDLL(self.nci_location)
         except OSError:
@@ -148,6 +156,14 @@ class Driver:
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x01, 0)
 
         Global.logger.info("PN7160 initialized, discovery started")
+
+    def deinitialize(self) -> None:
+        self.nci.disableDiscovery()
+
+        result = self.nci.doDeinitialize()
+        if result != 0x00:
+            Global.logger.error("PN7160 deinitialization failed.")
+            raise NCIError(result)
 
     def wait_for_tag(self) -> None:
         Global.logger.info("Waiting for tag")
