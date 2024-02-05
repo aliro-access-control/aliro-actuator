@@ -1496,14 +1496,13 @@ class APDU:
     def create_auth1_command(
         self,
         response: Auth1Response,
-        request_access_credentials: bool,
         reader_sig: bytes,
         certificate_data: bytes | None = None,
     ) -> Command:
         if len(reader_sig) != 64:
             raise ValueError
 
-        command_parameters = response | (request_access_credentials << 1)
+        command_parameters = response
 
         data_fields: list[tuple[int, bytes | list]] = [
             (Auth1.COMMAND_TAG, command_parameters.to_bytes(1, "big")),
