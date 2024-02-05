@@ -21,6 +21,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
+    create_proprietary_information,
     create_salt,
 )
 from aliro_actuator.access_protocol.tlv import TLV
@@ -236,6 +237,10 @@ class Test_apdu_testvectors(unittest.TestCase):
         # if self.vendor_specific_extension is not None:
         #     info.extend(self.vendor_specific_extension)
 
+        proprietary_information = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            [int.from_bytes(PROTOCOL_VERSION, "big")],
+        ).to_bytes()
         salt_bytes = create_salt(
             transport_protocol=TransportProtocol.NFC,
             word=b"Volatile****",
@@ -245,10 +250,7 @@ class Test_apdu_testvectors(unittest.TestCase):
             protocol_version=PROTOCOL_VERSION,
             transaction_identifier=TRANSACTION_IDENTIFIER,
             flag=bytes([Transaction.STANDARD, TransactionCode.UNLOCK]),
-            application_type=CSA_APPLICATION_TYPE,
-            expedited_phase_supported_protocol_versions=[
-                int.from_bytes(PROTOCOL_VERSION, "big")
-            ],
+            proprietary_information=proprietary_information,
         )
         self.assertEqual(hexlify(salt_bytes), hexlify(SALT))
 

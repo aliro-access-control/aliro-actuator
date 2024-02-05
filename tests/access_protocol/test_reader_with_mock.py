@@ -33,6 +33,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
+    create_proprietary_information,
     create_salt,
 )
 from aliro_actuator.access_protocol.errors import AccessProtocolError
@@ -204,6 +205,10 @@ class Test_reader(unittest.TestCase):
             credential_ephemeral_keypair.get_public_key().get_x().to_bytes(32, "big")
         )
 
+        proprietary_information = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            [PROTOCOL_VERSION],
+        )
         salt = create_salt(
             transport_protocol=TransportProtocol.NFC,
             word=b"Volatile****",
@@ -213,8 +218,7 @@ class Test_reader(unittest.TestCase):
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
             transaction_identifier=transaction_identifier,
             flag=bytes([Transaction.STANDARD, TransactionCode.LOCK]),
-            application_type=CSA_APPLICATION_TYPE,
-            expedited_phase_supported_protocol_versions=[PROTOCOL_VERSION],
+            proprietary_information=proprietary_information.to_bytes(),
         )
 
         derived_key = derive_key(shared_key, bytes(info), 160, salt)
@@ -272,6 +276,6 @@ class Test_reader(unittest.TestCase):
         reader.session.maximum_command_apdu = None
         reader.session.maximum_response_apdu = None
         reader.session.vendor_specific_extension = None
+        reader.session.proprietary_tlv = proprietary_information
         reader.session.set_flag(Transaction.STANDARD, TransactionCode.LOCK)
-        reader.session.proprietary_tlv = TLV.from_bytes(b"")
         reader.handle_auth1()

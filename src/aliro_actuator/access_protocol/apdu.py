@@ -1077,7 +1077,7 @@ class Response(Message):
             Global.logger.debug("No cryptogram found")
 
         try:
-            self.vendor_specific_extensions = data_tlv.get_tlv(Auth0.CRYPTOGRAM_TAG)
+            self.vendor_specific_extensions = data_tlv.get_tlv(Auth0.VENDOR_SPECIFIC_TAG)
             if (
                 len(self.vendor_specific_extensions.to_bytes())
                 > Auth0.CRYPTOGRAM_MAX_LEN
@@ -1444,6 +1444,7 @@ class APDU:
         reader_epubk: bytes,
         transaction_identifier: bytes,
         reader_identifier: bytes,
+        vendor_extension: bytes | None = None,
     ) -> Command:
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.COMMAND_TAG, transaction_type.to_bytes(1, "big")),
@@ -1453,6 +1454,8 @@ class APDU:
             (Auth0.TRANSACTION_ID_TAG, transaction_identifier),
             (Auth0.READER_IDENTIFIER_TAG, reader_identifier),
         ]
+        if vendor_extension is not None:
+            data_tlv.append((Auth0.VENDOR_SPECIFIC_TAG, vendor_extension))
         data = TLV(data_tlv)
 
         return self.create_command(

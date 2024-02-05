@@ -40,6 +40,7 @@ from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
     VerificationError,
+    create_proprietary_information,
     create_salt,
 )
 from aliro_actuator.access_protocol.errors import (
@@ -89,6 +90,7 @@ class UserDevice(Device):
         mailbox: int | list[tuple[bytes, int, bytes]] | None = None,
         mailbox_read: bool = True,
         mailbox_write: bool = True,
+        vendor_extension: bytes | None = None,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -111,6 +113,8 @@ class UserDevice(Device):
                 write_permission=mailbox_write,
             )
         self.mailbox_session = MailboxSession()
+
+        self.vendor_extension = vendor_extension
 
     def transaction_initiation(self) -> None:
         """
@@ -174,7 +178,7 @@ class UserDevice(Device):
             session. Randomly generated if None. Defaults to None.
         """
         Global.logger.info("Starting new session")
-        self.session = UserSession(self.supported_versions)
+        self.session = UserSession(self.supported_versions, self.vendor_extension)
 
         self.session.generate_ephemeral_key(ephemeral_key)
 
@@ -826,10 +830,16 @@ class UserSession:
     Contains info from a single session (with one Reader Device)
     """
 
-    def __init__(self, supported_version: list[int]) -> None:
+    def __init__(
+        self,
+        supported_version: list[int],
+        vendor_extension: bytes | None = None,
+    ) -> None:
         self.state = UserSessionState.SESSION_START
         self.supported_versions = supported_version
         self.encryption: EncryptionEngine | None = None
+        self.command_vendor_extension: bytes | None = None
+        self.response_vendor_extension = vendor_extension
 
     @property
     def reader_identifier(self) -> bytes:
@@ -869,7 +879,7 @@ class UserSession:
         self.reader_epubk = PublicKey(auth0_command.reader_epubk)
         self.transaction_identifier = auth0_command.transaction_identifier
         self.reader_identifier = auth0_command.reader_identifier
-        self.vendor_specific_extension = auth0_command.vendor_specific_extension
+        self.command_vendor_extension = auth0_command.vendor_specific_extension
 
     def set_access_credential(self, access_credential: AccessCredential) -> None:
         self.access_credential = access_credential
@@ -902,8 +912,15 @@ class UserSession:
         info = bytearray(
             self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
         )
-        if self.vendor_specific_extension is not None:
-            info.extend(self.vendor_specific_extension)
+        if self.command_vendor_extension is not None:
+            info.extend(self.command_vendor_extension)
+        if self.response_vendor_extension is not None:
+            info.extend(self.response_vendor_extension)
+
+        proprietary_information = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            self.supported_versions,
+        ).to_bytes()
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Volatile****",
@@ -913,8 +930,7 @@ class UserSession:
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
             flag=bytes([self.command_parameters, self.transaction_code]),
-            application_type=CSA_APPLICATION_TYPE,
-            expedited_phase_supported_protocol_versions=self.supported_versions,
+            proprietary_information=proprietary_information,
         )
         derived_key = derive_key(self.shared_key, bytes(info), 160, salt)
         self.exchange_SK_reader = derived_key[0:32]
@@ -931,8 +947,15 @@ class UserSession:
         info = bytearray(
             self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
         )
-        if self.vendor_specific_extension is not None:
-            info.extend(self.vendor_specific_extension)
+        if self.command_vendor_extension is not None:
+            info.extend(self.command_vendor_extension)
+        if self.response_vendor_extension is not None:
+            info.extend(self.response_vendor_extension)
+
+        proprietary_information = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            self.supported_versions,
+        ).to_bytes()
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Persistent**",
@@ -942,8 +965,7 @@ class UserSession:
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
             flag=bytes([self.command_parameters, self.transaction_code]),
-            application_type=CSA_APPLICATION_TYPE,
-            expedited_phase_supported_protocol_versions=self.supported_versions,
+            proprietary_information=proprietary_information,
             credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
