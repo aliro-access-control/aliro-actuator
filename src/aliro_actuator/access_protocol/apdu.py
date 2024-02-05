@@ -1066,6 +1066,10 @@ class Response(Message):
 
         try:
             self.cryptogram: bytes | None = data_tlv.get_bytes(Auth0.CRYPTOGRAM_TAG)
+            if len(self.cryptogram) != Auth0.CRYPTOGRAM_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "Cryptogram has invalid length"
+                )
             Global.logger.debug("cryptogram: {!r}".format(self.cryptogram))
         except IndexError:
             self.cryptogram = None
@@ -1077,7 +1081,7 @@ class Response(Message):
             )
             if (
                 len(self.vendor_specific_extensions.to_bytes())
-                > Auth0.CRYPTOGRAM_MAX_LEN
+                > Auth0.RE_VENDOR_SPECIFIC_MAX_LEN
             ):
                 raise InvalidResponseDataError(
                     self.as_bytes, "vendor specific extensions have invalid length"
