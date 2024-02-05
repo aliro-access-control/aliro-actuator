@@ -14,6 +14,7 @@
 
 from binascii import hexlify
 from enum import Enum
+from os import urandom
 
 from aliro_actuator import Global
 from aliro_actuator.access_protocol import Device
@@ -33,6 +34,7 @@ from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
+    Auth0,
     Select,
     TransportProtocol,
 )
@@ -91,6 +93,7 @@ class UserDevice(Device):
         mailbox_read: bool = True,
         mailbox_write: bool = True,
         vendor_extension: bytes | None = None,
+        fast_transaction_implemented: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -115,6 +118,8 @@ class UserDevice(Device):
         self.mailbox_session = MailboxSession()
 
         self.vendor_extension = vendor_extension
+
+        self.fast_transaction_implemented = fast_transaction_implemented
 
     def transaction_initiation(self) -> None:
         """
@@ -267,7 +272,17 @@ class UserDevice(Device):
             self.response_auth0(self.session.get_credential_epubkey().as_bytes())
         if self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
-            raise NotImplementedError
+            if self.fast_transaction_implemented:
+                raise NotImplementedError
+            else:
+                self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
+
+                cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
+                Global.logger.info("Sending AUTH0 Response")
+                self.response_auth0(
+                    credential_epubk=self.session.get_credential_epubkey().as_bytes(),
+                    cryptogram=cryptogram,
+                )
 
     def handle_load_cert(self, load_cert_command: Command) -> None:
         """
