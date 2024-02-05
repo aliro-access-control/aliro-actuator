@@ -64,5 +64,5 @@ class Test_reader(unittest.TestCase):
         reader.handle_select(EXPEDITED_PHASE_AID)
         reader.handle_auth0(
             Transaction.STANDARD,
-            TransactionCode.UNLOCK,
+            TransactionCode.USER_DEVICE,
         )

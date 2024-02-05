@@ -43,6 +43,6 @@ if __name__ == "__main__":
     reader.start_new_session(TRANSACTION_IDENTIFIER, reader_ephemeral_key)
 
     reader.handle_select(AID)
-    reader.handle_auth0(Transaction.STANDARD, TransactionCode.UNLOCK)
+    reader.handle_auth0(Transaction.STANDARD, TransactionCode.USER_DEVICE)
     reader.handle_auth1()
     reader.handle_control_flow(True)

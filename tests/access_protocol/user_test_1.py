@@ -25,5 +25,5 @@ from aliro_actuator.access_protocol.reader import Reader
 if __name__ == "__main__":
     reader = Reader(TransportProtocol.SOCKET_NFC)
     reader.transaction_initiation()
-    reader.expedited_transaction_standard(TransactionCode.LOCK)
+    reader.expedited_transaction_standard(TransactionCode.USER_DEVICE_SECURE_ACTION)
     # card.disconnect()

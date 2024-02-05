@@ -120,7 +120,7 @@ class Test_user(unittest.TestCase):
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth0_command(
             Transaction.STANDARD,
-            TransactionCode.LOCK,
+            TransactionCode.USER_DEVICE_SECURE_ACTION,
             PROTOCOL_VERSION,
             reader_keys.get_public_key_as_bytes(),
             transaction_identifier,
@@ -145,7 +145,7 @@ class Test_user(unittest.TestCase):
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth0_command(
             Transaction.STANDARD,
-            TransactionCode.LOCK,
+            TransactionCode.USER_DEVICE_SECURE_ACTION,
             0x0000,
             reader_keys.get_public_key_as_bytes(),
             transaction_identifier,
@@ -266,7 +266,7 @@ class Test_user(unittest.TestCase):
         user.session.update_state(UserSessionState.AUTH0_STD_DONE)
         user.session.set_access_credential(access_credentials[0])
         user.session.command_parameters = Transaction.STANDARD
-        user.session.transaction_code = TransactionCode.LOCK
+        user.session.transaction_code = TransactionCode.USER_DEVICE_SECURE_ACTION
         user.session.expedited_phase_protocol_version = PROTOCOL_VERSION
         user.session.vendor_specific_extension = None
         user.session.credential_ephemeral = credential_ephemeral_keypair

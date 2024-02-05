@@ -154,7 +154,9 @@ class Test_reader(unittest.TestCase):
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
-        reader.handle_auth0(Transaction.STANDARD, TransactionCode.LOCK)
+        reader.handle_auth0(
+            Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+        )
         self.assertEqual(
             reader.session.get_credential_ephemeral_key(),
             user_ephemeral.get_public_key_as_bytes(),
@@ -217,7 +219,9 @@ class Test_reader(unittest.TestCase):
             reader_identifier=reader_identifier,
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
             transaction_identifier=transaction_identifier,
-            flag=bytes([Transaction.STANDARD, TransactionCode.LOCK]),
+            flag=bytes(
+                [Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION]
+            ),
             proprietary_information=proprietary_information.to_bytes(),
         )
 
@@ -277,5 +281,7 @@ class Test_reader(unittest.TestCase):
         reader.session.maximum_response_apdu = None
         reader.session.vendor_specific_extension = None
         reader.session.proprietary_tlv = proprietary_information
-        reader.session.set_flag(Transaction.STANDARD, TransactionCode.LOCK)
+        reader.session.set_flag(
+            Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+        )
         reader.handle_auth1()

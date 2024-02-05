@@ -84,17 +84,12 @@ class Transaction(IntEnum):
 class TransactionCode(IntEnum):
     """
     Indicating the transaction code in a auth0 command.
-    See table 8-1 and 8-5 of the Aliro spec.
+    See table 8-1 and 8-3 of the Aliro spec.
     """
 
-    UNLOCK = 0x01
-    LOCK = 0x02
-    DISARM = 0x03
-    UNLOCK_USING_RKE = 0x04
-    LOCK_USING_RKE = 0x05
-    UNLOCK_WITH_FORCE_USER_AUTHENTICATION = 0x06
-    LOCK_WITH_FORCE_USER_AUTHENTICATION = 0x07
-    DISARM_WITH_FORCE_USER_AUTHENTICATION = 0x08
+    USER_DEVICE = 0x01
+    USER_DEVICE_SECURE_ACTION = 0x02
+    FORCE_USER_AUTHENTICATION = 0x03
 
 
 class Auth1Response(IntEnum):
@@ -1077,7 +1072,9 @@ class Response(Message):
             Global.logger.debug("No cryptogram found")
 
         try:
-            self.vendor_specific_extensions = data_tlv.get_tlv(Auth0.VENDOR_SPECIFIC_TAG)
+            self.vendor_specific_extensions = data_tlv.get_tlv(
+                Auth0.VENDOR_SPECIFIC_TAG
+            )
             if (
                 len(self.vendor_specific_extensions.to_bytes())
                 > Auth0.CRYPTOGRAM_MAX_LEN

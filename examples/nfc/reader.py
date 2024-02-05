@@ -36,5 +36,5 @@ if __name__ == "__main__":
         reader_key=reader_keypair,
     )
     reader.transaction_initiation()
-    reader.expedited_transaction_standard(TransactionCode.LOCK)
+    reader.expedited_transaction_standard(TransactionCode.USER_DEVICE_SECURE_ACTION)
     reader.handle_control_flow(True)
