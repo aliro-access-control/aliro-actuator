@@ -152,11 +152,7 @@ def create_salt(
     protocol_version: bytes,
     transaction_identifier: bytes,
     flag: bytes,
-    application_type: int,
-    expedited_phase_supported_protocol_versions: list[int],
-    maximum_command_apdu: int | None = None,
-    maximum_response_apdu: int | None = None,
-    vendor_specific_tlv: TLV | None = None,
+    proprietary_information: bytes,
     credential_ephemeral_public_key: PublicKey | None = None,
 ) -> bytes:
     """
@@ -171,11 +167,7 @@ def create_salt(
         protocol_version (bytes).
         transaction_identifier (bytes).
         flag (bytes): command_parameters || transaction_code.
-        application_type (int): (for proprietary_information generation).
-        expedited_phase_supported_protocol_versions (list[int]): (for proprietary_information generation).
-        maximum_command_apdu (int | None, optional): (for proprietary_information generation). Defaults to None.
-        maximum_response_apdu (int | None, optional): (for proprietary_information generation). Defaults to None.
-        vendor_specific_tlv (TLV | None, optional): (for proprietary_information generation). Defaults to None.
+        proprietary_information (bytes): proprietary information.
         credential_ephemeral_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
 
     Returns:
@@ -191,14 +183,6 @@ def create_salt(
         or transport_protocol == TransportProtocol.SOCKET_NFC
     ):
         interface_byte = 0x5E
-
-    proprietary_information = create_proprietary_information(
-        application_type,
-        expedited_phase_supported_protocol_versions,
-        maximum_command_apdu,
-        maximum_response_apdu,
-        vendor_specific_tlv,
-    ).to_bytes()
 
     salt = bytearray()
     salt.extend(reader_public_key.get_x().to_bytes(32, "big"))

@@ -40,6 +40,7 @@ from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
     VerificationError,
+    create_proprietary_information,
     create_salt,
 )
 from aliro_actuator.access_protocol.errors import (
@@ -82,6 +83,7 @@ class Reader(Device):
         reader_group_sub_identifier: bytes | None = None,
         reader_cert: bytes | None = None,
         reader_key: KeyPair | None = None,
+        vendor_extension: bytes | None = None,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -125,6 +127,8 @@ class Reader(Device):
                 hexlify(self.reader_group_sub_identifier)
             )
         )
+
+        self.vendor_extension = vendor_extension
 
         self.session: ReaderSession | None = None
         Global.logger.info("Initialized Reader")
@@ -199,8 +203,7 @@ class Reader(Device):
         """
         Global.logger.info("Starting new session")
         self.session = ReaderSession(
-            self.reader_key,
-            self.reader_identifier,
+            self.reader_key, self.reader_identifier, self.vendor_extension
         )
         if transaction_identifier is None:
             self.session.transaction_identifier = os.urandom(16)
@@ -271,6 +274,7 @@ class Reader(Device):
             reader_epubk=self.session.get_reader_epubkey().as_bytes(),
             transaction_identifier=self.session.transaction_identifier,
             reader_identifier=self.reader_identifier,
+            vendor_extension=self.vendor_extension,
         )
 
         if transaction_type == Transaction.STANDARD:
@@ -293,6 +297,9 @@ class Reader(Device):
             Global.logger.info("saving Auth0 response data")
             self.session.set_flag(Transaction.STANDARD, transaction_code)
             self.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
+            self.session.set_response_vendor_extension(
+                auth0_response.vendor_specific_extensions
+            )
 
         elif transaction_type == Transaction.FAST:
             raise NotImplementedError
@@ -498,6 +505,7 @@ class Reader(Device):
         reader_epubk: bytes,
         transaction_identifier: bytes,
         reader_identifier: bytes,
+        vendor_extension: bytes | None = None,
     ) -> Response:
         """
         Create and send a auth0 command.
@@ -509,6 +517,8 @@ class Reader(Device):
             reader_epubk (bytes): Reader Ephemeral Key as bytes
             transaction_identifier (bytes):
             reader_identifier (bytes):
+            vendor_extension (bytes | None): Vendor specific extension TLV.
+            Defaults to None.
 
         Returns:
             Response: Response containing the received data.
@@ -520,6 +530,7 @@ class Reader(Device):
             reader_epubk,
             transaction_identifier,
             reader_identifier,
+            vendor_extension,
         )
 
         Global.logger.info("Sending AUTH0")
@@ -677,10 +688,16 @@ class ReaderSession:
     Contains info from a single session (with one User Device)
     """
 
-    def __init__(self, reader_key: KeyPair, reader_identifier: bytes) -> None:
+    def __init__(
+        self,
+        reader_key: KeyPair,
+        reader_identifier: bytes,
+        vendor_extension: bytes | None = None,
+    ) -> None:
         self.reader_key = reader_key
         self.reader_identifier = reader_identifier
-        self.vendor_specific_extension = None
+        self.command_vendor_extension = vendor_extension
+        self.response_vendor_extension: bytes | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -735,6 +752,9 @@ class ReaderSession:
         self, transaction: Transaction, transaction_code: TransactionCode
     ) -> None:
         self.flag = bytes([transaction, transaction_code])
+
+    def set_response_vendor_extension(self, vendor_extension: bytes | None) -> None:
+        self.response_vendor_extension = vendor_extension
 
     def set_credential_ephemeral_key(self, key: PublicKey) -> None:
         self.credential_ephemeral_key = key
@@ -806,9 +826,11 @@ class ReaderSession:
 
     def derive_key_volatile(self, transport_protocol: TransportProtocol) -> None:
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
-        # TODO implement vendor_specific_extension
-        # if self.vendor_specific_extension is not None:
-        #     info.extend(self.vendor_specific_extension)
+        if self.command_vendor_extension is not None:
+            info.extend(self.command_vendor_extension)
+        if self.response_vendor_extension is not None:
+            info.extend(self.response_vendor_extension)
+
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Volatile****",
@@ -818,11 +840,7 @@ class ReaderSession:
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
             flag=self.flag,
-            application_type=self.application_type,
-            expedited_phase_supported_protocol_versions=self.expedited_phase_supported_protocol_versions,
-            maximum_command_apdu=self.maximum_command_apdu,
-            maximum_response_apdu=self.maximum_response_apdu,
-            vendor_specific_tlv=self.vendor_specific_extension,
+            proprietary_information=self.proprietary_tlv.to_bytes(),
         )
         derived_key = derive_key(self.shared_key, bytes(info), 160, salt)
         self.exchange_SK_reader = derived_key[0:32]
