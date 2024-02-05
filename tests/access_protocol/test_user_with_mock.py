@@ -166,6 +166,33 @@ class Test_user(unittest.TestCase):
         self.assertEqual(user.session.state, UserSessionState.SELECT_DONE)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    def test_auth0_command_fast_not_implemented(self, mock_nfc: Mock) -> None:
+        reader_keys = KeyPair()
+        transaction_identifier = os.urandom(16)
+        reader_identifier = os.urandom(32)
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_auth0_command(
+            Transaction.FAST,
+            TransactionCode.USER_DEVICE_SECURE_ACTION,
+            PROTOCOL_VERSION,
+            reader_keys.get_public_key_as_bytes(),
+            transaction_identifier,
+            reader_identifier,
+        ).to_bytes()
+
+        user = UserDevice(
+            TransportProtocol.NFC, mock_nfc, fast_transaction_implemented=False
+        )
+        user.start_new_session()
+        user.session.update_state(UserSessionState.SELECT_DONE)
+        command = user.wait_for_command()
+        user.handle_auth0(command)
+
+        self.assertIsNotNone(user.session)
+        self.assertEqual(user.session.state, UserSessionState.AUTH0_FAST_DONE)
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
     def test_load_cert_command(self, mock_nfc: Mock) -> None:
         reader_id = os.urandom(32)
         cert = Certificate(
