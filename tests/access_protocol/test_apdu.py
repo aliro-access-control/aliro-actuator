@@ -235,7 +235,6 @@ class Test_apdu(unittest.TestCase):
 
         message = self.apdu.create_auth1_command(
             Auth1Response.CREDENTIAL_PUBLIC_KEY,
-            request_access_credentials=True,
             reader_sig=reader_sig,
         )
 
@@ -250,7 +249,7 @@ class Test_apdu(unittest.TestCase):
                     0x45,
                     0x41,
                     0x01,
-                    0x03,
+                    0x01,
                     0x9E,
                     0x40,
                     *reader_sig,
@@ -261,7 +260,6 @@ class Test_apdu(unittest.TestCase):
 
         message = self.apdu.create_auth1_command(
             Auth1Response.KEY_SLOT,
-            request_access_credentials=True,
             reader_sig=reader_sig,
         )
 
@@ -276,33 +274,7 @@ class Test_apdu(unittest.TestCase):
                     0x45,
                     0x41,
                     0x01,
-                    0x02,
-                    0x9E,
-                    0x40,
-                    *reader_sig,
                     0x00,
-                ]
-            ),
-        )
-
-        message = self.apdu.create_auth1_command(
-            Auth1Response.CREDENTIAL_PUBLIC_KEY,
-            request_access_credentials=False,
-            reader_sig=reader_sig,
-        )
-
-        self.assertEqual(
-            message.to_bytes(),
-            bytes(
-                [
-                    0x80,
-                    INS.AUTH1,
-                    0x00,
-                    0x00,
-                    0x45,
-                    0x41,
-                    0x01,
-                    0x01,
                     0x9E,
                     0x40,
                     *reader_sig,
@@ -315,7 +287,6 @@ class Test_apdu(unittest.TestCase):
 
         message = self.apdu.create_auth1_command(
             Auth1Response.CREDENTIAL_PUBLIC_KEY,
-            request_access_credentials=False,
             reader_sig=reader_sig,
             certificate_data=certificate_data,
         )

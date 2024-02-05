@@ -137,7 +137,6 @@ class Test_apdu_testvectors(unittest.TestCase):
 
         command = self.apdu.create_auth1_command(
             response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
-            request_access_credentials=False,
             reader_sig=reader_sig,
         )
         self.assertEqual(command.to_bytes()[:9], AUTH1_COMMAND[:9])

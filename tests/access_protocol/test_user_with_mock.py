@@ -278,7 +278,7 @@ class Test_user(unittest.TestCase):
 
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth1_command(
-            Auth1Response.CREDENTIAL_PUBLIC_KEY, False, reader_sig
+            Auth1Response.CREDENTIAL_PUBLIC_KEY, reader_sig
         ).to_bytes()
 
         access_credentials = [

@@ -326,7 +326,6 @@ class Reader(Device):
     def handle_auth1(
         self,
         expected_response: Auth1Response = Auth1Response.CREDENTIAL_PUBLIC_KEY,
-        request_access_credentials: bool = False,
     ) -> None:
         """
         Create and send a AUTH1 command.
@@ -346,7 +345,6 @@ class Reader(Device):
         Global.logger.info("AUTH1 Command")
         auth1_response = self.command_auth1(
             expected_response=expected_response,
-            request_access_credentials=request_access_credentials,
             reader_identifier=self.reader_identifier,
             credential_epubk=self.session.credential_ephemeral_key,
             reader_epubk=self.session.get_reader_epubkey(),
@@ -544,7 +542,6 @@ class Reader(Device):
     def command_auth1(
         self,
         expected_response: Auth1Response,
-        request_access_credentials: bool,
         reader_identifier: bytes,
         credential_epubk: PublicKey,
         reader_epubk: PublicKey,
@@ -556,7 +553,6 @@ class Reader(Device):
 
         Args:
             expected_response (Auth1Response): key slot or credential public key
-            request_access_credentials (bool): request the access credentials if true
             reader_identifier (bytes):
             credential_epubk (PublicKey):
             reader_epubk (PublicKey):
@@ -575,9 +571,7 @@ class Reader(Device):
             "reader authentication data signature: {!r}".format(hexlify(reader_sig))
         )
 
-        command = self.apdu.create_auth1_command(
-            expected_response, request_access_credentials, reader_sig
-        )
+        command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
         Global.logger.info("Sending AUTH1")
         self.transport_protocol.send_message(command.to_bytes())
