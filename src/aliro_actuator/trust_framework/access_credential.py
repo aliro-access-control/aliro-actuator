@@ -12,25 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aliro_actuator import READER_GROUP_ID_LENGTH, READER_ID_LENGTH
-from aliro_actuator.trust_framework.errors import InvalidIdentifierError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 
 
 class AccessCredential:
+    """_summary_
+
+    Args:
+        user_device_key_pair (KeyPair): keypair used by the User Device when this
+        AccessCredential has a matching reader group identifier
+        reader_public_key (PublicKey): The reader public key associated with readers
+        with matching reader group identifier
+        reader_group_identifier (list[bytes]): list of reader group identifiers
+        key_slot (bytes, optional): key slot for this access credential, used for the
+        auth1 command. Defaults to b"".
+    """
+
     def __init__(
         self,
         user_device_key_pair: KeyPair,
         reader_public_key: PublicKey,
-        reader_identifier: list[bytes],
+        reader_group_identifier: list[bytes],
         key_slot: bytes = b"",
     ):
         self.user_device_key_pair = user_device_key_pair
         self.reader_public_key = reader_public_key
 
-        self.reader_identifier_list = []
-        for identifier in reader_identifier:
-            self.reader_identifier_list.append(ReaderIdentifier(identifier))
+        self.reader_group_identifier_list = reader_group_identifier
 
         self.key_slot = key_slot
 
@@ -45,9 +53,8 @@ class AccessCredential:
         Returns:
             bool: True if this access_credential has the given reader group identifier.
         """
-        for access_credential_id in self.reader_identifier_list:
-            if access_credential_id.get_group() == group_identifier:
-                return True
+        if group_identifier in self.reader_group_identifier_list:
+            return True
         return False
 
     def sign(self, data: bytes) -> bytes:
@@ -58,24 +65,3 @@ class AccessCredential:
 
     def get_credential_public_key(self) -> PublicKey:
         return self.user_device_key_pair.get_public_key()
-
-
-class ReaderIdentifier:
-    def __init__(self, identifier: bytes) -> None:
-        if len(identifier) != READER_ID_LENGTH:
-            raise InvalidIdentifierError(
-                identifier,
-                "invalid length ({}), should be {}".format(
-                    len(identifier), READER_ID_LENGTH
-                ),
-            )
-        self._identifier = identifier
-
-    def get_group(self) -> bytes:
-        return self._identifier[:READER_GROUP_ID_LENGTH]
-
-    def get_group_sub(self) -> bytes:
-        return self._identifier[READER_GROUP_ID_LENGTH:]
-
-    def as_bytes(self) -> bytes:
-        return self._identifier
