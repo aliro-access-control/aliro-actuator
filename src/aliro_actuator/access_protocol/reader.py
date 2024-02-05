@@ -51,10 +51,10 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
-from aliro_actuator.trust_framework.access_credential import ReaderIdentifier
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
+from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
 
 class Reader(Device):

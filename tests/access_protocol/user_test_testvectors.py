@@ -20,7 +20,7 @@ sys.path.append(PROJECT_PATH)
 PROJECT_PATH = os.path.join(os.getcwd(), "tests/")
 sys.path.append(PROJECT_PATH)
 
-from access_protocol.testvectors import AID, READER_IDENTIFIER, TRANSACTION_IDENTIFIER
+from access_protocol.testvectors import AID, READER_GROUP_IDENTIFIER
 
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.user_device import UserDevice
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     user_ephemeral_key = KeyPair(f.read())
 
     access_credentials = [
-        AccessCredential(user_key, reader_public_key, [READER_IDENTIFIER])
+        AccessCredential(user_key, reader_public_key, [READER_GROUP_IDENTIFIER])
     ]
     card = UserDevice(
         TransportProtocol.SOCKET_NFC, access_credentials=access_credentials

@@ -199,7 +199,7 @@ class Test_user(unittest.TestCase):
                         )
                     )
                 ),
-                [reader_id],
+                [reader_id[:16]],
             )
         ]
         user = UserDevice(TransportProtocol.NFC, mock_nfc, access_credentials)
@@ -256,7 +256,9 @@ class Test_user(unittest.TestCase):
 
         access_credentials = [
             AccessCredential(
-                credential_keypair, reader_keypair.get_public_key(), [reader_identifier]
+                credential_keypair,
+                reader_keypair.get_public_key(),
+                [reader_identifier[:16]],
             )
         ]
         user = UserDevice(TransportProtocol.NFC, mock_nfc, access_credentials)
