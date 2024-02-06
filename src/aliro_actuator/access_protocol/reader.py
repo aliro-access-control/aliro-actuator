@@ -53,7 +53,7 @@ from aliro_actuator.access_protocol.errors import (
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.trust_framework.certificate import Certificate
-from aliro_actuator.trust_framework.errors import InvalidKeyError
+from aliro_actuator.trust_framework.errors import InvalidKeyError, InvalidResponseError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
@@ -211,6 +211,27 @@ class Reader(Device):
             self.session.transaction_identifier = transaction_identifier
         self.session.generate_ephemeral_key(ephemeral_key)
 
+    def failure_process(self) -> None:
+        """
+        Should be called when a failure state has occurred.
+        Destroys all session bound keys and data.
+        If transport protocol is NFC, a control_flow command indicating failure is send.
+        If transport protocol is BLE, a failure event message is send.
+        """
+        if (
+            self.transport_protocol_type == TransportProtocol.NFC
+            or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
+        ):
+            self.handle_control_flow(False)
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            # TODO: implement failure event message
+            pass
+
+        self.session = None
+
     def handle_select(self, aid: bytes) -> None:
         """
         create and send a select command.
@@ -234,6 +255,10 @@ class Reader(Device):
         except InvalidStatusError as error:
             if error.status == StatusBytes.FILE_OR_APP_NOT_FOUND:
                 Global.logger.error("User does not recognize AID")
+            self.failure_process()
+            raise error
+        except InvalidResponseError as error:
+            self.failure_process()
             raise error
 
         if response.compl_aid != EXPEDITED_PHASE_AID:
@@ -267,19 +292,24 @@ class Reader(Device):
             raise SessionError("No Session")
 
         Global.logger.info("AUTH0 Command")
-        auth0_response = self.command_auth0(
-            transaction=transaction_type,
-            transaction_code=transaction_code,
-            protocol_version=PROTOCOL_VERSION,
-            reader_epubk=self.session.get_reader_epubkey().as_bytes(),
-            transaction_identifier=self.session.transaction_identifier,
-            reader_identifier=self.reader_identifier,
-            vendor_extension=self.vendor_extension,
-        )
+        try:
+            auth0_response = self.command_auth0(
+                transaction=transaction_type,
+                transaction_code=transaction_code,
+                protocol_version=PROTOCOL_VERSION,
+                reader_epubk=self.session.get_reader_epubkey().as_bytes(),
+                transaction_identifier=self.session.transaction_identifier,
+                reader_identifier=self.reader_identifier,
+                vendor_extension=self.vendor_extension,
+            )
+        except InvalidResponseError as error:
+            self.failure_process()
+            raise error
 
         if transaction_type == Transaction.STANDARD:
             Global.logger.info("checking Auth0 response fields")
             if auth0_response.cryptogram is not None:
+                self.failure_process()
                 raise AccessProtocolError(
                     "User send cryptogram during a standard transaction"
                 )
@@ -321,7 +351,12 @@ class Reader(Device):
         Global.logger.info("LOAD CERT Command")
         if self.reader_cert is None:
             raise AccessProtocolError("No reader cert available")
-        self.command_load_cert(self.reader_cert.encode_compressed())
+
+        try:
+            self.command_load_cert(self.reader_cert.encode_compressed())
+        except InvalidResponseError as error:
+            self.failure_process()
+            raise error
 
     def handle_auth1(
         self,
@@ -343,24 +378,30 @@ class Reader(Device):
         self.session.derive_key_volatile(self.transport_protocol_type)
 
         Global.logger.info("AUTH1 Command")
-        auth1_response = self.command_auth1(
-            expected_response=expected_response,
-            reader_identifier=self.reader_identifier,
-            credential_epubk=self.session.credential_ephemeral_key,
-            reader_epubk=self.session.get_reader_epubkey(),
-            transaction_identifier=self.session.transaction_identifier,
-            encryption=self.session.encryption,
-        )
+        try:
+            auth1_response = self.command_auth1(
+                expected_response=expected_response,
+                reader_identifier=self.reader_identifier,
+                credential_epubk=self.session.credential_ephemeral_key,
+                reader_epubk=self.session.get_reader_epubkey(),
+                transaction_identifier=self.session.transaction_identifier,
+                encryption=self.session.encryption,
+            )
+        except (InvalidResponseError, VerificationError) as error:
+            self.failure_process()
+            raise error
 
         Global.logger.info("Checking Auth1 response fields")
         if expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
             if auth1_response.credential_public_key is None:
+                self.failure_process()
                 raise AccessProtocolError(
                     "Requested credential public key, but none was received"
                 )
             credential_public_key = PublicKey(auth1_response.credential_public_key)
         elif expected_response == Auth1Response.KEY_SLOT:
             if auth1_response.key_slot is None:
+                self.failure_process()
                 raise AccessProtocolError("Requested keyslot, but none was received")
             credential_public_key = self.session.lookup_credential_public_key(
                 auth1_response.key_slot
@@ -371,6 +412,7 @@ class Reader(Device):
         if not self.session.check_user_device_authentication(
             auth1_response.user_device_signature
         ):
+            self.failure_process()
             raise AccessProtocolError("User device signature authentication failed")
 
         Global.logger.info("Save AUTH1 response")
@@ -474,11 +516,16 @@ class Reader(Device):
 
         payload_tlv = TLV(payload)
 
-        response = self.command_exchange(
-            atomic_session, payload_tlv, self.session.encryption
-        )
+        try:
+            response = self.command_exchange(
+                atomic_session, payload_tlv, self.session.encryption
+            )
+        except (InvalidResponseError, VerificationError) as error:
+            self.failure_process()
+            raise error
 
         if response.status_code != bytes.fromhex("00020000"):
+            self.failure_process()
             Global.logger.error(
                 "exchange returned error status: {!r}".format(response.status_code)
             )
