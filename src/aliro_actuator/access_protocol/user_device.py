@@ -34,6 +34,7 @@ from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
+    STEPUP_PHASE_AID,
     Auth0,
     Select,
     TransportProtocol,
@@ -146,7 +147,14 @@ class UserDevice(Device):
             raise SessionError("starting session failed")
 
         while True:
-            command = self.wait_for_command(encryption=self.session.encryption)
+            try:
+                command = self.wait_for_command(encryption=self.session.encryption)
+            except (InvalidCommandError, VerificationError):
+                # main loop should continue even when commands are not valid
+                if self.session is None:
+                    # start a new session if the previous one has been terminated
+                    self.start_new_session()
+                continue
             try:
                 match command.ins:
                     case INS.SELECT:
@@ -165,12 +173,11 @@ class UserDevice(Device):
                         raise NotImplementedError(
                             "command: {} not implemented".format(command.ins)
                         )
-            except (InvalidKeyError, InvalidAIDError):
+            except AccessProtocolError:
                 # main loop should continue even when commands are not valid
-                pass
-            except VerificationError:
-                self.session.update_state(UserSessionState.SELECT_DONE)
-                self.mailbox_session.stop()
+                if self.session is None:
+                    # start a new session if the previous one has been terminated
+                    self.start_new_session()
 
     def start_new_session(self, ephemeral_key: KeyPair | None = None) -> None:
         """
@@ -187,7 +194,18 @@ class UserDevice(Device):
 
         self.session.generate_ephemeral_key(ephemeral_key)
 
-    def handle_select(self, select_command: Command) -> None:
+    def failure_process(self, error_code: int) -> None:
+        """
+        Should be called when a failure state has occurred.
+        returns an error code.
+        Destroys all session bound keys and data.
+        """
+        response = self.apdu.create_error_response(error_code)
+        self.transport_protocol.send_message(response.to_bytes())
+
+        self.session = None
+
+    def handle_select(self, select_command: Command) -> bytes:
         """
         Parse a select command and send the appropriate response.
 
@@ -208,9 +226,12 @@ class UserDevice(Device):
             raise SessionError("No Session")
 
         Global.logger.info("Received Select Command")
-        if select_command.aid != EXPEDITED_PHASE_AID:
+        if not (
+            select_command.aid == EXPEDITED_PHASE_AID
+            or select_command.aid == STEPUP_PHASE_AID
+        ):
             Global.logger.warning("Invalid AID")
-            self.response_error(StatusBytes.FILE_OR_APP_NOT_FOUND)
+            self.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
             raise InvalidAIDError(select_command.to_bytes(), select_command.aid)
 
         self.session.update_state(UserSessionState.SELECT_DONE)
@@ -221,6 +242,8 @@ class UserDevice(Device):
             CSA_APPLICATION_TYPE,
             self.supported_versions,
         )
+
+        return select_command.aid
 
     def handle_auth0(self, auth0_command: Command) -> None:
         """
@@ -243,17 +266,16 @@ class UserDevice(Device):
         if self.session is None:
             raise SessionError("No Session")
         if not self.session.state_valid(UserSessionState.SELECT_DONE):
-            self.response_error(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError(
-                "unexpected state for auth0 command: {}".format(self.session.state)
-            )
+            state = self.session.state
+            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError("unexpected state for auth0 command: {}".format(state))
 
         Global.logger.info("Received AUTH0 Command")
         if (
             auth0_command.expedited_phase_protocol_version
             not in self.supported_versions
         ):
-            self.response_error(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
+            self.failure_process(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
             raise VersionError
 
         try:
@@ -306,10 +328,9 @@ class UserDevice(Device):
         if not self.session.state_valid(
             [UserSessionState.AUTH0_FAST_DONE, UserSessionState.AUTH0_STD_DONE]
         ):
-            self.response_error(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError(
-                "unexpected state for auth0 command: {}".format(self.session.state)
-            )
+            state = self.session.state
+            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError("unexpected state for auth0 command: {}".format(state))
 
         Global.logger.info("Received LOAD CERT Command")
         try:
@@ -321,9 +342,9 @@ class UserDevice(Device):
             self.session.set_cert_and_verify(
                 load_cert_command.reader_cert, reader_public_key
             )
-        except CertificateDecodingError:
-            self.response_error(StatusBytes.GENERIC_ERROR)
-            return
+        except CertificateDecodingError as error:
+            self.response_load_cert()
+            raise error
         self.response_load_cert()
 
     def handle_auth1(self, auth1_command: Command) -> None:
@@ -349,10 +370,9 @@ class UserDevice(Device):
         if not self.session.state_valid(
             [UserSessionState.AUTH0_FAST_DONE, UserSessionState.AUTH0_STD_DONE]
         ):
-            self.response_error(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError(
-                "unexpected state for auth0 command: {}".format(self.session.state)
-            )
+            state = self.session.state
+            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError("unexpected state for auth0 command: {}".format(state))
 
         Global.logger.info("Received AUTH1 Command")
         if auth1_command.certificate_data is not None:
@@ -370,7 +390,7 @@ class UserDevice(Device):
                 )
             except CertificateDecodingError:
                 Global.logger.error("Error decoding certificate")
-                self.response_error(StatusBytes.GENERIC_ERROR)
+                self.failure_process(StatusBytes.GENERIC_ERROR)
                 return
 
         self.session.set_reader_public_key(self.access_credentials)
@@ -390,7 +410,7 @@ class UserDevice(Device):
             data.to_bytes(), auth1_command.reader_signature
         )
         if not verified:
-            self.response_error(StatusBytes.GENERIC_ERROR)
+            self.failure_process(StatusBytes.GENERIC_ERROR)
             raise AccessProtocolError("reader authentication data not verified")
         Global.logger.info("reader authentication data verified successfully")
 
@@ -469,16 +489,13 @@ class UserDevice(Device):
                 UserSessionState.EXCHANGE_DONE,
             ]
         ):
-            self.response_error(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError(
-                "unexpected state for auth0 command: {}".format(self.session.state)
-            )
+            state = self.session.state
+            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError("unexpected state for auth0 command: {}".format(state))
 
         if not self.session.encryption.check_counters_valid():
             # End current session
-            self.start_new_session()
-            self.session.update_state(UserSessionState.SELECT_DONE)
-            self.response_error(StatusBytes.INVALID_INSTRUCTION)
+            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             return
 
         self.session.update_state(UserSessionState.EXCHANGE_DONE)
@@ -655,16 +672,16 @@ class UserDevice(Device):
         try:
             command = self.apdu.parse_command(command_str, encryption)
         except InvalidCLAError as error:
-            self.response_error(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
+            self.failure_process(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
             raise error
         except InvalidParameterError as error:
-            self.response_error(StatusBytes.INCORRECT_P1_P2)
+            self.failure_process(StatusBytes.INCORRECT_P1_P2)
             raise error
         except InvalidCommandError as error:
-            self.response_error(StatusBytes.COMMAND_NOT_COMPLIANT)
+            self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
             raise error
         except VerificationError as error:
-            self.response_error(StatusBytes.INCORRECT_SECURE_MESSAGING_DOS)
+            self.failure_process(StatusBytes.INCORRECT_SECURE_MESSAGING_DOS)
             raise error
 
         if expected_command is not None and command.ins not in expected_command:
@@ -821,14 +838,6 @@ class UserDevice(Device):
             StatusBytes.SUCCESS
         )
         self.transport_protocol.send_message(control_flow_response.to_bytes())
-
-    def response_error(self, status_bytes: int) -> None:
-        """
-        Create and send an error response.
-        """
-
-        response = self.apdu.create_error_response(status_bytes)
-        self.transport_protocol.send_message(response.to_bytes())
 
 
 class UserSessionState(Enum):
