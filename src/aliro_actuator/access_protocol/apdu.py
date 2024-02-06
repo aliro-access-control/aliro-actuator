@@ -1109,7 +1109,6 @@ class Response(Message):
         signaling_bitmap: bytes
         credential_signed_timestamp: bytes | None
         revocation_signed_timestamp: bytes | None
-        access_credential_response: bytes | None
         """
         Global.logger.debug("Parsing auth1 response:")
         self._check_status()
@@ -1251,19 +1250,6 @@ class Response(Message):
         except IndexError:
             self.revocation_signed_timestamp = None
             Global.logger.debug("no revocation_signed_timestamp found")
-
-        try:
-            self.access_credential_response: bytes | None = self.payload_tlv.get_bytes(
-                Auth1.ACCESS_RESPONSE_TAG
-            )
-            Global.logger.debug(
-                "access_credential_response: {!r}".format(
-                    hexlify(self.access_credential_response)
-                )
-            )
-        except IndexError:
-            self.access_credential_response = None
-            Global.logger.debug("no access_credential_response found")
 
     def parse_as_load_cert(self) -> None:
         """

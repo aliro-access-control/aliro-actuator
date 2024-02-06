@@ -793,7 +793,6 @@ class ReaderSession:
         self.signaling_bitmap = auth1_response.signaling_bitmap
         self.credential_signed_timestamp = auth1_response.credential_signed_timestamp
         self.revocation_signed_timestamp = auth1_response.revocation_signed_timestamp
-        self.access_credential_response = auth1_response.access_credential_response
 
     def check_user_device_authentication(self, user_device_signature: bytes) -> bool:
         data = create_user_device_authentication(
