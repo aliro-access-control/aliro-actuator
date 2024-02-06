@@ -90,8 +90,7 @@ class Test_user(unittest.TestCase):
         mock_nfc.send_message.assert_called_with(
             StatusBytes.FILE_OR_APP_NOT_FOUND.to_bytes(2, "big")
         )
-        self.assertIsNotNone(user.session)
-        self.assertEqual(user.session.state, UserSessionState.SESSION_START)
+        self.assertIsNone(user.session)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     def test_select_command_no_aid(self, mock_nfc: Mock) -> None:
@@ -108,8 +107,7 @@ class Test_user(unittest.TestCase):
         mock_nfc.send_message.assert_called_with(
             StatusBytes.COMMAND_NOT_COMPLIANT.to_bytes(2, "big")
         )
-        self.assertIsNotNone(user.session)
-        self.assertEqual(user.session.state, UserSessionState.SESSION_START)
+        self.assertIsNone(user.session)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     def test_auth0_command_standard(self, mock_nfc: Mock) -> None:
@@ -162,8 +160,7 @@ class Test_user(unittest.TestCase):
         mock_nfc.send_message.assert_called_with(
             StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED.to_bytes(2, "big")
         )
-        self.assertIsNotNone(user.session)
-        self.assertEqual(user.session.state, UserSessionState.SELECT_DONE)
+        self.assertIsNone(user.session)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     def test_auth0_command_fast_not_implemented(self, mock_nfc: Mock) -> None:

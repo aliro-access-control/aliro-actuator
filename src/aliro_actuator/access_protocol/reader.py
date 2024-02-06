@@ -46,6 +46,7 @@ from aliro_actuator.access_protocol.encryption import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     InvalidResponseDataError,
+    InvalidResponseError,
     InvalidStatusError,
     SessionError,
     UnexpectedResponseError,
@@ -53,7 +54,7 @@ from aliro_actuator.access_protocol.errors import (
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.trust_framework.certificate import Certificate
-from aliro_actuator.trust_framework.errors import InvalidKeyError, InvalidResponseError
+from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
