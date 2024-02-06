@@ -568,7 +568,7 @@ class UserDevice(Device):
         # generate payload
         exchange_payload = bytearray()
         for read_command in read_data:
-            exchange_payload.extend(read_command[0].to_bytes(1, "big"))
+            exchange_payload.extend(read_command[0].to_bytes(2, "big"))
             exchange_payload.extend(read_command[1])
         exchange_payload.extend(bytes([0x02, 0x00, 0x00]))
 
