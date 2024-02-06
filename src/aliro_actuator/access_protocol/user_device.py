@@ -681,7 +681,7 @@ class UserDevice(Device):
             self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
             raise error
         except VerificationError as error:
-            self.failure_process(StatusBytes.INCORRECT_SECURE_MESSAGING_DOS)
+            self.failure_process(StatusBytes.SECURITY_STATUS_NOT_SATISFIED)
             raise error
 
         if expected_command is not None and command.ins not in expected_command:
