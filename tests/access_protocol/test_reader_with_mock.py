@@ -285,3 +285,86 @@ class Test_reader(unittest.TestCase):
             Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
         )
         reader.handle_auth1()
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    def test_exchange_command(self, mock_nfc: Mock) -> None:
+        reader_keypair = KeyPair()
+        reader_group_identifier = os.urandom(0x10)
+        reader_group_sub_identifier = os.urandom(0x10)
+        transaction_identifier = os.urandom(0x10)
+
+        exchange_SK_reader = os.urandom(32)
+        exchange_SK_device = os.urandom(32)
+        encryption_user = EncryptionEngine(
+            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+        )
+        encryption_reader = EncryptionEngine(
+            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+        )
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_exchange_response(
+            payload=bytes.fromhex("00020000"),
+            encryption=encryption_user,
+            status=StatusBytes.SUCCESS,
+        ).to_bytes()
+
+        reader = Reader(
+            TransportProtocol.NFC,
+            mock_nfc,
+            reader_group_identifier,
+            reader_group_sub_identifier,
+            reader_key=reader_keypair,
+        )
+        reader.start_new_session(transaction_identifier)
+        reader.session.encryption = encryption_reader
+        reader.handle_exchange(
+            atomic_session=False,
+            read_requests=None,
+            write_requests=None,
+            set_requests=None,
+        )
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    def test_exchange_command_read(self, mock_nfc: Mock) -> None:
+        reader_keypair = KeyPair()
+        reader_group_identifier = os.urandom(0x10)
+        reader_group_sub_identifier = os.urandom(0x10)
+        transaction_identifier = os.urandom(0x10)
+
+        exchange_SK_reader = os.urandom(32)
+        exchange_SK_device = os.urandom(32)
+        encryption_user = EncryptionEngine(
+            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+        )
+        encryption_reader = EncryptionEngine(
+            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+        )
+
+        rand_data = os.urandom(0x20)
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_exchange_response(
+            payload=bytes.fromhex("000212340020")
+            + rand_data
+            + bytes.fromhex("00020000"),
+            encryption=encryption_user,
+            status=StatusBytes.SUCCESS,
+        ).to_bytes()
+
+        reader = Reader(
+            TransportProtocol.NFC,
+            mock_nfc,
+            reader_group_identifier,
+            reader_group_sub_identifier,
+            reader_key=reader_keypair,
+        )
+        reader.start_new_session(transaction_identifier)
+        reader.session.encryption = encryption_reader
+        read_data = reader.handle_exchange(
+            atomic_session=False,
+            read_requests=[(0, 2), (0x10, 0x20)],
+            write_requests=None,
+            set_requests=None,
+        )
+        self.assertEqual(read_data, [bytes.fromhex("1234"), rand_data])

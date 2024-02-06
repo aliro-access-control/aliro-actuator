@@ -408,9 +408,9 @@ class Reader(Device):
         read_requests: list[tuple[int, int]] | None,
         write_requests: list[tuple[int, bytes]] | None,
         set_requests: list[tuple[int, int, int]] | None,
-        notify: TLV | None,
-        ursk: bytes | None,
-        update_doc: bytes | None,
+        notify: TLV | None = None,
+        ursk: bytes | None = None,
+        update_doc: bytes | None = None,
     ) -> list[bytes]:
         """
         Create and send a exchange command.
@@ -488,9 +488,10 @@ class Reader(Device):
 
         index = 0
         while index < len(response.read_data):
-            length = response.read_data[index]
-            data = response.read_data[index + 1 : index + 1 + length]
+            length = int.from_bytes(response.read_data[index : index + 2], "big")
+            data = response.read_data[index + 2 : index + 2 + length]
             read_data.append(data)
+            index = index + 2 + length
             Global.logger.info("read data: {!r}".format(hexlify(data)))
 
         return read_data
