@@ -435,6 +435,50 @@ class Test_Certificate(unittest.TestCase):
             ),
         )
 
+    def test_generate(self) -> None:
+        cert_issuer = KeyPair(
+            private_key=bytes.fromhex("308187020100301306072a8648ce3d020106082a8648ce3d"
+                "030107046d306b02010104204b45df37a327a31303113f9965d14de94f025f881515e1"
+                "3034a3d8a9ac47e43ea14403420004793e3a8f20428d54e7318046d75d05a8737eb6e0"
+                "74e5146a207bff62dae90e24039f372814a312c3cb82a5a97bb5bfa9e623a3cc886b09"
+                "dc13d53ef0da7de7bd")
+        )
+
+        out = Certificate.generate(
+            serial_number=bytes.fromhex("01"),
+            issuer=bytes.fromhex("697373756572"),
+            validity_not_before=bytes.fromhex("3230303130313030303030305A"),
+            validity_not_after=bytes.fromhex("3439303130313030303030305A"),
+            subject=bytes.fromhex("7375626a656374"),
+            key_info_subject_public_key=bytes.fromhex(
+                (
+                    "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
+                    "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
+                )
+            ),
+            issuer_keypair=cert_issuer,
+        )
+
+        reference = bytes.fromhex(
+            (
+                "308201523081f9a003020102020101300a06082a8648ce3d0403023011310f300d0603"
+                "5504030c06697373756572301e170d3230303130313030303030305a170d3439303130"
+                "313030303030305a30123110300e06035504030c077375626a6563743059301306072a"
+                "8648ce3d020106082a8648ce3d03010703420004842242f6182ba1c1138d32b77fb9f7"
+                "f37b70034b9f04443a5bea3c188beadb36490a7e95f91a4c162acfc3401c3a4f4e5a59"
+                "251d45243ac8544a665cb951422fa341303f301f0603551d230418301680142318e556"
+                "71f08eae212142a817720fb817ee93bf300c0603551d130101ff04023000300e060355"
+                "1d0f0101ff040403020780300a06082a8648ce3d04030203480030450221008720a2f0"
+                "8626d56b7814b7e5bbe04381e1834cf9a2a5d4c85c76783607a22cc60220236a4b757c"
+                "d497c8570e84fa3221be99f6c78cc7cbc71d7328aa99be03f1eccf"
+            )
+        )
+        # Check all the data before the signature
+        self.assertEqual(out[:268], reference[:268])
+
+        #TODO: validate the signature
+        #      ECDSA signatures are non-deterministic, cant do byte-comparison
+
     @unittest.skip("Spec not clear, this should work?")
     def test_verify_no_cert(self):
         reader_key = PublicKey(
