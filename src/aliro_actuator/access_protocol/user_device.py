@@ -52,7 +52,6 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCLAError,
     InvalidCommandError,
     InvalidParameterError,
-    KeyLookupFailed,
     SessionError,
     UnexpectedCommandError,
     VersionError,
@@ -64,6 +63,7 @@ from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import (
     CertificateDecodingError,
     InvalidKeyError,
+    KeyLookupFailed,
 )
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
@@ -334,9 +334,7 @@ class UserDevice(Device):
 
         Global.logger.info("Received LOAD CERT Command")
         try:
-            reader_public_key = self.session.get_access_credential_reader_public_key(
-                self.access_credentials
-            )
+            reader_public_key = self.session.get_reader_public_key()
             if reader_public_key is None:
                 raise KeyLookupFailed
             self.session.set_cert_and_verify(
@@ -378,11 +376,7 @@ class UserDevice(Device):
         if auth1_command.certificate_data is not None:
             Global.logger.info("AUTH1 Command contains certificate")
             try:
-                reader_public_key = (
-                    self.session.get_access_credential_reader_public_key(
-                        self.access_credentials
-                    )
-                )
+                reader_public_key = self.session.get_reader_public_key()
                 if reader_public_key is None:
                     raise KeyLookupFailed
                 self.session.set_cert_and_verify(
@@ -392,12 +386,6 @@ class UserDevice(Device):
                 Global.logger.error("Error decoding certificate")
                 self.failure_process(StatusBytes.GENERIC_ERROR)
                 return
-
-        try:
-            self.session.set_reader_public_key(self.access_credentials)
-        except AccessProtocolError as error:
-            self.failure_process(StatusBytes.GENERIC_ERROR)
-            raise error
 
         data = create_reader_authentication(
             self.session.reader_identifier,
@@ -418,10 +406,15 @@ class UserDevice(Device):
             raise AccessProtocolError("reader authentication data not verified")
         Global.logger.info("reader authentication data verified successfully")
 
-        Global.logger.info("creating shared keys")
-        self.session.set_shared_key()
-        self.session.derive_key_volatile(self.transport_protocol_type)
-        self.session.derive_key_persistent(self.transport_protocol_type)
+        try:
+            Global.logger.info("creating shared keys")
+            self.session.set_shared_key()
+            self.session.derive_key_volatile(self.transport_protocol_type)
+            self.session.derive_key_persistent(self.transport_protocol_type)
+        except KeyLookupFailed as error:
+            # could not find reader public key
+            self.failure_process(StatusBytes.GENERIC_ERROR)
+            raise error
 
         Global.logger.info("creating user device authentication")
         data = create_user_device_authentication(
@@ -454,7 +447,7 @@ class UserDevice(Device):
             mailbox_write = self.mailbox.write_permission
             data_in_mailbox = self.mailbox.data_is_set()
         self.response_auth1(
-            self.session.access_credential.key_slot,
+            self.session.access_credential.get_key_slot(),
             self.session.access_credential.get_credential_public_key().as_bytes(),
             auth1_command.expected_response,
             signature,
@@ -952,7 +945,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Volatile****",
-            reader_public_key=self.access_credential.get_reader_public_key(),
+            reader_public_key=self.get_reader_public_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -987,7 +980,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Persistent**",
-            reader_public_key=self.access_credential.get_reader_public_key(),
+            reader_public_key=self.get_reader_public_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -1003,41 +996,38 @@ class UserSession:
         self, compressed_cert: bytes, public_key: PublicKey
     ) -> bool:
         # TODO set data
-        self.cert = Certificate.decode_compressed(compressed_cert)
+        cert = Certificate.decode_compressed(compressed_cert)
         data = b""
-        return self.cert.verify(public_key, data)
-
-    def get_access_credential_reader_public_key(
-        self, access_credentials: list[AccessCredential]
-    ) -> PublicKey | None:
-        for access_credential in access_credentials:
-            if access_credential.has_identifier(self.reader_group_identifier):
-                return access_credential.get_reader_public_key()
-        return None
+        verified = cert.verify(public_key, data)
+        if verified:
+            self.cert = cert
+        return verified
 
     def get_reader_public_key(self) -> PublicKey:
-        return self.reader_public_key
+        Global.logger.info("looking for key...")
 
-    def set_reader_public_key(self, access_credentials: list[AccessCredential]) -> None:
         if hasattr(self, "cert"):
-            self.reader_public_key = self.cert.get_public_key()
+            Global.logger.info("has cert")
+            reader_public_key = self.cert.get_public_key()
             Global.logger.info(
-                "set reader public key from certificate: {!r}".format(
-                    hexlify(self.reader_public_key.as_bytes())
+                "get reader public key from certificate: {!r}".format(
+                    hexlify(reader_public_key.as_bytes())
                 )
             )
-            return
-        for access_credential in access_credentials:
-            if access_credential.has_identifier(self.reader_group_identifier):
-                self.reader_public_key = access_credential.get_reader_public_key()
+            return reader_public_key
+        if hasattr(self, "access_credential"):
+            Global.logger.info("has access_credential")
+            if self.access_credential.has_identifier(self.reader_group_identifier):
+                reader_public_key = self.access_credential.get_reader_public_key(
+                    self.reader_group_identifier
+                )
                 Global.logger.info(
                     "set reader public key from access_credentials: {!r}".format(
-                        hexlify(self.reader_public_key.as_bytes())
+                        hexlify(reader_public_key.as_bytes())
                     )
                 )
-                return
-        else:
-            raise AccessProtocolError("No reader public key found")
+                return reader_public_key
+        raise KeyLookupFailed
 
 
 class MailboxSession:

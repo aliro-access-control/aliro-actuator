@@ -78,3 +78,7 @@ class InvalidIdentifierError(TrustFrameworkError):
             error_message += ", {}".format(message)
         Global.logger.error(error_message)
         super().__init__(error_message)
+
+
+class KeyLookupFailed(TrustFrameworkError):
+    pass
