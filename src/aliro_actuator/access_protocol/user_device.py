@@ -297,8 +297,6 @@ class UserDevice(Device):
             if self.fast_transaction_implemented:
                 raise NotImplementedError
             else:
-                self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
-
                 cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
                 Global.logger.info("Sending AUTH0 Response")
                 self.response_auth0(
