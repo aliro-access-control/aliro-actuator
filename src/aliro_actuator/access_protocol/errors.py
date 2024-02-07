@@ -29,10 +29,6 @@ class SessionError(AccessProtocolError):
     pass
 
 
-class KeyLookupFailed(AccessProtocolError):
-    pass
-
-
 class UnexpectedResponseError(AccessProtocolError):
     """
     Raised when a different Response is received than expected.

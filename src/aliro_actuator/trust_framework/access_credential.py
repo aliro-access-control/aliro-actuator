@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 
 
@@ -21,26 +22,17 @@ class AccessCredential:
     Args:
         user_device_key_pair (KeyPair): keypair used by the User Device when this
         AccessCredential has a matching reader group identifier
-        reader_public_key (PublicKey): The reader public key associated with readers
-        with matching reader group identifier
-        reader_group_identifier (list[bytes]): list of reader group identifiers
-        key_slot (bytes, optional): key slot for this access credential, used for the
-        auth1 command. Defaults to b"".
+        reader_id_key_list (list[tuple[bytes, PublicKey]]): a list with tuples
+        containing reader_group_identifier and reader_public_key pairs
     """
 
     def __init__(
         self,
         user_device_key_pair: KeyPair,
-        reader_public_key: PublicKey,
-        reader_group_identifier: list[bytes],
-        key_slot: bytes = b"",
+        reader_id_key_list: list[tuple[bytes, PublicKey]],
     ):
         self.user_device_key_pair = user_device_key_pair
-        self.reader_public_key = reader_public_key
-
-        self.reader_group_identifier_list = reader_group_identifier
-
-        self.key_slot = key_slot
+        self.reader_id_key_list = reader_id_key_list
 
     def has_identifier(self, group_identifier: bytes) -> bool:
         """
@@ -53,15 +45,22 @@ class AccessCredential:
         Returns:
             bool: True if this access_credential has the given reader group identifier.
         """
-        if group_identifier in self.reader_group_identifier_list:
+        if group_identifier in map(lambda x: x[0], self.reader_id_key_list):
             return True
         return False
 
     def sign(self, data: bytes) -> bytes:
         return self.user_device_key_pair.sign(data)
 
-    def get_reader_public_key(self) -> PublicKey:
-        return self.reader_public_key
+    def get_reader_public_key(self, identifier: bytes) -> PublicKey:
+        for id_key_pair in self.reader_id_key_list:
+            if id_key_pair[0] == identifier:
+                return id_key_pair[1]
+        raise KeyLookupFailed
 
     def get_credential_public_key(self) -> PublicKey:
         return self.user_device_key_pair.get_public_key()
+
+    def get_key_slot(self) -> bytes:
+        # TODO implement
+        return bytes.fromhex("ABADCAFEBAADF00D")

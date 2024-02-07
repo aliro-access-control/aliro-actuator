@@ -36,7 +36,7 @@ if __name__ == "__main__":
     user_ephemeral_key = KeyPair(f.read())
 
     access_credentials = [
-        AccessCredential(user_key, reader_public_key, [READER_GROUP_IDENTIFIER])
+        AccessCredential(user_key, [(READER_GROUP_IDENTIFIER, reader_public_key)])
     ]
     card = UserDevice(
         TransportProtocol.SOCKET_NFC, access_credentials=access_credentials
