@@ -20,6 +20,7 @@ from datetime import datetime
 from asn1 import Classes, Decoder, Encoder, Error, Numbers
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import utils
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from OpenSSL.crypto import FILETYPE_ASN1, load_certificate
 
@@ -122,12 +123,9 @@ class Certificate:
             signature=b"\x00" + openssl_cert.to_cryptography().signature,
         )
 
-    def encode(self) -> bytes:
-        # hardcode the issuer public key for now
-        issuer_public_key = bytes.fromhex("04793e3a8f20428d54e7318046d75d05a8737eb6e074e5146a207bff62dae90e24039f372814a312c3cb82a5a97bb5bfa9e623a3cc886b09dc13d53ef0da7de7bd")
-
+    def encode(self, issuer_public_key: PublicKey) -> bytes:
         digest = hashes.Hash(hashes.SHA1())
-        digest.update(issuer_public_key)
+        digest.update(issuer_public_key.as_bytes())
         keyid = digest.finalize()
         authority_keyid = b'\x30\x16\x80\x14' + keyid
 
@@ -261,9 +259,16 @@ class Certificate:
 
         return encoder.output()
 
-    def verify(self, key: PublicKey, data: bytes) -> bool:
-        # TODO implement
-        verified = key.verify(data, self.signature)
+    def verify(self, key: PublicKey, data: bytes = b"") -> bool:
+        # TODO: remove "data", we dont need it
+        decompressed_bytes = self.encode(key)
+        decompressed = x509.load_der_x509_certificate(decompressed_bytes)
+        r, s = utils.decode_dss_signature(self.signature[1:])
+        sig_out = r.to_bytes(32, 'big') + s.to_bytes(32, 'big')
+        verified = key.verify(decompressed.tbs_certificate_bytes, sig_out)
+
+        # TODO: Validate certificate validity dates within range
+
         return verified
 
     def get_public_key(self) -> PublicKey:

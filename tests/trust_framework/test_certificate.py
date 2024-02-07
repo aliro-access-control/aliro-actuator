@@ -149,8 +149,14 @@ class Test_Certificate(unittest.TestCase):
                 "d497c8570e84fa3221be99f6c78cc7cbc71d7328aa99be03f1eccf"
             )
         )
+        issuer_key = PublicKey(
+            bytes.fromhex(
+                "04793e3a8f20428d54e7318046d75d05a8737eb6e074e5146a207bff62dae90e24039f"
+                "372814a312c3cb82a5a97bb5bfa9e623a3cc886b09dc13d53ef0da7de7bd"
+            )
+        )
 
-        self.assertEqual(cert.encode(), encoded)
+        self.assertEqual(cert.encode(issuer_key), encoded)
 
     def test_encode_customized_fields(self) -> None:
         cert = Certificate(
@@ -190,7 +196,14 @@ class Test_Certificate(unittest.TestCase):
             )
         )
 
-        self.assertEqual(cert.encode(), encoded)
+        issuer_key = PublicKey(
+            bytes.fromhex(
+                "04793e3a8f20428d54e7318046d75d05a8737eb6e074e5146a207bff62dae90e24039f"
+                "372814a312c3cb82a5a97bb5bfa9e623a3cc886b09dc13d53ef0da7de7bd"
+            )
+        )
+
+        self.assertEqual(cert.encode(issuer_key), encoded)
 
     def test_encode_compressed(self) -> None:
         cert = Certificate(
@@ -476,31 +489,12 @@ class Test_Certificate(unittest.TestCase):
         # Check all the data before the signature
         self.assertEqual(out[:268], reference[:268])
 
-        #TODO: validate the signature
-        #      ECDSA signatures are non-deterministic, cant do byte-comparison
+        # Check signature by validating cert
+        cert = Certificate.decode(out)
+        self.assertTrue(cert.verify(cert_issuer.get_public_key()))
 
-    @unittest.skip("Spec not clear, this should work?")
-    def test_verify_no_cert(self):
-        reader_key = PublicKey(
-            bytes.fromhex(
-                "04793e3a8f20428d54e7318046d75d05a8737eb6e074e5146a207bff62dae90e24039f"
-                "372814a312c3cb82a5a97bb5bfa9e623a3cc886b09dc13d53ef0da7de7bd"
-            )
-        )
-        public_key = bytes.fromhex(
-            "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb36490a7e"
-            "95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
-        )
-        signature = bytes.fromhex(
-            "0030450221008720a2f08626d56b7814b7e5bbe04381e1834cf9a2a5d4c85c76783607a22c"
-            "c60220236a4b757cd497c8570e84fa3221be99f6c78cc7cbc71d7328aa99be03f1eccf"
-        )
-
-        self.assertTrue(reader_key.verify(public_key, signature))
-
-    @unittest.skip("Spec not clear, this should work?")
-    def test_verify(self):
-        encoded_certificate = bytes.fromhex(
+    def test_verify_decompressed(self):
+        certificate = bytes.fromhex(
             "308201523081f9a003020102020101300a06082a8648ce3d0403023011310f300d06035504"
             "030c06697373756572301e170d3230303130313030303030305a170d343930313031303030"
             "3030305a30123110300e06035504030c077375626a6563743059301306072a8648ce3d0201"
@@ -513,11 +507,23 @@ class Test_Certificate(unittest.TestCase):
             "7328aa99be03f1eccf"
         )
 
-        reader_key = PublicKey(
+        issuer_key = PublicKey(
             bytes.fromhex(
-                "04842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb36490a"
-                "7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
+                "04793e3a8f20428d54e7318046d75d05a8737eb6e074e5146a207bff62dae90e24039f"
+                "372814a312c3cb82a5a97bb5bfa9e623a3cc886b09dc13d53ef0da7de7bd"
             )
+        )
+
+        cert = Certificate.decode(certificate)
+        self.assertTrue(cert.verify(issuer_key))
+
+    def test_verify_compressed(self):
+        certificate = bytes.fromhex(
+            "3081950402000030818e85420004842242f6182ba1c1138d32b77fb9f7f37b70034b9f0444"
+            "3a5bea3c188beadb36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665c"
+            "b951422f86480030450221008720a2f08626d56b7814b7e5bbe04381e1834cf9a2a5d4c85c"
+            "76783607a22cc60220236a4b757cd497c8570e84fa3221be99f6c78cc7cbc71d7328aa99be"
+            "03f1eccf"
         )
 
         issuer_key = PublicKey(
@@ -526,23 +532,6 @@ class Test_Certificate(unittest.TestCase):
                 "372814a312c3cb82a5a97bb5bfa9e623a3cc886b09dc13d53ef0da7de7bd"
             )
         )
-        data = bytes.fromhex(
-            "308201523081f9a003020102020101300a06082a8648ce3d0403023011310f300d06035504"
-            "030c06697373756572301e170d3230303130313030303030305a170d343930313031303030"
-            "3030305a30123110300e06035504030c077375626a6563743059301306072a8648ce3d0201"
-            "06082a8648ce3d03010703420004842242f6182ba1c1138d32b77fb9f7f37b70034b9f0444"
-            "3a5bea3c188beadb36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665c"
-            "b951422fa341303f301f0603551d230418301680142318e55671f08eae212142a817720fb8"
-            "17ee93bf300c0603551d130101ff04023000300e0603551d0f0101ff040403020780300a06"
-            "082a8648ce3d040302"
-        )
 
-        public_key = bytes.fromhex(
-            "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb36490a7e"
-            "95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
-        )
-
-        cert = Certificate.decode(encoded_certificate)
-        verified = cert.verify(reader_key)
-
-        self.assertTrue(verified)
+        cert = Certificate.decode_compressed(certificate)
+        self.assertTrue(cert.verify(issuer_key))
