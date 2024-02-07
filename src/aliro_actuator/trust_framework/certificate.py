@@ -37,35 +37,21 @@ class Certificate:
 
     def __init__(
         self,
-        version: bytes = b"",
-        serial_number: bytes = b"",
-        signature: bytes = b"",
-        issuer: bytes = b"",
-        validity_not_before: bytes = b"",
-        validity_not_after: bytes = b"",
-        subject: bytes = b"",
-        key_info_algorithm: bytes = b"",
-        key_info_parameters: bytes = b"",
+        serial_number: bytes = default_serial_number,
+        issuer: bytes = default_issuer,
+        validity_not_before: bytes = default_validity_not_before,
+        validity_not_after: bytes = default_validity_not_after,
+        subject: bytes = default_subject,
         key_info_subject_public_key: bytes = b"",
-        authority_key_identifier: bytes = b"",
-        key_usage_extension: bytes = b"",
-        signature_algorithm: bytes = b"",
-        signature_value: bytes = b"",
+        signature: bytes = b"",
     ):
-        self.version = version
         self.serial_number = serial_number
         self.signature = signature
         self.issuer = issuer
         self.validity_not_before = validity_not_before
         self.validity_not_after = validity_not_after
         self.subject = subject
-        self.key_info_algorithm = key_info_algorithm
-        self.key_info_parameters = key_info_parameters
         self.key_info_subject_public_key = key_info_subject_public_key
-        self.authority_key_identifier = authority_key_identifier
-        self.key_usage_extension = key_usage_extension
-        self.signature_algorithm = signature_algorithm
-        self.signature_value = signature_value
 
     @classmethod
     def decode(self, certificate: bytes) -> Certificate:
