@@ -393,7 +393,11 @@ class UserDevice(Device):
                 self.failure_process(StatusBytes.GENERIC_ERROR)
                 return
 
-        self.session.set_reader_public_key(self.access_credentials)
+        try:
+            self.session.set_reader_public_key(self.access_credentials)
+        except AccessProtocolError as error:
+            self.failure_process(StatusBytes.GENERIC_ERROR)
+            raise error
 
         data = create_reader_authentication(
             self.session.reader_identifier,
