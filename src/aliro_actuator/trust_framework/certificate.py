@@ -15,15 +15,17 @@
 from __future__ import annotations
 
 from binascii import hexlify
+from datetime import datetime
 
 from asn1 import Classes, Decoder, Encoder, Error, Numbers
+from cryptography import x509
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from OpenSSL.crypto import FILETYPE_ASN1, load_certificate
 
 from aliro_actuator.trust_framework.endpoint import Endpoint
 from aliro_actuator.trust_framework.errors import CertificateDecodingError
-from aliro_actuator.trust_framework.key import PublicKey
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 
 PROFILE = bytes([0x00, 0x00])
 
@@ -37,13 +39,13 @@ class Certificate:
 
     def __init__(
         self,
+        key_info_subject_public_key: bytes,
+        signature: bytes,
         serial_number: bytes = default_serial_number,
         issuer: bytes = default_issuer,
         validity_not_before: bytes = default_validity_not_before,
         validity_not_after: bytes = default_validity_not_after,
         subject: bytes = default_subject,
-        key_info_subject_public_key: bytes = b"",
-        signature: bytes = b"",
     ):
         self.serial_number = serial_number
         self.signature = signature
@@ -52,6 +54,52 @@ class Certificate:
         self.validity_not_after = validity_not_after
         self.subject = subject
         self.key_info_subject_public_key = key_info_subject_public_key
+
+    @staticmethod
+    def generate(
+        key_info_subject_public_key: bytes,
+        issuer_keypair: KeyPair,
+        serial_number: bytes = default_serial_number,
+        issuer: bytes = default_issuer,
+        validity_not_before: bytes = default_validity_not_before,
+        validity_not_after: bytes = default_validity_not_after,
+        subject: bytes = default_subject,
+    ):
+        """
+        Generate a new X509 DER certificate signed by the provided issuer keypair
+        """
+        _signing_key = issuer_keypair.get_private_key().key
+        _subject_key = PublicKey(key_info_subject_public_key[-65:])
+
+        digest = hashes.Hash(hashes.SHA1())
+        digest.update(issuer_keypair.get_public_key_as_bytes())
+        keyid = digest.finalize()
+
+        not_before = datetime.strptime(validity_not_before.decode("utf-8"), '%y%m%d%H%M%SZ')
+        not_after = datetime.strptime(validity_not_after.decode("utf-8"), '%y%m%d%H%M%SZ')
+
+        builder = x509.CertificateBuilder()
+        builder = builder.subject_name(x509.Name([
+            x509.NameAttribute(x509.oid.NameOID.COMMON_NAME, subject.decode("utf-8"))
+        ]))
+        builder = builder.issuer_name(x509.Name([
+            x509.NameAttribute(x509.oid.NameOID.COMMON_NAME, issuer.decode("utf-8"))
+        ]))
+        builder = builder.not_valid_before(not_before)
+        builder = builder.not_valid_after(not_after)
+        builder = builder.serial_number(int.from_bytes(serial_number, "big"))
+        builder = builder.public_key(_subject_key.key)
+        builder = builder.add_extension(
+            x509.AuthorityKeyIdentifier(keyid, None, None), critical=False,
+        )
+        builder = builder.add_extension(
+            x509.BasicConstraints(ca=False, path_length=None), critical=True,
+        )
+        builder = builder.add_extension(
+            x509.KeyUsage(True, False, False, False, False, False, False, False, False),
+            critical=True,
+        )
+        return builder.sign(_signing_key, hashes.SHA256()).public_bytes(Encoding.DER)
 
     @classmethod
     def decode(self, certificate: bytes) -> Certificate:
