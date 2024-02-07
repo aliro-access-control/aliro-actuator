@@ -17,6 +17,7 @@ from __future__ import annotations
 from binascii import hexlify
 
 from asn1 import Classes, Decoder, Encoder, Error, Numbers
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from OpenSSL.crypto import FILETYPE_ASN1, load_certificate
 
@@ -87,11 +88,62 @@ class Certificate:
             signature=b"\x00" + openssl_cert.to_cryptography().signature,
         )
 
-    # def encode(self) -> bytes:
-    #     certificate = X509()
-    #     certificate.set_serial_number(int.from_bytes(self.serial_number, "big"))
-    #     certificate.set_issuer(X509Name(self.issuer))
-    #     return dump_certificate(FILETYPE_ASN1, certificate)
+    def encode(self) -> bytes:
+        # hardcode the issuer public key for now
+        issuer_public_key = bytes.fromhex("04793e3a8f20428d54e7318046d75d05a8737eb6e074e5146a207bff62dae90e24039f372814a312c3cb82a5a97bb5bfa9e623a3cc886b09dc13d53ef0da7de7bd")
+
+        digest = hashes.Hash(hashes.SHA1())
+        digest.update(issuer_public_key)
+        keyid = digest.finalize()
+        authority_keyid = b'\x30\x16\x80\x14' + keyid
+
+        # PyOpenSSL (rightfully) doesn't allow you to make certs with an fixed signature
+        #  Instead, build the x509 by hand with the asn1 encoder
+        encoder = Encoder()
+        encoder.start()
+        with encoder.construct(Numbers.Sequence):
+            with encoder.construct(Numbers.Sequence):
+                with encoder.construct(0, Classes.Context):
+                    encoder.write(2, Numbers.Integer)
+                encoder.write(int.from_bytes(self.serial_number, 'big'), Numbers.Integer)
+                with encoder.construct(Numbers.Sequence):
+                    encoder.write("1.2.840.10045.4.3.2", Numbers.ObjectIdentifier)
+                with encoder.construct(Numbers.Sequence):
+                    with encoder.construct(Numbers.Set):
+                        with encoder.construct(Numbers.Sequence):
+                            encoder.write("2.5.4.3", Numbers.ObjectIdentifier)
+                            encoder.write(self.issuer, Numbers.UTF8String)
+                with encoder.construct(Numbers.Sequence):
+                    encoder.write(self.validity_not_before, Numbers.UTCTime)
+                    encoder.write(self.validity_not_after, Numbers.UTCTime)
+                with encoder.construct(Numbers.Sequence):
+                    with encoder.construct(Numbers.Set):
+                        with encoder.construct(Numbers.Sequence):
+                            encoder.write("2.5.4.3", Numbers.ObjectIdentifier)
+                            encoder.write(self.subject, Numbers.UTF8String)
+                with encoder.construct(Numbers.Sequence):
+                    with encoder.construct(Numbers.Sequence):
+                        encoder.write("1.2.840.10045.2.1", Numbers.ObjectIdentifier)
+                        encoder.write("1.2.840.10045.3.1.7", Numbers.ObjectIdentifier)
+                    encoder.write(self.key_info_subject_public_key[1:], Numbers.BitString)
+                with encoder.construct(3, Classes.Context):
+                    with encoder.construct(Numbers.Sequence):
+                        with encoder.construct(Numbers.Sequence):
+                            encoder.write("2.5.29.35", Numbers.ObjectIdentifier)
+                            encoder.write(authority_keyid, Numbers.OctetString)
+                        with encoder.construct(Numbers.Sequence):
+                            encoder.write("2.5.29.19", Numbers.ObjectIdentifier)
+                            encoder.write(True, Numbers.Boolean)
+                            encoder.write(b'\x30\x00', Numbers.OctetString)
+                        with encoder.construct(Numbers.Sequence):
+                            encoder.write("2.5.29.15", Numbers.ObjectIdentifier)
+                            encoder.write(True, Numbers.Boolean)
+                            encoder.write(b'\x03\x02\x07\x80', Numbers.OctetString)
+            with encoder.construct(Numbers.Sequence):
+                encoder.write("1.2.840.10045.4.3.2", Numbers.ObjectIdentifier)
+            encoder.write(self.signature[1:], Numbers.BitString)
+
+        return encoder.output()
 
     @classmethod
     def decode_compressed(self, compressed_certificate: bytes) -> Certificate:

@@ -118,51 +118,79 @@ class Test_Certificate(unittest.TestCase):
             ),
         )
 
-    # def test_encode(self) -> None:
-    #     cert = Certificate(
-    #         version=b"",
-    #         serial_number=bytes.fromhex("04278ba9fd71"),
-    #         signature=bytes.fromhex(
-    #             (
-    #                 "003045022100e1ad640dceb11eac0292ce94cf668e074e2ca4a007a84424aa05aa"
-    #                 "c4a1f623ad02205541fe105df6b7d618976e7369bbbecd297275402d1ce37f7299"
-    #                 "70b873ef1000"
-    #             )
-    #         ),
-    #         issuer=bytes.fromhex("637573746f6d20697373756572206e616d65"),
-    #         validity_not_before=bytes.fromhex("3230303130313030303030305A"),
-    #         validity_not_after=bytes.fromhex("3235303530353030303030305A"),
-    #         subject=bytes.fromhex("7375626a656374"),
-    #         key_info_algorithm=b"",
-    #         key_info_parameters=b"",
-    #         key_info_subject_public_key=bytes.fromhex(
-    #             (
-    #                 "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
-    #                 "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
-    #             )
-    #         ),
-    #         authority_key_identifier=b"",
-    #         key_usage_extension=b"",
-    #         signature_value=b"",
-    #         signature_algorithm=b"",
-    #     )
+    def test_encode_reference(self) -> None:
+        cert = Certificate(
+            signature=bytes.fromhex(
+                (
+                    "0030450221008720a2f08626d56b7814b7e5bbe04381e1834cf9a2a5d4c85c7678"
+                    "3607a22cc60220236a4b757cd497c8570e84fa3221be99f6c78cc7cbc71d7328aa"
+                    "99be03f1eccf"
+                )
+            ),
+            key_info_subject_public_key=bytes.fromhex(
+                (
+                    "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
+                    "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
+                )
+            ),
+        )
 
-    #     encoded = bytes.fromhex(
-    #         (
-    #             "308201513081f9a003020102020101300a06082a8648ce3d0403023011310f300d06035504"
-    #             "030c06697373756572301e170d3230303130313030303030305a170d343930313031303030"
-    #             "3030305a30123110300e06035504030c077375626a6563743059301306072a8648ce3d0201"
-    #             "06082a8648ce3d03010703420004842242f6182ba1c1138d32b77fb9f7f37b70034b9f0444"
-    #             "3a5bea3c188beadb36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665c"
-    #             "b951422fa341303f301f0603551d230418301680142318e55671f08eae212142a817720fb8"
-    #             "17ee93bf300c0603551d130101ff04023000300e0603551d0f0101ff040403020780300a06"
-    #             "082a8648ce3d040302034700304402201610f6e9fbc7ddfd46bb9b585627285daf676eb3a9"
-    #             "50d99ed6d462763ef5fb7102202208fd466e06a77327865c50430e73f808389644351b390b"
-    #             "92eee853eacb2600"
-    #         )
-    #     )
+        encoded = bytes.fromhex(
+            (
+                "308201523081f9a003020102020101300a06082a8648ce3d0403023011310f300d0603"
+                "5504030c06697373756572301e170d3230303130313030303030305a170d3439303130"
+                "313030303030305a30123110300e06035504030c077375626a6563743059301306072a"
+                "8648ce3d020106082a8648ce3d03010703420004842242f6182ba1c1138d32b77fb9f7"
+                "f37b70034b9f04443a5bea3c188beadb36490a7e95f91a4c162acfc3401c3a4f4e5a59"
+                "251d45243ac8544a665cb951422fa341303f301f0603551d230418301680142318e556"
+                "71f08eae212142a817720fb817ee93bf300c0603551d130101ff04023000300e060355"
+                "1d0f0101ff040403020780300a06082a8648ce3d04030203480030450221008720a2f0"
+                "8626d56b7814b7e5bbe04381e1834cf9a2a5d4c85c76783607a22cc60220236a4b757c"
+                "d497c8570e84fa3221be99f6c78cc7cbc71d7328aa99be03f1eccf"
+            )
+        )
 
-    #     self.assertEqual(cert.encode(), encoded)
+        self.assertEqual(cert.encode(), encoded)
+
+    def test_encode_customized_fields(self) -> None:
+        cert = Certificate(
+            serial_number=bytes.fromhex("04278ba9fd71"),
+            signature=bytes.fromhex(
+                (
+                    "00304502206080fed25cf442226d5017c0e3f5f929ff5cbd18bfa753cbd876c02f"
+                    "0a8abbb4022100bc3e990a9cec57b1c1717fdeb6aab55cece7c96fff47bf5a7236"
+                    "accfb378347e"
+                )
+            ),
+            issuer=bytes.fromhex("637573746f6d20697373756572206e616d65"),
+            validity_not_before=bytes.fromhex("3230303130313030303030305A"),
+            validity_not_after=bytes.fromhex("3235303530353030303030305A"),
+            subject=bytes.fromhex("7375626a656374"),
+            key_info_subject_public_key=bytes.fromhex(
+                (
+                    "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
+                    "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
+                )
+            ),
+        )
+
+        encoded = bytes.fromhex(
+            (
+                "308201643082010aa003020102020604278ba9fd71300a06082a8648ce3d040302301d"
+                "311b301906035504030c12637573746f6d20697373756572206e616d65301e170d3230"
+                "303130313030303030305a170d3235303530353030303030305a30123110300e060355"
+                "04030c077375626a6563743059301306072a8648ce3d020106082a8648ce3d03010703"
+                "420004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb36"
+                "490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422fa34130"
+                "3f301f0603551d230418301680142318e55671f08eae212142a817720fb817ee93bf30"
+                "0c0603551d130101ff04023000300e0603551d0f0101ff040403020780300a06082a86"
+                "48ce3d040302034800304502206080fed25cf442226d5017c0e3f5f929ff5cbd18bfa7"
+                "53cbd876c02f0a8abbb4022100bc3e990a9cec57b1c1717fdeb6aab55cece7c96fff47"
+                "bf5a7236accfb378347e"
+            )
+        )
+
+        self.assertEqual(cert.encode(), encoded)
 
     def test_encode_compressed(self) -> None:
         cert = Certificate(
