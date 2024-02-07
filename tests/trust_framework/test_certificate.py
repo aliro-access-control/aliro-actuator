@@ -194,7 +194,6 @@ class Test_Certificate(unittest.TestCase):
 
     def test_encode_compressed(self) -> None:
         cert = Certificate(
-            version=b"",
             serial_number=bytes.fromhex("04278ba9fd71"),
             signature=bytes.fromhex(
                 (
@@ -207,18 +206,12 @@ class Test_Certificate(unittest.TestCase):
             validity_not_before=bytes.fromhex("3230303130313030303030305A"),
             validity_not_after=bytes.fromhex("3235303530353030303030305A"),
             subject=bytes.fromhex("7375626a656374"),
-            key_info_algorithm=b"",
-            key_info_parameters=b"",
             key_info_subject_public_key=bytes.fromhex(
                 (
                     "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
                     "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
                 )
             ),
-            authority_key_identifier=b"",
-            key_usage_extension=b"",
-            signature_value=b"",
-            signature_algorithm=b"",
         )
         result = cert.encode_compressed()
 
@@ -278,7 +271,6 @@ class Test_Certificate(unittest.TestCase):
 
     def test_encode_compressed_default_values(self) -> None:
         cert = Certificate(
-            version=b"",
             serial_number=bytes.fromhex("01"),
             signature=bytes.fromhex(
                 (
@@ -291,18 +283,12 @@ class Test_Certificate(unittest.TestCase):
             validity_not_before=bytes.fromhex("3230303130313030303030305A"),
             validity_not_after=bytes.fromhex("3439303130313030303030305A"),
             subject=bytes.fromhex("7375626a656374"),
-            key_info_algorithm=b"",
-            key_info_parameters=b"",
             key_info_subject_public_key=bytes.fromhex(
                 (
                     "0004842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
                     "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
                 )
             ),
-            authority_key_identifier=b"",
-            key_usage_extension=b"",
-            signature_value=b"",
-            signature_algorithm=b"",
         )
         result = cert.encode_compressed()
 
