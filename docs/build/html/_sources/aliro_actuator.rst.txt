@@ -7,8 +7,8 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   aliro_actuator.access_document
    aliro_actuator.access_protocol
-   aliro_actuator.credential
    aliro_actuator.hw_driver
    aliro_actuator.transport_protocol
    aliro_actuator.trust_framework

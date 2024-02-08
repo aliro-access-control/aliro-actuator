@@ -13,7 +13,7 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="aliro_actuator.access_protocol package" href="aliro_actuator.access_protocol.html" />
+    <link rel="next" title="aliro_actuator.access_document package" href="aliro_actuator.access_document.html" />
     <link rel="prev" title="aliro_actuator" href="modules.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -37,6 +37,35 @@
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="aliro_actuator.access_document.html">aliro_actuator.access_document package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.access_document.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_document.access_credential.html">aliro_actuator.access_document.access_credential module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.access_credential.html#aliro_actuator.access_document.access_credential.AccessDocument"><code class="docutils literal notranslate"><span class="pre">AccessDocument</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.access_credential.html#aliro_actuator.access_document.access_credential.DataElement"><code class="docutils literal notranslate"><span class="pre">DataElement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.access_credential.html#aliro_actuator.access_document.access_credential.IssuerAuth"><code class="docutils literal notranslate"><span class="pre">IssuerAuth</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_document.errors.html">aliro_actuator.access_document.errors module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.errors.html#aliro_actuator.access_document.errors.DocumentError"><code class="docutils literal notranslate"><span class="pre">DocumentError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.errors.html#aliro_actuator.access_document.errors.ElementSizeError"><code class="docutils literal notranslate"><span class="pre">ElementSizeError</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_document.revocation_document.html">aliro_actuator.access_document.revocation_document module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.revocation_document.html#aliro_actuator.access_document.revocation_document.RevocationDocument"><code class="docutils literal notranslate"><span class="pre">RevocationDocument</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.access_document.html#module-aliro_actuator.access_document">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_document.html#aliro_actuator.access_document.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.html#aliro_actuator.access_document.Document.retrieve"><code class="docutils literal notranslate"><span class="pre">Document.retrieve()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.html#aliro_actuator.access_document.Document.store"><code class="docutils literal notranslate"><span class="pre">Document.store()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.access_protocol.html#submodules">Submodules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_protocol.apdu.html">aliro_actuator.access_protocol.apdu module</a><ul>
@@ -54,19 +83,19 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_protocol.authentication.html">aliro_actuator.access_protocol.authentication module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.authentication.html#aliro_actuator.access_protocol.authentication.create_endpoint_authentication"><code class="docutils literal notranslate"><span class="pre">create_endpoint_authentication()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.authentication.html#aliro_actuator.access_protocol.authentication.create_reader_authentication"><code class="docutils literal notranslate"><span class="pre">create_reader_authentication()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.authentication.html#aliro_actuator.access_protocol.authentication.create_user_device_authentication"><code class="docutils literal notranslate"><span class="pre">create_user_device_authentication()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html">aliro_actuator.access_protocol.defines module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.Auth0"><code class="docutils literal notranslate"><span class="pre">Auth0</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.Auth1"><code class="docutils literal notranslate"><span class="pre">Auth1</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.ControlFlow"><code class="docutils literal notranslate"><span class="pre">ControlFlow</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.EndpointAuth"><code class="docutils literal notranslate"><span class="pre">EndpointAuth</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.Exchange"><code class="docutils literal notranslate"><span class="pre">Exchange</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.ReaderAuth"><code class="docutils literal notranslate"><span class="pre">ReaderAuth</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.Select"><code class="docutils literal notranslate"><span class="pre">Select</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.TransportProtocol"><code class="docutils literal notranslate"><span class="pre">TransportProtocol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.defines.html#aliro_actuator.access_protocol.defines.UserDeviceAuth"><code class="docutils literal notranslate"><span class="pre">UserDeviceAuth</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_protocol.encryption.html">aliro_actuator.access_protocol.encryption module</a><ul>
@@ -87,11 +116,11 @@
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.InvalidCommandError"><code class="docutils literal notranslate"><span class="pre">InvalidCommandError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.InvalidINSError"><code class="docutils literal notranslate"><span class="pre">InvalidINSError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.InvalidLcError"><code class="docutils literal notranslate"><span class="pre">InvalidLcError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.InvalidLeError"><code class="docutils literal notranslate"><span class="pre">InvalidLeError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.InvalidParameterError"><code class="docutils literal notranslate"><span class="pre">InvalidParameterError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.InvalidResponseDataError"><code class="docutils literal notranslate"><span class="pre">InvalidResponseDataError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.InvalidResponseError"><code class="docutils literal notranslate"><span class="pre">InvalidResponseError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.InvalidStatusError"><code class="docutils literal notranslate"><span class="pre">InvalidStatusError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.KeyLookupFailed"><code class="docutils literal notranslate"><span class="pre">KeyLookupFailed</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.MessageTooLongError"><code class="docutils literal notranslate"><span class="pre">MessageTooLongError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.SessionError"><code class="docutils literal notranslate"><span class="pre">SessionError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.errors.html#aliro_actuator.access_protocol.errors.UnexpectedCommandError"><code class="docutils literal notranslate"><span class="pre">UnexpectedCommandError</span></code></a></li>
@@ -128,35 +157,6 @@
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_protocol.html#access-protocol">Access Protocol</a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.access_protocol.html#aliro_actuator.access_protocol.Device"><code class="docutils literal notranslate"><span class="pre">Device</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.html#aliro_actuator.access_protocol.Device.support_extended_length_apdu"><code class="docutils literal notranslate"><span class="pre">Device.support_extended_length_apdu</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.credential.html#submodules">Submodules</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.credential.access_credential.html">aliro_actuator.credential.access_credential module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.access_credential.html#aliro_actuator.credential.access_credential.AccessCredential"><code class="docutils literal notranslate"><span class="pre">AccessCredential</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.access_credential.html#aliro_actuator.credential.access_credential.DataElement"><code class="docutils literal notranslate"><span class="pre">DataElement</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.access_credential.html#aliro_actuator.credential.access_credential.IssuerAuth"><code class="docutils literal notranslate"><span class="pre">IssuerAuth</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.credential.errors.html">aliro_actuator.credential.errors module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.errors.html#aliro_actuator.credential.errors.CredentialError"><code class="docutils literal notranslate"><span class="pre">CredentialError</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.errors.html#aliro_actuator.credential.errors.ElementSizeError"><code class="docutils literal notranslate"><span class="pre">ElementSizeError</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.credential.revocation_document.html">aliro_actuator.credential.revocation_document module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.revocation_document.html#aliro_actuator.credential.revocation_document.RevocationDocument"><code class="docutils literal notranslate"><span class="pre">RevocationDocument</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.credential.html#module-aliro_actuator.credential">Module contents</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.credential.html#aliro_actuator.credential.Credential"><code class="docutils literal notranslate"><span class="pre">Credential</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html#aliro_actuator.credential.Credential.retrieve"><code class="docutils literal notranslate"><span class="pre">Credential.retrieve()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html#aliro_actuator.credential.Credential.store"><code class="docutils literal notranslate"><span class="pre">Credential.store()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -216,18 +216,21 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html">aliro_actuator.trust_framework.access_credential module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html#aliro_actuator.trust_framework.access_credential.AccessCredential"><code class="docutils literal notranslate"><span class="pre">AccessCredential</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.certificate.html">aliro_actuator.trust_framework.certificate module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.certificate.html#aliro_actuator.trust_framework.certificate.Certificate"><code class="docutils literal notranslate"><span class="pre">Certificate</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.endpoint.html">aliro_actuator.trust_framework.endpoint module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.endpoint.html#aliro_actuator.trust_framework.endpoint.Endpoint"><code class="docutils literal notranslate"><span class="pre">Endpoint</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html">aliro_actuator.trust_framework.errors module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.CertificateDecodingError"><code class="docutils literal notranslate"><span class="pre">CertificateDecodingError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.InvalidIdentifierError"><code class="docutils literal notranslate"><span class="pre">InvalidIdentifierError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.InvalidKeyError"><code class="docutils literal notranslate"><span class="pre">InvalidKeyError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.InvalidKeyFormatError"><code class="docutils literal notranslate"><span class="pre">InvalidKeyFormatError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.KeyLookupFailed"><code class="docutils literal notranslate"><span class="pre">KeyLookupFailed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.MissingPublicKeyError"><code class="docutils literal notranslate"><span class="pre">MissingPublicKeyError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.TrustFrameworkError"><code class="docutils literal notranslate"><span class="pre">TrustFrameworkError</span></code></a></li>
 </ul>
 </li>
@@ -237,6 +240,10 @@
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PrivateKey"><code class="docutils literal notranslate"><span class="pre">PrivateKey</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PublicKey"><code class="docutils literal notranslate"><span class="pre">PublicKey</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.derive_key"><code class="docutils literal notranslate"><span class="pre">derive_key()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.reader_identifier.html">aliro_actuator.trust_framework.reader_identifier module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.reader_identifier.html#aliro_actuator.trust_framework.reader_identifier.ReaderIdentifier"><code class="docutils literal notranslate"><span class="pre">ReaderIdentifier</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -307,8 +314,8 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">aliro_actuator</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">aliro_actuator package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.html">aliro_actuator.access_document package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a></li>
@@ -334,7 +341,7 @@
   <li><a href="index.html">Documentation overview</a><ul>
   <li><a href="modules.html">aliro_actuator</a><ul>
       <li>Previous: <a href="modules.html" title="previous chapter">aliro_actuator</a></li>
-      <li>Next: <a href="aliro_actuator.access_protocol.html" title="next chapter">aliro_actuator.access_protocol package</a></li>
+      <li>Next: <a href="aliro_actuator.access_document.html" title="next chapter">aliro_actuator.access_document package</a></li>
   </ul></li>
   </ul></li>
 </ul>
