@@ -13,7 +13,7 @@
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="aliro_actuator.trust_framework.certificate module" href="aliro_actuator.trust_framework.certificate.html" />
+    <link rel="next" title="aliro_actuator.trust_framework.access_credential module" href="aliro_actuator.trust_framework.access_credential.html" />
     <link rel="prev" title="aliro_actuator.transport_protocol.socket module" href="aliro_actuator.transport_protocol.socket.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -37,6 +37,17 @@
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html">aliro_actuator.trust_framework.access_credential module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html#aliro_actuator.trust_framework.access_credential.AccessCredential"><code class="docutils literal notranslate"><span class="pre">AccessCredential</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html#aliro_actuator.trust_framework.access_credential.AccessCredential.get_credential_public_key"><code class="docutils literal notranslate"><span class="pre">AccessCredential.get_credential_public_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html#aliro_actuator.trust_framework.access_credential.AccessCredential.get_key_slot"><code class="docutils literal notranslate"><span class="pre">AccessCredential.get_key_slot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html#aliro_actuator.trust_framework.access_credential.AccessCredential.get_reader_public_key"><code class="docutils literal notranslate"><span class="pre">AccessCredential.get_reader_public_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html#aliro_actuator.trust_framework.access_credential.AccessCredential.has_identifier"><code class="docutils literal notranslate"><span class="pre">AccessCredential.has_identifier()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.access_credential.html#aliro_actuator.trust_framework.access_credential.AccessCredential.sign"><code class="docutils literal notranslate"><span class="pre">AccessCredential.sign()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="aliro_actuator.trust_framework.certificate.html">aliro_actuator.trust_framework.certificate module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.certificate.html#aliro_actuator.trust_framework.certificate.Certificate"><code class="docutils literal notranslate"><span class="pre">Certificate</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.certificate.html#aliro_actuator.trust_framework.certificate.Certificate.decode"><code class="docutils literal notranslate"><span class="pre">Certificate.decode()</span></code></a></li>
@@ -53,20 +64,13 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="aliro_actuator.trust_framework.endpoint.html">aliro_actuator.trust_framework.endpoint module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.endpoint.html#aliro_actuator.trust_framework.endpoint.Endpoint"><code class="docutils literal notranslate"><span class="pre">Endpoint</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.endpoint.html#aliro_actuator.trust_framework.endpoint.Endpoint.get_endpoint_public_key"><code class="docutils literal notranslate"><span class="pre">Endpoint.get_endpoint_public_key()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.endpoint.html#aliro_actuator.trust_framework.endpoint.Endpoint.get_reader_public_key"><code class="docutils literal notranslate"><span class="pre">Endpoint.get_reader_public_key()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.endpoint.html#aliro_actuator.trust_framework.endpoint.Endpoint.has_identifier"><code class="docutils literal notranslate"><span class="pre">Endpoint.has_identifier()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.endpoint.html#aliro_actuator.trust_framework.endpoint.Endpoint.sign"><code class="docutils literal notranslate"><span class="pre">Endpoint.sign()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html">aliro_actuator.trust_framework.errors module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.CertificateDecodingError"><code class="docutils literal notranslate"><span class="pre">CertificateDecodingError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.InvalidIdentifierError"><code class="docutils literal notranslate"><span class="pre">InvalidIdentifierError</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.InvalidKeyError"><code class="docutils literal notranslate"><span class="pre">InvalidKeyError</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.InvalidKeyFormatError"><code class="docutils literal notranslate"><span class="pre">InvalidKeyFormatError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.KeyLookupFailed"><code class="docutils literal notranslate"><span class="pre">KeyLookupFailed</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.MissingPublicKeyError"><code class="docutils literal notranslate"><span class="pre">MissingPublicKeyError</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.errors.html#aliro_actuator.trust_framework.errors.TrustFrameworkError"><code class="docutils literal notranslate"><span class="pre">TrustFrameworkError</span></code></a></li>
 </ul>
 </li>
@@ -81,6 +85,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PrivateKey"><code class="docutils literal notranslate"><span class="pre">PrivateKey</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PrivateKey.as_bytes"><code class="docutils literal notranslate"><span class="pre">PrivateKey.as_bytes()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PrivateKey.as_pem"><code class="docutils literal notranslate"><span class="pre">PrivateKey.as_pem()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PrivateKey.compute_shared_key"><code class="docutils literal notranslate"><span class="pre">PrivateKey.compute_shared_key()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.PrivateKey.generate_public_key"><code class="docutils literal notranslate"><span class="pre">PrivateKey.generate_public_key()</span></code></a></li>
@@ -96,6 +101,15 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.key.html#aliro_actuator.trust_framework.key.derive_key"><code class="docutils literal notranslate"><span class="pre">derive_key()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="aliro_actuator.trust_framework.reader_identifier.html">aliro_actuator.trust_framework.reader_identifier module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.trust_framework.reader_identifier.html#aliro_actuator.trust_framework.reader_identifier.ReaderIdentifier"><code class="docutils literal notranslate"><span class="pre">ReaderIdentifier</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.reader_identifier.html#aliro_actuator.trust_framework.reader_identifier.ReaderIdentifier.as_bytes"><code class="docutils literal notranslate"><span class="pre">ReaderIdentifier.as_bytes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.reader_identifier.html#aliro_actuator.trust_framework.reader_identifier.ReaderIdentifier.get_group"><code class="docutils literal notranslate"><span class="pre">ReaderIdentifier.get_group()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.trust_framework.reader_identifier.html#aliro_actuator.trust_framework.reader_identifier.ReaderIdentifier.get_group_sub"><code class="docutils literal notranslate"><span class="pre">ReaderIdentifier.get_group_sub()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -128,8 +142,8 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">aliro_actuator</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="aliro_actuator.html">aliro_actuator package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="aliro_actuator.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.html">aliro_actuator.access_document package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">aliro_actuator.trust_framework package</a></li>
@@ -150,7 +164,7 @@
   <li><a href="modules.html">aliro_actuator</a><ul>
   <li><a href="aliro_actuator.html">aliro_actuator package</a><ul>
       <li>Previous: <a href="aliro_actuator.transport_protocol.socket.html" title="previous chapter">aliro_actuator.transport_protocol.socket module</a></li>
-      <li>Next: <a href="aliro_actuator.trust_framework.certificate.html" title="next chapter">aliro_actuator.trust_framework.certificate module</a></li>
+      <li>Next: <a href="aliro_actuator.trust_framework.access_credential.html" title="next chapter">aliro_actuator.trust_framework.access_credential module</a></li>
   </ul></li>
   </ul></li>
   </ul></li>
