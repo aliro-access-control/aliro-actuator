@@ -15,6 +15,8 @@
 import unittest
 from binascii import hexlify
 
+from cryptography import x509
+
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import CertificateDecodingError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
@@ -488,11 +490,11 @@ class Test_Certificate(unittest.TestCase):
                 "d497c8570e84fa3221be99f6c78cc7cbc71d7328aa99be03f1eccf"
             )
         )
-        print("R", reference.hex())
-        print("O", out.hex())
 
-        # Check all the data before the signature
-        self.assertEqual(out[:268], reference[:268])
+        # Check that the certificate data matches
+        cert_out = x509.load_der_x509_certificate(out)
+        cert_ref = x509.load_der_x509_certificate(reference)
+        self.assertEqual(cert_out.tbs_certificate_bytes, cert_ref.tbs_certificate_bytes)
 
         # Check signature by validating cert
         cert = Certificate.decode(out)
