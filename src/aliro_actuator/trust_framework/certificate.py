@@ -65,42 +65,60 @@ class Certificate:
         validity_not_before: bytes = default_validity_not_before,
         validity_not_after: bytes = default_validity_not_after,
         subject: bytes = default_subject,
-    ):
+    ) -> bytes:
         """
         Generate a new X509 DER certificate signed by the provided issuer keypair
         """
-        _signing_key = issuer_keypair.get_private_key().key
-        _subject_key = PublicKey(key_info_subject_public_key[-65:])
+        signing_key = issuer_keypair.get_private_key().key
+        subject_key = PublicKey(key_info_subject_public_key[-65:])
 
         digest = hashes.Hash(hashes.SHA1())
         digest.update(issuer_keypair.get_public_key_as_bytes())
         keyid = digest.finalize()
 
-        not_before = datetime.strptime(validity_not_before.decode("utf-8"), '%y%m%d%H%M%SZ')
-        not_after = datetime.strptime(validity_not_after.decode("utf-8"), '%y%m%d%H%M%SZ')
+        not_before = datetime.strptime(
+            validity_not_before.decode("utf-8"), "%y%m%d%H%M%SZ"
+        )
+        not_after = datetime.strptime(
+            validity_not_after.decode("utf-8"), "%y%m%d%H%M%SZ"
+        )
 
         builder = x509.CertificateBuilder()
-        builder = builder.subject_name(x509.Name([
-            x509.NameAttribute(x509.oid.NameOID.COMMON_NAME, subject.decode("utf-8"))
-        ]))
-        builder = builder.issuer_name(x509.Name([
-            x509.NameAttribute(x509.oid.NameOID.COMMON_NAME, issuer.decode("utf-8"))
-        ]))
+        builder = builder.subject_name(
+            x509.Name(
+                [
+                    x509.NameAttribute(
+                        x509.oid.NameOID.COMMON_NAME, subject.decode("utf-8")
+                    )
+                ]
+            )
+        )
+        builder = builder.issuer_name(
+            x509.Name(
+                [
+                    x509.NameAttribute(
+                        x509.oid.NameOID.COMMON_NAME, issuer.decode("utf-8")
+                    )
+                ]
+            )
+        )
         builder = builder.not_valid_before(not_before)
         builder = builder.not_valid_after(not_after)
         builder = builder.serial_number(int.from_bytes(serial_number, "big"))
-        builder = builder.public_key(_subject_key.key)
+        builder = builder.public_key(subject_key.key)
         builder = builder.add_extension(
-            x509.AuthorityKeyIdentifier(keyid, None, None), critical=False,
+            x509.AuthorityKeyIdentifier(keyid, None, None),
+            critical=False,
         )
         builder = builder.add_extension(
-            x509.BasicConstraints(ca=False, path_length=None), critical=True,
+            x509.BasicConstraints(ca=False, path_length=None),
+            critical=True,
         )
         builder = builder.add_extension(
             x509.KeyUsage(True, False, False, False, False, False, False, False, False),
             critical=True,
         )
-        return builder.sign(_signing_key, hashes.SHA256()).public_bytes(Encoding.DER)
+        return builder.sign(signing_key, hashes.SHA256()).public_bytes(Encoding.DER)
 
     @classmethod
     def decode(self, certificate: bytes) -> Certificate:
@@ -127,7 +145,7 @@ class Certificate:
         digest = hashes.Hash(hashes.SHA1())
         digest.update(issuer_public_key.as_bytes())
         keyid = digest.finalize()
-        authority_keyid = b'\x30\x16\x80\x14' + keyid
+        authority_keyid = b"\x30\x16\x80\x14" + keyid
 
         # PyOpenSSL (rightfully) doesn't allow you to make certs with an fixed signature
         #  Instead, build the x509 by hand with the asn1 encoder
@@ -137,7 +155,9 @@ class Certificate:
             with encoder.construct(Numbers.Sequence):
                 with encoder.construct(0, Classes.Context):
                     encoder.write(2, Numbers.Integer)
-                encoder.write(int.from_bytes(self.serial_number, 'big'), Numbers.Integer)
+                encoder.write(
+                    int.from_bytes(self.serial_number, "big"), Numbers.Integer
+                )
                 with encoder.construct(Numbers.Sequence):
                     encoder.write("1.2.840.10045.4.3.2", Numbers.ObjectIdentifier)
                 with encoder.construct(Numbers.Sequence):
@@ -157,7 +177,9 @@ class Certificate:
                     with encoder.construct(Numbers.Sequence):
                         encoder.write("1.2.840.10045.2.1", Numbers.ObjectIdentifier)
                         encoder.write("1.2.840.10045.3.1.7", Numbers.ObjectIdentifier)
-                    encoder.write(self.key_info_subject_public_key[1:], Numbers.BitString)
+                    encoder.write(
+                        self.key_info_subject_public_key[1:], Numbers.BitString
+                    )
                 with encoder.construct(3, Classes.Context):
                     with encoder.construct(Numbers.Sequence):
                         with encoder.construct(Numbers.Sequence):
@@ -166,11 +188,11 @@ class Certificate:
                         with encoder.construct(Numbers.Sequence):
                             encoder.write("2.5.29.19", Numbers.ObjectIdentifier)
                             encoder.write(True, Numbers.Boolean)
-                            encoder.write(b'\x30\x00', Numbers.OctetString)
+                            encoder.write(b"\x30\x00", Numbers.OctetString)
                         with encoder.construct(Numbers.Sequence):
                             encoder.write("2.5.29.15", Numbers.ObjectIdentifier)
                             encoder.write(True, Numbers.Boolean)
-                            encoder.write(b'\x03\x02\x07\x80', Numbers.OctetString)
+                            encoder.write(b"\x03\x02\x07\x80", Numbers.OctetString)
             with encoder.construct(Numbers.Sequence):
                 encoder.write("1.2.840.10045.4.3.2", Numbers.ObjectIdentifier)
             encoder.write(self.signature[1:], Numbers.BitString)
@@ -264,7 +286,7 @@ class Certificate:
         decompressed_bytes = self.encode(key)
         decompressed = x509.load_der_x509_certificate(decompressed_bytes)
         r, s = utils.decode_dss_signature(self.signature[1:])
-        sig_out = r.to_bytes(32, 'big') + s.to_bytes(32, 'big')
+        sig_out = r.to_bytes(32, "big") + s.to_bytes(32, "big")
         verified = key.verify(decompressed.tbs_certificate_bytes, sig_out)
 
         # TODO: Validate certificate validity dates within range
