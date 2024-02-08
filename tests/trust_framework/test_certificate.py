@@ -450,11 +450,13 @@ class Test_Certificate(unittest.TestCase):
 
     def test_generate(self) -> None:
         cert_issuer = KeyPair(
-            private_key=bytes.fromhex("308187020100301306072a8648ce3d020106082a8648ce3d"
+            private_key=bytes.fromhex(
+                "308187020100301306072a8648ce3d020106082a8648ce3d"
                 "030107046d306b02010104204b45df37a327a31303113f9965d14de94f025f881515e1"
                 "3034a3d8a9ac47e43ea14403420004793e3a8f20428d54e7318046d75d05a8737eb6e0"
                 "74e5146a207bff62dae90e24039f372814a312c3cb82a5a97bb5bfa9e623a3cc886b09"
-                "dc13d53ef0da7de7bd")
+                "dc13d53ef0da7de7bd"
+            )
         )
 
         out = Certificate.generate(
@@ -486,6 +488,9 @@ class Test_Certificate(unittest.TestCase):
                 "d497c8570e84fa3221be99f6c78cc7cbc71d7328aa99be03f1eccf"
             )
         )
+        print("R", reference.hex())
+        print("O", out.hex())
+
         # Check all the data before the signature
         self.assertEqual(out[:268], reference[:268])
 
@@ -493,7 +498,7 @@ class Test_Certificate(unittest.TestCase):
         cert = Certificate.decode(out)
         self.assertTrue(cert.verify(cert_issuer.get_public_key()))
 
-    def test_verify_decompressed(self):
+    def test_verify_decompressed(self) -> None:
         certificate = bytes.fromhex(
             "308201523081f9a003020102020101300a06082a8648ce3d0403023011310f300d06035504"
             "030c06697373756572301e170d3230303130313030303030305a170d343930313031303030"
@@ -517,7 +522,7 @@ class Test_Certificate(unittest.TestCase):
         cert = Certificate.decode(certificate)
         self.assertTrue(cert.verify(issuer_key))
 
-    def test_verify_compressed(self):
+    def test_verify_compressed(self) -> None:
         certificate = bytes.fromhex(
             "3081950402000030818e85420004842242f6182ba1c1138d32b77fb9f7f37b70034b9f0444"
             "3a5bea3c188beadb36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665c"
