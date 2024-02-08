@@ -36,7 +36,6 @@ from aliro_actuator.access_protocol.defines import (
     PROTOCOL_VERSION,
     STEPUP_PHASE_AID,
     Auth0,
-    Select,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.encryption import (

@@ -40,16 +40,13 @@ from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
     VerificationError,
-    create_proprietary_information,
     create_salt,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
-    InvalidResponseDataError,
     InvalidResponseError,
     InvalidStatusError,
     SessionError,
-    UnexpectedResponseError,
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
