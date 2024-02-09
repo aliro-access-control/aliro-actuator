@@ -386,7 +386,7 @@ class UserDevice(Device):
                 self.failure_process(StatusBytes.GENERIC_ERROR)
                 return
 
-        data = create_reader_authentication(
+        reader_authentication = create_reader_authentication(
             self.session.reader_identifier,
             self.session.get_credential_epubkey(),
             self.session.reader_epubk,
@@ -397,8 +397,8 @@ class UserDevice(Device):
                 hexlify(auth1_command.reader_signature)
             )
         )
-        verified = self.session.get_reader_public_key().verify(
-            data.to_bytes(), auth1_command.reader_signature
+        verified = self.session.get_intermediate_reader_public_key().verify(
+            reader_authentication.to_bytes(), auth1_command.reader_signature
         )
         if not verified:
             self.failure_process(StatusBytes.GENERIC_ERROR)
@@ -416,7 +416,7 @@ class UserDevice(Device):
             raise error
 
         Global.logger.info("creating user device authentication")
-        data = create_user_device_authentication(
+        device_authentication = create_user_device_authentication(
             self.session.reader_identifier,
             self.session.get_credential_epubkey(),
             self.session.reader_epubk,
@@ -424,10 +424,12 @@ class UserDevice(Device):
         )
         Global.logger.debug(
             "created user device authentication_data: {!r}".format(
-                hexlify(data.to_bytes())
+                hexlify(device_authentication.to_bytes())
             )
         )
-        signature = self.session.access_credential.sign(data.to_bytes())
+        signature = self.session.access_credential.sign(
+            device_authentication.to_bytes()
+        )
         Global.logger.debug(
             "created user device authentication_data signature: {!r}".format(
                 hexlify(signature)
@@ -1000,9 +1002,7 @@ class UserSession:
             self.cert = cert
         return verified
 
-    def get_reader_public_key(self) -> PublicKey:
-        Global.logger.info("looking for key...")
-
+    def get_intermediate_reader_public_key(self) -> PublicKey:
         if hasattr(self, "cert"):
             Global.logger.info("has cert")
             reader_public_key = self.cert.get_public_key()
@@ -1012,6 +1012,9 @@ class UserSession:
                 )
             )
             return reader_public_key
+        return self.get_reader_public_key()
+
+    def get_reader_public_key(self) -> PublicKey:
         if hasattr(self, "access_credential"):
             Global.logger.info("has access_credential")
             if self.access_credential.has_identifier(self.reader_group_identifier):
