@@ -994,10 +994,8 @@ class UserSession:
     def set_cert_and_verify(
         self, compressed_cert: bytes, public_key: PublicKey
     ) -> bool:
-        # TODO set data
         cert = Certificate.decode_compressed(compressed_cert)
-        data = b""
-        verified = cert.verify(public_key, data)
+        verified = cert.verify(public_key)
         if verified:
             self.cert = cert
         return verified
