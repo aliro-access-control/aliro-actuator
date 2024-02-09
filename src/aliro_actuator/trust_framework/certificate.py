@@ -281,8 +281,7 @@ class Certificate:
 
         return encoder.output()
 
-    def verify(self, key: PublicKey, data: bytes = b"") -> bool:
-        # TODO: remove "data", we dont need it
+    def verify(self, key: PublicKey) -> bool:
         decompressed_bytes = self.encode(key)
         decompressed = x509.load_der_x509_certificate(decompressed_bytes)
         r, s = utils.decode_dss_signature(self.signature[1:])
