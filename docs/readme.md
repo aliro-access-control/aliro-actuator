@@ -11,6 +11,7 @@ make latexpdf
 You might need to install latexmk to create the pdf documentation:
 ```
 apt-get install latexmk
+apt-get install texlive-latex-extra
 ```
 
 If there are issues with accessing the html files, you might need to change the owners:

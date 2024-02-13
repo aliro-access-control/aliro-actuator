@@ -13,11 +13,11 @@
 # limitations under the License.
 
 
-class CredentialError(Exception):
+class DocumentError(Exception):
     pass
 
 
-class ElementSizeError(Exception):
+class ElementSizeError(DocumentError):
     def __init__(
         self,
         actual: int,

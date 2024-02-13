@@ -158,7 +158,7 @@ class Test_apdu(unittest.TestCase):
 
         message = self.apdu.create_auth0_command(
             Transaction.STANDARD,
-            TransactionCode.LOCK,
+            TransactionCode.USER_DEVICE_SECURE_ACTION,
             protocol_version=0x0100,
             reader_epubk=reader_epubk,
             transaction_identifier=transaction_identifier,
@@ -181,7 +181,7 @@ class Test_apdu(unittest.TestCase):
                     Transaction.STANDARD,
                     0x42,
                     0x01,
-                    TransactionCode.LOCK,
+                    TransactionCode.USER_DEVICE_SECURE_ACTION,
                     0x5C,
                     0x02,
                     *protocol_version,
@@ -200,18 +200,18 @@ class Test_apdu(unittest.TestCase):
         )
 
     def test_auth0_response(self) -> None:
-        endpoint_epubk = os.urandom(0x41)
+        credential_epubk = os.urandom(0x41)
         cryptogram = os.urandom(0x10)
 
-        response = self.apdu.create_auth0_response(endpoint_epubk, 0x9000)
+        response = self.apdu.create_auth0_response(credential_epubk, 0x9000)
         self.assertEqual(
-            response.to_bytes(), bytes([0x86, 0x41, *endpoint_epubk, 0x90, 0x00])
+            response.to_bytes(), bytes([0x86, 0x41, *credential_epubk, 0x90, 0x00])
         )
 
-        response = self.apdu.create_auth0_response(endpoint_epubk, 0x9000, cryptogram)
+        response = self.apdu.create_auth0_response(credential_epubk, 0x9000, cryptogram)
         self.assertEqual(
             response.to_bytes(),
-            bytes([0x86, 0x41, *endpoint_epubk, 0x9D, 0x10, *cryptogram, 0x90, 0x00]),
+            bytes([0x86, 0x41, *credential_epubk, 0x9D, 0x10, *cryptogram, 0x90, 0x00]),
         )
 
     def test_load_cert(self) -> None:
@@ -234,8 +234,7 @@ class Test_apdu(unittest.TestCase):
         reader_sig = os.urandom(0x40)
 
         message = self.apdu.create_auth1_command(
-            Auth1Response.ENDPOINT_PUBLIC_KEY,
-            request_access_credentials=True,
+            Auth1Response.CREDENTIAL_PUBLIC_KEY,
             reader_sig=reader_sig,
         )
 
@@ -250,7 +249,7 @@ class Test_apdu(unittest.TestCase):
                     0x45,
                     0x41,
                     0x01,
-                    0x03,
+                    0x01,
                     0x9E,
                     0x40,
                     *reader_sig,
@@ -261,7 +260,6 @@ class Test_apdu(unittest.TestCase):
 
         message = self.apdu.create_auth1_command(
             Auth1Response.KEY_SLOT,
-            request_access_credentials=True,
             reader_sig=reader_sig,
         )
 
@@ -276,33 +274,7 @@ class Test_apdu(unittest.TestCase):
                     0x45,
                     0x41,
                     0x01,
-                    0x02,
-                    0x9E,
-                    0x40,
-                    *reader_sig,
                     0x00,
-                ]
-            ),
-        )
-
-        message = self.apdu.create_auth1_command(
-            Auth1Response.ENDPOINT_PUBLIC_KEY,
-            request_access_credentials=False,
-            reader_sig=reader_sig,
-        )
-
-        self.assertEqual(
-            message.to_bytes(),
-            bytes(
-                [
-                    0x80,
-                    INS.AUTH1,
-                    0x00,
-                    0x00,
-                    0x45,
-                    0x41,
-                    0x01,
-                    0x01,
                     0x9E,
                     0x40,
                     *reader_sig,
@@ -314,8 +286,7 @@ class Test_apdu(unittest.TestCase):
         certificate_data = os.urandom(0x40)
 
         message = self.apdu.create_auth1_command(
-            Auth1Response.ENDPOINT_PUBLIC_KEY,
-            request_access_credentials=False,
+            Auth1Response.CREDENTIAL_PUBLIC_KEY,
             reader_sig=reader_sig,
             certificate_data=certificate_data,
         )

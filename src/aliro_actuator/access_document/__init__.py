@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-class Credential:
+class Document:
     def store(self) -> None:
         pass
 
