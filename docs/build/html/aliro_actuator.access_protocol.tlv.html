@@ -62,6 +62,10 @@ data (bytes): value</p>
 <dd><p>Converts tlv value (BER-TLV, ISO 7816-4) from bytestring to TLV class
 Value is b”” if the tlv tag has no value.
 (length is not represented in the class, but can be derived from the value)</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>TlvError: error during parsing of the bytestring</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -150,6 +154,10 @@ the TLV.</p>
 <span class="sig-name descname"><span class="pre">to_bytes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.to_bytes" title="Link to this definition">¶</a></dt>
 <dd><p>Converts tlv value (BER-TLV, ISO 7816-4) to bytestring.
 (length is derived from the value)</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><p>TlvError: error during construction of the bytestring</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -191,8 +199,8 @@ the TLV.</p>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">aliro_actuator</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="aliro_actuator.html">aliro_actuator package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="aliro_actuator.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.html">aliro_actuator.access_document package</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a></li>

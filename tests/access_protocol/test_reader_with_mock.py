@@ -33,6 +33,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
+    create_proprietary_information,
     create_salt,
 )
 from aliro_actuator.access_protocol.errors import AccessProtocolError
@@ -153,9 +154,11 @@ class Test_reader(unittest.TestCase):
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
-        reader.handle_auth0(Transaction.STANDARD, TransactionCode.LOCK)
+        reader.handle_auth0(
+            Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+        )
         self.assertEqual(
-            reader.session.get_endpoint_ephemeral_key(),
+            reader.session.get_credential_ephemeral_key(),
             user_ephemeral.get_public_key_as_bytes(),
         )
 
@@ -188,22 +191,26 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     def test_auth1_command(self, mock_nfc: Mock) -> None:
         reader_ephemeral_keypair = KeyPair()
-        endpoint_ephemeral_keypair = KeyPair()
+        credential_ephemeral_keypair = KeyPair()
         reader_keypair = KeyPair()
-        endpoint_keypair = KeyPair()
+        credential_keypair = KeyPair()
         reader_group_identifier = os.urandom(0x10)
         reader_group_sub_identifier = os.urandom(0x10)
         reader_identifier = reader_group_identifier + reader_group_sub_identifier
         transaction_identifier = os.urandom(0x10)
 
         shared_key = reader_ephemeral_keypair.get_private_key().compute_shared_key(
-            endpoint_ephemeral_keypair.get_public_key(),
+            credential_ephemeral_keypair.get_public_key(),
             transaction_identifier,
         )
         info = bytearray(
-            endpoint_ephemeral_keypair.get_public_key().get_x().to_bytes(32, "big")
+            credential_ephemeral_keypair.get_public_key().get_x().to_bytes(32, "big")
         )
 
+        proprietary_information = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            [PROTOCOL_VERSION],
+        )
         salt = create_salt(
             transport_protocol=TransportProtocol.NFC,
             word=b"Volatile****",
@@ -212,9 +219,10 @@ class Test_reader(unittest.TestCase):
             reader_identifier=reader_identifier,
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
             transaction_identifier=transaction_identifier,
-            flag=bytes([Transaction.STANDARD, TransactionCode.LOCK]),
-            application_type=CSA_APPLICATION_TYPE,
-            expedited_phase_supported_protocol_versions=[PROTOCOL_VERSION],
+            flag=bytes(
+                [Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION]
+            ),
+            proprietary_information=proprietary_information.to_bytes(),
         )
 
         derived_key = derive_key(shared_key, bytes(info), 160, salt)
@@ -229,7 +237,7 @@ class Test_reader(unittest.TestCase):
                 (0x4D, reader_identifier),
                 (
                     0x86,
-                    endpoint_ephemeral_keypair.get_public_key()
+                    credential_ephemeral_keypair.get_public_key()
                     .get_x()
                     .to_bytes(32, "big"),
                 ),
@@ -243,13 +251,13 @@ class Test_reader(unittest.TestCase):
                 (0x93, bytes.fromhex("4E887B4C")),
             ]
         )
-        reader_sig = endpoint_keypair.sign(reader_auth.to_bytes())
+        reader_sig = credential_keypair.sign(reader_auth.to_bytes())
 
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth1_response(
             key_slot=None,
-            public_key=endpoint_keypair.get_public_key_as_bytes(),
-            expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY,
+            public_key=credential_keypair.get_public_key_as_bytes(),
+            expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
             signature=reader_sig,
             encryption=encryption,
             status=StatusBytes.SUCCESS,
@@ -263,8 +271,8 @@ class Test_reader(unittest.TestCase):
             reader_key=reader_keypair,
         )
         reader.start_new_session(transaction_identifier)
-        reader.session.endpoint_ephemeral_key = (
-            endpoint_ephemeral_keypair.get_public_key()
+        reader.session.credential_ephemeral_key = (
+            credential_ephemeral_keypair.get_public_key()
         )
         reader.session.reader_ephemeral = reader_ephemeral_keypair
         reader.session.application_type = CSA_APPLICATION_TYPE
@@ -272,6 +280,91 @@ class Test_reader(unittest.TestCase):
         reader.session.maximum_command_apdu = None
         reader.session.maximum_response_apdu = None
         reader.session.vendor_specific_extension = None
-        reader.session.set_flag(Transaction.STANDARD, TransactionCode.LOCK)
-        reader.session.proprietary_tlv = TLV.from_bytes(b"")
+        reader.session.proprietary_tlv = proprietary_information
+        reader.session.set_flag(
+            Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+        )
         reader.handle_auth1()
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    def test_exchange_command(self, mock_nfc: Mock) -> None:
+        reader_keypair = KeyPair()
+        reader_group_identifier = os.urandom(0x10)
+        reader_group_sub_identifier = os.urandom(0x10)
+        transaction_identifier = os.urandom(0x10)
+
+        exchange_SK_reader = os.urandom(32)
+        exchange_SK_device = os.urandom(32)
+        encryption_user = EncryptionEngine(
+            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+        )
+        encryption_reader = EncryptionEngine(
+            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+        )
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_exchange_response(
+            payload=bytes.fromhex("00020000"),
+            encryption=encryption_user,
+            status=StatusBytes.SUCCESS,
+        ).to_bytes()
+
+        reader = Reader(
+            TransportProtocol.NFC,
+            mock_nfc,
+            reader_group_identifier,
+            reader_group_sub_identifier,
+            reader_key=reader_keypair,
+        )
+        reader.start_new_session(transaction_identifier)
+        reader.session.encryption = encryption_reader
+        reader.handle_exchange(
+            atomic_session=False,
+            read_requests=None,
+            write_requests=None,
+            set_requests=None,
+        )
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    def test_exchange_command_read(self, mock_nfc: Mock) -> None:
+        reader_keypair = KeyPair()
+        reader_group_identifier = os.urandom(0x10)
+        reader_group_sub_identifier = os.urandom(0x10)
+        transaction_identifier = os.urandom(0x10)
+
+        exchange_SK_reader = os.urandom(32)
+        exchange_SK_device = os.urandom(32)
+        encryption_user = EncryptionEngine(
+            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+        )
+        encryption_reader = EncryptionEngine(
+            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+        )
+
+        rand_data = os.urandom(0x20)
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_exchange_response(
+            payload=bytes.fromhex("000212340020")
+            + rand_data
+            + bytes.fromhex("00020000"),
+            encryption=encryption_user,
+            status=StatusBytes.SUCCESS,
+        ).to_bytes()
+
+        reader = Reader(
+            TransportProtocol.NFC,
+            mock_nfc,
+            reader_group_identifier,
+            reader_group_sub_identifier,
+            reader_key=reader_keypair,
+        )
+        reader.start_new_session(transaction_identifier)
+        reader.session.encryption = encryption_reader
+        read_data = reader.handle_exchange(
+            atomic_session=False,
+            read_requests=[(0, 2), (0x10, 0x20)],
+            write_requests=None,
+            set_requests=None,
+        )
+        self.assertEqual(read_data, [bytes.fromhex("1234"), rand_data])

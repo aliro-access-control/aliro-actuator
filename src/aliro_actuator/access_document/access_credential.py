@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aliro_actuator.credential import Credential
-from aliro_actuator.credential.errors import ElementSizeError
+from aliro_actuator.access_document import Document
+from aliro_actuator.access_document.errors import ElementSizeError
 
 ID_MAX = 16
 
 
-class AccessCredential(Credential):
+class AccessDocument(Document):
     def __init__(self) -> None:
         self.issuer_auth = IssuerAuth()
         # self.data_elements = []

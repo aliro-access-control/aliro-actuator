@@ -45,17 +45,17 @@ The as_bytes attribute of these commands/responses gives a bytestring which can 
 support_extended_length_apdu: bool (set to true to support extended length APDU’s, see 8.3 Aliro spec)</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.APDU.create_auth0_command">
-<span class="sig-name descname"><span class="pre">create_auth0_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transaction_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Transaction" title="aliro_actuator.access_protocol.apdu.Transaction"><span class="pre">Transaction</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.TransactionCode" title="aliro_actuator.access_protocol.apdu.TransactionCode"><span class="pre">TransactionCode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">protocol_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_epubk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Command" title="aliro_actuator.access_protocol.apdu.Command"><span class="pre">Command</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.APDU.create_auth0_command" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">create_auth0_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transaction_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Transaction" title="aliro_actuator.access_protocol.apdu.Transaction"><span class="pre">Transaction</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.TransactionCode" title="aliro_actuator.access_protocol.apdu.TransactionCode"><span class="pre">TransactionCode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">protocol_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_epubk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vendor_extension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Command" title="aliro_actuator.access_protocol.apdu.Command"><span class="pre">Command</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.APDU.create_auth0_command" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.APDU.create_auth0_response">
-<span class="sig-name descname"><span class="pre">create_auth0_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">endpoint_epubk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cryptogram</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.APDU.create_auth0_response" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">create_auth0_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">credential_epubk</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cryptogram</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Response" title="aliro_actuator.access_protocol.apdu.Response"><span class="pre">Response</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.APDU.create_auth0_response" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.APDU.create_auth1_command">
-<span class="sig-name descname"><span class="pre">create_auth1_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Auth1Response" title="aliro_actuator.access_protocol.apdu.Auth1Response"><span class="pre">Auth1Response</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_access_credentials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_sig</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Command" title="aliro_actuator.access_protocol.apdu.Command"><span class="pre">Command</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.APDU.create_auth1_command" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">create_auth1_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Auth1Response" title="aliro_actuator.access_protocol.apdu.Auth1Response"><span class="pre">Auth1Response</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_sig</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">certificate_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#aliro_actuator.access_protocol.apdu.Command" title="aliro_actuator.access_protocol.apdu.Command"><span class="pre">Command</span></a></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.APDU.create_auth1_command" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -156,8 +156,8 @@ support_extended_length_apdu: bool (set to true to support extended length APDU�
 Send with tag 0x41, bit 0.
 See table 8-10 of the Aliro spec.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.Auth1Response.ENDPOINT_PUBLIC_KEY">
-<span class="sig-name descname"><span class="pre">ENDPOINT_PUBLIC_KEY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.Auth1Response.ENDPOINT_PUBLIC_KEY" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.Auth1Response.CREDENTIAL_PUBLIC_KEY">
+<span class="sig-name descname"><span class="pre">CREDENTIAL_PUBLIC_KEY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.Auth1Response.CREDENTIAL_PUBLIC_KEY" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -368,8 +368,9 @@ data: bytes</p>
 <span class="sig-name descname"><span class="pre">parse_as_auth0</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.Response.parse_as_auth0" title="Link to this definition">¶</a></dt>
 <dd><p>Parse this response as a Auth0 response.</p>
 <p>creates the following attributes:
-endpoint_epubk: bytes
-cryptogram: bytes (if present)</p>
+credential_epubk: bytes
+cryptogram: bytes (if present)
+vendor_specific_extensions: tlv (if present)</p>
 </dd></dl>
 
 <dl class="py method">
@@ -382,13 +383,12 @@ authentication_tag: bytes
 decrypted_payload: bytes
 payload_tlv: TLV
 key_slot: bytes | None
-endpoint_public_key: bytes | None
-endpoint_signature: bytes
+credential_public_key: bytes | None
+user_device_signature: bytes
 private_mailbox_data: bytes | None
 signaling_bitmap: bytes
 credential_signed_timestamp: bytes | None
-revocation_signed_timestamp: bytes | None
-access_credential_response: bytes | None</p>
+revocation_signed_timestamp: bytes | None</p>
 </dd></dl>
 
 <dl class="py method">
@@ -611,45 +611,20 @@ See table 8-5 of the Aliro spec.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.access_protocol.apdu.</span></span><span class="sig-name descname"><span class="pre">TransactionCode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></p>
 <p>Indicating the transaction code in a auth0 command.
-See table 8-1 and 8-5 of the Aliro spec.</p>
+See table 8-1 and 8-3 of the Aliro spec.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.DISARM">
-<span class="sig-name descname"><span class="pre">DISARM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.DISARM" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.FORCE_USER_AUTHENTICATION">
+<span class="sig-name descname"><span class="pre">FORCE_USER_AUTHENTICATION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.FORCE_USER_AUTHENTICATION" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.DISARM_WITH_FORCE_USER_AUTHENTICATION">
-<span class="sig-name descname"><span class="pre">DISARM_WITH_FORCE_USER_AUTHENTICATION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.DISARM_WITH_FORCE_USER_AUTHENTICATION" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.USER_DEVICE">
+<span class="sig-name descname"><span class="pre">USER_DEVICE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.USER_DEVICE" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.LOCK">
-<span class="sig-name descname"><span class="pre">LOCK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.LOCK" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.LOCK_USING_RKE">
-<span class="sig-name descname"><span class="pre">LOCK_USING_RKE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.LOCK_USING_RKE" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.LOCK_WITH_FORCE_USER_AUTHENTICATION">
-<span class="sig-name descname"><span class="pre">LOCK_WITH_FORCE_USER_AUTHENTICATION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.LOCK_WITH_FORCE_USER_AUTHENTICATION" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.UNLOCK">
-<span class="sig-name descname"><span class="pre">UNLOCK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.UNLOCK" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.UNLOCK_USING_RKE">
-<span class="sig-name descname"><span class="pre">UNLOCK_USING_RKE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.UNLOCK_USING_RKE" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.UNLOCK_WITH_FORCE_USER_AUTHENTICATION">
-<span class="sig-name descname"><span class="pre">UNLOCK_WITH_FORCE_USER_AUTHENTICATION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.UNLOCK_WITH_FORCE_USER_AUTHENTICATION" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.apdu.TransactionCode.USER_DEVICE_SECURE_ACTION">
+<span class="sig-name descname"><span class="pre">USER_DEVICE_SECURE_ACTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#aliro_actuator.access_protocol.apdu.TransactionCode.USER_DEVICE_SECURE_ACTION" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -678,8 +653,8 @@ See table 8-1 and 8-5 of the Aliro spec.</p>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">aliro_actuator</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="aliro_actuator.html">aliro_actuator package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="aliro_actuator.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.html">aliro_actuator.access_document package</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a></li>

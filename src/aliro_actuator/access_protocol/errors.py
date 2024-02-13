@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from binascii import hexlify
-
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, STEPUP_PHASE_AID
 
 
@@ -26,10 +24,6 @@ class AccessProtocolError(Exception):
 
 
 class SessionError(AccessProtocolError):
-    pass
-
-
-class KeyLookupFailed(AccessProtocolError):
     pass
 
 
