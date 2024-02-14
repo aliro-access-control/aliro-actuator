@@ -42,6 +42,7 @@ from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
     VerificationError,
+    compute_cryptogram,
     create_proprietary_information,
     create_salt,
 )
@@ -100,6 +101,7 @@ class UserDevice(Device):
         self.access_credentials = access_credentials
         self.supported_versions = supported_versions
         self.session: None | UserSession = None
+        self.storage = UserStorage()
 
         if mailbox is None:
             self.mailbox = None
@@ -291,19 +293,31 @@ class UserDevice(Device):
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
             Global.logger.info("Sending AUTH0 Response")
             self.response_auth0(self.session.get_credential_epubkey().as_bytes())
-        if self.session.get_transaction_type() == Transaction.FAST:
+        elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
-            if self.fast_transaction_implemented:
-                raise NotImplementedError
-            else:
-                self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
-
-                cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
-                Global.logger.info("Sending AUTH0 Response")
-                self.response_auth0(
-                    credential_epubk=self.session.get_credential_epubkey().as_bytes(),
-                    cryptogram=cryptogram,
+            kpersistent = self.storage.find_kpersistent(
+                self.session.reader_group_sub_identifier
+            )
+            if self.fast_transaction_implemented and kpersistent is not None:
+                self.session.derive_key_volatile_fast(
+                    self.transport_protocol_type, kpersistent
                 )
+                cryptogram = compute_cryptogram(
+                    self.session.cryptogram_SK,
+                    signaling_bitmap=b"\x00\x3F",
+                    # TODO: build signaling_bitmap properly
+                    # TODO: support signed_timestamps
+                )
+            else:
+                Global.logger.info("Cryptogram not found, assigning random")
+                cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
+
+            self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
+            Global.logger.info("Sending AUTH0 Response")
+            self.response_auth0(
+                credential_epubk=self.session.get_credential_epubkey().as_bytes(),
+                cryptogram=cryptogram,
+            )
 
     def handle_load_cert(self, load_cert_command: Command) -> None:
         """
@@ -409,7 +423,12 @@ class UserDevice(Device):
             Global.logger.info("creating shared keys")
             self.session.set_shared_key()
             self.session.derive_key_volatile(self.transport_protocol_type)
-            self.session.derive_key_persistent(self.transport_protocol_type)
+            self.storage.add_kpersistent(
+                kpersistent=self.session.derive_key_persistent(
+                    self.transport_protocol_type
+                ),
+                reader_group_sub_id=self.session.reader_group_sub_identifier,
+            )
         except KeyLookupFailed as error:
             # could not find reader public key
             self.failure_process(StatusBytes.GENERIC_ERROR)
@@ -965,7 +984,41 @@ class UserSession:
             DeviceType.USER, self.exchange_SK_reader, self.exchange_SK_device
         )
 
-    def derive_key_persistent(self, transport_protocol: TransportProtocol) -> None:
+    def derive_key_volatile_fast(
+        self, transport_protocol: TransportProtocol, k_persistent: bytes
+    ) -> None:
+        info = bytearray(
+            self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
+        )
+        if self.command_vendor_extension is not None:
+            info.extend(self.command_vendor_extension)
+        if self.response_vendor_extension is not None:
+            info.extend(self.response_vendor_extension)
+
+        proprietary_information = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            self.supported_versions,
+        ).to_bytes()
+        salt = create_salt(
+            transport_protocol=transport_protocol,
+            word=b"VolatileFast",
+            reader_public_key=self.get_reader_public_key(),
+            reader_ephemeral_public_key=self.reader_epubk,
+            reader_identifier=self.reader_identifier,
+            protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
+            transaction_identifier=self.transaction_identifier,
+            flag=bytes([self.command_parameters, self.transaction_code]),
+            proprietary_information=proprietary_information,
+            credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
+        )
+        derived_key = derive_key(k_persistent, bytes(info), 160, salt)
+        self.cryptogram_SK = derived_key[0:32]
+        self.exchange_SK_reader = derived_key[32:64]
+        self.exchange_SK_device = derived_key[64:96]
+        self.ble_SK = derived_key[96:128]
+        self.UR_SK = derived_key[128:160]
+
+    def derive_key_persistent(self, transport_protocol: TransportProtocol) -> bytes:
         info = bytearray(
             self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
         )
@@ -991,7 +1044,7 @@ class UserSession:
             credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
-        self.k_persistent = derived_key[0:32]
+        return derived_key[0:32]
 
     def set_cert_and_verify(
         self, compressed_cert: bytes, public_key: PublicKey
@@ -1028,6 +1081,25 @@ class UserSession:
                 )
                 return reader_public_key
         raise KeyLookupFailed
+
+
+class UserStorage:
+    def __init__(self) -> None:
+        self.kpersistent_map: dict[bytes, bytes] = {}
+
+    def add_kpersistent(self, kpersistent: bytes, reader_group_sub_id: bytes) -> None:
+        self.kpersistent_map[reader_group_sub_id] = kpersistent
+
+    def find_kpersistent(self, reader_group_sub_id: bytes) -> bytes | None:
+        if reader_group_sub_id not in self.kpersistent_map:
+            return None
+        return self.kpersistent_map[reader_group_sub_id]
+
+    def remove_kpersistent(self, reader_group_sub_id: bytes) -> None:
+        self.kpersistent_map.pop(reader_group_sub_id)
+
+    def clear_kpersistent(self) -> None:
+        self.kpersistent_map = {}
 
 
 class MailboxSession:

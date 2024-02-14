@@ -40,10 +40,12 @@ from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
     VerificationError,
+    compute_cryptogram,
     create_salt,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
+    CryptogramNotFound,
     InvalidResponseError,
     InvalidStatusError,
     SessionError,
@@ -82,6 +84,7 @@ class Reader(Device):
         reader_cert: bytes | None = None,
         reader_key: KeyPair | None = None,
         vendor_extension: bytes | None = None,
+        fast_transaction_implemented: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -127,8 +130,10 @@ class Reader(Device):
         )
 
         self.vendor_extension = vendor_extension
+        self.fast_transaction_implemented = fast_transaction_implemented
 
         self.session: ReaderSession | None = None
+        self.storage = ReaderStorage()
         Global.logger.info("Initialized Reader")
 
     @property
@@ -156,8 +161,14 @@ class Reader(Device):
         self.transport_protocol.wait_for_connection()
         Global.logger.info("Transaction Initiation Done")
 
-    def expedited_transaction_fast(self) -> None:
-        raise NotImplementedError
+    def expedited_transaction_fast(self, transaction_code: TransactionCode) -> None:
+        if self.session is None:
+            self.start_new_session()
+
+        Global.logger.info("Start Expedited Transaction (fast)")
+        self.handle_select(EXPEDITED_PHASE_AID)
+        self.handle_auth0(Transaction.FAST, transaction_code)
+        Global.logger.info("Expedited Transaction (fast) Done")
 
     def expedited_transaction_standard(
         self, transaction_code: TransactionCode, load_cert: bool = False
@@ -289,6 +300,12 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
+        if (
+            transaction_type == Transaction.FAST
+            and not self.fast_transaction_implemented
+        ):
+            raise AccessProtocolError("Requested fast transaction but does not support")
+
         Global.logger.info("AUTH0 Command")
         try:
             auth0_response = self.command_auth0(
@@ -304,33 +321,53 @@ class Reader(Device):
             self.failure_process()
             raise error
 
+        Global.logger.info("checking Auth0 response fields")
+        try:
+            credential_ephemeral_public_key = PublicKey(auth0_response.credential_epubk)
+        except InvalidKeyError as error:
+            raise AccessProtocolError(
+                "invalid credential ephemeral public key received: {!r}".format(
+                    hexlify(auth0_response.credential_epubk)
+                )
+            ) from error
+
+        Global.logger.info("saving Auth0 response data")
+        self.session.set_flag(transaction_type, transaction_code)
+        self.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
+        self.session.set_response_vendor_extension(
+            auth0_response.vendor_specific_extensions
+        )
+
         if transaction_type == Transaction.STANDARD:
-            Global.logger.info("checking Auth0 response fields")
             if auth0_response.cryptogram is not None:
                 self.failure_process()
                 raise AccessProtocolError(
                     "User send cryptogram during a standard transaction"
                 )
-            try:
-                credential_ephemeral_public_key = PublicKey(
-                    auth0_response.credential_epubk
-                )
-            except InvalidKeyError as error:
+        else:
+            if auth0_response.cryptogram is None:
+                self.failure_process()
                 raise AccessProtocolError(
-                    "invalid credential ephemeral public key received: {!r}".format(
-                        hexlify(auth0_response.credential_epubk)
-                    )
-                ) from error
+                    "User did not send cryptogram during a fast transaction"
+                )
 
-            Global.logger.info("saving Auth0 response data")
-            self.session.set_flag(Transaction.STANDARD, transaction_code)
-            self.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
-            self.session.set_response_vendor_extension(
-                auth0_response.vendor_specific_extensions
-            )
+            for entry in self.storage.get_kpersistent_list():
+                self.session.derive_key_volatile_fast(
+                    self.transport_protocol_type,
+                    entry.access_credential,
+                    entry.kpersistent,
+                )
+                cryptogram = compute_cryptogram(
+                    self.session.cryptogram_SK,
+                    signaling_bitmap=entry.signaling_bitmap,
+                    credential_signed_timestamp=entry.credential_signed_timesatmp,
+                    revocation_signed_timestamp=entry.revocation_signed_timestamp,
+                )
+                if cryptogram == auth0_response.cryptogram:
+                    self.session.set_credential_public_key(entry.access_credential)
+                    return
 
-        elif transaction_type == Transaction.FAST:
-            raise NotImplementedError
+            raise CryptogramNotFound("Matching Cryptogram not found")
 
     def handle_load_cert(self) -> None:
         """
@@ -412,6 +449,17 @@ class Reader(Device):
         ):
             self.failure_process()
             raise AccessProtocolError("User device signature authentication failed")
+
+        if self.fast_transaction_implemented:
+            self.storage.add_kpersistent(
+                credential_public_key,
+                self.session.derive_key_persistent(
+                    self.transport_protocol_type, credential_public_key
+                ),
+                auth1_response.signaling_bitmap,
+                auth1_response.credential_signed_timestamp,
+                auth1_response.revocation_signed_timestamp,
+            )
 
         Global.logger.info("Save AUTH1 response")
         self.session.set_auth1_info(auth1_response)
@@ -892,6 +940,61 @@ class ReaderSession:
             DeviceType.READER, self.exchange_SK_reader, self.exchange_SK_device
         )
 
+    def derive_key_volatile_fast(
+        self,
+        transport_protocol: TransportProtocol,
+        credential: PublicKey,
+        k_persistent: bytes,
+    ) -> None:
+        info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
+        if self.command_vendor_extension is not None:
+            info.extend(self.command_vendor_extension)
+        if self.response_vendor_extension is not None:
+            info.extend(self.response_vendor_extension)
+
+        salt = create_salt(
+            transport_protocol=transport_protocol,
+            word=b"VolatileFast",
+            reader_public_key=self.reader_key.get_public_key(),
+            reader_ephemeral_public_key=self.reader_ephemeral.get_public_key(),
+            reader_identifier=self.reader_identifier,
+            protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
+            transaction_identifier=self.transaction_identifier,
+            flag=self.flag,
+            proprietary_information=self.proprietary_tlv.to_bytes(),
+            credential_ephemeral_public_key=credential,
+        )
+        derived_key = derive_key(k_persistent, bytes(info), 160, salt)
+        self.cryptogram_SK = derived_key[0:32]
+        self.exchange_SK_reader = derived_key[32:64]
+        self.exchange_SK_device = derived_key[64:96]
+        self.ble_SK = derived_key[96:128]
+        self.UR_SK = derived_key[128:160]
+
+    def derive_key_persistent(
+        self, transport_protocol: TransportProtocol, credential: PublicKey
+    ) -> bytes:
+        info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
+        if self.command_vendor_extension is not None:
+            info.extend(self.command_vendor_extension)
+        if self.response_vendor_extension is not None:
+            info.extend(self.response_vendor_extension)
+
+        salt = create_salt(
+            transport_protocol=transport_protocol,
+            word=b"Persistent**",
+            reader_public_key=self.reader_key.get_public_key(),
+            reader_ephemeral_public_key=self.reader_ephemeral.get_public_key(),
+            reader_identifier=self.reader_identifier,
+            protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
+            transaction_identifier=self.transaction_identifier,
+            flag=self.flag,
+            proprietary_information=self.proprietary_tlv.to_bytes(),
+            credential_ephemeral_public_key=credential,
+        )
+        derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
+        return derived_key[0:32]
+
     def encrypt_payload(self, payload: bytes) -> tuple[bytes, bytes]:
         return self.encryption.encrypt(payload)
 
@@ -899,3 +1002,63 @@ class ReaderSession:
         self, encrypted_payload: bytes, authentication_tag: bytes
     ) -> bytes:
         return self.encryption.decrypt(encrypted_payload, authentication_tag)
+
+
+class ReaderFastCacheEntry:
+    def __init__(
+        self,
+        access_credential: PublicKey,
+        kpersistent: bytes,
+        signaling_bitmap: bytes,
+        credential_signed_timestamp: bytes | None = None,
+        revocation_signed_timestamp: bytes | None = None,
+    ):
+        self.access_credential = access_credential
+        self.kpersistent = kpersistent
+        self.signaling_bitmap = signaling_bitmap
+        self.credential_signed_timesatmp = credential_signed_timestamp
+        self.revocation_signed_timestamp = revocation_signed_timestamp
+
+
+class ReaderStorage:
+    def __init__(self) -> None:
+        self.fast_cache: list[ReaderFastCacheEntry] = []
+        self.fast_cache_size_limit = 16
+
+    def add_kpersistent(
+        self,
+        access_credential: PublicKey,
+        kpersistent: bytes,
+        signaling_bitmap: bytes,
+        credential_signed_timestamp: bytes | None = None,
+        revocation_signed_timestamp: bytes | None = None,
+    ) -> None:
+        data = ReaderFastCacheEntry(
+            access_credential=access_credential,
+            kpersistent=kpersistent,
+            signaling_bitmap=signaling_bitmap,
+            credential_signed_timestamp=credential_signed_timestamp,
+            revocation_signed_timestamp=revocation_signed_timestamp,
+        )
+
+        # If an entry already exists for this access credential, remove it
+        try:
+            self.remove_kpersistent(access_credential)
+        except ValueError:
+            pass
+
+        self.fast_cache.append(data)
+        if len(self.fast_cache) > self.fast_cache_size_limit:
+            self.fast_cache.pop(0)
+
+    def get_kpersistent_list(self):
+        return self.fast_cache
+
+    def remove_kpersistent(self, access_credential: PublicKey) -> None:
+        idx = list(
+            map(lambda x: x.access_credential == access_credential, self.fast_cache)
+        ).index(True)
+        self.fast_cache.pop(idx)
+
+    def clear_kpersistent(self) -> None:
+        self.fast_cache = []
