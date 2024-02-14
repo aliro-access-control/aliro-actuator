@@ -23,6 +23,10 @@ class AccessProtocolError(Exception):
     pass
 
 
+class CryptogramNotFound(AccessProtocolError):
+    pass
+
+
 class SessionError(AccessProtocolError):
     pass
 
