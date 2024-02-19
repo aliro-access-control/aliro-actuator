@@ -360,7 +360,7 @@ class Reader(Device):
                 cryptogram = compute_cryptogram(
                     self.session.cryptogram_SK,
                     signaling_bitmap=entry.signaling_bitmap,
-                    credential_signed_timestamp=entry.credential_signed_timesatmp,
+                    credential_signed_timestamp=entry.credential_signed_timestamp,
                     revocation_signed_timestamp=entry.revocation_signed_timestamp,
                 )
                 if cryptogram == auth0_response.cryptogram:
@@ -1016,7 +1016,7 @@ class ReaderFastCacheEntry:
         self.access_credential = access_credential
         self.kpersistent = kpersistent
         self.signaling_bitmap = signaling_bitmap
-        self.credential_signed_timesatmp = credential_signed_timestamp
+        self.credential_signed_timestamp = credential_signed_timestamp
         self.revocation_signed_timestamp = revocation_signed_timestamp
 
 
