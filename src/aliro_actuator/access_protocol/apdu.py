@@ -1517,15 +1517,7 @@ class APDU:
         encryption: EncryptionEngine,
         status: int = StatusBytes.SUCCESS,
         private_mailbox_data: bytes | None = None,
-        access_doc_retrieve: bool = False,
-        revocation_doc_retrieve: bool = False,
-        step_up_aid_required: bool = False,
-        data_in_mailbox: bool = False,
-        read_mailbox: bool = False,
-        write_mailbox: bool = False,
-        send_issuer_backend: bool = False,
-        send_bound_app: bool = False,
-        update_doc: bool = False,
+        signaling_bitmap: bytes | None = None,
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
     ) -> Response:
@@ -1566,28 +1558,14 @@ class APDU:
         if private_mailbox_data is not None:
             auth1_payload.append((Auth1.MAILBOX_DATA_TAG, private_mailbox_data))
 
-        byte_ls = 0
-        byte_ms = 0
-        if access_doc_retrieve:
-            byte_ms |= 1 << 0
-        if revocation_doc_retrieve:
-            byte_ms |= 1 << 1
-        if step_up_aid_required:
-            byte_ms |= 1 << 2
-        if data_in_mailbox:
-            byte_ms |= 1 << 3
-        if read_mailbox:
-            byte_ms |= 1 << 4
-        if write_mailbox:
-            byte_ms |= 1 << 5
-        if send_issuer_backend:
-            byte_ms |= 1 << 6
-        if send_bound_app:
-            byte_ms |= 1 << 7
-
-        if update_doc:
-            byte_ls |= 1 << 1
-        signaling_bitmap = bytes([byte_ls, byte_ms])
+        if signaling_bitmap is None:
+            signaling_bitmap = bytes(b"\x00" * Auth1.SIGNALING_BITMAP_LEN)
+        if len(signaling_bitmap) != Auth1.SIGNALING_BITMAP_LEN:
+            raise CreateCommandError(
+                "signaling_bitmap has invalid length, expected {}, actual: {}".format(
+                    Auth1.SIGNALING_BITMAP_LEN, len(signaling_bitmap)
+                )
+            )
         auth1_payload.append((Auth1.SIGNALING_BITMAP_TAG, signaling_bitmap))
 
         if credential_signed_timestamp is not None:

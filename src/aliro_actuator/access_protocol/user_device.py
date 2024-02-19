@@ -17,6 +17,8 @@ from enum import Enum
 from os import urandom
 
 from aliro_actuator import Global
+from aliro_actuator.access_document.access_credential import AccessDocument
+from aliro_actuator.access_document.revocation_document import RevocationDocument
 from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
     INS,
@@ -73,6 +75,7 @@ class UserStorage:
     """
     Cross-session storage for Expedited Fast cached data
     """
+
     def __init__(self) -> None:
         self.kpersistent_map: dict[bytes, bytes] = {}
 
@@ -112,18 +115,25 @@ class UserDevice(Device):
         transport_override: TransportProtocolBase | None = None,
         access_credentials: list[AccessCredential] = [],
         supported_versions: list[int] = [PROTOCOL_VERSION],
+        access_document: AccessDocument | None = None,
+        revocation_document: RevocationDocument | None = None,
         mailbox: int | list[tuple[bytes, int, bytes]] | None = None,
         mailbox_read: bool = True,
         mailbox_write: bool = True,
         vendor_extension: bytes | None = None,
         fast_transaction_implemented: bool = True,
         user_device_storage: UserStorage | None = None,
+        step_up_aid_required: bool = False,
+        access_document_updatable: bool = False,
     ):
         super().__init__(transport_protocol, transport_override)
 
         self.access_credentials = access_credentials
         self.supported_versions = supported_versions
         self.session: None | UserSession = None
+        self.access_document = access_document
+        self.revocation_document = revocation_document
+        self.access_document_updatable = access_document_updatable
 
         if user_device_storage is None:
             user_device_storage = UserStorage()
@@ -148,6 +158,9 @@ class UserDevice(Device):
         self.vendor_extension = vendor_extension
 
         self.fast_transaction_implemented = fast_transaction_implemented
+        self.step_up_aid_required = step_up_aid_required
+        self.has_issuer_backend = False
+        self.has_bound_application = False
 
     def transaction_initiation(self) -> None:
         """
@@ -158,6 +171,28 @@ class UserDevice(Device):
         self.transport_protocol.wait_for_connection()
 
         Global.logger.info("Transaction Initiation Done")
+
+    def get_signaling_bitmap(self) -> bytes:
+        out = 0
+        if self.access_document is not None:
+            out |= 1 << 0
+        if self.revocation_document is not None:
+            out |= 1 << 1
+        if self.step_up_aid_required:
+            out |= 1 << 2
+        if self.mailbox is not None and self.mailbox.data_is_set():
+            out |= 1 << 3
+        if self.mailbox is not None and self.mailbox.read_permission:
+            out |= 1 << 4
+        if self.mailbox is not None and self.mailbox.read_permission:
+            out |= 1 << 5
+        if self.has_issuer_backend:
+            out |= 1 << 6
+        if self.has_bound_application:
+            out |= 1 << 7
+        if self.access_document is not None and self.access_document_updatable:
+            out |= 1 << 9
+        return out.to_bytes(2, "big")
 
     def main_loop(self) -> None:
         """
@@ -328,11 +363,18 @@ class UserDevice(Device):
                 self.session.derive_key_volatile_fast(
                     self.transport_protocol_type, kpersistent
                 )
+
+                doc_timestamp = None
+                revoke_timestamp = None
+                if self.access_document is not None:
+                    doc_timestamp = self.access_document.get_timestamp()
+                if self.revocation_document is not None:
+                    revoke_timestamp = self.revocation_document.get_timestamp()
                 cryptogram = compute_cryptogram(
                     self.session.cryptogram_SK,
-                    signaling_bitmap=b"\x00\x3F",
-                    # TODO: build signaling_bitmap properly
-                    # TODO: support signed_timestamps
+                    signaling_bitmap=self.get_signaling_bitmap(),
+                    credential_signed_timestamp=doc_timestamp,
+                    revocation_signed_timestamp=revoke_timestamp,
                 )
             else:
                 Global.logger.info("Cryptogram not found, assigning random")
@@ -485,13 +527,6 @@ class UserDevice(Device):
             raise AccessProtocolError("no encryption engine found")
 
         Global.logger.info("sending AUTH1 response")
-        mailbox_read = False
-        mailbox_write = False
-        data_in_mailbox = False
-        if self.mailbox is not None:
-            mailbox_read = self.mailbox.read_permission
-            mailbox_write = self.mailbox.write_permission
-            data_in_mailbox = self.mailbox.data_is_set()
         self.response_auth1(
             self.session.access_credential.get_key_slot(),
             self.session.access_credential.get_credential_public_key().as_bytes(),
@@ -499,9 +534,7 @@ class UserDevice(Device):
             signature,
             self.session.encryption,
             0x9000,
-            data_in_mailbox=data_in_mailbox,
-            read_mailbox=mailbox_read,
-            write_mailbox=mailbox_write,
+            signaling_bitmap=self.get_signaling_bitmap(),
         )
 
     def handle_exchange(self, exchange_command: Command) -> None:
@@ -755,15 +788,7 @@ class UserDevice(Device):
         encryption: EncryptionEngine,
         status: int = StatusBytes.SUCCESS,
         private_mailbox_data: bytes | None = None,
-        access_doc_retrieve: bool = False,
-        revocation_doc_retrieve: bool = False,
-        step_up_aid_required: bool = False,
-        data_in_mailbox: bool = False,
-        read_mailbox: bool = False,
-        write_mailbox: bool = False,
-        send_issuer_backend: bool = False,
-        send_bound_app: bool = False,
-        update_doc: bool = False,
+        signaling_bitmap: bytes | None = None,
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
     ) -> None:
@@ -778,15 +803,7 @@ class UserDevice(Device):
             encryption (EncryptionEngine): Encryption engine to encrypt the response.
             status (int, optional): response status. Defaults to StatusBytes.SUCCESS.
             private_mailbox_data (bytes | None, optional): Defaults to None.
-            access_doc_retrieve (bool, optional): Part of signaling bitmap. Defaults to False.
-            revocation_doc_retrieve (bool, optional): Part of signaling bitmap. Defaults to False.
-            step_up_aid_required (bool, optional): Part of signaling bitmap. Defaults to False.
-            data_in_mailbox (bool, optional): Part of signaling bitmap. Defaults to False.
-            read_mailbox (bool, optional): Part of signaling bitmap. Defaults to False.
-            write_mailbox (bool, optional): Part of signaling bitmap. Defaults to False.
-            send_issuer_backend (bool, optional): Part of signaling bitmap. Defaults to False.
-            send_bound_app (bool, optional): Part of signaling bitmap. Defaults to False.
-            update_doc (bool, optional): Part of signaling bitmap. Defaults to False.
+            signaling_bitmap (bytes | None, optional): Defaults to None.
             credential_signed_timestamp (bytes | None, optional): Defaults to None.
             revocation_signed_timestamp (bytes | None, optional): Defaults to None.
         """
@@ -798,15 +815,7 @@ class UserDevice(Device):
             encryption,
             status,
             private_mailbox_data,
-            access_doc_retrieve,
-            revocation_doc_retrieve,
-            step_up_aid_required,
-            data_in_mailbox,
-            read_mailbox,
-            write_mailbox,
-            send_issuer_backend,
-            send_bound_app,
-            update_doc,
+            signaling_bitmap,
             credential_signed_timestamp,
             revocation_signed_timestamp,
         )
