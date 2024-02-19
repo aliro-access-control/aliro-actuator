@@ -58,6 +58,53 @@ from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
 
+class ReaderStorage:
+    """
+    Cross-session storage for Expedited Fast cached data
+    """
+    def __init__(self) -> None:
+        self.fast_cache: list[ReaderFastCacheEntry] = []
+        self.fast_cache_size_limit = 16
+
+    def add_kpersistent(
+        self,
+        access_credential: PublicKey,
+        kpersistent: bytes,
+        signaling_bitmap: bytes,
+        credential_signed_timestamp: bytes | None = None,
+        revocation_signed_timestamp: bytes | None = None,
+    ) -> None:
+        data = ReaderFastCacheEntry(
+            access_credential=access_credential,
+            kpersistent=kpersistent,
+            signaling_bitmap=signaling_bitmap,
+            credential_signed_timestamp=credential_signed_timestamp,
+            revocation_signed_timestamp=revocation_signed_timestamp,
+        )
+
+        # If an entry already exists for this access credential, remove it
+        try:
+            self.remove_kpersistent(access_credential)
+        except ValueError:
+            pass
+
+        self.fast_cache.append(data)
+        if len(self.fast_cache) > self.fast_cache_size_limit:
+            self.fast_cache.pop(0)
+
+    def get_kpersistent_list(self):
+        return self.fast_cache
+
+    def remove_kpersistent(self, access_credential: PublicKey) -> None:
+        idx = list(
+            map(lambda x: x.access_credential == access_credential, self.fast_cache)
+        ).index(True)
+        self.fast_cache.pop(idx)
+
+    def clear_kpersistent(self) -> None:
+        self.fast_cache = []
+
+
 class Reader(Device):
     """
     Simulates a reader device.
@@ -85,6 +132,7 @@ class Reader(Device):
         reader_key: KeyPair | None = None,
         vendor_extension: bytes | None = None,
         fast_transaction_implemented: bool = True,
+        reader_storage: ReaderStorage | None = None,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -133,7 +181,11 @@ class Reader(Device):
         self.fast_transaction_implemented = fast_transaction_implemented
 
         self.session: ReaderSession | None = None
-        self.storage = ReaderStorage()
+
+        if reader_storage is None:
+            reader_storage = ReaderStorage()
+        self.storage = reader_storage
+
         Global.logger.info("Initialized Reader")
 
     @property
@@ -1018,47 +1070,3 @@ class ReaderFastCacheEntry:
         self.signaling_bitmap = signaling_bitmap
         self.credential_signed_timestamp = credential_signed_timestamp
         self.revocation_signed_timestamp = revocation_signed_timestamp
-
-
-class ReaderStorage:
-    def __init__(self) -> None:
-        self.fast_cache: list[ReaderFastCacheEntry] = []
-        self.fast_cache_size_limit = 16
-
-    def add_kpersistent(
-        self,
-        access_credential: PublicKey,
-        kpersistent: bytes,
-        signaling_bitmap: bytes,
-        credential_signed_timestamp: bytes | None = None,
-        revocation_signed_timestamp: bytes | None = None,
-    ) -> None:
-        data = ReaderFastCacheEntry(
-            access_credential=access_credential,
-            kpersistent=kpersistent,
-            signaling_bitmap=signaling_bitmap,
-            credential_signed_timestamp=credential_signed_timestamp,
-            revocation_signed_timestamp=revocation_signed_timestamp,
-        )
-
-        # If an entry already exists for this access credential, remove it
-        try:
-            self.remove_kpersistent(access_credential)
-        except ValueError:
-            pass
-
-        self.fast_cache.append(data)
-        if len(self.fast_cache) > self.fast_cache_size_limit:
-            self.fast_cache.pop(0)
-
-    def get_kpersistent_list(self):
-        return self.fast_cache
-
-    def remove_kpersistent(self, access_credential: PublicKey) -> None:
-        idx = list(
-            map(lambda x: x.access_credential == access_credential, self.fast_cache)
-        ).index(True)
-        self.fast_cache.pop(idx)
-
-    def clear_kpersistent(self) -> None:
-        self.fast_cache = []
