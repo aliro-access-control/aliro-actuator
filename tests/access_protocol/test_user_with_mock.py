@@ -18,6 +18,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from aliro_actuator.access_document.access_credential import AccessDocument
+from aliro_actuator.access_document.revocation_document import RevocationDocument
 from aliro_actuator.access_protocol.apdu import (
     APDU,
     Auth1Response,
@@ -247,6 +249,10 @@ class Test_user(unittest.TestCase):
                     ],
                 )
             ],
+            access_document=AccessDocument(),
+            revocation_document=RevocationDocument(),
+            step_up_aid_required=True,
+            mailbox=[(bytes.fromhex("2134"), 0, b"hello")],
             fast_transaction_implemented=True,
         )
         user.start_new_session(ephemeral_key=user_ephemeral)
