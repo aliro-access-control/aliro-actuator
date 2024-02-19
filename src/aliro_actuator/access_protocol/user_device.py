@@ -69,6 +69,28 @@ from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
 
+class UserStorage:
+    """
+    Cross-session storage for Expedited Fast cached data
+    """
+    def __init__(self) -> None:
+        self.kpersistent_map: dict[bytes, bytes] = {}
+
+    def add_kpersistent(self, kpersistent: bytes, reader_group_sub_id: bytes) -> None:
+        self.kpersistent_map[reader_group_sub_id] = kpersistent
+
+    def find_kpersistent(self, reader_group_sub_id: bytes) -> bytes | None:
+        if reader_group_sub_id not in self.kpersistent_map:
+            return None
+        return self.kpersistent_map[reader_group_sub_id]
+
+    def remove_kpersistent(self, reader_group_sub_id: bytes) -> None:
+        self.kpersistent_map.pop(reader_group_sub_id)
+
+    def clear_kpersistent(self) -> None:
+        self.kpersistent_map = {}
+
+
 class UserDevice(Device):
     """
     Simulates a user device.
@@ -95,13 +117,17 @@ class UserDevice(Device):
         mailbox_write: bool = True,
         vendor_extension: bytes | None = None,
         fast_transaction_implemented: bool = True,
+        user_device_storage: UserStorage | None = None,
     ):
         super().__init__(transport_protocol, transport_override)
 
         self.access_credentials = access_credentials
         self.supported_versions = supported_versions
         self.session: None | UserSession = None
-        self.storage = UserStorage()
+
+        if user_device_storage is None:
+            user_device_storage = UserStorage()
+        self.storage = user_device_storage
 
         if mailbox is None:
             self.mailbox = None
@@ -1081,25 +1107,6 @@ class UserSession:
                 )
                 return reader_public_key
         raise KeyLookupFailed
-
-
-class UserStorage:
-    def __init__(self) -> None:
-        self.kpersistent_map: dict[bytes, bytes] = {}
-
-    def add_kpersistent(self, kpersistent: bytes, reader_group_sub_id: bytes) -> None:
-        self.kpersistent_map[reader_group_sub_id] = kpersistent
-
-    def find_kpersistent(self, reader_group_sub_id: bytes) -> bytes | None:
-        if reader_group_sub_id not in self.kpersistent_map:
-            return None
-        return self.kpersistent_map[reader_group_sub_id]
-
-    def remove_kpersistent(self, reader_group_sub_id: bytes) -> None:
-        self.kpersistent_map.pop(reader_group_sub_id)
-
-    def clear_kpersistent(self) -> None:
-        self.kpersistent_map = {}
 
 
 class MailboxSession:
