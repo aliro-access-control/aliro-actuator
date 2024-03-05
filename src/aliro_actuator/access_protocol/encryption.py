@@ -18,7 +18,7 @@ from enum import Enum
 from Crypto.Cipher import AES
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.defines import Select, TransportProtocol
+from aliro_actuator.access_protocol.defines import Auth1, Select, TransportProtocol
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.trust_framework.key import PublicKey
@@ -251,3 +251,34 @@ def create_proprietary_information(
         )
 
     return TLV(proprietary_tlv)
+
+
+def compute_cryptogram(
+    cryptogram_sk: bytes,
+    signaling_bitmap: bytes,
+    credential_signed_timestamp: bytes | None = None,
+    revocation_signed_timestamp: bytes | None = None,
+) -> bytes:
+    if credential_signed_timestamp is None:
+        credential_signed_timestamp = b"\x00" * 20
+    if revocation_signed_timestamp is None:
+        revocation_signed_timestamp = b"\x00" * 20
+    if (
+        len(credential_signed_timestamp) != 20
+        or len(revocation_signed_timestamp) != 20
+        or len(signaling_bitmap) != 2
+    ):
+        raise ValueError("Invalid input for cryptogram")
+
+    plain_payload = TLV(
+        [
+            (Auth1.SIGNALING_BITMAP_TAG, signaling_bitmap),
+            (Auth1.CREDENTIAL_TIMESTAMP_TAG, credential_signed_timestamp),
+            (Auth1.REVOCATION_TIMESTAMP_TAG, revocation_signed_timestamp),
+        ]
+    ).to_bytes()
+
+    cipher = AES.new(cryptogram_sk, AES.MODE_GCM, nonce=b"\x00" * 12)
+    cipher.update(b"")
+    ciphertext, authentication_tag = cipher.encrypt_and_digest(plain_payload)
+    return ciphertext + authentication_tag

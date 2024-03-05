@@ -19,3 +19,7 @@ class Document:
 
     def retrieve(self) -> None:
         pass
+
+    def get_timestamp(self) -> bytes | None:
+        # todo
+        return None
