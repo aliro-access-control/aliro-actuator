@@ -19,6 +19,7 @@ from unittest.mock import Mock, patch
 
 from aliro_actuator.access_protocol.apdu import (
     APDU,
+    INS,
     Auth1Response,
     StatusBytes,
     Transaction,
@@ -36,10 +37,13 @@ from aliro_actuator.access_protocol.encryption import (
     create_proprietary_information,
     create_salt,
 )
-from aliro_actuator.access_protocol.errors import AccessProtocolError
+from aliro_actuator.access_protocol.errors import (
+    AccessProtocolError,
+    CryptogramNotFound,
+)
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.access_protocol.tlv import TLV
-from aliro_actuator.trust_framework.key import KeyPair, derive_key
+from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 
 
 class Test_reader(unittest.TestCase):
@@ -144,7 +148,7 @@ class Test_reader(unittest.TestCase):
             reader.handle_select(EXPEDITED_PHASE_AID)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_auth0_command(self, mock_nfc: Mock) -> None:
+    def test_auth0_command_standard(self, mock_nfc: Mock) -> None:
         user_ephemeral = KeyPair()
 
         apdu = APDU()
@@ -160,6 +164,125 @@ class Test_reader(unittest.TestCase):
         self.assertEqual(
             reader.session.get_credential_ephemeral_key(),
             user_ephemeral.get_public_key_as_bytes(),
+        )
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    def test_auth0_command_fast_not_present(self, mock_nfc: Mock) -> None:
+        user_ephemeral = KeyPair()
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_auth0_response(
+            user_ephemeral.get_public_key_as_bytes(),
+            StatusBytes.SUCCESS,
+            cryptogram=b"\x00" * 64,
+        ).to_bytes()
+
+        reader = Reader(TransportProtocol.NFC, mock_nfc)
+        reader.start_new_session()
+        with self.assertRaises(CryptogramNotFound):
+            reader.handle_auth0(
+                Transaction.FAST, TransactionCode.USER_DEVICE_SECURE_ACTION
+            )
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    def test_auth0_command_fast(self, mock_nfc: Mock) -> None:
+        user_credential = PublicKey(
+            bytes.fromhex(
+                "04ed1c8b8eb7e44c2842db98730717c75cc94c96ab9ae60f079879e756980b4003b38f"
+                "b449203f7237cb9f81077b8ac49c75c8115ed408312222eab61e18feca17"
+            )
+        )
+        reader_key = KeyPair(
+            private_key=bytes.fromhex(
+                "7a9e50a19ae385e39b3bf0c75eb5f9c9a5eb4d51f808231835395fd2c1078367"
+            ),
+            public_key=bytes.fromhex(
+                "04b62d9b8f494f2f43a07a7db7e965865d04feeabe4e9c3b8a2f5a544ee2a9c60fd867"
+                "5c7b3cca0e0070dbb999d9d11f67b4517247452ec931eef51f047194172a"
+            ),
+        )
+        user_ephemeral = KeyPair(
+            private_key=bytes.fromhex(
+                "8188df8c9fe94cab14bd1075bfd1e4f13f24c9146940e3d6f118e54d8b27249e"
+            ),
+            public_key=bytes.fromhex(
+                "04507806c74a52a8e9b34d0796e4e2382ab6f9d9d7417179fc338429bda1c2fff92852"
+                "d5c7f5643f1f24e468a6d998effeea81d23c9857d10040c2ea150abede89"
+            ),
+        )
+        reader_ephemeral = KeyPair(
+            private_key=bytes.fromhex(
+                "a1292f46c8dc580999be17b6c747e5a1284353fc80a7ffb7914a2936633455d3"
+            ),
+            public_key=bytes.fromhex(
+                "04de8639f30ff8c502559db84059dbc7fde720044a7ed8717eddf0481315313ed32f55"
+                "9a58ccad407d2c5d4f385f6add3587c8f05e87521b181066125d2d1a39d8"
+            ),
+        )
+
+        transaction_id = bytes.fromhex("2701e4fe10d21e15b216c550b0c5ee68")
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_auth0_response(
+            user_ephemeral.get_public_key_as_bytes(),
+            StatusBytes.SUCCESS,
+            cryptogram=bytes.fromhex(
+                "e87eac3589c3eeb3a6d7976d3ef29f3f0bb022e750fcda4a88bea8358d1bb63870a39b"
+                "aa89f80950ae305bdc03da9b1d91b6c4dbef2b15133ec7fa2d9c1046b4"
+            ),
+        ).to_bytes()
+
+        reader = Reader(
+            TransportProtocol.NFC,
+            mock_nfc,
+            reader_group_identifier=bytes.fromhex("00112233445566778899aabbccddeeff"),
+            reader_group_sub_identifier=bytes.fromhex(
+                "ffeeddccbbaa99887766554433221100"
+            ),
+            reader_key=reader_key,
+            fast_transaction_implemented=True,
+        )
+        reader.start_new_session(
+            transaction_identifier=transaction_id,
+            ephemeral_key=reader_ephemeral,
+        )
+        reader.session.set_select_info(
+            apdu.parse_response(
+                bytes.fromhex("6f158409a000000909acce5501a508800200005c0201009000"),
+                INS.SELECT,
+            )
+        )
+
+        reader.storage.add_kpersistent(
+            access_credential=user_credential,
+            kpersistent=bytes.fromhex(
+                "e0f5b6fb881e3335632eba447bed1a2c84ebfb0556b270974794600dbf0a6c1a"
+            ),
+            signaling_bitmap=b"\x00\x3f",
+        )
+
+        reader.handle_auth0(Transaction.FAST, TransactionCode.USER_DEVICE)
+
+        self.assertEqual(
+            user_credential.as_bytes(), reader.session.credential_pubk.as_bytes()
+        )
+        self.assertEqual(
+            reader.session.exchange_SK_reader,
+            bytes.fromhex(
+                "30953d4ea9e3ea2fde1e7adebe9c619cc70a7c46af0ce2fc29598a8a19332915"
+            ),
+        )
+        self.assertEqual(
+            reader.session.exchange_SK_device,
+            bytes.fromhex(
+                "475d26c582dbdce602e7d27c33fbcfdc4cca15ed84602faa58c934b9bd754351"
+            ),
+        )
+        self.assertEqual(
+            reader.session.ble_SK,
+            bytes.fromhex(
+                "a010ea86cbf3e97ef59f9ce53135d3c217166e4edb9588f145b14a92e03b8ab7"
+            ),
         )
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
@@ -269,6 +392,7 @@ class Test_reader(unittest.TestCase):
             reader_group_identifier,
             reader_group_sub_identifier,
             reader_key=reader_keypair,
+            fast_transaction_implemented=True,
         )
         reader.start_new_session(transaction_identifier)
         reader.session.credential_ephemeral_key = (
@@ -285,6 +409,11 @@ class Test_reader(unittest.TestCase):
             Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
         )
         reader.handle_auth1()
+
+        self.assertEqual(
+            reader.storage.fast_cache[0].access_credential.as_bytes(),
+            credential_keypair.get_public_key_as_bytes(),
+        )
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     def test_exchange_command(self, mock_nfc: Mock) -> None:
