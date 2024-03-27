@@ -42,6 +42,14 @@ class FSCIError(MurataError):
     pass
 
 
+class STXError(MurataError):
+    """
+    Raised when an message with an invalid STX is received.
+    """
+
+    pass
+
+
 class InvalidChecksumError(FSCIError):
     """
     Raised when a message contains an invalid checksum.
