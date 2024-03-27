@@ -4,6 +4,8 @@ from enum import IntEnum
 from errors import InvalidChecksumError
 from opcodes import OpCodeFSCI, OpCodeGAP, OpCodeGATT, OpCodeGATTDB, OpGroup
 
+from aliro_actuator import Global
+
 
 def get_length_from_header(header: bytes) -> int:
     return int.from_bytes(header[3:5], "little")
@@ -65,22 +67,23 @@ class Message:
         return checksum.to_bytes(1, "little")
 
     def print(self) -> None:
-        print("OpGroup: {}".format(OpGroup(self.op_group).name))
+        Global.logger.info("FSCI message:")
+        Global.logger.info("OpGroup: {}".format(OpGroup(self.op_group).name))
         if OpGroup(self.op_group) == OpGroup.GAP:
-            print("OpCode: {}".format(OpCodeGAP(self.op_code).name))
+            Global.logger.info("OpCode: {}".format(OpCodeGAP(self.op_code).name))
         elif OpGroup(self.op_group) in [
             OpGroup.FSCI_request,
             OpGroup.FSCI_response,
         ]:
-            print("OpCode: {}".format(OpCodeFSCI(self.op_code).name))
+            Global.logger.info("OpCode: {}".format(OpCodeFSCI(self.op_code).name))
         elif OpGroup(self.op_group) == OpGroup.GATT:
-            print("OpCode: {}".format(OpCodeGATT(self.op_code).name))
+            Global.logger.info("OpCode: {}".format(OpCodeGATT(self.op_code).name))
         elif OpGroup(self.op_group) == OpGroup.GATTDB:
-            print("OpCode: {}".format(OpCodeGATTDB(self.op_code).name))
+            Global.logger.info("OpCode: {}".format(OpCodeGATTDB(self.op_code).name))
         else:
-            print("OpCode: {:x}".format(self.op_code))
-        print("Length: 0x{:x}".format(self.length))
-        print("Data: {!r}".format(hexlify(self.data)))
+            Global.logger.info("OpCode: {:x}".format(self.op_code))
+        Global.logger.info("Length: 0x{:x}".format(self.length))
+        Global.logger.info("Data: {!r}".format(hexlify(self.data)))
         if (
             OpGroup(self.op_group) == OpGroup.GAP
             and OpCodeGAP(self.op_code) == OpCodeGAP.CONFIRM
@@ -88,12 +91,12 @@ class Message:
             OpGroup(self.op_group) == OpGroup.GATT
             and OpCodeGATT(self.op_code) == OpCodeGATT.CONFIRM
         ):
-            print(
+            Global.logger.info(
                 "Status: {}".format(
                     ConfirmStatus(int.from_bytes(self.data, "little")).name
                 )
             )
-        print("CRC: {!r}".format(hexlify(self.checksum)))
+        Global.logger.info("CRC: {!r}".format(hexlify(self.checksum)))
 
     def to_bytes(self) -> bytes:
         as_bytes = bytearray()
@@ -104,3 +107,31 @@ class Message:
         as_bytes.extend(self.data)
         as_bytes.extend(self.checksum)
         return bytes(as_bytes)
+
+    def get_device_id(self) -> int:
+        if self.op_group == OpGroup.GAP and self.get_op_code in [
+            OpCodeGAP.CONNECTION_EVENT_CONNECTED,
+            OpCodeGAP.CONNECTION_EVENT_DISCONNECTED,
+        ]:
+            return self.data[0]
+        raise NotImplementedError
+
+    def get_advertising_data(self) -> bytes:
+        if (
+            self.op_group == OpGroup.GAP
+            and self.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
+        ):
+            data_length = self.data[8]
+            return self.data[9 : 9 + data_length]
+        raise NotImplementedError
+
+    def get_address(self) -> tuple[int, bytes, int]:
+        if (
+            self.op_group == OpGroup.GAP
+            and self.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
+        ):
+            address_type = self.data[0]
+            address = self.data[1:7]
+            advertising_address_resolved = self.data[-1]
+            return (address_type, address, advertising_address_resolved)
+        raise NotImplementedError
