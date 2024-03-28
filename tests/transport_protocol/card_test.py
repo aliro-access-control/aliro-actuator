@@ -23,7 +23,7 @@ from aliro_actuator.transport_protocol.socket import Socket
 
 if __name__ == "__main__":
     card = Socket()
-    card.initialization(Mode.CARD_EMULATION)
+    card.initialization(Mode.USER_DEVICE)
     card.wait_for_connection()
     received_message = card.get_message()
     new_message = bytearray()

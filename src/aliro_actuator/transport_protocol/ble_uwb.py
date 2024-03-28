@@ -12,18 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from aliro_actuator.hw_driver.murata_driver import (
+    ReaderMurataDriver,
+    UserDeviceMurataDriver,
+)
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 
 
 class BLEUWB(TransportProtocolBase):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, port: str, group_resolving_key: bytes) -> None:
+        self.port = port
+        self.group_resolving_key = group_resolving_key
 
-    def initialization(self, mode: Mode) -> None:
-        pass
+    def initialization(
+        self,
+        mode: Mode,
+        reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
+        reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
+    ) -> None:
+        if mode == Mode.READER:
+            self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
+                ReaderMurataDriver(self.port)
+            )
+            self.driver.setup_connection(
+                reader_group_identifier=reader_group_identifier,
+                reader_group_sub_identifier=reader_group_sub_identifier,
+                group_resolving_key=self.group_resolving_key,
+            )
+        elif mode == Mode.USER_DEVICE:
+            self.driver = UserDeviceMurataDriver(self.port)
+            self.driver.setup_connection()
 
     def wait_for_connection(self) -> None:
-        pass
+        self.driver.wait_for_connection()
 
     def send_message(self, command: bytes) -> None:
         pass

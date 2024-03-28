@@ -35,8 +35,16 @@ from aliro_actuator.hw_driver.pn7160_driver.errors import (
 from aliro_actuator.transport_protocol import Mode
 
 DRIVER_PATH = Path(__file__).parent
-ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[3]  # 4 levels up: aliro_actuator/src/aliro_actuator/hw_driver/pn7160_driver
-DEFAULT_NCI_LIB_PATH = ACTUATOR_ROOT_PATH /"third_party"/"nxp_nfc"/"lib"/"libnfc_nci_linux-1.so.0.0.0"
+ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[
+    3
+]  # 4 levels up: aliro_actuator/src/aliro_actuator/hw_driver/pn7160_driver
+DEFAULT_NCI_LIB_PATH = (
+    ACTUATOR_ROOT_PATH
+    / "third_party"
+    / "nxp_nfc"
+    / "lib"
+    / "libnfc_nci_linux-1.so.0.0.0"
+)
 
 RX_MAX = 0x100
 
@@ -118,7 +126,7 @@ class Driver:
         self.nci_location = nci_location
         if nci_location is None:
             self.nci_location = DEFAULT_NCI_LIB_PATH
-            
+
         try:
             self.nci = ctypes.CDLL(self.nci_location)
         except OSError:
@@ -143,7 +151,7 @@ class Driver:
         if self.mode == Mode.READER:
             self.nci.registerTagCallback(ctypes.byref(tagcallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x00, 0)
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             self.nci.nfcHce_registerHceCallback(ctypes.byref(hcecallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x01, 0)
 
@@ -202,7 +210,7 @@ class Driver:
                     "received response: {!r}".format(hexlify(self.response))
                 )
 
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             if not reader_available:
                 raise NoReaderError
 
@@ -223,7 +231,7 @@ class Driver:
             else:
                 raise NoDataReceivedError
 
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             global data_received
             if not reader_available:
                 raise NoReaderError

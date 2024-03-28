@@ -167,7 +167,7 @@ class UserDevice(Device):
         Initializes the hardware and sets up a connection to the reader.
         """
         Global.logger.info("Start Transaction Initiation")
-        self.transport_protocol.initialization(Mode.CARD_EMULATION)
+        self.transport_protocol.initialization(Mode.USER_DEVICE)
         self.transport_protocol.wait_for_connection()
 
         Global.logger.info("Transaction Initiation Done")

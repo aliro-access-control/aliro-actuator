@@ -18,7 +18,7 @@ from enum import Enum
 
 class Mode(Enum):
     READER = 1
-    CARD_EMULATION = 2
+    USER_DEVICE = 2
 
 
 class TransportProtocolBase(ABC):

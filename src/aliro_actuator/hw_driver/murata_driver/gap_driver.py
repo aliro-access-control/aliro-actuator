@@ -14,6 +14,16 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
             OpGroup.GAP, [ConfirmStatus.SUCCESS, ConfirmStatus.ALREADY_INITIALIZED]
         )
 
+    def read_public_device_address(self) -> bytes:
+        Global.logger.info("Read public device address")
+        message = Message(OpGroup.GAP, OpCodeGAP.READ_PUBLIC_DEVICE_ADDRESS)
+        self.write(message)
+        self.wait_for_confirm(OpGroup.GAP)
+        response = self.wait_for_message(
+            OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_PUBLIC_ADDRESS_READY
+        )
+        return response.data
+
     def set_advertising_parameters(self) -> None:
         Global.logger.info("Setting advertising parameters")
 
@@ -103,6 +113,23 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         self.write(message)
         self.wait_for_confirm(OpGroup.GAP)
         self.wait_for_message(OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED)
+
+    def wait_for_connection(self) -> None:
+        while True:
+            try:
+                message = self.read()
+                message.print()
+                if (
+                    message.op_group == OpGroup.GAP
+                    and message.op_code == OpCodeGAP.CONNECTION_EVENT_CONNECTED
+                ):
+                    device_id = message.get_device_id()
+                    Global.logger.info(
+                        "connected to device with device id: {}".format(device_id)
+                    )
+            except NoResponseError:
+                # just wait until we get a message
+                pass
 
 
 class MurataGAPCentralDriver(MurataBaseDriver):
