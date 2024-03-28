@@ -86,7 +86,7 @@ class Test_Testvectors(unittest.TestCase):
         )
 
         user = Socket()
-        user.initialization(Mode.CARD_EMULATION)
+        user.initialization(Mode.USER_DEVICE)
         user.wait_for_connection()
 
         message_1 = user.get_message()
