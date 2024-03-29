@@ -15,7 +15,7 @@ class UserDeviceMurataDriver(MurataGAPCentralDriver):
         (address_type, address, advertising_address_resolved) = self.search_for_device(
             ALIRO_SERVICE_UUID
         )
-        self.start_scanning()
+        self.stop_scanning()
         self.connect(address_type, address, advertising_address_resolved)
 
 
@@ -45,5 +45,5 @@ class ReaderMurataDriver(MurataGAPPeripheralDriver):
         self.start_advertising()
 
     def wait_for_connection(self) -> None:
-        self.wait_for_connection()
-        self.start_advertising()
+        self.wait_for_connection_event()
+        self.stop_advertising()
