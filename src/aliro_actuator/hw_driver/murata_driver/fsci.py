@@ -1,10 +1,15 @@
 from binascii import hexlify
 from enum import IntEnum
 
-from opcodes import OpCodeFSCI, OpCodeGAP, OpCodeGATT, OpCodeGATTDB, OpGroup
-
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.errors import InvalidChecksumError
+from aliro_actuator.hw_driver.murata_driver.opcodes import (
+    OpCodeFSCI,
+    OpCodeGAP,
+    OpCodeGATT,
+    OpCodeGATTDB,
+    OpGroup,
+)
 
 
 def get_length_from_header(header: bytes) -> int:
