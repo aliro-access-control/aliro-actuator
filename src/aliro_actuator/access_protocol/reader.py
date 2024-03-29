@@ -62,6 +62,7 @@ class ReaderStorage:
     """
     Cross-session storage for Expedited Fast cached data
     """
+
     def __init__(self) -> None:
         self.fast_cache: list[ReaderFastCacheEntry] = []
         self.fast_cache_size_limit = 16
@@ -209,7 +210,11 @@ class Reader(Device):
         Initializes the hardware and sets up a connection to the card.
         """
         Global.logger.info("Start Transaction Initiation")
-        self.transport_protocol.initialization(Mode.READER)
+        self.transport_protocol.initialization(
+            Mode.READER,
+            reader_group_identifier=self.reader_group_identifier,
+            reader_group_sub_identifier=self.reader_group_sub_identifier,
+        )
         self.transport_protocol.wait_for_connection()
         Global.logger.info("Transaction Initiation Done")
 

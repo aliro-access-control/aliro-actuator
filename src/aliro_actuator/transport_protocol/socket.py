@@ -35,7 +35,12 @@ class Socket(TransportProtocolBase):
     def __init__(self) -> None:
         pass
 
-    def initialization(self, mode: Mode) -> None:
+    def initialization(
+        self,
+        mode: Mode,
+        reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
+        reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
+    ) -> None:
         if mode == Mode.READER:
             # init client
             self.mode = Mode.READER
