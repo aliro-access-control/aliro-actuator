@@ -114,7 +114,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         self.wait_for_confirm(OpGroup.GAP)
         self.wait_for_message(OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED)
 
-    def wait_for_connection(self) -> None:
+    def wait_for_connection_event(self) -> None:
         while True:
             try:
                 message = self.read()
