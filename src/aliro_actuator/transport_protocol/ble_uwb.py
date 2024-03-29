@@ -18,10 +18,19 @@ from aliro_actuator.hw_driver.murata_driver import (
 )
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 
+DEFAULT_PORT = "/dev/ttyUSB0"
+
 
 class BLEUWB(TransportProtocolBase):
-    def __init__(self, port: str, group_resolving_key: bytes) -> None:
-        self.port = port
+    def __init__(
+        self,
+        port: str | None = None,
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+    ) -> None:
+        if port is not None:
+            self.port = port
+        else:
+            self.port = DEFAULT_PORT
         self.group_resolving_key = group_resolving_key
 
     def initialization(
