@@ -206,7 +206,6 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                     advertising_data = message.get_advertising_data()
                     if advertising_data[5:7] == service_uuid:
                         Global.logger.info("Device Found!\n")
-                        self.stop_scanning()
                         return message.get_address()
             except NoResponseError:
                 # just wait until we get a message
