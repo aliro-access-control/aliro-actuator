@@ -25,7 +25,15 @@ class MurataBaseDriver:
         self.connected_devices: list[int] = []
 
     def open(self) -> None:
-        self.serial = serial.Serial(self.com_port, 115200, timeout=TIMEOUT)
+        self.serial = serial.Serial(self.com_port, 115200, timeout=0)
+
+        # clean serial buffer
+        while True:
+            data = self.serial.read(5)
+            if len(data) == 0:
+                break
+
+        self.serial.timeout = TIMEOUT
 
     def close(self) -> None:
         self.serial.close()
