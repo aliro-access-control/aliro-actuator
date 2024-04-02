@@ -1,3 +1,4 @@
+from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.encryption import dynamic_tag_generation
 from aliro_actuator.hw_driver.murata_driver.gap_driver import (
     MurataGAPCentralDriver,
@@ -9,9 +10,11 @@ ALIRO_SERVICE_UUID = bytes.fromhex("FFF2")
 
 class UserDeviceMurataDriver(MurataGAPCentralDriver):
     def setup_connection(self) -> None:
+        Global.logger.info("setup ble connection")
         self.start_scanning()
 
     def wait_for_connection(self) -> None:
+        Global.logger.info("wait for ble connection")
         (address_type, address, advertising_address_resolved) = self.search_for_device(
             ALIRO_SERVICE_UUID
         )
@@ -27,6 +30,7 @@ class ReaderMurataDriver(MurataGAPPeripheralDriver):
         group_resolving_key: bytes,
         expiry_timestamp: bytes = bytes.fromhex("7a4b8500"),
     ) -> None:
+        Global.logger.info("setup ble connection")
         advertising_address = self.read_public_device_address()
         dynamic_tag = dynamic_tag_generation(
             group_resolving_key, expiry_timestamp, advertising_address
@@ -45,5 +49,6 @@ class ReaderMurataDriver(MurataGAPPeripheralDriver):
         self.start_advertising()
 
     def wait_for_connection(self) -> None:
+        Global.logger.info("wait for ble connection")
         self.wait_for_connection_event()
         self.stop_advertising()

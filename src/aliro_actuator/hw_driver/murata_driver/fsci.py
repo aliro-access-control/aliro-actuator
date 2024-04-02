@@ -72,23 +72,23 @@ class Message:
         return checksum.to_bytes(1, "little")
 
     def print(self) -> None:
-        Global.logger.info("FSCI message:")
-        Global.logger.info("OpGroup: {}".format(OpGroup(self.op_group).name))
+        Global.logger.debug("FSCI message:")
+        Global.logger.debug("OpGroup: {}".format(OpGroup(self.op_group).name))
         if OpGroup(self.op_group) == OpGroup.GAP:
-            Global.logger.info("OpCode: {}".format(OpCodeGAP(self.op_code).name))
+            Global.logger.debug("OpCode: {}".format(OpCodeGAP(self.op_code).name))
         elif OpGroup(self.op_group) in [
             OpGroup.FSCI_request,
             OpGroup.FSCI_response,
         ]:
-            Global.logger.info("OpCode: {}".format(OpCodeFSCI(self.op_code).name))
+            Global.logger.debug("OpCode: {}".format(OpCodeFSCI(self.op_code).name))
         elif OpGroup(self.op_group) == OpGroup.GATT:
-            Global.logger.info("OpCode: {}".format(OpCodeGATT(self.op_code).name))
+            Global.logger.debug("OpCode: {}".format(OpCodeGATT(self.op_code).name))
         elif OpGroup(self.op_group) == OpGroup.GATTDB:
-            Global.logger.info("OpCode: {}".format(OpCodeGATTDB(self.op_code).name))
+            Global.logger.debug("OpCode: {}".format(OpCodeGATTDB(self.op_code).name))
         else:
-            Global.logger.info("OpCode: {:x}".format(self.op_code))
-        Global.logger.info("Length: 0x{:x}".format(self.length))
-        Global.logger.info("Data: {!r}".format(hexlify(self.data)))
+            Global.logger.debug("OpCode: {:x}".format(self.op_code))
+        Global.logger.debug("Length: 0x{:x}".format(self.length))
+        Global.logger.debug("Data: {!r}".format(hexlify(self.data)))
         if (
             OpGroup(self.op_group) == OpGroup.GAP
             and OpCodeGAP(self.op_code) == OpCodeGAP.CONFIRM
@@ -96,12 +96,12 @@ class Message:
             OpGroup(self.op_group) == OpGroup.GATT
             and OpCodeGATT(self.op_code) == OpCodeGATT.CONFIRM
         ):
-            Global.logger.info(
+            Global.logger.debug(
                 "Status: {}".format(
                     ConfirmStatus(int.from_bytes(self.data, "little")).name
                 )
             )
-        Global.logger.info("CRC: {!r}".format(hexlify(self.checksum)))
+        Global.logger.debug("CRC: {!r}".format(hexlify(self.checksum)))
 
     def to_bytes(self) -> bytes:
         as_bytes = bytearray()
