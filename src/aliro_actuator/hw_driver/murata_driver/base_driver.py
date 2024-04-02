@@ -55,6 +55,11 @@ class MurataBaseDriver:
             response.print()
             if response.get_op_group() != op_group or response.get_op_code() != opcode:
                 continue
+            Global.logger.info(
+                "Received message with opGroup: {} and opCode: 0x{:x}".format(
+                    OpGroup(op_group).name, opcode
+                )
+            )
             return response
 
     def wait_for_confirm(
@@ -62,4 +67,5 @@ class MurataBaseDriver:
     ) -> None:
         response = self.wait_for_message(op_group, OpCodeGAP.CONFIRM)
         if not (int.from_bytes(response.get_data(), "little") in accepted):
-            raise ErrorReturnedError
+            raise ErrorReturnedError(accepted, response.get_data())
+        Global.logger.info("confirm received")
