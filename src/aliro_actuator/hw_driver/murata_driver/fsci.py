@@ -114,7 +114,7 @@ class Message:
         return bytes(as_bytes)
 
     def get_device_id(self) -> int:
-        if self.op_group == OpGroup.GAP and self.get_op_code in [
+        if self.op_group == OpGroup.GAP and self.op_code in [
             OpCodeGAP.CONNECTION_EVENT_CONNECTED,
             OpCodeGAP.CONNECTION_EVENT_DISCONNECTED,
         ]:
