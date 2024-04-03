@@ -22,12 +22,13 @@ sys.path.append(PROJECT_PATH)
 from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.transport_protocol.socket import Socket
 
-if __name__ == "__main__":
+
+async def main() -> None:
     # while True:
     try:
         reader = Socket()
-        reader.initialization(Mode.READER)
-        asyncio.run(reader.wait_for_connection())
+        await reader.initialization(Mode.READER)
+        await reader.wait_for_connection()
         received_message = reader.get_message()
         new_message = bytearray()
         for digit in received_message:
@@ -36,3 +37,7 @@ if __name__ == "__main__":
     except ConnectionRefusedError:
         pass
     # reader.disconnect()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

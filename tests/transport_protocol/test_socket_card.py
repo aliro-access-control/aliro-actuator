@@ -30,13 +30,13 @@ class Test_socket_card(unittest.TestCase):
 
     async def test_connect_card(self) -> None:
         card = Socket()
-        card.initialization(Mode.USER_DEVICE)
+        await card.initialization(Mode.USER_DEVICE)
         await card.wait_for_connection()
         card.disconnect()
 
     async def test_send(self) -> None:
         card = Socket()
-        card.initialization(Mode.USER_DEVICE)
+        await card.initialization(Mode.USER_DEVICE)
         await card.wait_for_connection()
         card.send_message(bytes([0x12, 0x34, 0x56, 0x78]))
         self.assertEqual(bytes([0x13, 0x35, 0x57, 0x79]), card.get_message())

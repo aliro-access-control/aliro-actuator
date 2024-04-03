@@ -8,25 +8,25 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
 
 
 class MurataGAPPeripheralDriver(MurataBaseDriver):
-    def host_initialize(self) -> None:
+    async def host_initialize(self) -> None:
         Global.logger.info("Initializing host")
         message = Message(OpGroup.GAP, OpCodeGAP.HOST_INITIALIZE)
         self.write(message)
-        self.wait_for_confirm(
+        await self.wait_for_confirm(
             OpGroup.GAP, [ConfirmStatus.SUCCESS, ConfirmStatus.ALREADY_INITIALIZED]
         )
 
-    def read_public_device_address(self) -> bytes:
+    async def read_public_device_address(self) -> bytes:
         Global.logger.info("Read public device address")
         message = Message(OpGroup.GAP, OpCodeGAP.READ_PUBLIC_DEVICE_ADDRESS)
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        response = self.wait_for_message(
+        await self.wait_for_confirm(OpGroup.GAP)
+        response = await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_PUBLIC_ADDRESS_READY
         )
         return response.data
 
-    def set_advertising_parameters(self) -> None:
+    async def set_advertising_parameters(self) -> None:
         Global.logger.info("Setting advertising parameters")
 
         data = bytearray()
@@ -43,12 +43,12 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
             OpGroup.GAP, OpCodeGAP.SET_ADVERTISING_PARAMETERS, len(data), data
         )
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        self.wait_for_message(
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_ADVERTISING_PARAMETERS_SETUP_COMPLETE
         )
 
-    def set_advertising_data(
+    async def set_advertising_data(
         self,
         notification: int,
         advertisement_version: int,
@@ -85,36 +85,40 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
 
         message = Message(OpGroup.GAP, OpCodeGAP.SET_ADVERTISING_DATA, len(data), data)
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        self.wait_for_message(
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_ADVERTISING_DATA_SETUP_COMPLETE
         )
 
-    def set_tx_power_level(self, power_level: int, channel: int) -> None:
+    async def set_tx_power_level(self, power_level: int, channel: int) -> None:
         Global.logger.info("Set tx power level")
         data = bytearray()
         data.append(power_level)
         data.append(channel)
         message = Message(OpGroup.GAP, OpCodeGAP.SET_TX_POWER_LEVEL, len(data), data)
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        self.wait_for_message(
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_TX_POWER_LEVEL_SET_COMPLETE
         )
 
-    def start_advertising(self) -> None:
+    async def start_advertising(self) -> None:
         Global.logger.info("Start Advertising")
         message = Message(OpGroup.GAP, OpCodeGAP.START_ADVERTISING)
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        self.wait_for_message(OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED)
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
+            OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED
+        )
 
-    def stop_advertising(self) -> None:
+    async def stop_advertising(self) -> None:
         Global.logger.info("Stop Advertising")
         message = Message(OpGroup.GAP, OpCodeGAP.STOP_ADVERTISING)
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        self.wait_for_message(OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED)
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
+            OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED
+        )
 
     async def wait_for_connection_event(self) -> None:
         self.set_low_timeout()
@@ -139,7 +143,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
 
 
 class MurataGAPCentralDriver(MurataBaseDriver):
-    def start_scanning(self) -> None:
+    async def start_scanning(self) -> None:
         Global.logger.info("Start Scanning")
         data = bytearray()
         data.append(0x01)  # scanning parameters included
@@ -156,17 +160,17 @@ class MurataGAPCentralDriver(MurataBaseDriver):
 
         message = Message(OpGroup.GAP, OpCodeGAP.START_SCANNING, len(data), data)
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
 
-    def stop_scanning(self) -> None:
+    async def stop_scanning(self) -> None:
         Global.logger.info("Stop Scanning")
         message = Message(OpGroup.GAP, OpCodeGAP.STOP_SCANNING)
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
 
-    def connect(
+    async def connect(
         self,
         peer_address_type: int,
         peer_address: bytes,
@@ -191,8 +195,8 @@ class MurataGAPCentralDriver(MurataBaseDriver):
 
         message = Message(OpGroup.GAP, OpCodeGAP.CONNECT, len(data), data)
         self.write(message)
-        self.wait_for_confirm(OpGroup.GAP)
-        response = self.wait_for_message(
+        await self.wait_for_confirm(OpGroup.GAP)
+        response = await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_CONNECTED
         )
         self.connected_devices.append(response.get_device_id())
@@ -200,7 +204,8 @@ class MurataGAPCentralDriver(MurataBaseDriver):
             "connected to device with device id: {}".format(self.connected_devices[-1])
         )
 
-    def search_for_device(self, service_uuid: bytes) -> tuple[int, bytes, int]:
+    async def search_for_device(self, service_uuid: bytes) -> tuple[int, bytes, int]:
+        self.set_low_timeout()
         while True:
             try:
                 message = self.read()
@@ -212,7 +217,9 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                     advertising_data = message.get_advertising_data()
                     if advertising_data[5:7] == service_uuid:
                         Global.logger.info("Device Found!\n")
+                        self.set_normal_timeout()
                         return message.get_address()
             except NoResponseError:
-                # just wait until we get a message
+                # sleep so other processes can run
+                await asyncio.sleep(0.1)
                 pass
