@@ -36,7 +36,7 @@ class ErrorReturnedError(MurataError):
         expected_str = ""
         for expected_bytes in expected:
             expected_str += "{:x}, ".format(expected_bytes)
-        message = "Error returned: expected: {!r}actual: {:x}".format(
+        message = "Error returned: expected: {}actual: {:x}".format(
             expected_str, actual
         )
         super().__init__(message)
