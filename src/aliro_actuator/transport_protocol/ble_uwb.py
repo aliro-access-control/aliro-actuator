@@ -33,7 +33,7 @@ class BLEUWB(TransportProtocolBase):
             self.port = DEFAULT_PORT
         self.group_resolving_key = group_resolving_key
 
-    def initialization(
+    async def initialization(
         self,
         mode: Mode,
         reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
@@ -43,14 +43,14 @@ class BLEUWB(TransportProtocolBase):
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port)
             )
-            self.driver.setup_connection(
+            await self.driver.setup_connection(
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
             )
         elif mode == Mode.USER_DEVICE:
             self.driver = UserDeviceMurataDriver(self.port)
-            self.driver.setup_connection()
+            await self.driver.setup_connection()
 
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()

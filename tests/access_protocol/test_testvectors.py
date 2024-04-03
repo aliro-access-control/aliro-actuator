@@ -44,7 +44,7 @@ class Test_Testvectors(unittest.TestCase):
         sleep(0.5)
 
         reader = Socket()
-        reader.initialization(Mode.READER)
+        await reader.initialization(Mode.READER)
         await reader.wait_for_connection()
 
         reader.send_message(SELECT_COMMAND)
@@ -86,7 +86,7 @@ class Test_Testvectors(unittest.TestCase):
         )
 
         user = Socket()
-        user.initialization(Mode.USER_DEVICE)
+        await user.initialization(Mode.USER_DEVICE)
         await user.wait_for_connection()
 
         message_1 = user.get_message()

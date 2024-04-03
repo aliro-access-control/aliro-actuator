@@ -23,7 +23,7 @@ class Mode(Enum):
 
 class TransportProtocolBase(ABC):
     @abstractmethod
-    def initialization(
+    async def initialization(
         self,
         mode: Mode,
         reader_group_identifier: bytes = 16 * bytes.fromhex("00"),

@@ -21,7 +21,7 @@ class NFC(TransportProtocolBase):
         self.driver = Driver(port)
         self.mode: Mode | None = None
 
-    def initialization(
+    async def initialization(
         self,
         mode: Mode,
         reader_group_identifier: bytes = 16 * bytes.fromhex("00"),

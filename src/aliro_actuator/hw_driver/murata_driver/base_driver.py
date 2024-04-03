@@ -1,3 +1,4 @@
+import asyncio
 from binascii import hexlify
 
 import serial
@@ -64,23 +65,33 @@ class MurataBaseDriver:
         )
         self.serial.write(message.to_bytes())
 
-    def wait_for_message(self, op_group: OpGroup, opcode: int) -> Message:
+    async def wait_for_message(self, op_group: OpGroup, opcode: int) -> Message:
+        self.set_low_timeout()
         while True:
-            response = self.read()
-            response.print()
-            if response.get_op_group() != op_group or response.get_op_code() != opcode:
-                continue
-            Global.logger.info(
-                "Received message with opGroup: {} and opCode: 0x{:x}".format(
-                    OpGroup(op_group).name, opcode
+            try:
+                response = self.read()
+                response.print()
+                if (
+                    response.get_op_group() != op_group
+                    or response.get_op_code() != opcode
+                ):
+                    continue
+                Global.logger.info(
+                    "Received message with opGroup: {} and opCode: 0x{:x}".format(
+                        OpGroup(op_group).name, opcode
+                    )
                 )
-            )
-            return response
+                self.set_normal_timeout()
+                return response
+            except NoResponseError:
+                # sleep so other processes can run
+                await asyncio.sleep(0.1)
+                pass
 
-    def wait_for_confirm(
+    async def wait_for_confirm(
         self, op_group: OpGroup, accepted: list = [ConfirmStatus.SUCCESS]
     ) -> None:
-        response = self.wait_for_message(op_group, OpCodeGAP.CONFIRM)
+        response = await self.wait_for_message(op_group, OpCodeGAP.CONFIRM)
         if not (int.from_bytes(response.get_data(), "little") in accepted):
             raise ErrorReturnedError(
                 accepted, int.from_bytes(response.get_data(), "little")

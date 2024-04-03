@@ -210,7 +210,7 @@ class Reader(Device):
         Initializes the hardware and sets up a connection to the card.
         """
         Global.logger.info("Start Transaction Initiation")
-        self.transport_protocol.initialization(
+        await self.transport_protocol.initialization(
             Mode.READER,
             reader_group_identifier=self.reader_group_identifier,
             reader_group_sub_identifier=self.reader_group_sub_identifier,
