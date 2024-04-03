@@ -51,4 +51,3 @@ class ReaderMurataDriver(MurataGAPPeripheralDriver):
     def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
         self.wait_for_connection_event()
-        self.stop_advertising()
