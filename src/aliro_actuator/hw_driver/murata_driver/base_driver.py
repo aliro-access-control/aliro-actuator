@@ -16,8 +16,8 @@ from aliro_actuator.hw_driver.murata_driver.fsci import (
 )
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
 
-TIMEOUT = 2  # seconds
-TIMEOUT_LOW = 0  # for polling
+TIMEOUT = 2  # seconds, normal operation
+TIMEOUT_LOW = 0.2  # seconds, for polling (lower so other processes can still run)
 
 
 class MurataBaseDriver:
