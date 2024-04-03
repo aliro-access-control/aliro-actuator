@@ -127,6 +127,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                     Global.logger.info(
                         "connected to device with device id: {}".format(device_id)
                     )
+                    return
             except NoResponseError:
                 # just wait until we get a message
                 pass
