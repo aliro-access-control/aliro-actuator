@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import os
 import sys
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
     try:
         reader = Socket()
         reader.initialization(Mode.READER)
-        reader.wait_for_connection()
+        asyncio.run(reader.wait_for_connection())
         received_message = reader.get_message()
         new_message = bytearray()
         for digit in received_message:

@@ -30,7 +30,7 @@ class NFC(TransportProtocolBase):
         self.mode = mode
         self.driver.initialize(mode)
 
-    def wait_for_connection(self) -> None:
+    async def wait_for_connection(self) -> None:
         if self.mode == Mode.USER_DEVICE:
             self.driver.wait_for_reader()
         elif self.mode == Mode.READER:

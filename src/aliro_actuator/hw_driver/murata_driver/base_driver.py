@@ -16,6 +16,7 @@ from aliro_actuator.hw_driver.murata_driver.fsci import (
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
 
 TIMEOUT = 2  # seconds
+TIMEOUT_LOW = 0  # for polling
 
 
 class MurataBaseDriver:
@@ -37,6 +38,12 @@ class MurataBaseDriver:
 
     def close(self) -> None:
         self.serial.close()
+
+    def set_low_timeout(self) -> None:
+        self.serial.timeout = TIMEOUT_LOW
+
+    def set_normal_timeout(self) -> None:
+        self.serial.timeout = TIMEOUT
 
     def read(self) -> Message:
         header = self.serial.read(5)

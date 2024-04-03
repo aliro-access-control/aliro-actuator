@@ -32,7 +32,7 @@ class TransportProtocolBase(ABC):
         pass
 
     @abstractmethod
-    def wait_for_connection(self) -> None:
+    async def wait_for_connection(self) -> None:
         pass
 
     @abstractmethod

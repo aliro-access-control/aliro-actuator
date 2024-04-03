@@ -37,7 +37,7 @@ from tests.access_protocol.testvectors import (
 
 
 class Test_Testvectors(unittest.TestCase):
-    def test_user(self) -> None:
+    async def test_user(self) -> None:
         user = subprocess.Popen(
             ["python3", "tests/access_protocol/user_test_testvectors.py"]
         )
@@ -45,7 +45,7 @@ class Test_Testvectors(unittest.TestCase):
 
         reader = Socket()
         reader.initialization(Mode.READER)
-        reader.wait_for_connection()
+        await reader.wait_for_connection()
 
         reader.send_message(SELECT_COMMAND)
         message_1 = reader.get_message()
@@ -80,14 +80,14 @@ class Test_Testvectors(unittest.TestCase):
         self.assertEqual(message_4[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_4, CONTROL_FLOW_RESPONSE)
 
-    def test_reader(self) -> None:
+    async def test_reader(self) -> None:
         self.other = subprocess.Popen(
             ["python3", "tests/access_protocol/reader_test_testvectors.py"]
         )
 
         user = Socket()
         user.initialization(Mode.USER_DEVICE)
-        user.wait_for_connection()
+        await user.wait_for_connection()
 
         message_1 = user.get_message()
         self.assertEqual(message_1, SELECT_COMMAND)

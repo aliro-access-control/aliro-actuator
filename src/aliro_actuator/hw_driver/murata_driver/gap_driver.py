@@ -1,3 +1,5 @@
+import asyncio
+
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.errors import NoResponseError
@@ -114,7 +116,8 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         self.wait_for_confirm(OpGroup.GAP)
         self.wait_for_message(OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED)
 
-    def wait_for_connection_event(self) -> None:
+    async def wait_for_connection_event(self) -> None:
+        self.set_low_timeout()
         while True:
             try:
                 message = self.read()
@@ -129,7 +132,8 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                     )
                     return
             except NoResponseError:
-                # just wait until we get a message
+                # sleep so other processes can run
+                await asyncio.sleep(0.1)
                 pass
 
 

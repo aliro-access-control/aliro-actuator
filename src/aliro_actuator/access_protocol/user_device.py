@@ -162,13 +162,13 @@ class UserDevice(Device):
         self.has_issuer_backend = False
         self.has_bound_application = False
 
-    def transaction_initiation(self) -> None:
+    async def transaction_initiation(self) -> None:
         """
         Initializes the hardware and sets up a connection to the reader.
         """
         Global.logger.info("Start Transaction Initiation")
         self.transport_protocol.initialization(Mode.USER_DEVICE)
-        self.transport_protocol.wait_for_connection()
+        await self.transport_protocol.wait_for_connection()
 
         Global.logger.info("Transaction Initiation Done")
 

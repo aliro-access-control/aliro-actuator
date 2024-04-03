@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import os
 import sys
 
@@ -35,6 +36,6 @@ if __name__ == "__main__":
         reader_group_sub_identifier=READER_SUB_GROUP_IDENTIFIER,
         reader_key=reader_keypair,
     )
-    reader.transaction_initiation()
+    asyncio.run(reader.transaction_initiation())
     # reader.expedited_transaction_standard(TransactionCode.USER_DEVICE_SECURE_ACTION)
     # reader.handle_control_flow(True)

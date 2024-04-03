@@ -205,7 +205,7 @@ class Reader(Device):
     def reader_group_sub_identifier(self) -> bytes:
         return self._reader_identifier.get_group_sub()
 
-    def transaction_initiation(self) -> None:
+    async def transaction_initiation(self) -> None:
         """
         Initializes the hardware and sets up a connection to the card.
         """
@@ -215,7 +215,7 @@ class Reader(Device):
             reader_group_identifier=self.reader_group_identifier,
             reader_group_sub_identifier=self.reader_group_sub_identifier,
         )
-        self.transport_protocol.wait_for_connection()
+        await self.transport_protocol.wait_for_connection()
         Global.logger.info("Transaction Initiation Done")
 
     def expedited_transaction_fast(self, transaction_code: TransactionCode) -> None:

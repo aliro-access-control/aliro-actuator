@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import os
 import sys
 
@@ -40,5 +41,5 @@ if __name__ == "__main__":
         access_credentials=access_credentials,
         mailbox=0x20,
     )
-    reader.transaction_initiation()
+    asyncio.run(reader.transaction_initiation())
     # reader.main_loop()

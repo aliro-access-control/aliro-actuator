@@ -13,7 +13,7 @@ class UserDeviceMurataDriver(MurataGAPCentralDriver):
         Global.logger.info("setup ble connection")
         self.start_scanning()
 
-    def wait_for_connection(self) -> None:
+    async def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
         (address_type, address, advertising_address_resolved) = self.search_for_device(
             ALIRO_SERVICE_UUID
@@ -48,6 +48,6 @@ class ReaderMurataDriver(MurataGAPPeripheralDriver):
         self.set_tx_power_level(0, 0)
         self.start_advertising()
 
-    def wait_for_connection(self) -> None:
+    async def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
-        self.wait_for_connection_event()
+        await self.wait_for_connection_event()
