@@ -52,8 +52,8 @@ class BLEUWB(TransportProtocolBase):
             self.driver = UserDeviceMurataDriver(self.port)
             self.driver.setup_connection()
 
-    def wait_for_connection(self) -> None:
-        self.driver.wait_for_connection()
+    async def wait_for_connection(self) -> None:
+        await self.driver.wait_for_connection()
 
     def send_message(self, command: bytes) -> None:
         pass

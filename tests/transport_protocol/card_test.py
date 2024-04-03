@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import os
 import sys
 
@@ -24,7 +25,7 @@ from aliro_actuator.transport_protocol.socket import Socket
 if __name__ == "__main__":
     card = Socket()
     card.initialization(Mode.USER_DEVICE)
-    card.wait_for_connection()
+    asyncio.run(card.wait_for_connection())
     received_message = card.get_message()
     new_message = bytearray()
     for digit in received_message:
