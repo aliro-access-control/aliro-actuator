@@ -32,12 +32,12 @@ class ErrorReturnedError(MurataError):
     Raised when a response is received, but the response contains an error.
     """
 
-    def __init__(self, expected: list[bytes], actual: bytes) -> None:
+    def __init__(self, expected: list[int], actual: int) -> None:
         expected_str = ""
         for expected_bytes in expected:
-            expected_str += "{!r}, ".format(hexlify(expected_bytes))
-        message = "Error returned: expected: {!r}actual: {!r}".format(
-            expected_str, hexlify(actual)
+            expected_str += "{:x}, ".format(expected_bytes)
+        message = "Error returned: expected: {!r}actual: {:x}".format(
+            expected_str, actual
         )
         super().__init__(message)
 
