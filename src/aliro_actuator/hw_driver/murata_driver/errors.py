@@ -59,6 +59,14 @@ class FSCIError(MurataError):
     pass
 
 
+class GATTError(MurataError):
+    """
+    Raised when an error in the GATT layer is found.
+    """
+
+    pass
+
+
 class InvalidChecksumError(FSCIError):
     """
     Raised when a message contains an invalid checksum.
