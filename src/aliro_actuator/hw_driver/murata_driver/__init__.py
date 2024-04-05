@@ -5,7 +5,11 @@ from aliro_actuator.hw_driver.murata_driver.gap_driver import (
     MurataGAPCentralDriver,
     MurataGAPPeripheralDriver,
 )
-from aliro_actuator.hw_driver.murata_driver.gatt import Permissions, Properties
+from aliro_actuator.hw_driver.murata_driver.gatt import (
+    Permissions,
+    Properties,
+    UuidType,
+)
 from aliro_actuator.hw_driver.murata_driver.gatt_driver import (
     MurataGATTClientDriver,
     MurataGATTServerDriver,
@@ -95,6 +99,7 @@ class ReaderMurataDriver(MurataGAPPeripheralDriver, MurataGATTServerDriver):
         await self.add_characteristic_declaration_and_value(
             READER_CHARACTERISTIC_UUID,
             spsm + bytes.fromhex("010100"),
+            uuid_type=UuidType.uuid_128_bits,
             value_length=5,
             properties=Properties.read,
             permissions=Permissions.readable,
@@ -102,6 +107,7 @@ class ReaderMurataDriver(MurataGAPPeripheralDriver, MurataGATTServerDriver):
         await self.add_characteristic_declaration_and_value(
             USER_DEVICE_CHARACTERISTIC_UUID,
             bytes.fromhex("0000"),
+            uuid_type=UuidType.uuid_128_bits,
             value_length=2,
             properties=Properties.write,
             permissions=Permissions.writable,
