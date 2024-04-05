@@ -45,15 +45,16 @@ class BLEUWB(TransportProtocolBase):
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port)
             )
+            await self.driver.setup_gatt_database(self.spsm)
             await self.driver.setup_connection(
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
-                spsm=self.spsm,
             )
         elif mode == Mode.USER_DEVICE:
             self.driver = UserDeviceMurataDriver(self.port)
             await self.driver.setup_connection()
+            await self.driver.handle_GATT_layer()
 
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()
