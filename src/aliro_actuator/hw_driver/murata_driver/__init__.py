@@ -8,6 +8,7 @@ from aliro_actuator.hw_driver.murata_driver.gap_driver import (
 from aliro_actuator.hw_driver.murata_driver.gatt import (
     Permissions,
     Properties,
+    Service,
     UuidType,
 )
 from aliro_actuator.hw_driver.murata_driver.gatt_driver import (
@@ -38,10 +39,20 @@ class UserDeviceMurataDriver(
         await self.stop_scanning()
         await self.connect(address_type, address, advertising_address_resolved)
 
+    async def handle_GATT_layer(self) -> None:
         Global.logger.info("GATT layer")
+        await self.handle_GATT_layer_setup()
+        primary_service = await self.handle_GATT_layer_get_primary_service()
+        await self.handle_GATT_layer_read_characteristic(primary_service)
+        await self.handle_GATT_layer_write_characteristic(primary_service)
+
+    async def handle_GATT_layer_setup(self) -> None:
+        Global.logger.info("GATT layer setup")
         await self.register_notification_callback()
         await self.register_procedure_callback()
 
+    async def handle_GATT_layer_get_primary_service(self) -> Service:
+        Global.logger.info("GATT get primary service")
         services = await self.discover_all_primary_services(self.connected_devices[0])
         primary_service = None
         for service in services:
@@ -53,7 +64,12 @@ class UserDeviceMurataDriver(
         primary_service = await self.discover_all_characteristics_of_service(
             self.connected_devices[0], primary_service, no_characteristics=0x02
         )
+        return primary_service
 
+    async def handle_GATT_layer_read_characteristic(
+        self, primary_service: Service
+    ) -> tuple[bytes, list[bytes]]:
+        Global.logger.info("GATT read characteristic")
         reader_characteristic = None
         for characteristic in primary_service.characteristics:
             if characteristic.get_value_uuid() == int.from_bytes(
@@ -66,8 +82,18 @@ class UserDeviceMurataDriver(
         value = await self.read_characteristic_value(
             self.connected_devices[0], reader_characteristic
         )
-        Global.logger.info("read values: {!r}".format(value.get_value()))
+        read_value = value.get_value()
+        Global.logger.info("read values: {!r}".format(read_value))
+        no_versions = read_value[2]
+        versions = []
+        for index in range(no_versions):
+            versions.append(read_value[3 + index : 5 + index])
+        return read_value[:2], versions
 
+    async def handle_GATT_layer_write_characteristic(
+        self, primary_service: Service
+    ) -> None:
+        Global.logger.info("GATT write characteristic")
         user_device_characteristic = None
         for characteristic in primary_service.characteristics:
             if characteristic.get_value_uuid() == int.from_bytes(
@@ -86,13 +112,9 @@ class UserDeviceMurataDriver(
 
 
 class ReaderMurataDriver(MurataGAPPeripheralDriver, MurataGATTServerDriver):
-    async def setup_connection(
+    async def setup_gatt_database(
         self,
-        reader_group_identifier: bytes,
-        reader_group_sub_identifier: bytes,
         spsm: bytes,
-        group_resolving_key: bytes,
-        expiry_timestamp: bytes = bytes.fromhex("7a4b8500"),
     ) -> None:
         Global.logger.info("Creating GATT Database")
         await self.add_primary_service_declaration(0x01, bytes.fromhex("2800"))
@@ -113,6 +135,13 @@ class ReaderMurataDriver(MurataGAPPeripheralDriver, MurataGATTServerDriver):
             permissions=Permissions.writable,
         )
 
+    async def setup_connection(
+        self,
+        reader_group_identifier: bytes,
+        reader_group_sub_identifier: bytes,
+        group_resolving_key: bytes,
+        expiry_timestamp: bytes = bytes.fromhex("7a4b8500"),
+    ) -> None:
         Global.logger.info("setup ble connection")
         advertising_address = await self.read_public_device_address()
         dynamic_tag = dynamic_tag_generation(
