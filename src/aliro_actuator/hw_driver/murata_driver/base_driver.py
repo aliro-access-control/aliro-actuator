@@ -94,6 +94,6 @@ class MurataBaseDriver:
         response = await self.wait_for_message(op_group, OpCodeGAP.CONFIRM)
         if not (int.from_bytes(response.get_data(), "little") in accepted):
             raise ErrorReturnedError(
-                accepted, int.from_bytes(response.get_data(), "little")
+                int.from_bytes(response.get_data(), "little"), accepted
             )
         Global.logger.info("confirm received")
