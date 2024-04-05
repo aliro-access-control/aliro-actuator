@@ -17,7 +17,7 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import (
 
 class MurataGATTServerDriver(MurataBaseDriver):
     async def add_primary_service_declaration(
-        self, handle: int, uuid: int, uuid_type: UuidType = UuidType.uuid_16_bits
+        self, handle: int, uuid: bytes, uuid_type: UuidType = UuidType.uuid_16_bits
     ) -> int:
         Global.logger.info("Primary Service Declaration")
         if uuid_type == UuidType.uuid_16_bits:
@@ -32,7 +32,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         data = bytearray()
         data.extend(int.to_bytes(handle, 2, "little"))  # desired handle
         data.extend(int.to_bytes(uuid_type, 1, "little"))  # uuid type
-        data.extend(int.to_bytes(uuid, size, "little"))  # uuid
+        data.extend(uuid[:size])  # uuid
         message = Message(
             OpGroup.GATT_DB,
             OpCodeGATTDB.ADD_PRIMARY_SERVICE_DECLARATION_REQ,
@@ -47,7 +47,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         return int.from_bytes(response.data, "little")  # handle
 
     async def add_secondary_service_declaration(
-        self, handle: int, uuid: int, uuid_type: UuidType = UuidType.uuid_16_bits
+        self, handle: int, uuid: bytes, uuid_type: UuidType = UuidType.uuid_16_bits
     ) -> int:
         Global.logger.info("Secondary Service Declaration")
         if uuid_type == UuidType.uuid_16_bits:
@@ -61,7 +61,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         data = bytearray()
         data.extend(int.to_bytes(handle, 2, "little"))  # desired handle
         data.extend(int.to_bytes(uuid_type, 1, "little"))  # uuid type
-        data.extend(int.to_bytes(uuid, size, "little"))  # uuid
+        data.extend(uuid[:size])  # uuid
         message = Message(
             OpGroup.GATT_DB,
             OpCodeGATTDB.ADD_SECONDARY_SERVICE_DECLARATION_REQ,
@@ -90,8 +90,8 @@ class MurataGATTServerDriver(MurataBaseDriver):
 
     async def add_characteristic_declaration_and_value(
         self,
-        uuid: int,
-        initial_value: int,
+        uuid: bytes,
+        initial_value: bytes,
         uuid_type: UuidType = UuidType.uuid_16_bits,
         properties: int = Properties.read,
         value_length: int = 0x01,
@@ -109,13 +109,11 @@ class MurataGATTServerDriver(MurataBaseDriver):
 
         data = bytearray()
         data.append(uuid_type)  # uuid type
-        data.extend(int.to_bytes(uuid, size, "little"))  # uuid
+        data.extend(uuid[:size])  # uuid
         data.append(properties)  # characteristic properties
         data.extend(int.to_bytes(0x00, 2, "little"))  # max value length
         data.extend(int.to_bytes(value_length, 2, "little"))  # initial value length
-        data.extend(
-            int.to_bytes(initial_value, value_length, "little")
-        )  # initial value
+        data.extend(initial_value[:value_length])  # initial value
         data.append(permissions)  # access permissions
 
         message = Message(
@@ -133,7 +131,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
 
     async def add_characteristic_declaration_with_unique_value(
         self,
-        uuid: int,
+        uuid: bytes,
         uuid_type: UuidType = UuidType.uuid_16_bits,
         properties: int = Properties.read,
         permissions: int = Permissions.readable,
@@ -150,7 +148,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
 
         data = bytearray()
         data.append(uuid_type)  # uuid type
-        data.extend(int.to_bytes(uuid, size, "little"))  # uuid
+        data.extend(uuid[:size])  # uuid
         data.append(properties)  # characteristic properties
         data.append(permissions)  # access permissions
 
@@ -170,7 +168,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
 
     async def add_characteristic_descriptor(
         self,
-        uuid: int,
+        uuid: bytes,
         value: int,
         uuid_type: UuidType = UuidType.uuid_16_bits,
         value_length: int = 0x01,
@@ -188,7 +186,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
 
         data = bytearray()
         data.append(uuid_type)
-        data.extend(int.to_bytes(uuid, size, "little"))
+        data.extend(uuid[:size])
         data.extend(int.to_bytes(value_length, 2, "little"))
         data.extend(int.to_bytes(value, value_length, "little"))
         data.append(permissions)  # access permissions
@@ -211,7 +209,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         self,
         included_service_handle: bytes,
         end_group_handle: bytes,
-        uuid: int,
+        uuid: bytes,
         uuid_type: UuidType = UuidType.uuid_16_bits,
     ) -> int:
         Global.logger.info("Add include declaration")
@@ -228,7 +226,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         data.extend(included_service_handle)
         data.extend(end_group_handle)
         data.append(uuid_type)
-        data.extend(int.to_bytes(uuid, size, "little"))
+        data.extend(uuid[:size])
 
         message = Message(
             OpGroup.GATT_DB,
@@ -338,7 +336,6 @@ class MurataGATTClientDriver(MurataBaseDriver):
         characteristic: Characteristic,
         value: int,
         value_length: int = 0x01,
-        properties: int = Properties.read,
     ) -> None:
         Global.logger.info("Write characteristic value")
         data = bytearray()

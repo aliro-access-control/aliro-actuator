@@ -95,6 +95,9 @@ class Service:
             return self.as_bytes
         raise NotImplementedError
 
+    def get_uuid(self) -> int:
+        return self.uuid.value
+
 
 class Characteristic:
     def __init__(
@@ -129,6 +132,12 @@ class Characteristic:
             return self.as_bytes
         raise NotImplementedError
 
+    def get_value_uuid(self) -> int:
+        return self.value.uuid.value
+
+    def get_value(self) -> bytes:
+        return self.value.value
+
 
 class Value:
     def __init__(
@@ -137,7 +146,7 @@ class Value:
         uuid: UUID,
         length: int,
         max_length: int,
-        value: int,
+        value: bytes,
         as_bytes: bytes | None = None,
     ):
         self.handle = handle
@@ -159,7 +168,7 @@ class Value:
         index += 2
         max_length = int.from_bytes(input[index : 2 + index], "little")
         index += 2
-        value = int.from_bytes(input[index : length + index], "little")
+        value = input[index : length + index]
         return (
             Value(handle, uuid, length, max_length, value, input[:index]),
             length + index,
