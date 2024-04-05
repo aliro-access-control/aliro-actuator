@@ -2,7 +2,11 @@ from binascii import hexlify
 from enum import IntEnum
 
 from aliro_actuator import Global
-from aliro_actuator.hw_driver.murata_driver.errors import InvalidChecksumError
+from aliro_actuator.hw_driver.murata_driver.errors import (
+    ErrorReturnedError,
+    InvalidChecksumError,
+)
+from aliro_actuator.hw_driver.murata_driver.gatt import Characteristic, Service
 from aliro_actuator.hw_driver.murata_driver.opcodes import (
     OpCodeFSCI,
     OpCodeGAP,
@@ -83,7 +87,7 @@ class Message:
             Global.logger.debug("OpCode: {}".format(OpCodeFSCI(self.op_code).name))
         elif OpGroup(self.op_group) == OpGroup.GATT:
             Global.logger.debug("OpCode: {}".format(OpCodeGATT(self.op_code).name))
-        elif OpGroup(self.op_group) == OpGroup.GATTDB:
+        elif OpGroup(self.op_group) == OpGroup.GATT_DB:
             Global.logger.debug("OpCode: {}".format(OpCodeGATTDB(self.op_code).name))
         else:
             Global.logger.debug("OpCode: {:x}".format(self.op_code))
@@ -139,4 +143,70 @@ class Message:
             address = self.data[1:7]
             advertising_address_resolved = self.data[-1]
             return (address_type, address, advertising_address_resolved)
+        raise NotImplementedError
+
+    def get_services(
+        self,
+    ) -> list[Service]:
+        if (
+            self.op_group == OpGroup.GATT
+            and self.op_code == OpCodeGATT.PROCEDURE_DISCOVER_ALL_PRIMARY_SERVICES
+        ):
+            # device_id = self.data[0]
+            result = self.data[1]
+            if result == 0x01:
+                error = self.data[2:4]
+                raise ErrorReturnedError(int.from_bytes(error, "little"))
+            no_discovered_services = self.data[4]
+            discovered_services = self.data[5:]
+            services = []
+            index = 0
+            for _ in range(no_discovered_services):
+                service, index_step = Service.from_bytes(discovered_services)
+                index += index_step
+                services.append(service)
+            return services
+        raise NotImplementedError
+
+    def get_service(
+        self,
+    ) -> Service:
+        if (
+            self.op_group == OpGroup.GATT
+            and self.op_code == OpCodeGATT.PROCEDURE_DISCOVER_ALL_CHARACTERISTICS
+        ):
+            device_id = self.data[0]
+            result = self.data[1]
+            if result == 0x01:
+                error = self.data[2:4]
+                raise ErrorReturnedError(int.from_bytes(error, "little"))
+            service, index_step = Service.from_bytes(self.data[4:])
+            return service
+        raise NotImplementedError
+
+    def get_characteristic(self) -> Characteristic:
+        if (
+            self.op_group == OpGroup.GATT
+            and self.op_code == OpCodeGATT.PROCEDURE_READ_CHARACTERISTIC_VALUE
+        ):
+            device_id = self.data[0]
+            result = self.data[1]
+            if result == 0x01:
+                error = self.data[2:4]
+                raise ErrorReturnedError(int.from_bytes(error, "little"))
+            characteristic, index_step = Characteristic.from_bytes(self.data[4:])
+            return characteristic
+        raise NotImplementedError
+
+    def check_for_error(self) -> None:
+        if self.op_group == OpGroup.GATT and self.op_code in [
+            OpCodeGATT.PROCEDURE_READ_CHARACTERISTIC_VALUE,
+            OpCodeGATT.PROCEDURE_WRITE_CHARACTERISTIC_VALUE,
+        ]:
+            device_id = self.data[0]
+            result = self.data[1]
+            if result == 0x01:
+                error = self.data[2:4]
+                raise ErrorReturnedError(int.from_bytes(error, "little"))
+            return
         raise NotImplementedError
