@@ -28,11 +28,13 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
+        uuid_little = bytearray(uuid[:size])
+        uuid_little.reverse()
 
         data = bytearray()
         data.extend(int.to_bytes(handle, 2, "little"))  # desired handle
         data.extend(int.to_bytes(uuid_type, 1, "little"))  # uuid type
-        data.extend(uuid[:size])  # uuid
+        data.extend(uuid_little)  # uuid
         message = Message(
             OpGroup.GATT_DB,
             OpCodeGATTDB.ADD_PRIMARY_SERVICE_DECLARATION_REQ,
@@ -58,10 +60,13 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
+        uuid_little = bytearray(uuid[:size])
+        uuid_little.reverse()
+
         data = bytearray()
         data.extend(int.to_bytes(handle, 2, "little"))  # desired handle
         data.extend(int.to_bytes(uuid_type, 1, "little"))  # uuid type
-        data.extend(uuid[:size])  # uuid
+        data.extend(uuid_little)  # uuid
         message = Message(
             OpGroup.GATT_DB,
             OpCodeGATTDB.ADD_SECONDARY_SERVICE_DECLARATION_REQ,
@@ -106,10 +111,12 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
+        uuid_little = bytearray(uuid[:size])
+        uuid_little.reverse()
 
         data = bytearray()
         data.append(uuid_type)  # uuid type
-        data.extend(uuid[:size])  # uuid
+        data.extend(uuid_little)  # uuid
         data.append(properties)  # characteristic properties
         data.extend(int.to_bytes(0x00, 2, "little"))  # max value length
         data.extend(int.to_bytes(value_length, 2, "little"))  # initial value length
@@ -145,10 +152,12 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
+        uuid_little = bytearray(uuid[:size])
+        uuid_little.reverse()
 
         data = bytearray()
         data.append(uuid_type)  # uuid type
-        data.extend(uuid[:size])  # uuid
+        data.extend(uuid_little)  # uuid
         data.append(properties)  # characteristic properties
         data.append(permissions)  # access permissions
 
@@ -183,10 +192,12 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
+        uuid_little = bytearray(uuid[:size])
+        uuid_little.reverse()
 
         data = bytearray()
         data.append(uuid_type)
-        data.extend(uuid[:size])
+        data.extend(uuid_little)
         data.extend(int.to_bytes(value_length, 2, "little"))
         data.extend(int.to_bytes(value, value_length, "little"))
         data.append(permissions)  # access permissions
@@ -221,12 +232,14 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
+        uuid_little = bytearray(uuid[:size])
+        uuid_little.reverse()
 
         data = bytearray()
         data.extend(included_service_handle)
         data.extend(end_group_handle)
         data.append(uuid_type)
-        data.extend(uuid[:size])
+        data.extend(uuid_little)
 
         message = Message(
             OpGroup.GATT_DB,
