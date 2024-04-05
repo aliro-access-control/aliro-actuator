@@ -41,7 +41,8 @@ class BLEUWB(TransportProtocolBase):
         reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
         reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
     ) -> None:
-        if mode == Mode.READER:
+        self.mode = mode
+        if self.mode == Mode.READER:
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port)
             )
@@ -51,13 +52,16 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
             )
-        elif mode == Mode.USER_DEVICE:
+        elif self.mode == Mode.USER_DEVICE:
             self.driver = UserDeviceMurataDriver(self.port)
             await self.driver.setup_connection()
-            await self.driver.handle_GATT_layer()
 
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()
+        if self.mode == Mode.USER_DEVICE and isinstance(
+            self.driver, UserDeviceMurataDriver
+        ):
+            await self.driver.handle_GATT_layer()
 
     def send_message(self, command: bytes) -> None:
         pass
