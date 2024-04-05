@@ -35,6 +35,9 @@ class UserDeviceMurataDriver(
         await self.connect(address_type, address, advertising_address_resolved)
 
         Global.logger.info("GATT layer")
+        await self.register_notification_callback()
+        await self.register_procedure_callback()
+
         services = await self.discover_all_primary_services(self.connected_devices[0])
         primary_service = None
         for service in services:
