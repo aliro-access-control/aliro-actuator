@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from binascii import hexlify
 from enum import IntEnum
 
 from aliro_actuator import Global
@@ -156,7 +157,9 @@ class Value:
         self.value = value
         self.as_bytes = as_bytes
         Global.logger.debug(
-            "made value with length: {} and value: {:x}".format(self.length, self.value)
+            "made value with length: {} and value: {!r}".format(
+                self.length, hexlify(self.value)
+            )
         )
 
     @classmethod
@@ -168,7 +171,8 @@ class Value:
         index += 2
         max_length = int.from_bytes(input[index : 2 + index], "little")
         index += 2
-        value = input[index : length + index]
+        value = bytearray(input[index : length + index])
+        value.reverse()
         return (
             Value(handle, uuid, length, max_length, value, input[:index]),
             length + index,
@@ -187,7 +191,7 @@ class Descriptor:
         uuid: UUID,
         length: int,
         max_length: int,
-        value: int,
+        value: bytes,
         as_bytes: bytes | None = None,
     ):
         self.handle = handle
@@ -197,8 +201,8 @@ class Descriptor:
         self.value = value
         self.as_bytes = as_bytes
         Global.logger.debug(
-            "made descriptor with length: {} and value: {:x}".format(
-                self.length, self.value
+            "made descriptor with length: {} and value: {!r}".format(
+                self.length, hexlify(self.value)
             )
         )
 
@@ -211,7 +215,8 @@ class Descriptor:
         index += 2
         max_length = int.from_bytes(input[index : 2 + index], "little")
         index += 2
-        value = int.from_bytes(input[index : length + index], "little")
+        value = bytearray(input[index : length + index])
+        value.reverse()
         return (
             Value(handle, uuid, length, max_length, value, input[:index]),
             length + index,
