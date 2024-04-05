@@ -26,12 +26,14 @@ class BLEUWB(TransportProtocolBase):
         self,
         port: str | None = None,
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        spsm: bytes = 2 * bytes.fromhex("00"),
     ) -> None:
         if port is not None:
             self.port = port
         else:
             self.port = DEFAULT_PORT
         self.group_resolving_key = group_resolving_key
+        self.spsm = spsm
 
     async def initialization(
         self,
@@ -47,6 +49,7 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
+                spsm=self.spsm,
             )
         elif mode == Mode.USER_DEVICE:
             self.driver = UserDeviceMurataDriver(self.port)
