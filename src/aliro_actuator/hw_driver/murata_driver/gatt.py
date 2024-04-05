@@ -137,7 +137,7 @@ class Characteristic:
         return self.value.uuid.value
 
     def get_value(self) -> bytes:
-        return self.value.value
+        return self.value.get_value()
 
 
 class Value:
@@ -182,6 +182,11 @@ class Value:
         if self.as_bytes is not None:
             return self.as_bytes
         raise NotImplementedError
+
+    def get_value(self) -> bytes:
+        value = bytearray(self.value)
+        value.reverse()
+        return bytes(value)
 
 
 class Descriptor:
