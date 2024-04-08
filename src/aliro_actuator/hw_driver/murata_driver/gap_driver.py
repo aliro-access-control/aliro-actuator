@@ -1,4 +1,5 @@
 import asyncio
+from binascii import hexlify
 
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
@@ -215,6 +216,12 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                     and message.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
                 ):
                     advertising_data = message.get_advertising_data()
+                    _, address, _ = message.get_address()
+                    Global.logger.info(
+                        "Found device with address: {!r} and data: {!r}".format(
+                            hexlify(address), hexlify(advertising_data)
+                        )
+                    )
                     if advertising_data[5:7] == service_uuid:
                         Global.logger.info("Device Found!\n")
                         self.set_normal_timeout()
