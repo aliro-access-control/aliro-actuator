@@ -1,5 +1,6 @@
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
+from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.fsci import Message
 from aliro_actuator.hw_driver.murata_driver.gatt import (
     Characteristic,
@@ -28,8 +29,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
-        uuid_little = bytearray(uuid[:size])
-        uuid_little.reverse()
+        uuid_little = change_endianness(uuid[:size])
 
         data = bytearray()
         data.extend(int.to_bytes(handle, 2, "little"))  # desired handle
@@ -60,8 +60,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
-        uuid_little = bytearray(uuid[:size])
-        uuid_little.reverse()
+        uuid_little = change_endianness(uuid[:size])
 
         data = bytearray()
         data.extend(int.to_bytes(handle, 2, "little"))  # desired handle
@@ -111,8 +110,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
-        uuid_little = bytearray(uuid[:size])
-        uuid_little.reverse()
+        uuid_little = change_endianness(uuid[:size])
 
         data = bytearray()
         data.append(uuid_type)  # uuid type
@@ -152,8 +150,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
-        uuid_little = bytearray(uuid[:size])
-        uuid_little.reverse()
+        uuid_little = change_endianness(uuid[:size])
 
         data = bytearray()
         data.append(uuid_type)  # uuid type
@@ -192,8 +189,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
-        uuid_little = bytearray(uuid[:size])
-        uuid_little.reverse()
+        uuid_little = change_endianness(uuid[:size])
 
         data = bytearray()
         data.append(uuid_type)
@@ -232,8 +228,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             size = 16
         else:
             raise NotImplementedError
-        uuid_little = bytearray(uuid[:size])
-        uuid_little.reverse()
+        uuid_little = change_endianness(uuid[:size])
 
         data = bytearray()
         data.extend(included_service_handle)
