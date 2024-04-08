@@ -2,6 +2,7 @@ from binascii import hexlify
 from enum import IntEnum
 
 from aliro_actuator import Global
+from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.errors import (
     ErrorReturnedError,
     InvalidChecksumError,
@@ -12,6 +13,7 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import (
     OpCodeGAP,
     OpCodeGATT,
     OpCodeGATTDB,
+    OpCodeL2CAP,
     OpGroup,
 )
 
@@ -123,6 +125,8 @@ class Message:
             OpCodeGAP.CONNECTION_EVENT_DISCONNECTED,
         ]:
             return self.data[0]
+        elif self.op_group == OpGroup.L2CAP and self.op_code == OpCodeL2CAP.LE_CB_DATA:
+            return self.data[0]
         raise NotImplementedError
 
     def get_advertising_data(self) -> bytes:
@@ -210,3 +214,21 @@ class Message:
                 raise ErrorReturnedError(int.from_bytes(error, "little"))
             return
         raise NotImplementedError
+
+    def get_channel_id(self) -> bytes:
+        if (
+            self.op_group == OpGroup.L2CAP
+            and self.op_code == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
+        ):
+            if self.data[0] == 0x01:
+                connection_complete_structure = self.data[1:]
+                result = int.from_bytes(connection_complete_structure[-2:], "little")
+                if result != 0x0000:
+                    raise ErrorReturnedError(result)
+                channel_id = change_endianness(connection_complete_structure[1:3])
+                return channel_id
+        raise NotImplementedError
+
+    def get_packet(self) -> bytes:
+        length = int.from_bytes(self.data[3:5], "little")
+        return change_endianness(self.data[5 : 5 + length])
