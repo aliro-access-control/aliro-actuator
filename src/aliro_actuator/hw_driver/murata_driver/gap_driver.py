@@ -218,7 +218,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                     advertising_data = message.get_advertising_data()
                     _, address, _ = message.get_address()
                     Global.logger.info(
-                        "Found device with address: {!r} and data: {!r}".format(
+                        "Scanned device with address: {!r} and data: {!r}".format(
                             hexlify(address), hexlify(advertising_data)
                         )
                     )
