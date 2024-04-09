@@ -29,11 +29,11 @@ async def main() -> None:
         reader = Socket()
         await reader.initialization(Mode.READER)
         await reader.wait_for_connection()
-        received_message = reader.get_message()
+        received_message = await reader.get_message()
         new_message = bytearray()
         for digit in received_message:
             new_message.append(digit + 1)
-        reader.send_message(bytes(new_message))
+        await reader.send_message(bytes(new_message))
     except ConnectionRefusedError:
         pass
     # reader.disconnect()

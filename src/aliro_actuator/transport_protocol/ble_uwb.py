@@ -63,8 +63,8 @@ class BLEUWB(TransportProtocolBase):
         ):
             await self.driver.handle_GATT_layer()
 
-    def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes) -> None:
         pass
 
-    def get_message(self) -> bytes:
+    async def get_message(self) -> bytes:
         return b""
