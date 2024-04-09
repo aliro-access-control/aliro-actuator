@@ -36,8 +36,8 @@ class NFC(TransportProtocolBase):
         elif self.mode == Mode.READER:
             self.driver.wait_for_tag()
 
-    def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes) -> None:
         self.driver.send_message(command)
 
-    def get_message(self) -> bytes:
+    async def get_message(self) -> bytes:
         return self.driver.receive_message()

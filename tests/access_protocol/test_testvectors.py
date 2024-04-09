@@ -47,18 +47,18 @@ class Test_Testvectors(unittest.TestCase):
         await reader.initialization(Mode.READER)
         await reader.wait_for_connection()
 
-        reader.send_message(SELECT_COMMAND)
-        message_1 = reader.get_message()
+        await reader.send_message(SELECT_COMMAND)
+        message_1 = await reader.get_message()
         self.assertEqual(message_1[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_1, SELECT_RESPONSE)
 
-        reader.send_message(AUTH0_COMMAND)
-        message_2 = reader.get_message()
+        await reader.send_message(AUTH0_COMMAND)
+        message_2 = await reader.get_message()
         self.assertEqual(message_2[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_2, AUTH0_RESPONSE)
 
-        reader.send_message(AUTH1_COMMAND)
-        message_3 = reader.get_message()
+        await reader.send_message(AUTH1_COMMAND)
+        message_3 = await reader.get_message()
         self.assertEqual(message_3[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         # message contains signature which is generated with RNG, and might differ.
         # only check the other parts
@@ -75,8 +75,8 @@ class Test_Testvectors(unittest.TestCase):
         # outdated auth1 response, signaling_bitmap is now 2 bytes
         # self.assertEqual(decrypted_data[133:], AUTH1_RESPONSE_PAYLOAD[133:])
 
-        reader.send_message(CONTROL_FLOW_COMMAND)
-        message_4 = reader.get_message()
+        await reader.send_message(CONTROL_FLOW_COMMAND)
+        message_4 = await reader.get_message()
         self.assertEqual(message_4[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_4, CONTROL_FLOW_RESPONSE)
 
@@ -89,15 +89,15 @@ class Test_Testvectors(unittest.TestCase):
         await user.initialization(Mode.USER_DEVICE)
         await user.wait_for_connection()
 
-        message_1 = user.get_message()
+        message_1 = await user.get_message()
         self.assertEqual(message_1, SELECT_COMMAND)
-        user.send_message(SELECT_RESPONSE)
+        await user.send_message(SELECT_RESPONSE)
 
-        message_2 = user.get_message()
+        message_2 = await user.get_message()
         self.assertEqual(message_2, AUTH0_COMMAND)
-        user.send_message(AUTH0_RESPONSE)
+        await user.send_message(AUTH0_RESPONSE)
 
-        message_3 = user.get_message()
+        message_3 = await user.get_message()
         # reader signature is generated using a random number, so cannot be checked
         self.assertEqual(message_3[:0x0A], AUTH1_COMMAND[:0x0A])
         self.assertEqual(message_3[0x4A:], AUTH1_COMMAND[0x4A:])
@@ -105,8 +105,8 @@ class Test_Testvectors(unittest.TestCase):
         # TODO signaling bitmap has invalid length under current spec,
         # these following tests are no longer valid
 
-        # user.send_message(AUTH1_RESPONSE)
+        # await user.send_message(AUTH1_RESPONSE)
 
-        # message_4 = user.get_message()
+        # message_4 = await user.get_message()
         # self.assertEqual(message_4, CONTROL_FLOW_COMMAND)
-        # user.send_message(CONTROL_FLOW_RESPONSE)
+        # await user.send_message(CONTROL_FLOW_RESPONSE)

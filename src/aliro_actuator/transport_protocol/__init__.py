@@ -36,9 +36,9 @@ class TransportProtocolBase(ABC):
         pass
 
     @abstractmethod
-    def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes) -> None:
         pass
 
     @abstractmethod
-    def get_message(self) -> bytes:
+    async def get_message(self) -> bytes:
         return b""

@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import os
 from binascii import hexlify
@@ -93,7 +94,7 @@ class ReaderStorage:
         if len(self.fast_cache) > self.fast_cache_size_limit:
             self.fast_cache.pop(0)
 
-    def get_kpersistent_list(self):
+    def get_kpersistent_list(self) -> list[ReaderFastCacheEntry]:
         return self.fast_cache
 
     def remove_kpersistent(self, access_credential: PublicKey) -> None:
@@ -114,8 +115,10 @@ class Reader(Device):
         transport_protocol (TransportProtocol): Transport protocol to use.
         transport_override (TransportProtocolBase | None, optional): Override the
         transport protocol. Mainly used for testing. Defaults to None.
-        reader_group_identifier (bytes | None, optional): Part of the reader_identifier. Defaults to None.
-        reader_group_sub_identifier (bytes | None, optional): Part of the reader_identifier. Defaults to None.
+        reader_group_identifier (bytes | None, optional): Part of the reader_identifier.
+        Defaults to None.
+        reader_group_sub_identifier (bytes | None, optional): Part of the
+        reader_identifier. Defaults to None.
         reader_cert (bytes | None, optional): Reader certificate. Defaults to None.
         reader_key (KeyPair | None, optional): Reader Key. Defaults to None.
 
@@ -218,16 +221,18 @@ class Reader(Device):
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Transaction Initiation Done")
 
-    def expedited_transaction_fast(self, transaction_code: TransactionCode) -> None:
+    async def expedited_transaction_fast(
+        self, transaction_code: TransactionCode
+    ) -> None:
         if self.session is None:
             self.start_new_session()
 
         Global.logger.info("Start Expedited Transaction (fast)")
-        self.handle_select(EXPEDITED_PHASE_AID)
-        self.handle_auth0(Transaction.FAST, transaction_code)
+        await self.handle_select(EXPEDITED_PHASE_AID)
+        await self.handle_auth0(Transaction.FAST, transaction_code)
         Global.logger.info("Expedited Transaction (fast) Done")
 
-    def expedited_transaction_standard(
+    async def expedited_transaction_standard(
         self, transaction_code: TransactionCode, load_cert: bool = False
     ) -> None:
         """
@@ -235,17 +240,18 @@ class Reader(Device):
 
         Args:
             transaction_code (TransactionCode): Passed during AUTH0.
-            load_cert (bool, optional): Runs the load_cert command if True. Defaults to False.
+            load_cert (bool, optional): Runs the load_cert command if True.
+            Defaults to False.
         """
         if self.session is None:
             self.start_new_session()
 
         Global.logger.info("Start Expedited Transaction (standard)")
-        self.handle_select(EXPEDITED_PHASE_AID)
-        self.handle_auth0(Transaction.STANDARD, transaction_code)
+        await self.handle_select(EXPEDITED_PHASE_AID)
+        await self.handle_auth0(Transaction.STANDARD, transaction_code)
         if load_cert:
-            self.handle_load_cert()
-        self.handle_auth1()
+            await self.handle_load_cert()
+        await self.handle_auth1()
         Global.logger.info("Expedited Transaction (standard) Done")
 
     def step_up_transaction(self) -> None:
@@ -277,7 +283,7 @@ class Reader(Device):
             self.session.transaction_identifier = transaction_identifier
         self.session.generate_ephemeral_key(ephemeral_key)
 
-    def failure_process(self) -> None:
+    async def failure_process(self) -> None:
         """
         Should be called when a failure state has occurred.
         Destroys all session bound keys and data.
@@ -288,7 +294,7 @@ class Reader(Device):
             self.transport_protocol_type == TransportProtocol.NFC
             or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
         ):
-            self.handle_control_flow(False)
+            await self.handle_control_flow(False)
         if (
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
@@ -298,7 +304,7 @@ class Reader(Device):
 
         self.session = None
 
-    def handle_select(self, aid: bytes) -> None:
+    async def handle_select(self, aid: bytes) -> None:
         """
         create and send a select command.
         Required data from is retrieved from the Reader (self) and the session.
@@ -310,21 +316,22 @@ class Reader(Device):
         Raises:
             SessionError: Raised if no session is found.
             AccessProtocolError: Raised if the response has invalid data.
-            UnexpectedResponseError: Raised if the response has status/data that cannot be handled
+            UnexpectedResponseError: Raised if the response has status/data that
+            cannot be handled
         """
         if self.session is None:
             raise SessionError("No Session")
 
         Global.logger.info("SELECT Command")
         try:
-            response = self.command_select(aid)
+            response = await self.command_select(aid)
         except InvalidStatusError as error:
             if error.status == StatusBytes.FILE_OR_APP_NOT_FOUND:
                 Global.logger.error("User does not recognize AID")
-            self.failure_process()
+            await self.failure_process()
             raise error
         except InvalidResponseError as error:
-            self.failure_process()
+            await self.failure_process()
             raise error
 
         if response.compl_aid != EXPEDITED_PHASE_AID:
@@ -338,7 +345,7 @@ class Reader(Device):
 
         self.session.set_select_info(response)
 
-    def handle_auth0(
+    async def handle_auth0(
         self, transaction_type: Transaction, transaction_code: TransactionCode
     ) -> None:
         """
@@ -365,7 +372,7 @@ class Reader(Device):
 
         Global.logger.info("AUTH0 Command")
         try:
-            auth0_response = self.command_auth0(
+            auth0_response = await self.command_auth0(
                 transaction=transaction_type,
                 transaction_code=transaction_code,
                 protocol_version=PROTOCOL_VERSION,
@@ -375,7 +382,7 @@ class Reader(Device):
                 vendor_extension=self.vendor_extension,
             )
         except InvalidResponseError as error:
-            self.failure_process()
+            await self.failure_process()
             raise error
 
         Global.logger.info("checking Auth0 response fields")
@@ -397,13 +404,13 @@ class Reader(Device):
 
         if transaction_type == Transaction.STANDARD:
             if auth0_response.cryptogram is not None:
-                self.failure_process()
+                await self.failure_process()
                 raise AccessProtocolError(
                     "User send cryptogram during a standard transaction"
                 )
         else:
             if auth0_response.cryptogram is None:
-                self.failure_process()
+                await self.failure_process()
                 raise AccessProtocolError(
                     "User did not send cryptogram during a fast transaction"
                 )
@@ -426,7 +433,7 @@ class Reader(Device):
 
             raise CryptogramNotFound("Matching Cryptogram not found")
 
-    def handle_load_cert(self) -> None:
+    async def handle_load_cert(self) -> None:
         """
         Create and send a load_cert command.
         Required data from is retrieved from the Reader (self) and the session.
@@ -445,12 +452,12 @@ class Reader(Device):
             raise AccessProtocolError("No reader cert available")
 
         try:
-            self.command_load_cert(self.reader_cert.encode_compressed())
+            await self.command_load_cert(self.reader_cert.encode_compressed())
         except InvalidResponseError as error:
-            self.failure_process()
+            await self.failure_process()
             raise error
 
-    def handle_auth1(
+    async def handle_auth1(
         self,
         expected_response: Auth1Response = Auth1Response.CREDENTIAL_PUBLIC_KEY,
     ) -> None:
@@ -471,7 +478,7 @@ class Reader(Device):
 
         Global.logger.info("AUTH1 Command")
         try:
-            auth1_response = self.command_auth1(
+            auth1_response = await self.command_auth1(
                 expected_response=expected_response,
                 reader_identifier=self.reader_identifier,
                 credential_epubk=self.session.credential_ephemeral_key,
@@ -480,20 +487,20 @@ class Reader(Device):
                 encryption=self.session.encryption,
             )
         except (InvalidResponseError, VerificationError) as error:
-            self.failure_process()
+            await self.failure_process()
             raise error
 
         Global.logger.info("Checking Auth1 response fields")
         if expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
             if auth1_response.credential_public_key is None:
-                self.failure_process()
+                await self.failure_process()
                 raise AccessProtocolError(
                     "Requested credential public key, but none was received"
                 )
             credential_public_key = PublicKey(auth1_response.credential_public_key)
         elif expected_response == Auth1Response.KEY_SLOT:
             if auth1_response.key_slot is None:
-                self.failure_process()
+                await self.failure_process()
                 raise AccessProtocolError("Requested keyslot, but none was received")
             credential_public_key = self.session.lookup_credential_public_key(
                 auth1_response.key_slot
@@ -504,7 +511,7 @@ class Reader(Device):
         if not self.session.check_user_device_authentication(
             auth1_response.user_device_signature
         ):
-            self.failure_process()
+            await self.failure_process()
             raise AccessProtocolError("User device signature authentication failed")
 
         if self.fast_transaction_implemented:
@@ -521,7 +528,7 @@ class Reader(Device):
         Global.logger.info("Save AUTH1 response")
         self.session.set_auth1_info(auth1_response)
 
-    def handle_control_flow(self, success: bool) -> None:
+    async def handle_control_flow(self, success: bool) -> None:
         """
         Create and send a control_flow command.
         Required data from is retrieved from the Reader (self) and the session.
@@ -543,11 +550,11 @@ class Reader(Device):
         else:
             s1 = 0x00
 
-        self.command_control_flow(s1, 0x00)
+        await self.command_control_flow(s1, 0x00)
 
         self.session = None
 
-    def handle_exchange(
+    async def handle_exchange(
         self,
         atomic_session: bool,
         read_requests: list[tuple[int, int]] | None,
@@ -620,15 +627,15 @@ class Reader(Device):
         payload_tlv = TLV(payload)
 
         try:
-            response = self.command_exchange(
+            response = await self.command_exchange(
                 atomic_session, payload_tlv, self.session.encryption
             )
         except (InvalidResponseError, VerificationError) as error:
-            self.failure_process()
+            await self.failure_process()
             raise error
 
         if response.status_code != bytes.fromhex("00020000"):
-            self.failure_process()
+            await self.failure_process()
             Global.logger.error(
                 "exchange returned error status: {!r}".format(response.status_code)
             )
@@ -646,7 +653,7 @@ class Reader(Device):
 
         return read_data
 
-    def command_auth0(
+    async def command_auth0(
         self,
         transaction: Transaction,
         transaction_code: TransactionCode,
@@ -683,14 +690,14 @@ class Reader(Device):
         )
 
         Global.logger.info("Sending AUTH0")
-        self.transport_protocol.send_message(command.to_bytes())
-        response_str = self.transport_protocol.get_message()
+        await self.transport_protocol.send_message(command.to_bytes())
+        response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.AUTH0)
         Global.logger.info("Parsed AUTH0 Response")
 
         return response
 
-    def command_auth1(
+    async def command_auth1(
         self,
         expected_response: Auth1Response,
         reader_identifier: bytes,
@@ -708,7 +715,8 @@ class Reader(Device):
             credential_epubk (PublicKey):
             reader_epubk (PublicKey):
             transaction_identifier (bytes):
-            encryption (EncryptionEngine | None, optional): Encryption engine to decrypt the response.
+            encryption (EncryptionEngine | None, optional): Encryption engine to
+            decrypt the response.
             Response will not be decrypted if this is None. Defaults to None.
 
         Returns:
@@ -725,14 +733,14 @@ class Reader(Device):
         command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
         Global.logger.info("Sending AUTH1")
-        self.transport_protocol.send_message(command.to_bytes())
-        response_str = self.transport_protocol.get_message()
+        await self.transport_protocol.send_message(command.to_bytes())
+        response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.AUTH1, encryption)
         Global.logger.info("Parsed AUTH1 Response")
 
         return response
 
-    def command_select(self, aid: bytes) -> Response:
+    async def command_select(self, aid: bytes) -> Response:
         """
         Create and send a select command.
 
@@ -746,8 +754,8 @@ class Reader(Device):
 
         Global.logger.info("Sending Select")
         Global.logger.debug("using AID: {!r}".format(hexlify(aid)))
-        self.transport_protocol.send_message(command.to_bytes())
-        response_str = self.transport_protocol.get_message()
+        await self.transport_protocol.send_message(command.to_bytes())
+        response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.SELECT)
         Global.logger.info("Parsed Select Response")
 
@@ -759,7 +767,7 @@ class Reader(Device):
     def command_get_response(self) -> None:
         raise NotImplementedError
 
-    def command_load_cert(self, compressed_cert: bytes) -> Response:
+    async def command_load_cert(self, compressed_cert: bytes) -> Response:
         """
         Create and send a load_cert command.
 
@@ -772,14 +780,14 @@ class Reader(Device):
         command = self.apdu.create_load_cert_command(compressed_cert)
 
         Global.logger.info("Sending load cert")
-        self.transport_protocol.send_message(command.to_bytes())
-        response_str = self.transport_protocol.get_message()
+        await self.transport_protocol.send_message(command.to_bytes())
+        response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.LOAD_CERT)
         Global.logger.info("Parsed load cert Response")
 
         return response
 
-    def command_exchange(
+    async def command_exchange(
         self, atomic_session: bool, payload: TLV, encryption: EncryptionEngine
     ) -> Response:
         """
@@ -788,7 +796,8 @@ class Reader(Device):
         Args:
             atomic_session (bool): if True, this is part of an atomic session
             payload (TLV): The payload to send.
-            encryption (EncryptionEngine): Encryption engine to encrypt the message and decode the response.
+            encryption (EncryptionEngine): Encryption engine to encrypt the message
+            and decode the response.
 
         Returns:
             Response: Response containing the received data.
@@ -796,14 +805,14 @@ class Reader(Device):
         command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
 
         Global.logger.info("Sending exchange")
-        self.transport_protocol.send_message(command.to_bytes())
-        response_str = self.transport_protocol.get_message()
+        await self.transport_protocol.send_message(command.to_bytes())
+        response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.EXCHANGE, encryption)
         Global.logger.info("Parsed exchange Response")
 
         return response
 
-    def command_control_flow(
+    async def command_control_flow(
         self, s1: int, s2: int, domain_specific_data: bytes | None = None
     ) -> Response:
         """
@@ -820,8 +829,8 @@ class Reader(Device):
         command = self.apdu.create_control_flow_command(s1, s2, domain_specific_data)
 
         Global.logger.info("Sending control flow")
-        self.transport_protocol.send_message(command.to_bytes())
-        response_str = self.transport_protocol.get_message()
+        await self.transport_protocol.send_message(command.to_bytes())
+        response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
         Global.logger.info("Parsed control flow Response")
 

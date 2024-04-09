@@ -68,14 +68,14 @@ class Socket(TransportProtocolBase):
         elif self.mode == Mode.USER_DEVICE:
             self.host.close()
 
-    def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes) -> None:
         Global.logger.debug("sending message {!r}".format(hexlify(command)))
         if self.mode == Mode.READER:
             self.client.send(command)
         elif self.mode == Mode.USER_DEVICE:
             self.host.send(command)
 
-    def get_message(self) -> bytes:
+    async def get_message(self) -> bytes:
         if self.mode == Mode.READER:
             data = self.client.recv(4096)
             if data == b"":
