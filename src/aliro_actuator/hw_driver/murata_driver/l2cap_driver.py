@@ -10,6 +10,12 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeL2CAP, OpGroup
 
 
 class MurataL2CAPDriver(MurataBaseDriver):
+    async def setup_l2cap_connection(self, psm: bytes) -> None:
+        Global.logger.info("Setup l2cap connection")
+        await self.register_le_cb_callback()
+        await self.register_le_psm(psm)
+        await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
+
     async def register_le_cb_callback(self) -> None:
         Global.logger.info("Register Le Cb callback")
         message = Message(
@@ -35,13 +41,13 @@ class MurataL2CAPDriver(MurataBaseDriver):
         await self.wait_for_confirm(OpGroup.L2CAP)
 
     async def connect_le_psm(
-        self, device_id: int, psm: bytes, initial_credits: bytes
+        self, device_id: int, psm: bytes, initial_credits: int
     ) -> bytes:
         Global.logger.info("Connect Le PSM")
         data = bytearray()
         data.extend(change_endianness(psm[:2]))
         data.append(device_id)
-        data.extend(change_endianness(initial_credits[:2]))
+        data.extend(initial_credits.to_bytes(2, "little"))
 
         message = Message(
             OpGroup.L2CAP,

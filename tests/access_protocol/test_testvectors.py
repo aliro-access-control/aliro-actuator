@@ -10,6 +10,7 @@ from aliro_actuator.access_protocol.defines import (
 )
 from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
 from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.transport_protocol import MessageType
 from aliro_actuator.transport_protocol.socket import Mode, Socket
 from aliro_actuator.trust_framework.key import KeyPair
 from tests.access_protocol.testvectors import (
@@ -47,17 +48,17 @@ class Test_Testvectors(unittest.TestCase):
         await reader.initialization(Mode.READER)
         await reader.wait_for_connection()
 
-        await reader.send_message(SELECT_COMMAND)
+        await reader.send_message(SELECT_COMMAND, MessageType.REQUEST)
         message_1 = await reader.get_message()
         self.assertEqual(message_1[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_1, SELECT_RESPONSE)
 
-        await reader.send_message(AUTH0_COMMAND)
+        await reader.send_message(AUTH0_COMMAND, MessageType.REQUEST)
         message_2 = await reader.get_message()
         self.assertEqual(message_2[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_2, AUTH0_RESPONSE)
 
-        await reader.send_message(AUTH1_COMMAND)
+        await reader.send_message(AUTH1_COMMAND, MessageType.REQUEST)
         message_3 = await reader.get_message()
         self.assertEqual(message_3[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         # message contains signature which is generated with RNG, and might differ.
@@ -75,7 +76,7 @@ class Test_Testvectors(unittest.TestCase):
         # outdated auth1 response, signaling_bitmap is now 2 bytes
         # self.assertEqual(decrypted_data[133:], AUTH1_RESPONSE_PAYLOAD[133:])
 
-        await reader.send_message(CONTROL_FLOW_COMMAND)
+        await reader.send_message(CONTROL_FLOW_COMMAND, MessageType.REQUEST)
         message_4 = await reader.get_message()
         self.assertEqual(message_4[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_4, CONTROL_FLOW_RESPONSE)
@@ -91,11 +92,11 @@ class Test_Testvectors(unittest.TestCase):
 
         message_1 = await user.get_message()
         self.assertEqual(message_1, SELECT_COMMAND)
-        await user.send_message(SELECT_RESPONSE)
+        await user.send_message(SELECT_RESPONSE, MessageType.RESPONSE)
 
         message_2 = await user.get_message()
         self.assertEqual(message_2, AUTH0_COMMAND)
-        await user.send_message(AUTH0_RESPONSE)
+        await user.send_message(AUTH0_RESPONSE, MessageType.RESPONSE)
 
         message_3 = await user.get_message()
         # reader signature is generated using a random number, so cannot be checked
@@ -105,8 +106,8 @@ class Test_Testvectors(unittest.TestCase):
         # TODO signaling bitmap has invalid length under current spec,
         # these following tests are no longer valid
 
-        # await user.send_message(AUTH1_RESPONSE)
+        # await user.send_message(AUTH1_RESPONSE, MessageType.RESPONSE)
 
         # message_4 = await user.get_message()
         # self.assertEqual(message_4, CONTROL_FLOW_COMMAND)
-        # await user.send_message(CONTROL_FLOW_RESPONSE)
+        # await user.send_message(CONTROL_FLOW_RESPONSE, MessageType.RESPONSE)

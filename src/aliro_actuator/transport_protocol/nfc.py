@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from aliro_actuator.hw_driver.pn7160_driver import Driver
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
 
 
 class NFC(TransportProtocolBase):
@@ -36,7 +36,7 @@ class NFC(TransportProtocolBase):
         elif self.mode == Mode.READER:
             self.driver.wait_for_tag()
 
-    async def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes, type: MessageType) -> None:
         self.driver.send_message(command)
 
     async def get_message(self) -> bytes:

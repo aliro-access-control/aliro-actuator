@@ -16,7 +16,7 @@ import socket
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.errors import (
     InvalidModeError,
     NoDataReceivedError,
@@ -68,7 +68,7 @@ class Socket(TransportProtocolBase):
         elif self.mode == Mode.USER_DEVICE:
             self.host.close()
 
-    async def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes, type: MessageType) -> None:
         Global.logger.debug("sending message {!r}".format(hexlify(command)))
         if self.mode == Mode.READER:
             self.client.send(command)
