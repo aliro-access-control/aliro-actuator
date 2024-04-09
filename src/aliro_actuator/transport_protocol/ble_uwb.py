@@ -31,7 +31,7 @@ class BLEUWB(TransportProtocolBase):
         self,
         port: str | None = None,
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
-        spsm: bytes = 2 * bytes.fromhex("00"),
+        spsm: bytes = bytes.fromhex("0080"),
     ) -> None:
         if port is not None:
             self.port = port
