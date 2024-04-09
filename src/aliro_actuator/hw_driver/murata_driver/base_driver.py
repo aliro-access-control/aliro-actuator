@@ -25,6 +25,7 @@ class MurataBaseDriver:
         self.com_port = com_port
         self.open()
         self.connected_devices: list[int] = []
+        self.channel_ids: dict[int, int] = dict()
 
     def open(self) -> None:
         self.serial = serial.Serial(self.com_port, 115200, timeout=0)
