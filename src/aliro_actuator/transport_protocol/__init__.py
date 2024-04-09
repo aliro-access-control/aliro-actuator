@@ -21,6 +21,11 @@ class Mode(Enum):
     USER_DEVICE = 2
 
 
+class MessageType(Enum):
+    REQUEST = 1
+    RESPONSE = 2
+
+
 class TransportProtocolBase(ABC):
     @abstractmethod
     async def initialization(
@@ -36,7 +41,7 @@ class TransportProtocolBase(ABC):
         pass
 
     @abstractmethod
-    async def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes, type: MessageType) -> None:
         pass
 
     @abstractmethod

@@ -52,7 +52,7 @@ from aliro_actuator.access_protocol.errors import (
     SessionError,
 )
 from aliro_actuator.access_protocol.tlv import TLV
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
@@ -690,7 +690,9 @@ class Reader(Device):
         )
 
         Global.logger.info("Sending AUTH0")
-        await self.transport_protocol.send_message(command.to_bytes())
+        await self.transport_protocol.send_message(
+            command.to_bytes(), MessageType.REQUEST
+        )
         response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.AUTH0)
         Global.logger.info("Parsed AUTH0 Response")
@@ -733,7 +735,9 @@ class Reader(Device):
         command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
         Global.logger.info("Sending AUTH1")
-        await self.transport_protocol.send_message(command.to_bytes())
+        await self.transport_protocol.send_message(
+            command.to_bytes(), MessageType.REQUEST
+        )
         response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.AUTH1, encryption)
         Global.logger.info("Parsed AUTH1 Response")
@@ -754,7 +758,9 @@ class Reader(Device):
 
         Global.logger.info("Sending Select")
         Global.logger.debug("using AID: {!r}".format(hexlify(aid)))
-        await self.transport_protocol.send_message(command.to_bytes())
+        await self.transport_protocol.send_message(
+            command.to_bytes(), MessageType.REQUEST
+        )
         response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.SELECT)
         Global.logger.info("Parsed Select Response")
@@ -780,7 +786,9 @@ class Reader(Device):
         command = self.apdu.create_load_cert_command(compressed_cert)
 
         Global.logger.info("Sending load cert")
-        await self.transport_protocol.send_message(command.to_bytes())
+        await self.transport_protocol.send_message(
+            command.to_bytes(), MessageType.REQUEST
+        )
         response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.LOAD_CERT)
         Global.logger.info("Parsed load cert Response")
@@ -805,7 +813,9 @@ class Reader(Device):
         command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
 
         Global.logger.info("Sending exchange")
-        await self.transport_protocol.send_message(command.to_bytes())
+        await self.transport_protocol.send_message(
+            command.to_bytes(), MessageType.REQUEST
+        )
         response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.EXCHANGE, encryption)
         Global.logger.info("Parsed exchange Response")
@@ -829,7 +839,9 @@ class Reader(Device):
         command = self.apdu.create_control_flow_command(s1, s2, domain_specific_data)
 
         Global.logger.info("Sending control flow")
-        await self.transport_protocol.send_message(command.to_bytes())
+        await self.transport_protocol.send_message(
+            command.to_bytes(), MessageType.REQUEST
+        )
         response_str = await self.transport_protocol.get_message()
         response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
         Global.logger.info("Parsed control flow Response")

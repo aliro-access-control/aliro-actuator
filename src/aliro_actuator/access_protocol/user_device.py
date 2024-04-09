@@ -59,7 +59,7 @@ from aliro_actuator.access_protocol.errors import (
     VersionError,
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import (
@@ -265,7 +265,9 @@ class UserDevice(Device):
         Destroys all session bound keys and data.
         """
         response = self.apdu.create_error_response(error_code)
-        await self.transport_protocol.send_message(response.to_bytes())
+        await self.transport_protocol.send_message(
+            response.to_bytes(), MessageType.RESPONSE
+        )
 
         self.session = None
 
@@ -780,7 +782,9 @@ class UserDevice(Device):
         auth0_response = self.apdu.create_auth0_response(
             credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
-        await self.transport_protocol.send_message(auth0_response.to_bytes())
+        await self.transport_protocol.send_message(
+            auth0_response.to_bytes(), MessageType.RESPONSE
+        )
 
     async def response_auth1(
         self,
@@ -823,7 +827,9 @@ class UserDevice(Device):
             credential_signed_timestamp,
             revocation_signed_timestamp,
         )
-        await self.transport_protocol.send_message(auth1_response.to_bytes())
+        await self.transport_protocol.send_message(
+            auth1_response.to_bytes(), MessageType.RESPONSE
+        )
 
     async def response_select(
         self,
@@ -854,7 +860,9 @@ class UserDevice(Device):
             maximum_response_apdu=maximum_response_apdu,
             vendor_specific_tlv=vendor_specific_tlv,
         )
-        await self.transport_protocol.send_message(select_response.to_bytes())
+        await self.transport_protocol.send_message(
+            select_response.to_bytes(), MessageType.RESPONSE
+        )
 
     def response_envelope(self) -> None:
         raise NotImplementedError
@@ -867,7 +875,9 @@ class UserDevice(Device):
         Create and send a load cert response.
         """
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
-        await self.transport_protocol.send_message(load_cert_response.to_bytes())
+        await self.transport_protocol.send_message(
+            load_cert_response.to_bytes(), MessageType.RESPONSE
+        )
 
     async def response_exchange(
         self,
@@ -884,7 +894,9 @@ class UserDevice(Device):
         exchange_response = self.apdu.create_exchange_response(
             payload, encryption, StatusBytes.SUCCESS
         )
-        await self.transport_protocol.send_message(exchange_response.to_bytes())
+        await self.transport_protocol.send_message(
+            exchange_response.to_bytes(), MessageType.RESPONSE
+        )
 
     async def response_control_flow(self) -> None:
         """
@@ -893,7 +905,9 @@ class UserDevice(Device):
         control_flow_response = self.apdu.create_control_flow_response(
             StatusBytes.SUCCESS
         )
-        await self.transport_protocol.send_message(control_flow_response.to_bytes())
+        await self.transport_protocol.send_message(
+            control_flow_response.to_bytes(), MessageType.RESPONSE
+        )
 
 
 class UserSessionState(Enum):

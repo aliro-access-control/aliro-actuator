@@ -15,6 +15,7 @@ from aliro_actuator.hw_driver.murata_driver.gatt_driver import (
     MurataGATTClientDriver,
     MurataGATTServerDriver,
 )
+from aliro_actuator.hw_driver.murata_driver.l2cap_driver import MurataL2CAPDriver
 
 ALIRO_SERVICE_UUID = bytes.fromhex("FFF2")
 READER_CHARACTERISTIC_UUID = bytes.fromhex("D3B5A1309E234B3A8BE46B1EE5F980A3")
@@ -22,8 +23,7 @@ USER_DEVICE_CHARACTERISTIC_UUID = bytes.fromhex("BD4B95023F5411ECB9190242AC12000
 
 
 class UserDeviceMurataDriver(
-    MurataGAPCentralDriver,
-    MurataGATTClientDriver,
+    MurataGAPCentralDriver, MurataGATTClientDriver, MurataL2CAPDriver
 ):
     async def setup_connection(self) -> None:
         Global.logger.info("setup ble connection")
@@ -39,12 +39,13 @@ class UserDeviceMurataDriver(
         await self.stop_scanning()
         await self.connect(address_type, address, advertising_address_resolved)
 
-    async def handle_GATT_layer(self) -> None:
+    async def handle_GATT_layer(self) -> bytes:
         Global.logger.info("GATT layer")
         await self.handle_GATT_layer_setup()
         primary_service = await self.handle_GATT_layer_get_primary_service()
-        await self.handle_GATT_layer_read_characteristic(primary_service)
+        spsm, _ = await self.handle_GATT_layer_read_characteristic(primary_service)
         await self.handle_GATT_layer_write_characteristic(primary_service)
+        return spsm
 
     async def handle_GATT_layer_setup(self) -> None:
         Global.logger.info("GATT layer setup")
@@ -111,7 +112,9 @@ class UserDeviceMurataDriver(
         )
 
 
-class ReaderMurataDriver(MurataGAPPeripheralDriver, MurataGATTServerDriver):
+class ReaderMurataDriver(
+    MurataGAPPeripheralDriver, MurataGATTServerDriver, MurataL2CAPDriver
+):
     async def setup_gatt_database(
         self,
         spsm: bytes,

@@ -28,6 +28,7 @@
         "pysolr",
         "pytest",
         "pyyaml",
+        "spsm",
         "transceive",
         "type",
         "urandom",

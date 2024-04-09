@@ -40,12 +40,13 @@ class BleMessage:
         payload = input[4 : 4 + length]
         return BleMessage(header, id, payload)
 
-    def to_bytes(self) -> None:
+    def to_bytes(self) -> bytes:
         output = bytearray()
         output.append(self.header)
         output.append(self.id)
         output.extend(len(self.payload).to_bytes(2, "big"))
         output.extend(self.payload)
+        return output
 
 
 class Event_AttributeID(IntEnum):

@@ -16,7 +16,12 @@ from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
 )
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import (
+    AP_ID,
+    BleMessage,
+    ProtocolType,
+)
 
 DEFAULT_PORT = "/dev/ttyUSB0"
 
@@ -61,10 +66,24 @@ class BLEUWB(TransportProtocolBase):
         if self.mode == Mode.USER_DEVICE and isinstance(
             self.driver, UserDeviceMurataDriver
         ):
-            await self.driver.handle_GATT_layer()
+            self.spsm = await self.driver.handle_GATT_layer()
+        await self.driver.setup_l2cap_connection(self.spsm)
 
-    async def send_message(self, command: bytes) -> None:
-        pass
+    async def send_message(self, command: bytes, type: MessageType) -> None:
+        if type == MessageType.REQUEST:
+            id = AP_ID.AP_RQ
+        elif type == MessageType.RESPONSE:
+            id = AP_ID.AP_RS
+        else:
+            raise NotImplementedError
+        message = BleMessage(ProtocolType.AP, id, command)
+        await self.driver.send_le_cb_data(
+            self.driver.connected_devices[0], message.to_bytes()
+        )
 
     async def get_message(self) -> bytes:
-        return b""
+        message_bytes = await self.driver.wait_for_data(
+            self.driver.connected_devices[0]
+        )
+        message = BleMessage.from_bytes(message_bytes)
+        return message.payload
