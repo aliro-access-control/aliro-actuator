@@ -102,18 +102,21 @@ class Message:
             Global.logger.debug("OpCode: {:x}".format(self.op_code))
         Global.logger.debug("Length: 0x{:x}".format(self.length))
         Global.logger.debug("Data: {!r}".format(hexlify(self.data)))
-        if (
-            OpGroup(self.op_group) == OpGroup.GAP
-            and OpCodeGAP(self.op_code) == OpCodeGAP.CONFIRM
-        ) or (
-            OpGroup(self.op_group) == OpGroup.GATT
-            and OpCodeGATT(self.op_code) == OpCodeGATT.CONFIRM
-        ):
-            Global.logger.debug(
-                "Status: {}".format(
-                    ConfirmStatus(int.from_bytes(self.data, "little")).name
+        try:
+            if (
+                OpGroup(self.op_group) == OpGroup.GAP
+                and OpCodeGAP(self.op_code) == OpCodeGAP.CONFIRM
+            ) or (
+                OpGroup(self.op_group) == OpGroup.GATT
+                and OpCodeGATT(self.op_code) == OpCodeGATT.CONFIRM
+            ):
+                Global.logger.debug(
+                    "Status: {}".format(
+                        ConfirmStatus(int.from_bytes(self.data, "little")).name
+                    )
                 )
-            )
+        except ValueError:
+            pass  # actuator should not crash on unknown opcode
         Global.logger.debug("CRC: {!r}".format(hexlify(self.checksum)))
 
     def to_bytes(self) -> bytes:
