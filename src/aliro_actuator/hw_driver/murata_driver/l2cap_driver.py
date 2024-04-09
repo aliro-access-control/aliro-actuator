@@ -4,7 +4,10 @@ from binascii import hexlify
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
-from aliro_actuator.hw_driver.murata_driver.errors import NoResponseError
+from aliro_actuator.hw_driver.murata_driver.errors import (
+    ErrorReturnedError,
+    NoResponseError,
+)
 from aliro_actuator.hw_driver.murata_driver.fsci import Message
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeL2CAP, OpGroup
 
@@ -55,13 +58,22 @@ class MurataL2CAPDriver(MurataBaseDriver):
             len(data),
             data,
         )
-        self.write(message)
-        await self.wait_for_confirm(OpGroup.L2CAP)
-        response = await self.wait_for_message(
-            OpGroup.L2CAP,
-            OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE,
-        )
-        return response.get_channel_id()
+        while True:
+            self.write(message)
+            await self.wait_for_confirm(OpGroup.L2CAP)
+            response = await self.wait_for_message(
+                OpGroup.L2CAP,
+                OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE,
+            )
+            try:
+                channel = response.get_channel_id()
+                break
+            except ErrorReturnedError as error:
+                if error.error_code == 0x02 or error.error_code == 0xFFFE:
+                    # other side is not yet ready for l2cap, try again later
+                    await asyncio.sleep(0.1)
+                    continue
+        return channel
 
     async def send_le_credit(
         self, device_id: int, channel_id: bytes, no_credits: int

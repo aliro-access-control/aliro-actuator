@@ -32,8 +32,9 @@ class ErrorReturnedError(MurataError):
     Raised when a response is received, but the response contains an error.
     """
 
-    def __init__(self, actual: int, expected: list[int] | None = None) -> None:
-        message = "Error returned: actual: {:x}".format(actual)
+    def __init__(self, error_code: int, expected: list[int] | None = None) -> None:
+        message = "Error returned: {:x}".format(error_code)
+        self.error_code = error_code
         if expected is not None:
             expected_str = ""
             for expected_bytes in expected:
