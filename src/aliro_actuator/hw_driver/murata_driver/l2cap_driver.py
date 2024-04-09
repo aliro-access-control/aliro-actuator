@@ -28,7 +28,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.L2CAP)
 
-    async def register_le_psm(self, psm: bytes, psm_mtu: int = 27) -> None:
+    async def register_le_psm(self, psm: bytes, psm_mtu: int = 0xFF) -> None:
         Global.logger.info("Register Le PSM")
         data = bytearray()
         data.extend(change_endianness(psm[:2]))
