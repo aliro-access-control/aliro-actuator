@@ -45,7 +45,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
 
     async def connect_le_psm(
         self, device_id: int, psm: bytes, initial_credits: int
-    ) -> bytes:
+    ) -> int:
         Global.logger.info("Connect Le PSM")
         data = bytearray()
         data.extend(change_endianness(psm[:2]))
@@ -73,16 +73,15 @@ class MurataL2CAPDriver(MurataBaseDriver):
                     # other side is not yet ready for l2cap, try again later
                     await asyncio.sleep(0.1)
                     continue
+        self.channel_ids[device_id] = channel
         return channel
 
-    async def send_le_credit(
-        self, device_id: int, channel_id: bytes, no_credits: int
-    ) -> bytes:
+    async def send_le_credit(self, device_id: int, no_credits: int) -> bytes:
         Global.logger.info("Send Le Credit")
         data = bytearray()
         data.append(device_id)
-        data.extend(change_endianness(channel_id[:2]))
-        data.extend(int.to_bytes(no_credits, 2, "little"))
+        data.extend(self.channel_ids[device_id].to_bytes(2, "little"))
+        data.extend(no_credits.to_bytes(2, "little"))
 
         message = Message(
             OpGroup.L2CAP,
@@ -102,6 +101,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         Global.logger.info("Send le cb data")
         data = bytearray()
         data.append(device_id)
+        data.extend(self.channel_ids[device_id].to_bytes(2, "little"))
         data.extend(len(data).to_bytes(2, "little"))
         data.extend(change_endianness(data))
 

@@ -225,7 +225,7 @@ class Message:
             return
         raise NotImplementedError
 
-    def get_channel_id(self) -> bytes:
+    def get_channel_id(self) -> int:
         if (
             self.op_group == OpGroup.L2CAP
             and self.op_code == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
@@ -235,8 +235,8 @@ class Message:
                 result = int.from_bytes(connection_complete_structure[-2:], "little")
                 if result != 0x0000:
                     raise ErrorReturnedError(result)
-                channel_id = change_endianness(connection_complete_structure[1:3])
-                return channel_id
+                channel_id = connection_complete_structure[1:3]
+                return int.from_bytes(channel_id, "little")
         raise NotImplementedError
 
     def get_packet(self) -> bytes:
