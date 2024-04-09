@@ -80,18 +80,25 @@ class Message:
     def print(self) -> None:
         Global.logger.debug("FSCI message:")
         Global.logger.debug("OpGroup: {}".format(OpGroup(self.op_group).name))
-        if OpGroup(self.op_group) == OpGroup.GAP:
-            Global.logger.debug("OpCode: {}".format(OpCodeGAP(self.op_code).name))
-        elif OpGroup(self.op_group) in [
-            OpGroup.FSCI_request,
-            OpGroup.FSCI_response,
-        ]:
-            Global.logger.debug("OpCode: {}".format(OpCodeFSCI(self.op_code).name))
-        elif OpGroup(self.op_group) == OpGroup.GATT:
-            Global.logger.debug("OpCode: {}".format(OpCodeGATT(self.op_code).name))
-        elif OpGroup(self.op_group) == OpGroup.GATT_DB:
-            Global.logger.debug("OpCode: {}".format(OpCodeGATTDB(self.op_code).name))
-        else:
+        try:
+            if OpGroup(self.op_group) == OpGroup.GAP:
+                Global.logger.debug("OpCode: {}".format(OpCodeGAP(self.op_code).name))
+            elif OpGroup(self.op_group) in [
+                OpGroup.FSCI_request,
+                OpGroup.FSCI_response,
+            ]:
+                Global.logger.debug("OpCode: {}".format(OpCodeFSCI(self.op_code).name))
+            elif OpGroup(self.op_group) == OpGroup.GATT:
+                Global.logger.debug("OpCode: {}".format(OpCodeGATT(self.op_code).name))
+            elif OpGroup(self.op_group) == OpGroup.GATT_DB:
+                Global.logger.debug(
+                    "OpCode: {}".format(OpCodeGATTDB(self.op_code).name)
+                )
+            elif OpGroup(self.op_group) == OpGroup.L2CAP:
+                Global.logger.debug("OpCode: {}".format(OpCodeL2CAP(self.op_code).name))
+            else:
+                Global.logger.debug("OpCode: {:x}".format(self.op_code))
+        except ValueError:
             Global.logger.debug("OpCode: {:x}".format(self.op_code))
         Global.logger.debug("Length: 0x{:x}".format(self.length))
         Global.logger.debug("Data: {!r}".format(hexlify(self.data)))
