@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from binascii import hexlify
+
+from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
@@ -70,13 +73,16 @@ class BLEUWB(TransportProtocolBase):
         await self.driver.setup_l2cap_connection(self.spsm)
 
     async def send_message(self, command: bytes, type: MessageType) -> None:
+        Global.logger.info("sending command: {!r}".format(hexlify(command)))
         if type == MessageType.REQUEST:
             id = AP_ID.AP_RQ
         elif type == MessageType.RESPONSE:
             id = AP_ID.AP_RS
         else:
             raise NotImplementedError
+
         message = BleMessage(ProtocolType.AP, id, command)
+        Global.logger.info("BLE message: {!r}".format(hexlify(message.to_bytes())))
         await self.driver.send_le_cb_data(
             self.driver.connected_devices[0], message.to_bytes()
         )
@@ -85,5 +91,6 @@ class BLEUWB(TransportProtocolBase):
         message_bytes = await self.driver.wait_for_data(
             self.driver.connected_devices[0]
         )
+        Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
         return message.payload

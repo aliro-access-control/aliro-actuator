@@ -97,13 +97,13 @@ class MurataL2CAPDriver(MurataBaseDriver):
         )
         return response.data
 
-    async def send_le_cb_data(self, device_id: int, data: bytes) -> None:
+    async def send_le_cb_data(self, device_id: int, data_to_send: bytes) -> None:
         Global.logger.info("Send le cb data")
         data = bytearray()
         data.append(device_id)
         data.extend(self.channel_ids[device_id].to_bytes(2, "little"))
-        data.extend(len(data).to_bytes(2, "little"))
-        data.extend(change_endianness(data))
+        data.extend(len(data_to_send).to_bytes(2, "little"))
+        data.extend(change_endianness(data_to_send))
 
         message = Message(
             OpGroup.L2CAP,

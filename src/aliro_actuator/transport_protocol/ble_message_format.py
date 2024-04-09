@@ -46,7 +46,7 @@ class BleMessage:
         output.append(self.id)
         output.extend(len(self.payload).to_bytes(2, "big"))
         output.extend(self.payload)
-        return output
+        return bytes(output)
 
 
 class Event_AttributeID(IntEnum):
