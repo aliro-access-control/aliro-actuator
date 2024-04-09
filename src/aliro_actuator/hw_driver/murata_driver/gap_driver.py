@@ -136,6 +136,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                         "connected to device with device id: {}".format(device_id)
                     )
                     self.set_normal_timeout()
+                    self.connected_devices.append(device_id)
                     return
             except NoResponseError:
                 # sleep so other processes can run
