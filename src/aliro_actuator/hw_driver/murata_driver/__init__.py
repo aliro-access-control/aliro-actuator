@@ -57,7 +57,7 @@ class UserDeviceMurataDriver(
         services = await self.discover_all_primary_services(self.connected_devices[0])
         primary_service = None
         for service in services:
-            if service.get_uuid() == 0x2800:
+            if service.get_uuid() == ALIRO_SERVICE_UUID:
                 primary_service = service
                 break
         else:
@@ -73,9 +73,7 @@ class UserDeviceMurataDriver(
         Global.logger.info("GATT read characteristic")
         reader_characteristic = None
         for characteristic in primary_service.characteristics:
-            if characteristic.get_value_uuid() == int.from_bytes(
-                READER_CHARACTERISTIC_UUID, "big"
-            ):
+            if characteristic.get_value_uuid() == READER_CHARACTERISTIC_UUID:
                 reader_characteristic = characteristic
                 break
         else:
@@ -97,9 +95,7 @@ class UserDeviceMurataDriver(
         Global.logger.info("GATT write characteristic")
         user_device_characteristic = None
         for characteristic in primary_service.characteristics:
-            if characteristic.get_value_uuid() == int.from_bytes(
-                USER_DEVICE_CHARACTERISTIC_UUID, "big"
-            ):
+            if characteristic.get_value_uuid() == USER_DEVICE_CHARACTERISTIC_UUID:
                 user_device_characteristic = characteristic
                 break
         else:
@@ -120,7 +116,7 @@ class ReaderMurataDriver(
         spsm: bytes,
     ) -> None:
         Global.logger.info("Creating GATT Database")
-        await self.add_primary_service_declaration(0x01, bytes.fromhex("2800"))
+        await self.add_primary_service_declaration(0x01, ALIRO_SERVICE_UUID)
         await self.add_characteristic_declaration_and_value(
             READER_CHARACTERISTIC_UUID,
             spsm + bytes.fromhex("010100"),

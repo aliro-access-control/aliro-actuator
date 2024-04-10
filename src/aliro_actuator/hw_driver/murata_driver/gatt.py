@@ -4,6 +4,7 @@ from binascii import hexlify
 from enum import IntEnum
 
 from aliro_actuator import Global
+from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.errors import UnexpectedResponseError
 
 
@@ -96,7 +97,7 @@ class Service:
             return self.as_bytes
         raise NotImplementedError
 
-    def get_uuid(self) -> int:
+    def get_uuid(self) -> bytes:
         return self.uuid.value
 
 
@@ -133,7 +134,7 @@ class Characteristic:
             return self.as_bytes
         raise NotImplementedError
 
-    def get_value_uuid(self) -> int:
+    def get_value_uuid(self) -> bytes:
         return self.value.uuid.value
 
     def get_value(self) -> bytes:
@@ -234,11 +235,11 @@ class Descriptor:
 
 
 class UUID:
-    def __init__(self, type: UuidType, value: int, as_bytes: bytes | None = None):
+    def __init__(self, type: UuidType, value: bytes, as_bytes: bytes | None = None):
         self.type = type
         self.value = value
         self.as_bytes = as_bytes
-        Global.logger.debug("made uuid with value: {:x}".format(self.value))
+        Global.logger.debug("made uuid with value: {!r}".format(hexlify(self.value)))
 
     @classmethod
     def from_bytes(cls, input: bytes) -> tuple[UUID, int]:
@@ -251,7 +252,7 @@ class UUID:
             index = 5
         else:
             raise UnexpectedResponseError
-        value = int.from_bytes(input[1:index], "little")
+        value = change_endianness(input[1:index])
         return UUID(UuidType(type), value, input[:index]), index
 
     def to_bytes(self) -> bytes:
@@ -267,5 +268,5 @@ class UUID:
             length = 4
         else:
             raise UnexpectedResponseError
-        as_bytes.extend(int.to_bytes(self.value, length, "little"))
+        as_bytes.extend(change_endianness(self.value[:length]))
         return bytes(as_bytes)
