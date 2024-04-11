@@ -22,8 +22,10 @@ class Mode(Enum):
 
 
 class MessageType(Enum):
+    ANY = 0
     REQUEST = 1
     RESPONSE = 2
+    INITIATE_ACCESS_PROTOCOL = 3
 
 
 class TransportProtocolBase(ABC):
@@ -45,5 +47,5 @@ class TransportProtocolBase(ABC):
         pass
 
     @abstractmethod
-    async def get_message(self) -> bytes:
+    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
         return b""

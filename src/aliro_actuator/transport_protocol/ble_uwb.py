@@ -23,8 +23,10 @@ from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtoc
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
     BleMessage,
+    Notification_ID,
     ProtocolType,
 )
+from aliro_actuator.transport_protocol.errors import UnexpectedMessageTypeError
 
 DEFAULT_PORT = "/dev/ttyUSB0"
 
@@ -75,22 +77,43 @@ class BLEUWB(TransportProtocolBase):
     async def send_message(self, command: bytes, type: MessageType) -> None:
         Global.logger.info("sending command: {!r}".format(hexlify(command)))
         if type == MessageType.REQUEST:
-            id = AP_ID.AP_RQ
+            protocol_type = ProtocolType.AP
+            id: int = AP_ID.AP_RQ
         elif type == MessageType.RESPONSE:
+            protocol_type = ProtocolType.AP
             id = AP_ID.AP_RS
+        elif type == MessageType.INITIATE_ACCESS_PROTOCOL:
+            protocol_type = ProtocolType.NOTIFICATION
+            id = Notification_ID.INITIATE_ACCESS_PROTOCOL
         else:
             raise NotImplementedError
 
-        message = BleMessage(ProtocolType.AP, id, command)
+        message = BleMessage(protocol_type, id, command)
         Global.logger.info("BLE message: {!r}".format(hexlify(message.to_bytes())))
         await self.driver.send_le_cb_data(
             self.driver.connected_devices[0], message.to_bytes()
         )
 
-    async def get_message(self) -> bytes:
+    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
         message_bytes = await self.driver.wait_for_data(
             self.driver.connected_devices[0]
         )
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
+        if expected_type == MessageType.ANY:
+            pass
+        elif expected_type == MessageType.REQUEST:
+            if message.header != ProtocolType.AP or message.id != AP_ID.AP_RQ:
+                raise UnexpectedMessageTypeError
+        elif expected_type == MessageType.RESPONSE:
+            if message.header != ProtocolType.AP or message.id != AP_ID.AP_RS:
+                raise UnexpectedMessageTypeError
+        elif expected_type == MessageType.INITIATE_ACCESS_PROTOCOL:
+            if (
+                message.header != ProtocolType.NOTIFICATION
+                or message.id != Notification_ID.INITIATE_ACCESS_PROTOCOL
+            ):
+                raise UnexpectedMessageTypeError
+        else:
+            raise NotImplementedError
         return message.payload

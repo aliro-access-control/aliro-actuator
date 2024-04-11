@@ -39,5 +39,5 @@ class NFC(TransportProtocolBase):
     async def send_message(self, command: bytes, type: MessageType) -> None:
         self.driver.send_message(command)
 
-    async def get_message(self) -> bytes:
+    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
         return self.driver.receive_message()

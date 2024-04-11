@@ -75,7 +75,7 @@ class Socket(TransportProtocolBase):
         elif self.mode == Mode.USER_DEVICE:
             self.host.send(command)
 
-    async def get_message(self) -> bytes:
+    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
         if self.mode == Mode.READER:
             data = self.client.recv(4096)
             if data == b"":
