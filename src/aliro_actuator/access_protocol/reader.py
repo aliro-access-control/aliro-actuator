@@ -21,6 +21,7 @@ from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
     INS,
     Auth1Response,
+    Message,
     Response,
     StatusBytes,
     Transaction,
@@ -35,6 +36,7 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
     Exchange,
+    Select,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.encryption import (
@@ -50,9 +52,11 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseError,
     InvalidStatusError,
     SessionError,
+    UnexpectedNotificationDataError,
 )
-from aliro_actuator.access_protocol.tlv import TLV
+from aliro_actuator.access_protocol.tlv import TLV, TlvError
 from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
@@ -228,7 +232,13 @@ class Reader(Device):
             self.start_new_session()
 
         Global.logger.info("Start Expedited Transaction (fast)")
-        await self.handle_select(EXPEDITED_PHASE_AID)
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.wait_for_initiate_access_protocol_notification()
+        else:
+            await self.handle_select(EXPEDITED_PHASE_AID)
         await self.handle_auth0(Transaction.FAST, transaction_code)
         Global.logger.info("Expedited Transaction (fast) Done")
 
@@ -247,7 +257,13 @@ class Reader(Device):
             self.start_new_session()
 
         Global.logger.info("Start Expedited Transaction (standard)")
-        await self.handle_select(EXPEDITED_PHASE_AID)
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.wait_for_initiate_access_protocol_notification()
+        else:
+            await self.handle_select(EXPEDITED_PHASE_AID)
         await self.handle_auth0(Transaction.STANDARD, transaction_code)
         if load_cert:
             await self.handle_load_cert()
@@ -303,6 +319,28 @@ class Reader(Device):
             pass
 
         self.session = None
+
+    async def wait_for_initiate_access_protocol_notification(self) -> None:
+        if self.session is None:
+            raise SessionError("No Session")
+
+        response_str = await self.transport_protocol.get_message(
+            MessageType.INITIATE_ACCESS_PROTOCOL
+        )
+        attribute = BleAttribute.from_bytes(response_str)
+        if attribute.id != 0x00:
+            raise AccessProtocolError("User send unknown attribute ID")
+        self.session.set_initiate_access_protocol_info(attribute.value)
+
+        if self.session.application_type != CSA_APPLICATION_TYPE:
+            raise AccessProtocolError("User send unknown application type")
+        if (
+            PROTOCOL_VERSION
+            not in self.session.expedited_phase_supported_protocol_versions
+        ):
+            raise AccessProtocolError(
+                "User does not support protocol version used by reader"
+            )
 
     async def handle_select(self, aid: bytes) -> None:
         """
@@ -897,6 +935,108 @@ class ReaderSession:
                 self.expedited_phase_supported_protocol_versions
             )
         )
+
+    def set_initiate_access_protocol_info(
+        self, initiate_access_protocol_notification: bytes
+    ) -> None:
+        try:
+            self.proprietary_tlv = TLV.from_bytes(initiate_access_protocol_notification)
+        except TlvError as error:
+            raise UnexpectedNotificationDataError(
+                initiate_access_protocol_notification,
+                "Proprietary information is not a valid TLV",
+            ) from error
+
+        try:
+            type_bytes = self.proprietary_tlv.get_bytes(Select.TYPE_TAG)
+            if len(type_bytes) != Select.TYPE_LEN:
+                raise UnexpectedNotificationDataError(
+                    initiate_access_protocol_notification, "Type has invalid length"
+                )
+            self.application_type = int.from_bytes(type_bytes, byteorder="big")
+            Global.logger.debug("type: {}".format(self.application_type))
+        except IndexError as error:
+            raise UnexpectedNotificationDataError(
+                initiate_access_protocol_notification,
+                "missing Type, tag: {:#x}".format(error.args[0]),
+            ) from error
+
+        try:
+            etspv_bytes = self.proprietary_tlv.get_bytes(Select.ETSPV_TAG)
+            if (len(etspv_bytes) % 2) == 1:
+                raise UnexpectedNotificationDataError(
+                    initiate_access_protocol_notification,
+                    "expedited_phase_supported_protocol_versions has invalid length",
+                )
+            self.expedited_phase_supported_protocol_versions = (
+                Message._data_to_2byte_list(etspv_bytes)
+            )
+            Global.logger.debug(
+                "expedited transaction supported protocol versions: {}".format(
+                    self.expedited_phase_supported_protocol_versions
+                )
+            )
+        except IndexError as error:
+            raise UnexpectedNotificationDataError(
+                initiate_access_protocol_notification,
+                "missing expedited_phase_supported_protocol_versions, tag: {:#x}".format(
+                    error.args[0]
+                ),
+            ) from error
+
+        self.maximum_command_apdu = None
+        self.maximum_response_apdu = None
+        try:
+            extended_length = self.proprietary_tlv.get_tlv(Select.EXTENDED_INFO_TAG)
+            if len(extended_length.to_bytes()) != Select.EXTENDED_INFO_LEN:
+                raise UnexpectedNotificationDataError(
+                    initiate_access_protocol_notification,
+                    "Extended Length Information has invalid length",
+                )
+            try:
+                self.maximum_command_apdu = int.from_bytes(
+                    extended_length.get_bytes(Select.MAX_COMMAND_TAG, index=0), "big"
+                )
+            except IndexError as error:
+                raise UnexpectedNotificationDataError(
+                    initiate_access_protocol_notification,
+                    "missing Maximum Command APDU, tag: {:#x}".format(error.args[0]),
+                ) from error
+            try:
+                self.maximum_response_apdu = int.from_bytes(
+                    extended_length.get_bytes(Select.MAX_RESPONSE_TAG, index=1), "big"
+                )
+            except IndexError as error:
+                raise UnexpectedNotificationDataError(
+                    initiate_access_protocol_notification,
+                    "missing Maximum response, tag: {:#x}".format(error.args[0]),
+                ) from error
+        except IndexError:
+            pass
+        Global.logger.debug(
+            "maximum command apdu: {}".format(self.maximum_command_apdu)
+        )
+        Global.logger.debug(
+            "maximum response apdu: {}".format(self.maximum_response_apdu)
+        )
+
+        self.vendor_specific_extensions = None
+        try:
+            self.vendor_specific_extensions = self.proprietary_tlv.get_tlv(
+                Select.VENDOR_SPECIFIC_TAG
+            )
+            Global.logger.debug(
+                "vendor specific extensions: {!r}".format(
+                    hexlify(self.vendor_specific_extensions.to_bytes())
+                )
+            )
+        except IndexError:
+            pass
+        except TlvError as error:
+            raise UnexpectedNotificationDataError(
+                initiate_access_protocol_notification,
+                "Vendor specific extensions is not a valid TLV",
+            ) from error
 
     @property
     def transaction_identifier(self) -> bytes:

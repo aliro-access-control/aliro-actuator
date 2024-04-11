@@ -60,6 +60,7 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import (
@@ -208,6 +209,12 @@ class UserDevice(Device):
         if self.session is None:
             raise SessionError("starting session failed")
 
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.send_initiate_access_protocol_notification()
+
         while True:
             try:
                 command = await self.wait_for_command(
@@ -270,6 +277,19 @@ class UserDevice(Device):
         )
 
         self.session = None
+
+    async def send_initiate_access_protocol_notification(self) -> None:
+        """
+        Used by BLE, after a connection is established.
+        """
+        proprietary = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            self.supported_versions,
+        )
+        attribute = BleAttribute(0x00, proprietary.to_bytes())
+        await self.transport_protocol.send_message(
+            attribute.to_bytes(), MessageType.RESPONSE
+        )
 
     async def handle_select(self, select_command: Command) -> bytes:
         """

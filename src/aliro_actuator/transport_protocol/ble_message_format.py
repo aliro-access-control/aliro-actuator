@@ -73,8 +73,9 @@ class BleAttribute:
         value = input[1 : 1 + length]
         return BleAttribute(id, value)
 
-    def to_bytes(self) -> None:
+    def to_bytes(self) -> bytes:
         output = bytearray()
         output.append(self.id)
         output.append(len(self.value))
         output.extend(self.value)
+        return bytes(output)

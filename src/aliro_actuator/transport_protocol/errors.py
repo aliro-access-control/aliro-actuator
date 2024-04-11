@@ -23,3 +23,7 @@ class InvalidModeError(TransportProtocolError):
 
 class NoDataReceivedError(TransportProtocolError):
     pass
+
+
+class UnexpectedMessageTypeError(TransportProtocolError):
+    pass
