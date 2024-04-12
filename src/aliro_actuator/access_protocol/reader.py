@@ -939,6 +939,11 @@ class ReaderSession:
     def set_initiate_access_protocol_info(
         self, initiate_access_protocol_notification: bytes
     ) -> None:
+        Global.logger.debug(
+            "Initiate access protocol TLV: {!r}".format(
+                hexlify(initiate_access_protocol_notification)
+            )
+        )
         try:
             self.proprietary_tlv = TLV.from_bytes(initiate_access_protocol_notification)
         except TlvError as error:

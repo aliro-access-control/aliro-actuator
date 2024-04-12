@@ -70,7 +70,7 @@ class BleAttribute:
     def from_bytes(cls, input: bytes) -> BleAttribute:
         id = input[0]
         length = input[1]
-        value = input[1 : 1 + length]
+        value = input[2 : 2 + length]
         return BleAttribute(id, value)
 
     def to_bytes(self) -> bytes:
