@@ -351,7 +351,10 @@ class UserDevice(Device):
 
         if self.session is None:
             raise SessionError("No Session")
-        if not self.session.state_valid(UserSessionState.SELECT_DONE):
+        if not self.session.state_valid(UserSessionState.SELECT_DONE) and (
+            self.transport_protocol_type != TransportProtocol.BLE_UWB
+            and self.transport_protocol_type != TransportProtocol.SOCKET_BLE
+        ):
             state = self.session.state
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             raise SessionError("unexpected state for auth0 command: {}".format(state))
