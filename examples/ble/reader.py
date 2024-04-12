@@ -41,6 +41,7 @@ async def main():
     await reader.expedited_transaction_standard(
         TransactionCode.USER_DEVICE_SECURE_ACTION
     )
+    await reader.handle_exchange(False)
 
 
 if __name__ == "__main__":
