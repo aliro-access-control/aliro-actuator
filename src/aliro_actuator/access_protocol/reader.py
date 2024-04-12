@@ -595,9 +595,9 @@ class Reader(Device):
     async def handle_exchange(
         self,
         atomic_session: bool,
-        read_requests: list[tuple[int, int]] | None,
-        write_requests: list[tuple[int, bytes]] | None,
-        set_requests: list[tuple[int, int, int]] | None,
+        read_requests: list[tuple[int, int]] | None = None,
+        write_requests: list[tuple[int, bytes]] | None = None,
+        set_requests: list[tuple[int, int, int]] | None = None,
         notify: TLV | None = None,
         ursk: bytes | None = None,
         update_doc: bytes | None = None,
