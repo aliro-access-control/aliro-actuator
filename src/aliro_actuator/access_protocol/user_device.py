@@ -288,7 +288,7 @@ class UserDevice(Device):
         )
         attribute = BleAttribute(0x00, proprietary.to_bytes())
         await self.transport_protocol.send_message(
-            attribute.to_bytes(), MessageType.RESPONSE
+            attribute.to_bytes(), MessageType.INITIATE_ACCESS_PROTOCOL
         )
 
     async def handle_select(self, select_command: Command) -> bytes:
