@@ -438,7 +438,9 @@ class UserDevice(Device):
         ):
             state = self.session.state
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError("unexpected state for auth0 command: {}".format(state))
+            raise SessionError(
+                "unexpected state for load cert command: {}".format(state)
+            )
 
         Global.logger.info("Received LOAD CERT Command")
         try:
@@ -478,7 +480,7 @@ class UserDevice(Device):
         ):
             state = self.session.state
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError("unexpected state for auth0 command: {}".format(state))
+            raise SessionError("unexpected state for auth1 command: {}".format(state))
 
         Global.logger.info("Received AUTH1 Command")
         if auth1_command.certificate_data is not None:
@@ -553,6 +555,8 @@ class UserDevice(Device):
         if self.session.encryption is None:
             raise AccessProtocolError("no encryption engine found")
 
+        self.session.update_state(UserSessionState.AUTH1_DONE)
+
         Global.logger.info("sending AUTH1 response")
         await self.response_auth1(
             self.session.access_credential.get_key_slot(),
@@ -594,7 +598,9 @@ class UserDevice(Device):
         ):
             state = self.session.state
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError("unexpected state for auth0 command: {}".format(state))
+            raise SessionError(
+                "unexpected state for exchange command: {}".format(state)
+            )
 
         if not self.session.encryption.check_counters_valid():
             # End current session
