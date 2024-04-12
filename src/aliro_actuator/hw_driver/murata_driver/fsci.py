@@ -176,7 +176,7 @@ class Message:
             services = []
             index = 0
             for _ in range(no_discovered_services):
-                service, index_step = Service.from_bytes(discovered_services)
+                service, index_step = Service.from_bytes(discovered_services[index:])
                 index += index_step
                 services.append(service)
             return services
