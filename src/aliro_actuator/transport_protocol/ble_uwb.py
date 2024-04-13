@@ -64,7 +64,9 @@ class BLEUWB(TransportProtocolBase):
             )
         elif self.mode == Mode.USER_DEVICE:
             self.driver = UserDeviceMurataDriver(self.port)
-            await self.driver.setup_connection()
+            await self.driver.setup_connection(
+                group_resolving_key=self.group_resolving_key,
+            )
 
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()

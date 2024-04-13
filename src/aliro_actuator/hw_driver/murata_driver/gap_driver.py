@@ -3,6 +3,7 @@ from binascii import hexlify
 
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
+from aliro_actuator.hw_driver.murata_driver.encryption import dynamic_tag_generation
 from aliro_actuator.hw_driver.murata_driver.errors import NoResponseError
 from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
@@ -206,7 +207,12 @@ class MurataGAPCentralDriver(MurataBaseDriver):
             "connected to device with device id: {}".format(self.connected_devices[-1])
         )
 
-    async def search_for_device(self, service_uuid: bytes) -> tuple[int, bytes, int]:
+    async def search_for_device(
+        self,
+        service_uuid: bytes,
+        check_dynamic_tag: bool = False,
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+    ) -> tuple[int, bytes, int]:
         self.set_low_timeout()
         while True:
             try:
@@ -223,7 +229,15 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                             hexlify(address), hexlify(advertising_data)
                         )
                     )
-                    if advertising_data[5:7] == service_uuid:
+                    if advertising_data[5:7] == service_uuid and (
+                        not check_dynamic_tag
+                        or dynamic_tag_generation(
+                            group_resolving_key=group_resolving_key,
+                            expiry_timestamp=advertising_data[19:23],
+                            advertising_address=address,
+                        )
+                        == advertising_data[24:31]
+                    ):
                         Global.logger.info("Device Found!\n")
                         self.set_normal_timeout()
                         return message.get_address()

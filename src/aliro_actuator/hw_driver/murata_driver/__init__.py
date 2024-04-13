@@ -25,8 +25,12 @@ USER_DEVICE_CHARACTERISTIC_UUID = bytes.fromhex("BD4B95023F5411ECB9190242AC12000
 class UserDeviceMurataDriver(
     MurataGAPCentralDriver, MurataGATTClientDriver, MurataL2CAPDriver
 ):
-    async def setup_connection(self) -> None:
+    async def setup_connection(
+        self,
+        group_resolving_key: bytes,
+    ) -> None:
         Global.logger.info("setup ble connection")
+        self.group_resolving_key = group_resolving_key
         await self.start_scanning()
 
     async def wait_for_connection(self) -> None:
@@ -35,7 +39,11 @@ class UserDeviceMurataDriver(
             address_type,
             address,
             advertising_address_resolved,
-        ) = await self.search_for_device(ALIRO_SERVICE_UUID)
+        ) = await self.search_for_device(
+            ALIRO_SERVICE_UUID,
+            False,
+            self.group_resolving_key,
+        )
         await self.stop_scanning()
         await self.connect(address_type, address, advertising_address_resolved)
 
