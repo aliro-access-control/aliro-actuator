@@ -141,6 +141,8 @@ class Reader(Device):
         vendor_extension: bytes | None = None,
         fast_transaction_implemented: bool = True,
         reader_storage: ReaderStorage | None = None,
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        spsm: bytes = bytes.fromhex("0080"),
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -194,6 +196,9 @@ class Reader(Device):
             reader_storage = ReaderStorage()
         self.storage = reader_storage
 
+        self.group_resolving_key = group_resolving_key
+        self.spsm = spsm
+
         Global.logger.info("Initialized Reader")
 
     @property
@@ -221,6 +226,8 @@ class Reader(Device):
             Mode.READER,
             reader_group_identifier=self.reader_group_identifier,
             reader_group_sub_identifier=self.reader_group_sub_identifier,
+            group_resolving_key=self.group_resolving_key,
+            spsm=self.spsm,
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Transaction Initiation Done")
