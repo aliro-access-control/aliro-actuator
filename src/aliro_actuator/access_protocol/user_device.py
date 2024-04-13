@@ -244,7 +244,12 @@ class UserDevice(Device):
                         raise NotImplementedError(
                             "command: {} not implemented".format(command.ins)
                         )
-            except AccessProtocolError:
+            except AccessProtocolError as error:
+                Global.logger.error(
+                    "restarting session because of error: {}".format(
+                        error.__class__.__name__
+                    )
+                )
                 # main loop should continue even when commands are not valid
                 if self.session is None:
                     # start a new session if the previous one has been terminated
@@ -696,7 +701,7 @@ class UserDevice(Device):
         for read_command in read_data:
             exchange_payload.extend(read_command[0].to_bytes(2, "big"))
             exchange_payload.extend(read_command[1])
-        exchange_payload.extend(bytes([0x02, 0x00, 0x00]))
+        exchange_payload.extend(bytes([0x00, 0x02, 0x00, 0x00]))
 
         await self.response_exchange(exchange_payload, self.session.encryption)
 
