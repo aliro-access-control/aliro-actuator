@@ -35,23 +35,23 @@ class BLEUWB(TransportProtocolBase):
     def __init__(
         self,
         port: str | None = None,
-        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
-        spsm: bytes = bytes.fromhex("0080"),
     ) -> None:
         if port is not None:
             self.port = port
         else:
             self.port = DEFAULT_PORT
-        self.group_resolving_key = group_resolving_key
-        self.spsm = spsm
 
     async def initialization(
         self,
         mode: Mode,
         reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
         reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        spsm: bytes = bytes.fromhex("0080"),
     ) -> None:
         self.mode = mode
+        self.group_resolving_key = group_resolving_key
+        self.spsm = spsm
         if self.mode == Mode.READER:
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port)

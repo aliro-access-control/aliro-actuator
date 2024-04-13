@@ -126,6 +126,7 @@ class UserDevice(Device):
         user_device_storage: UserStorage | None = None,
         step_up_aid_required: bool = False,
         access_document_updatable: bool = False,
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -163,12 +164,16 @@ class UserDevice(Device):
         self.has_issuer_backend = False
         self.has_bound_application = False
 
+        self.group_resolving_key = group_resolving_key
+
     async def transaction_initiation(self) -> None:
         """
         Initializes the hardware and sets up a connection to the reader.
         """
         Global.logger.info("Start Transaction Initiation")
-        await self.transport_protocol.initialization(Mode.USER_DEVICE)
+        await self.transport_protocol.initialization(
+            Mode.USER_DEVICE, group_resolving_key=self.group_resolving_key
+        )
         await self.transport_protocol.wait_for_connection()
 
         Global.logger.info("Transaction Initiation Done")
