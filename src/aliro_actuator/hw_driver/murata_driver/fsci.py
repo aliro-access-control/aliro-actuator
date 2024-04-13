@@ -242,6 +242,7 @@ class Message:
                 result = int.from_bytes(connection_complete_structure[-2:], "little")
                 if result != 0x0000:
                     raise ErrorReturnedError(result)
+            return
         raise NotImplementedError
 
     def get_channel_id(self) -> int:
