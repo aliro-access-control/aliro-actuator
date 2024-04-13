@@ -18,13 +18,16 @@ import sys
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
 
+import asyncio
+
 from aliro_actuator.access_protocol.apdu import TransactionCode
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
 from examples.nfc.common import READER_GROUP_IDENTIFIER, READER_SUB_GROUP_IDENTIFIER
 
-if __name__ == "__main__":
+
+async def main():
     private_key_pem = open("examples/nfc/reader_private_key.pem", "rt")
     public_key_pem = open("examples/nfc/reader_public_key.pem", "rt")
     reader_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
@@ -35,6 +38,12 @@ if __name__ == "__main__":
         reader_group_sub_identifier=READER_SUB_GROUP_IDENTIFIER,
         reader_key=reader_keypair,
     )
-    reader.transaction_initiation()
-    reader.expedited_transaction_standard(TransactionCode.USER_DEVICE_SECURE_ACTION)
-    reader.handle_control_flow(True)
+    await reader.transaction_initiation()
+    await reader.expedited_transaction_standard(
+        TransactionCode.USER_DEVICE_SECURE_ACTION
+    )
+    await reader.handle_control_flow(True)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
