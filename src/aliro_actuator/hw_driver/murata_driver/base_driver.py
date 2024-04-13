@@ -14,7 +14,11 @@ from aliro_actuator.hw_driver.murata_driver.fsci import (
     Message,
     get_length_from_header,
 )
-from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
+from aliro_actuator.hw_driver.murata_driver.opcodes import (
+    OpCodeGAP,
+    OpCodeL2CAP,
+    OpGroup,
+)
 
 TIMEOUT = 2  # seconds, normal operation
 TIMEOUT_LOW = 0.2  # seconds, for polling (lower so other processes can still run)
@@ -72,6 +76,18 @@ class MurataBaseDriver:
             try:
                 response = self.read()
                 response.print()
+                if (
+                    response.get_op_group() == OpGroup.L2CAP
+                    and response.get_op_code() == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
+                ):
+                    # we always need to check for these messages, as they can be
+                    # triggered by the other device
+                    try:
+                        channel = response.get_channel_id()
+                        id = response.get_device_id()
+                        self.channel_ids[id] = channel
+                    except ErrorReturnedError:
+                        pass  # just ignore message
                 if (
                     response.get_op_group() != op_group
                     or response.get_op_code() != opcode

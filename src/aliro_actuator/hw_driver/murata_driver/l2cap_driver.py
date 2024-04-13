@@ -58,23 +58,27 @@ class MurataL2CAPDriver(MurataBaseDriver):
             len(data),
             data,
         )
-        while True:
+        # while we don't have an l2cap channel (and thus a connection)
+        while device_id not in self.channel_ids.keys():
             self.write(message)
             await self.wait_for_confirm(OpGroup.L2CAP)
+            if device_id in self.channel_ids.keys():
+                break  # received connection complete while waiting for confirm
             response = await self.wait_for_message(
                 OpGroup.L2CAP,
                 OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE,
             )
             try:
-                channel = response.get_channel_id()
+                response.check_for_error()
                 break
             except ErrorReturnedError as error:
                 if error.error_code == 0x02 or error.error_code == 0xFFFE:
                     # other side is not yet ready for l2cap, try again later
                     await asyncio.sleep(0.1)
                     continue
-        self.channel_ids[device_id] = channel
-        return channel
+                else:
+                    raise error
+        return self.channel_ids[device_id]
 
     async def send_le_credit(self, device_id: int, no_credits: int) -> bytes:
         Global.logger.info("Send Le Credit")

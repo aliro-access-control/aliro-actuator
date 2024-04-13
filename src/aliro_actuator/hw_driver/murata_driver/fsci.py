@@ -137,6 +137,16 @@ class Message:
             return self.data[0]
         elif self.op_group == OpGroup.L2CAP and self.op_code == OpCodeL2CAP.LE_CB_DATA:
             return self.data[0]
+        elif (
+            self.op_group == OpGroup.L2CAP
+            and self.op_code == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
+        ):
+            if self.data[0] == 0x01:
+                connection_complete_structure = self.data[1:]
+                result = int.from_bytes(connection_complete_structure[-2:], "little")
+                if result != 0x0000:
+                    raise ErrorReturnedError(result)
+                return connection_complete_structure[0]
         raise NotImplementedError
 
     def get_advertising_data(self) -> bytes:
@@ -223,6 +233,15 @@ class Message:
                 error = self.data[2:4]
                 raise ErrorReturnedError(int.from_bytes(error, "little"))
             return
+        elif (
+            self.op_group == OpGroup.L2CAP
+            and self.op_code == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
+        ):
+            if self.data[0] == 0x01:
+                connection_complete_structure = self.data[1:]
+                result = int.from_bytes(connection_complete_structure[-2:], "little")
+                if result != 0x0000:
+                    raise ErrorReturnedError(result)
         raise NotImplementedError
 
     def get_channel_id(self) -> int:
