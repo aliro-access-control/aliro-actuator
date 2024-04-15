@@ -91,7 +91,7 @@ class UserDeviceMurataDriver(
         )
         read_value = value.get_value()
         Global.logger.info("read values: {!r}".format(read_value))
-        no_versions = read_value[2]
+        no_versions = read_value[2] // 2  # every version is 2 byte long
         versions = []
         for index in range(no_versions):
             versions.append(read_value[3 + index : 5 + index])
@@ -127,7 +127,7 @@ class ReaderMurataDriver(
         await self.add_primary_service_declaration(0x01, ALIRO_SERVICE_UUID)
         await self.add_characteristic_declaration_and_value(
             READER_CHARACTERISTIC_UUID,
-            spsm + bytes.fromhex("010100"),
+            spsm + bytes.fromhex("020100"),
             uuid_type=UuidType.uuid_128_bits,
             value_length=5,
             properties=Properties.read,
