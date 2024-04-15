@@ -156,6 +156,7 @@ class ReaderMurataDriver(
         )
         await self.set_advertising_parameters()
         await self.set_advertising_data(
+            ALIRO_SERVICE_UUID,
             notification=0x00,
             advertisement_version=0x00,
             tx_power=0x00,

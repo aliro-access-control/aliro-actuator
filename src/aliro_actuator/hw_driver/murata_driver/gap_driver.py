@@ -4,6 +4,7 @@ from binascii import hexlify
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.encryption import dynamic_tag_generation
+from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.errors import NoResponseError
 from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
@@ -52,6 +53,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
 
     async def set_advertising_data(
         self,
+        service_uuid: bytes,
         notification: int,
         advertisement_version: int,
         tx_power: int,
@@ -73,14 +75,14 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         # element 2
         data.append(0x1A)  # length (-1)
         data.append(0x16)  # Type (Service data (16 bit UUID))
-        data.extend(bytes.fromhex("FFF2"))  # Aliro service UUID
+        data.extend(change_endianness(service_uuid))  # Aliro service UUID
         data.append((notification << 3) | (advertisement_version & 0x07))
         data.append(tx_power)
-        data.extend(reader_group_identifier[:8])
-        data.extend(reader_group_sub_identifier[:2])
-        data.extend(dynamic_tag_timestamp[:4])
+        data.extend(change_endianness(reader_group_identifier[:8]))
+        data.extend(change_endianness(reader_group_sub_identifier[:2]))
+        data.extend(change_endianness(dynamic_tag_timestamp[:4]))
         data.append(0x00)  # RFU
-        data.extend(dynamic_tag[:7])
+        data.extend(change_endianness(dynamic_tag[:7]))
 
         data.append(0x00)  # Scan response data included
         # scan response data
@@ -229,14 +231,14 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                             hexlify(address), hexlify(advertising_data)
                         )
                     )
-                    if advertising_data[5:7] == service_uuid and (
+                    if change_endianness(advertising_data[5:7]) == service_uuid and (
                         not check_dynamic_tag
                         or dynamic_tag_generation(
                             group_resolving_key=group_resolving_key,
-                            expiry_timestamp=advertising_data[19:23],
+                            expiry_timestamp=change_endianness(advertising_data[19:23]),
                             advertising_address=address,
                         )
-                        == advertising_data[24:31]
+                        == change_endianness(advertising_data[24:31])
                     ):
                         Global.logger.info("Device Found!\n")
                         self.set_normal_timeout()
