@@ -7,7 +7,9 @@ Unzip the SDK folder and go to tools\JN-SW-4407-DK6-Flash-Programmer.
 run the "JN-SW-4407 DK6 Production Flash Programmer v4564.exe" to install the programmer.
 
 you can now update the murata with the following command:
+```
 DK6Programmer.exe -V 0 -P 1000000 -s <comport> -Y -p <binary>
+```
 where <comport> is replaced with the comport (for example COM22) and <binary> with the binary name.
 
 ## Using MCUxpresso and a debugger.
