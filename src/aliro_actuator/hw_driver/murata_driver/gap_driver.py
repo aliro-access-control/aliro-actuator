@@ -78,11 +78,11 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         data.extend(change_endianness(service_uuid))  # Aliro service UUID
         data.append((notification << 3) | (advertisement_version & 0x07))
         data.append(tx_power)
-        data.extend(change_endianness(reader_group_identifier[:8]))
-        data.extend(change_endianness(reader_group_sub_identifier[:2]))
-        data.extend(change_endianness(dynamic_tag_timestamp[:4]))
+        data.extend(reader_group_identifier[:8])
+        data.extend(reader_group_sub_identifier[:2])
+        data.extend(dynamic_tag_timestamp[:4])
         data.append(0x00)  # RFU
-        data.extend(change_endianness(dynamic_tag[:7]))
+        data.extend(dynamic_tag[:7])
 
         data.append(0x00)  # Scan response data included
         # scan response data
@@ -235,10 +235,10 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                         not check_dynamic_tag
                         or dynamic_tag_generation(
                             group_resolving_key=group_resolving_key,
-                            expiry_timestamp=change_endianness(advertising_data[19:23]),
+                            expiry_timestamp=advertising_data[19:23],
                             advertising_address=address,
                         )
-                        == change_endianness(advertising_data[24:31])
+                        == advertising_data[24:31]
                     ):
                         Global.logger.info("Device Found!\n")
                         self.set_normal_timeout()
