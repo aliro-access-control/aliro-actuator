@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from enum import IntEnum
 
+from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
+
 
 class ProtocolType(IntEnum):
     AP = 0x00
@@ -37,7 +39,7 @@ class BleMessage:
         header = input[0]
         id = input[1]
         length = int.from_bytes(input[2:4], "big")
-        payload = input[4 : 4 + length]
+        payload = change_endianness(input[4 : 4 + length])
         return BleMessage(header, id, payload)
 
     def to_bytes(self) -> bytes:
@@ -45,7 +47,7 @@ class BleMessage:
         output.append(self.header)
         output.append(self.id)
         output.extend(len(self.payload).to_bytes(2, "big"))
-        output.extend(self.payload)
+        output.extend(change_endianness(self.payload))
         return bytes(output)
 
 
