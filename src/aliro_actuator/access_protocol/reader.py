@@ -462,17 +462,28 @@ class Reader(Device):
                     "User did not send cryptogram during a fast transaction"
                 )
 
+            Global.logger.info(
+                "Trying to match cryptogram received: {!r}".format(
+                    hexlify(auth0_response.cryptogram)
+                )
+            )
             for entry in self.storage.get_kpersistent_list():
                 self.session.derive_key_volatile_fast(
                     self.transport_protocol_type,
                     entry.access_credential,
                     entry.kpersistent,
                 )
+                Global.logger.info(
+                    "secret key: {!r}".format(hexlify(self.session.cryptogram_SK))
+                )
                 cryptogram = compute_cryptogram(
                     self.session.cryptogram_SK,
                     signaling_bitmap=entry.signaling_bitmap,
                     credential_signed_timestamp=entry.credential_signed_timestamp,
                     revocation_signed_timestamp=entry.revocation_signed_timestamp,
+                )
+                Global.logger.info(
+                    "computed cryptogram: {!r}".format(hexlify(cryptogram))
                 )
                 if cryptogram == auth0_response.cryptogram:
                     self.session.set_credential_public_key(entry.access_credential)

@@ -407,11 +407,19 @@ class UserDevice(Device):
                     doc_timestamp = self.access_document.get_timestamp()
                 if self.revocation_document is not None:
                     revoke_timestamp = self.revocation_document.get_timestamp()
+                Global.logger.info(
+                    "computing cryptogram with secret key: {!r}".format(
+                        hexlify(self.session.cryptogram_SK)
+                    )
+                )
                 cryptogram = compute_cryptogram(
                     self.session.cryptogram_SK,
                     signaling_bitmap=self.get_signaling_bitmap(),
                     credential_signed_timestamp=doc_timestamp,
                     revocation_signed_timestamp=revoke_timestamp,
+                )
+                Global.logger.info(
+                    "computed cryptogram: {!r}".format(hexlify(cryptogram))
                 )
             else:
                 Global.logger.info("Cryptogram not found, assigning random")
