@@ -36,10 +36,11 @@ class BleMessage:
 
     @classmethod
     def from_bytes(cls, input: bytes) -> BleMessage:
+        input = change_endianness(input)
         header = input[0]
         id = input[1]
         length = int.from_bytes(input[2:4], "big")
-        payload = change_endianness(input[4 : 4 + length])
+        payload = input[4 : 4 + length]
         return BleMessage(header, id, payload)
 
     def to_bytes(self) -> bytes:
@@ -47,8 +48,8 @@ class BleMessage:
         output.append(self.header)
         output.append(self.id)
         output.extend(len(self.payload).to_bytes(2, "big"))
-        output.extend(change_endianness(self.payload))
-        return bytes(output)
+        output.extend(self.payload)
+        return bytes(change_endianness(output))
 
 
 class Event_AttributeID(IntEnum):
