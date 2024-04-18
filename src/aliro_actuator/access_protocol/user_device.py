@@ -80,6 +80,10 @@ class UserStorage:
         self.kpersistent_map: dict[bytes, bytes] = {}
 
     def add_kpersistent(self, kpersistent: bytes, reader_group_sub_id: bytes) -> None:
+        Global.logger.info("adding Kpersistent: {!r}".format(hexlify(kpersistent)))
+        Global.logger.info(
+            "with reader sub id: {!r}".format(hexlify(reader_group_sub_id))
+        )
         self.kpersistent_map[reader_group_sub_id] = kpersistent
 
     def find_kpersistent(self, reader_group_sub_id: bytes) -> bytes | None:
