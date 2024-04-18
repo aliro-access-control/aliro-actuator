@@ -62,6 +62,7 @@ class ReaderStorage:
     """
     Cross-session storage for Expedited Fast cached data
     """
+
     def __init__(self) -> None:
         self.fast_cache: list[ReaderFastCacheEntry] = []
         self.fast_cache_size_limit = 16
@@ -1042,7 +1043,6 @@ class ReaderSession:
             transaction_identifier=self.transaction_identifier,
             flag=self.flag,
             proprietary_information=self.proprietary_tlv.to_bytes(),
-            credential_ephemeral_public_key=credential,
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]

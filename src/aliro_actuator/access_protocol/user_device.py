@@ -1076,7 +1076,6 @@ class UserSession:
             transaction_identifier=self.transaction_identifier,
             flag=bytes([self.command_parameters, self.transaction_code]),
             proprietary_information=proprietary_information,
-            credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
