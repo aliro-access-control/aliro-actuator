@@ -11,8 +11,8 @@ from aliro_actuator.access_protocol.apdu import (
     TransactionCode,
 )
 from aliro_actuator.access_protocol.authentication import (
-    create_endpoint_authentication,
     create_reader_authentication,
+    create_user_device_authentication,
 )
 from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
@@ -21,6 +21,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
+    create_proprietary_information,
     create_salt,
 )
 from aliro_actuator.access_protocol.tlv import TLV
@@ -80,7 +81,7 @@ class Test_apdu_testvectors(unittest.TestCase):
 
         command = self.apdu.create_auth0_command(
             transaction_type=Transaction.STANDARD,
-            transaction_code=TransactionCode.UNLOCK,
+            transaction_code=TransactionCode.USER_DEVICE,
             protocol_version=0x0100,
             reader_epubk=reader_epub_key.as_bytes(),
             transaction_identifier=TRANSACTION_IDENTIFIER,
@@ -94,7 +95,7 @@ class Test_apdu_testvectors(unittest.TestCase):
 
         command = self.apdu.parse_command(AUTH0_COMMAND)
         self.assertEqual(command.command_parameters, Transaction.STANDARD)
-        self.assertEqual(command.transaction_code, TransactionCode.UNLOCK)
+        self.assertEqual(command.transaction_code, TransactionCode.USER_DEVICE)
         self.assertEqual(command.expedited_phase_protocol_version, 0x0100)
         self.assertEqual(command.reader_epubk, reader_epub_key.as_bytes())
         self.assertEqual(command.transaction_identifier, TRANSACTION_IDENTIFIER)
@@ -105,7 +106,7 @@ class Test_apdu_testvectors(unittest.TestCase):
         user_epub_key = PublicKey(f.read())
 
         response = self.apdu.create_auth0_response(
-            endpoint_epubk=user_epub_key.as_bytes(), status=StatusBytes.SUCCESS
+            credential_epubk=user_epub_key.as_bytes(), status=StatusBytes.SUCCESS
         )
         self.assertEqual(response.to_bytes(), AUTH0_RESPONSE)
 
@@ -114,20 +115,20 @@ class Test_apdu_testvectors(unittest.TestCase):
         user_epub_key = PublicKey(f.read())
 
         response = self.apdu.parse_response(AUTH0_RESPONSE, INS.AUTH0)
-        self.assertEqual(response.endpoint_epubk, user_epub_key.as_bytes())
+        self.assertEqual(response.credential_epubk, user_epub_key.as_bytes())
         self.assertEqual(response.status, StatusBytes.SUCCESS)
 
     def test_reader_auth1_command(self) -> None:
         f = open("tests/access_protocol/testvector_lock_ephemeral_public.pem", "rt")
         reader_epubk = PublicKey(f.read())
         f = open("tests/access_protocol/testvector_user_ephemeral_public.pem", "rt")
-        endpoint_epubk = PublicKey(f.read())
+        credential_epubk = PublicKey(f.read())
         f = open("tests/access_protocol/testvector_lock_private.pem", "rt")
         reader_privk = PrivateKey(f.read())
 
         data = create_reader_authentication(
             READER_IDENTIFIER,
-            endpoint_epubk,
+            credential_epubk,
             reader_epubk,
             TRANSACTION_IDENTIFIER,
         )
@@ -135,8 +136,7 @@ class Test_apdu_testvectors(unittest.TestCase):
         reader_sig = reader_privk.sign(data.to_bytes())
 
         command = self.apdu.create_auth1_command(
-            response=Auth1Response.ENDPOINT_PUBLIC_KEY,
-            request_access_credentials=False,
+            response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
             reader_sig=reader_sig,
         )
         self.assertEqual(command.to_bytes()[:9], AUTH1_COMMAND[:9])
@@ -146,20 +146,20 @@ class Test_apdu_testvectors(unittest.TestCase):
         f = open("tests/access_protocol/testvector_lock_ephemeral_public.pem", "rt")
         reader_epubk = PublicKey(f.read())
         f = open("tests/access_protocol/testvector_user_ephemeral_public.pem", "rt")
-        endpoint_epubk = PublicKey(f.read())
+        credential_epubk = PublicKey(f.read())
         f = open("tests/access_protocol/testvector_lock_public.pem", "rt")
         lock_public = PublicKey(f.read())
 
         command = self.apdu.parse_command(AUTH1_COMMAND)
         self.assertEqual(command.command_parameters, 0x01)
-        self.assertEqual(command.expected_response, Auth1Response.ENDPOINT_PUBLIC_KEY)
+        self.assertEqual(command.expected_response, Auth1Response.CREDENTIAL_PUBLIC_KEY)
         self.assertEqual(command.request_access_credentials, False)
         self.assertEqual(command.reader_signature, READER_SIGNATURE)
         self.assertEqual(command.certificate_data, None)
 
         data = create_reader_authentication(
             READER_IDENTIFIER,
-            endpoint_epubk,
+            credential_epubk,
             reader_epubk,
             TRANSACTION_IDENTIFIER,
         )
@@ -176,7 +176,7 @@ class Test_apdu_testvectors(unittest.TestCase):
         response = self.apdu.create_auth1_response(
             key_slot=None,
             public_key=user_public.as_bytes(),
-            expected_response=Auth1Response.ENDPOINT_PUBLIC_KEY,
+            expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
             signature=USER_SIGNATURE,
             status=StatusBytes.SUCCESS,
             encryption=encryption,
@@ -201,18 +201,18 @@ class Test_apdu_testvectors(unittest.TestCase):
         )
 
         payload_tlv = TLV.from_bytes(decrypted_payload)
-        endpoint_pubk = payload_tlv.get_value(0x5A)
-        self.assertEqual(user_public.as_bytes(), endpoint_pubk)
+        credential_pubk = payload_tlv.get_value(0x5A)
+        self.assertEqual(user_public.as_bytes(), credential_pubk)
 
-        endpoint_signature = payload_tlv.get_bytes(0x9E)
+        user_device_signature = payload_tlv.get_bytes(0x9E)
 
-        data = create_endpoint_authentication(
+        data = create_user_device_authentication(
             READER_IDENTIFIER,
             user_ephemeral_public,
             reader_ephemeral_public,
             TRANSACTION_IDENTIFIER,
         )
-        reader_public.verify(data.to_bytes(), endpoint_signature)
+        reader_public.verify(data.to_bytes(), user_device_signature)
 
         signaling_bitmap = payload_tlv.get_value(0x5E)
         self.assertEqual(signaling_bitmap, bytes([0x00]))
@@ -236,6 +236,10 @@ class Test_apdu_testvectors(unittest.TestCase):
         # if self.vendor_specific_extension is not None:
         #     info.extend(self.vendor_specific_extension)
 
+        proprietary_information = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            [int.from_bytes(PROTOCOL_VERSION, "big")],
+        ).to_bytes()
         salt_bytes = create_salt(
             transport_protocol=TransportProtocol.NFC,
             word=b"Volatile****",
@@ -244,11 +248,8 @@ class Test_apdu_testvectors(unittest.TestCase):
             reader_identifier=READER_IDENTIFIER,
             protocol_version=PROTOCOL_VERSION,
             transaction_identifier=TRANSACTION_IDENTIFIER,
-            flag=bytes([Transaction.STANDARD, TransactionCode.UNLOCK]),
-            application_type=CSA_APPLICATION_TYPE,
-            expedited_phase_supported_protocol_versions=[
-                int.from_bytes(PROTOCOL_VERSION, "big")
-            ],
+            flag=bytes([Transaction.STANDARD, TransactionCode.USER_DEVICE]),
+            proprietary_information=proprietary_information,
         )
         self.assertEqual(hexlify(salt_bytes), hexlify(SALT))
 

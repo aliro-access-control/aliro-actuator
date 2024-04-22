@@ -18,7 +18,7 @@ from enum import Enum
 from Crypto.Cipher import AES
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.defines import Select, TransportProtocol
+from aliro_actuator.access_protocol.defines import Auth1, Select, TransportProtocol
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.trust_framework.key import PublicKey
@@ -152,12 +152,8 @@ def create_salt(
     protocol_version: bytes,
     transaction_identifier: bytes,
     flag: bytes,
-    application_type: int,
-    expedited_phase_supported_protocol_versions: list[int],
-    maximum_command_apdu: int | None = None,
-    maximum_response_apdu: int | None = None,
-    vendor_specific_tlv: TLV | None = None,
-    endpoint_ephemeral_public_key: PublicKey | None = None,
+    proprietary_information: bytes,
+    credential_ephemeral_public_key: PublicKey | None = None,
 ) -> bytes:
     """
     Generates the salt used for key generation
@@ -171,12 +167,8 @@ def create_salt(
         protocol_version (bytes).
         transaction_identifier (bytes).
         flag (bytes): command_parameters || transaction_code.
-        application_type (int): (for proprietary_information generation).
-        expedited_phase_supported_protocol_versions (list[int]): (for proprietary_information generation).
-        maximum_command_apdu (int | None, optional): (for proprietary_information generation). Defaults to None.
-        maximum_response_apdu (int | None, optional): (for proprietary_information generation). Defaults to None.
-        vendor_specific_tlv (TLV | None, optional): (for proprietary_information generation). Defaults to None.
-        endpoint_ephemeral_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
+        proprietary_information (bytes): proprietary information.
+        credential_ephemeral_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
 
     Returns:
         bytes: the salt as bytes
@@ -191,14 +183,6 @@ def create_salt(
         or transport_protocol == TransportProtocol.SOCKET_NFC
     ):
         interface_byte = 0x5E
-
-    proprietary_information = create_proprietary_information(
-        application_type,
-        expedited_phase_supported_protocol_versions,
-        maximum_command_apdu,
-        maximum_response_apdu,
-        vendor_specific_tlv,
-    ).to_bytes()
 
     salt = bytearray()
     salt.extend(reader_public_key.get_x().to_bytes(32, "big"))
@@ -215,8 +199,8 @@ def create_salt(
         bytes([Select.PROPRIETARY_TAG, len(proprietary_information)])
         + proprietary_information
     )
-    if endpoint_ephemeral_public_key is not None:
-        salt.extend(endpoint_ephemeral_public_key.get_x().to_bytes(32, "big"))
+    if credential_ephemeral_public_key is not None:
+        salt.extend(credential_ephemeral_public_key.get_x().to_bytes(32, "big"))
 
     Global.logger.debug("created salt: {!r}".format(hexlify(salt)))
     return bytes(salt)
@@ -267,3 +251,34 @@ def create_proprietary_information(
         )
 
     return TLV(proprietary_tlv)
+
+
+def compute_cryptogram(
+    cryptogram_sk: bytes,
+    signaling_bitmap: bytes,
+    credential_signed_timestamp: bytes | None = None,
+    revocation_signed_timestamp: bytes | None = None,
+) -> bytes:
+    if credential_signed_timestamp is None:
+        credential_signed_timestamp = b"\x00" * 20
+    if revocation_signed_timestamp is None:
+        revocation_signed_timestamp = b"\x00" * 20
+    if (
+        len(credential_signed_timestamp) != 20
+        or len(revocation_signed_timestamp) != 20
+        or len(signaling_bitmap) != 2
+    ):
+        raise ValueError("Invalid input for cryptogram")
+
+    plain_payload = TLV(
+        [
+            (Auth1.SIGNALING_BITMAP_TAG, signaling_bitmap),
+            (Auth1.CREDENTIAL_TIMESTAMP_TAG, credential_signed_timestamp),
+            (Auth1.REVOCATION_TIMESTAMP_TAG, revocation_signed_timestamp),
+        ]
+    ).to_bytes()
+
+    cipher = AES.new(cryptogram_sk, AES.MODE_GCM, nonce=b"\x00" * 12)
+    cipher.update(b"")
+    ciphertext, authentication_tag = cipher.encrypt_and_digest(plain_payload)
+    return ciphertext + authentication_tag

@@ -13,9 +13,13 @@
 # limitations under the License.
 
 
-class Credential:
+class Document:
     def store(self) -> None:
         pass
 
     def retrieve(self) -> None:
         pass
+
+    def get_timestamp(self) -> bytes | None:
+        # todo
+        return None

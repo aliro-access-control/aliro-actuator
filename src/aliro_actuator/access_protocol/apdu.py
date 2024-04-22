@@ -84,17 +84,12 @@ class Transaction(IntEnum):
 class TransactionCode(IntEnum):
     """
     Indicating the transaction code in a auth0 command.
-    See table 8-1 and 8-5 of the Aliro spec.
+    See table 8-1 and 8-3 of the Aliro spec.
     """
 
-    UNLOCK = 0x01
-    LOCK = 0x02
-    DISARM = 0x03
-    UNLOCK_USING_RKE = 0x04
-    LOCK_USING_RKE = 0x05
-    UNLOCK_WITH_FORCE_USER_AUTHENTICATION = 0x06
-    LOCK_WITH_FORCE_USER_AUTHENTICATION = 0x07
-    DISARM_WITH_FORCE_USER_AUTHENTICATION = 0x08
+    USER_DEVICE = 0x01
+    USER_DEVICE_SECURE_ACTION = 0x02
+    FORCE_USER_AUTHENTICATION = 0x03
 
 
 class Auth1Response(IntEnum):
@@ -105,7 +100,7 @@ class Auth1Response(IntEnum):
     """
 
     KEY_SLOT = 0x00
-    ENDPOINT_PUBLIC_KEY = 0x01
+    CREDENTIAL_PUBLIC_KEY = 0x01
 
 
 class S1(IntEnum):
@@ -627,7 +622,7 @@ class Command(Message):
                 "command parameters: {!r}".format(self.command_parameters)
             )
             if self.command_parameters & 0x01 == 0x01:
-                self.expected_response = Auth1Response.ENDPOINT_PUBLIC_KEY
+                self.expected_response = Auth1Response.CREDENTIAL_PUBLIC_KEY
             else:
                 self.expected_response = Auth1Response.KEY_SLOT
             if self.command_parameters & 0x02 == 0x02:
@@ -1036,7 +1031,7 @@ class Response(Message):
         Parse this response as a Auth0 response.
 
         creates the following attributes:
-        endpoint_epubk: bytes
+        credential_epubk: bytes
         cryptogram: bytes (if present)
         vendor_specific_extensions: tlv (if present)
         """
@@ -1053,34 +1048,40 @@ class Response(Message):
             ) from error
 
         try:
-            self.endpoint_epubk = data_tlv.get_bytes(Auth0.ENDPOINT_EPUBK_TAG)
-            if len(self.endpoint_epubk) != Auth0.ENDPOINT_EPUBK_LEN:
+            self.credential_epubk = data_tlv.get_bytes(Auth0.CREDENTIAL_EPUBK_TAG)
+            if len(self.credential_epubk) != Auth0.CREDENTIAL_EPUBK_LEN:
                 raise InvalidResponseDataError(
-                    self.as_bytes, "Endpoint Ephemeral Public Key has invalid length"
+                    self.as_bytes, "Credential Ephemeral Public Key has invalid length"
                 )
             Global.logger.debug(
-                "endpoint epubk: {!r}".format(hexlify(self.endpoint_epubk))
+                "credential epubk: {!r}".format(hexlify(self.credential_epubk))
             )
         except IndexError as error:
             raise InvalidResponseDataError(
                 self.as_bytes,
-                "missing Endpoint Ephemeral Public Key, tag: {:#x}".format(
+                "missing Credential Ephemeral Public Key, tag: {:#x}".format(
                     error.args[0]
                 ),
             ) from error
 
         try:
             self.cryptogram: bytes | None = data_tlv.get_bytes(Auth0.CRYPTOGRAM_TAG)
+            if len(self.cryptogram) != Auth0.CRYPTOGRAM_LEN:
+                raise InvalidResponseDataError(
+                    self.as_bytes, "Cryptogram has invalid length"
+                )
             Global.logger.debug("cryptogram: {!r}".format(self.cryptogram))
         except IndexError:
             self.cryptogram = None
             Global.logger.debug("No cryptogram found")
 
         try:
-            self.vendor_specific_extensions = data_tlv.get_tlv(Auth0.CRYPTOGRAM_TAG)
+            self.vendor_specific_extensions = data_tlv.get_tlv(
+                Auth0.VENDOR_SPECIFIC_TAG
+            )
             if (
                 len(self.vendor_specific_extensions.to_bytes())
-                > Auth0.CRYPTOGRAM_MAX_LEN
+                > Auth0.RE_VENDOR_SPECIFIC_MAX_LEN
             ):
                 raise InvalidResponseDataError(
                     self.as_bytes, "vendor specific extensions have invalid length"
@@ -1102,13 +1103,12 @@ class Response(Message):
         decrypted_payload: bytes
         payload_tlv: TLV
         key_slot: bytes | None
-        endpoint_public_key: bytes | None
-        endpoint_signature: bytes
+        credential_public_key: bytes | None
+        user_device_signature: bytes
         private_mailbox_data: bytes | None
         signaling_bitmap: bytes
         credential_signed_timestamp: bytes | None
         revocation_signed_timestamp: bytes | None
-        access_credential_response: bytes | None
         """
         Global.logger.debug("Parsing auth1 response:")
         self._check_status()
@@ -1155,33 +1155,39 @@ class Response(Message):
             Global.logger.debug("no keyslot found")
 
         try:
-            self.endpoint_public_key: bytes | None = self.payload_tlv.get_bytes(
-                Auth1.ENDPOINT_PUBK_TAG
+            self.credential_public_key: bytes | None = self.payload_tlv.get_bytes(
+                Auth1.CREDENTIAL_PUBK_TAG
             )
-            if len(self.endpoint_public_key) != Auth1.ENDPOINT_PUBK_LEN:
+            if len(self.credential_public_key) != Auth1.CREDENTIAL_PUBK_LEN:
                 raise InvalidResponseDataError(
-                    self.as_bytes, "endpoint public key has invalid length"
+                    self.as_bytes, "credential public key has invalid length"
                 )
             Global.logger.debug(
-                "endpoint public key: {!r}".format(hexlify(self.endpoint_public_key))
+                "credential public key: {!r}".format(
+                    hexlify(self.credential_public_key)
+                )
             )
         except IndexError:
-            self.endpoint_public_key = None
-            Global.logger.debug("no endpoint public key found")
+            self.credential_public_key = None
+            Global.logger.debug("no credential public key found")
 
-        if self.key_slot is None and self.endpoint_public_key is None:
+        if self.key_slot is None and self.credential_public_key is None:
             raise InvalidResponseDataError(
-                self.as_bytes, "No key slot or endpoint public key found"
+                self.as_bytes, "No key slot or credential public key found"
             )
 
         try:
-            self.endpoint_signature = self.payload_tlv.get_bytes(Auth1.ENDPOINT_SIG_TAG)
+            self.user_device_signature = self.payload_tlv.get_bytes(
+                Auth1.USER_DEVICE_SIG_TAG
+            )
             Global.logger.debug(
-                "endpoint signature: {!r}".format(hexlify(self.endpoint_signature))
+                "user device signature: {!r}".format(
+                    hexlify(self.user_device_signature)
+                )
             )
         except IndexError as error:
             raise InvalidResponseDataError(
-                self.as_bytes, "No endpoint signature tag found"
+                self.as_bytes, "No user device signature tag found"
             ) from error
 
         try:
@@ -1244,19 +1250,6 @@ class Response(Message):
         except IndexError:
             self.revocation_signed_timestamp = None
             Global.logger.debug("no revocation_signed_timestamp found")
-
-        try:
-            self.access_credential_response: bytes | None = self.payload_tlv.get_bytes(
-                Auth1.ACCESS_RESPONSE_TAG
-            )
-            Global.logger.debug(
-                "access_credential_response: {!r}".format(
-                    hexlify(self.access_credential_response)
-                )
-            )
-        except IndexError:
-            self.access_credential_response = None
-            Global.logger.debug("no access_credential_response found")
 
     def parse_as_load_cert(self) -> None:
         """
@@ -1438,6 +1431,7 @@ class APDU:
         reader_epubk: bytes,
         transaction_identifier: bytes,
         reader_identifier: bytes,
+        vendor_extension: bytes | None = None,
     ) -> Command:
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.COMMAND_TAG, transaction_type.to_bytes(1, "big")),
@@ -1447,6 +1441,8 @@ class APDU:
             (Auth0.TRANSACTION_ID_TAG, transaction_identifier),
             (Auth0.READER_IDENTIFIER_TAG, reader_identifier),
         ]
+        if vendor_extension is not None:
+            data_tlv.append((Auth0.VENDOR_SPECIFIC_TAG, vendor_extension))
         data = TLV(data_tlv)
 
         return self.create_command(
@@ -1459,10 +1455,10 @@ class APDU:
         )
 
     def create_auth0_response(
-        self, endpoint_epubk: bytes, status: int, cryptogram: bytes | None = None
+        self, credential_epubk: bytes, status: int, cryptogram: bytes | None = None
     ) -> Response:
         data_tlv: list[tuple[int, bytes | list]] = [
-            (Auth0.ENDPOINT_EPUBK_TAG, endpoint_epubk)
+            (Auth0.CREDENTIAL_EPUBK_TAG, credential_epubk)
         ]
         if cryptogram is not None:
             data_tlv.append((Auth0.CRYPTOGRAM_TAG, cryptogram))
@@ -1486,14 +1482,13 @@ class APDU:
     def create_auth1_command(
         self,
         response: Auth1Response,
-        request_access_credentials: bool,
         reader_sig: bytes,
         certificate_data: bytes | None = None,
     ) -> Command:
         if len(reader_sig) != 64:
             raise ValueError
 
-        command_parameters = response | (request_access_credentials << 1)
+        command_parameters = response
 
         data_fields: list[tuple[int, bytes | list]] = [
             (Auth1.COMMAND_TAG, command_parameters.to_bytes(1, "big")),
@@ -1522,15 +1517,7 @@ class APDU:
         encryption: EncryptionEngine,
         status: int = StatusBytes.SUCCESS,
         private_mailbox_data: bytes | None = None,
-        access_doc_retrieve: bool = False,
-        revocation_doc_retrieve: bool = False,
-        step_up_aid_required: bool = False,
-        data_in_mailbox: bool = False,
-        read_mailbox: bool = False,
-        write_mailbox: bool = False,
-        send_issuer_backend: bool = False,
-        send_bound_app: bool = False,
-        update_doc: bool = False,
+        signaling_bitmap: bytes | None = None,
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
     ) -> Response:
@@ -1548,51 +1535,37 @@ class APDU:
                     )
                 )
             auth1_payload.append((Auth1.KEY_SLOT_TAG, key_slot))
-        elif expected_response == Auth1Response.ENDPOINT_PUBLIC_KEY:
+        elif expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
             if public_key is None:
                 raise CreateCommandError(
-                    "no public key passed while expected_response is ENDPOINT_PUBLIC_KEY"
+                    "no public key passed while expected_response is CREDENTIAL_PUBLIC_KEY"
                 )
-            if len(public_key) != Auth1.ENDPOINT_PUBK_LEN:
+            if len(public_key) != Auth1.CREDENTIAL_PUBK_LEN:
                 raise CreateCommandError(
-                    "Endpoint public key has invalid length, expected {}, actual: {}".format(
-                        Auth1.ENDPOINT_PUBK_LEN, len(public_key)
+                    "Credential public key has invalid length, expected {}, actual: {}".format(
+                        Auth1.CREDENTIAL_PUBK_LEN, len(public_key)
                     )
                 )
-            auth1_payload.append((Auth1.ENDPOINT_PUBK_TAG, public_key))
+            auth1_payload.append((Auth1.CREDENTIAL_PUBK_TAG, public_key))
 
-        if len(signature) != Auth1.ENDPOINT_SIG_LEN:
+        if len(signature) != Auth1.USER_DEVICE_SIG_LEN:
             raise CreateCommandError(
-                "Endpoint signature has invalid length, expected {}, actual: {}".format(
-                    Auth1.ENDPOINT_SIG_LEN, len(signature)
+                "Credential signature has invalid length, expected {}, actual: {}".format(
+                    Auth1.USER_DEVICE_SIG_LEN, len(signature)
                 )
             )
-        auth1_payload.append((Auth1.ENDPOINT_SIG_TAG, signature))
+        auth1_payload.append((Auth1.USER_DEVICE_SIG_TAG, signature))
         if private_mailbox_data is not None:
             auth1_payload.append((Auth1.MAILBOX_DATA_TAG, private_mailbox_data))
 
-        byte_ls = 0
-        byte_ms = 0
-        if access_doc_retrieve:
-            byte_ms |= 1 << 0
-        if revocation_doc_retrieve:
-            byte_ms |= 1 << 1
-        if step_up_aid_required:
-            byte_ms |= 1 << 2
-        if data_in_mailbox:
-            byte_ms |= 1 << 3
-        if read_mailbox:
-            byte_ms |= 1 << 4
-        if write_mailbox:
-            byte_ms |= 1 << 5
-        if send_issuer_backend:
-            byte_ms |= 1 << 6
-        if send_bound_app:
-            byte_ms |= 1 << 7
-
-        if update_doc:
-            byte_ls |= 1 << 1
-        signaling_bitmap = bytes([byte_ls, byte_ms])
+        if signaling_bitmap is None:
+            signaling_bitmap = bytes(b"\x00" * Auth1.SIGNALING_BITMAP_LEN)
+        if len(signaling_bitmap) != Auth1.SIGNALING_BITMAP_LEN:
+            raise CreateCommandError(
+                "signaling_bitmap has invalid length, expected {}, actual: {}".format(
+                    Auth1.SIGNALING_BITMAP_LEN, len(signaling_bitmap)
+                )
+            )
         auth1_payload.append((Auth1.SIGNALING_BITMAP_TAG, signaling_bitmap))
 
         if credential_signed_timestamp is not None:

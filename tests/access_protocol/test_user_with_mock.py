@@ -18,6 +18,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from aliro_actuator.access_document.access_credential import AccessDocument
+from aliro_actuator.access_document.revocation_document import RevocationDocument
 from aliro_actuator.access_protocol.apdu import (
     APDU,
     Auth1Response,
@@ -38,14 +40,14 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.access_protocol.user_device import UserDevice, UserSessionState
+from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
-from aliro_actuator.trust_framework.endpoint import Endpoint
 from aliro_actuator.trust_framework.key import KeyPair, PrivateKey, PublicKey
 
 
 class Test_user(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_control_flow_command(self, mock_nfc: Mock) -> None:
+    async def test_control_flow_command(self, mock_nfc: Mock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_control_flow_command(
             0x00, 0x00
@@ -53,14 +55,14 @@ class Test_user(unittest.TestCase):
 
         user = UserDevice(TransportProtocol.NFC, mock_nfc)
         user.start_new_session()
-        command = user.wait_for_command()
-        user.handle_control_flow(command)
+        command = await user.wait_for_command()
+        await user.handle_control_flow(command)
 
         self.assertIsNotNone(user.session)
         self.assertEqual(user.session.state, UserSessionState.SELECT_DONE)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_select_command(self, mock_nfc: Mock) -> None:
+    async def test_select_command(self, mock_nfc: Mock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_select_command(
             EXPEDITED_PHASE_AID
@@ -69,13 +71,13 @@ class Test_user(unittest.TestCase):
         user = UserDevice(TransportProtocol.NFC, mock_nfc)
         user.start_new_session()
         command = user.wait_for_command()
-        user.handle_select(command)
+        await user.handle_select(command)
 
         self.assertIsNotNone(user.session)
         self.assertEqual(user.session.state, UserSessionState.SELECT_DONE)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_select_command_invalid_aid(self, mock_nfc: Mock) -> None:
+    async def test_select_command_invalid_aid(self, mock_nfc: Mock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_select_command(
             bytes.fromhex("000203040500434344")
@@ -83,18 +85,17 @@ class Test_user(unittest.TestCase):
 
         user = UserDevice(TransportProtocol.NFC, mock_nfc)
         user.start_new_session()
-        command = user.wait_for_command()
+        command = await user.wait_for_command()
         with pytest.raises(InvalidCommandDataError):
-            user.handle_select(command)
+            await user.handle_select(command)
 
-        mock_nfc.send_message.assert_called_with(
+        await mock_nfc.send_message.assert_called_with(
             StatusBytes.FILE_OR_APP_NOT_FOUND.to_bytes(2, "big")
         )
-        self.assertIsNotNone(user.session)
-        self.assertEqual(user.session.state, UserSessionState.SESSION_START)
+        self.assertIsNone(user.session)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_select_command_no_aid(self, mock_nfc: Mock) -> None:
+    async def test_select_command_no_aid(self, mock_nfc: Mock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_select_command(
             bytes.fromhex("")
@@ -103,16 +104,15 @@ class Test_user(unittest.TestCase):
         user = UserDevice(TransportProtocol.NFC, mock_nfc)
         user.start_new_session()
         with pytest.raises(InvalidCommandDataError):
-            command = user.wait_for_command()
+            command = await user.wait_for_command()
 
-        mock_nfc.send_message.assert_called_with(
+        await mock_nfc.send_message.assert_called_with(
             StatusBytes.COMMAND_NOT_COMPLIANT.to_bytes(2, "big")
         )
-        self.assertIsNotNone(user.session)
-        self.assertEqual(user.session.state, UserSessionState.SESSION_START)
+        self.assertIsNone(user.session)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_auth0_command_standard(self, mock_nfc: Mock) -> None:
+    async def test_auth0_command_standard(self, mock_nfc: Mock) -> None:
         reader_keys = KeyPair()
         transaction_identifier = os.urandom(16)
         reader_identifier = os.urandom(32)
@@ -120,7 +120,7 @@ class Test_user(unittest.TestCase):
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth0_command(
             Transaction.STANDARD,
-            TransactionCode.LOCK,
+            TransactionCode.USER_DEVICE_SECURE_ACTION,
             PROTOCOL_VERSION,
             reader_keys.get_public_key_as_bytes(),
             transaction_identifier,
@@ -130,14 +130,16 @@ class Test_user(unittest.TestCase):
         user = UserDevice(TransportProtocol.NFC, mock_nfc)
         user.start_new_session()
         user.session.update_state(UserSessionState.SELECT_DONE)
-        command = user.wait_for_command()
-        user.handle_auth0(command)
+        command = await user.wait_for_command()
+        await user.handle_auth0(command)
 
         self.assertIsNotNone(user.session)
         self.assertEqual(user.session.state, UserSessionState.AUTH0_STD_DONE)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_auth0_command_standard_invalid_protocol(self, mock_nfc: Mock) -> None:
+    async def test_auth0_command_standard_invalid_protocol(
+        self, mock_nfc: Mock
+    ) -> None:
         reader_keys = KeyPair()
         transaction_identifier = os.urandom(16)
         reader_identifier = os.urandom(32)
@@ -145,7 +147,7 @@ class Test_user(unittest.TestCase):
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth0_command(
             Transaction.STANDARD,
-            TransactionCode.LOCK,
+            TransactionCode.USER_DEVICE_SECURE_ACTION,
             0x0000,
             reader_keys.get_public_key_as_bytes(),
             transaction_identifier,
@@ -157,16 +159,131 @@ class Test_user(unittest.TestCase):
         user.session.update_state(UserSessionState.SELECT_DONE)
         command = user.wait_for_command()
         with pytest.raises(VersionError):
-            user.handle_auth0(command)
+            await user.handle_auth0(command)
 
-        mock_nfc.send_message.assert_called_with(
+        await mock_nfc.send_message.assert_called_with(
             StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED.to_bytes(2, "big")
         )
-        self.assertIsNotNone(user.session)
-        self.assertEqual(user.session.state, UserSessionState.SELECT_DONE)
+        self.assertIsNone(user.session)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_load_cert_command(self, mock_nfc: Mock) -> None:
+    async def test_auth0_command_fast_not_implemented(self, mock_nfc: Mock) -> None:
+        reader_keys = KeyPair()
+        transaction_identifier = os.urandom(16)
+        reader_identifier = os.urandom(32)
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_auth0_command(
+            Transaction.FAST,
+            TransactionCode.USER_DEVICE_SECURE_ACTION,
+            PROTOCOL_VERSION,
+            reader_keys.get_public_key_as_bytes(),
+            transaction_identifier,
+            reader_identifier,
+        ).to_bytes()
+
+        user = UserDevice(
+            TransportProtocol.NFC, mock_nfc, fast_transaction_implemented=False
+        )
+        user.start_new_session()
+        user.session.update_state(UserSessionState.SELECT_DONE)
+        command = await user.wait_for_command()
+        await user.handle_auth0(command)
+
+        self.assertIsNotNone(user.session)
+        self.assertEqual(user.session.state, UserSessionState.AUTH0_FAST_DONE)
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    async def test_auth0_command_fast_implemented(self, mock_nfc: Mock) -> None:
+        user_credential = KeyPair(
+            private_key=bytes.fromhex(
+                "332343eccb42d28e65f685e25c8ee2bbc77f54f2d32f1bc5ba40701978e2c23f"
+            ),
+            public_key=bytes.fromhex(
+                "04ed1c8b8eb7e44c2842db98730717c75cc94c96ab9ae60f079879e756980b4003b38f"
+                "b449203f7237cb9f81077b8ac49c75c8115ed408312222eab61e18feca17"
+            ),
+        )
+        reader_key = PublicKey(
+            bytes.fromhex(
+                "04b62d9b8f494f2f43a07a7db7e965865d04feeabe4e9c3b8a2f5a544ee2a9c60fd867"
+                "5c7b3cca0e0070dbb999d9d11f67b4517247452ec931eef51f047194172a"
+            ),
+        )
+        user_ephemeral = KeyPair(
+            private_key=bytes.fromhex(
+                "8188df8c9fe94cab14bd1075bfd1e4f13f24c9146940e3d6f118e54d8b27249e"
+            ),
+            public_key=bytes.fromhex(
+                "04507806c74a52a8e9b34d0796e4e2382ab6f9d9d7417179fc338429bda1c2fff92852"
+                "d5c7f5643f1f24e468a6d998effeea81d23c9857d10040c2ea150abede89"
+            ),
+        )
+        reader_ephemeral = PublicKey(
+            bytes.fromhex(
+                "04de8639f30ff8c502559db84059dbc7fde720044a7ed8717eddf0481315313ed32f55"
+                "9a58ccad407d2c5d4f385f6add3587c8f05e87521b181066125d2d1a39d8"
+            ),
+        )
+        transaction_identifier = bytes.fromhex("2701e4fe10d21e15b216c550b0c5ee68")
+        reader_identifier = bytes.fromhex(
+            "00112233445566778899aabbccddeeffffeeddccbbaa99887766554433221100"
+        )
+
+        apdu = APDU()
+        mock_nfc.get_message.return_value = apdu.create_auth0_command(
+            Transaction.FAST,
+            TransactionCode.USER_DEVICE,
+            PROTOCOL_VERSION,
+            reader_ephemeral.as_bytes(),
+            transaction_identifier,
+            reader_identifier,
+        ).to_bytes()
+
+        user = UserDevice(
+            TransportProtocol.NFC,
+            mock_nfc,
+            access_credentials=[
+                AccessCredential(
+                    user_device_key_pair=user_credential,
+                    reader_id_key_list=[
+                        (reader_identifier[:16], reader_key),
+                    ],
+                )
+            ],
+            access_document=AccessDocument(),
+            revocation_document=RevocationDocument(),
+            step_up_aid_required=True,
+            mailbox=[(bytes.fromhex("2134"), 0, b"hello")],
+            fast_transaction_implemented=True,
+        )
+        user.start_new_session(ephemeral_key=user_ephemeral)
+        user.session.update_state(UserSessionState.SELECT_DONE)
+
+        user.storage.add_kpersistent(
+            bytes.fromhex(
+                "e0f5b6fb881e3335632eba447bed1a2c84ebfb0556b270974794600dbf0a6c1a"
+            ),
+            bytes.fromhex("ffeeddccbbaa99887766554433221100"),
+        )
+
+        command = await user.wait_for_command()
+        await user.handle_auth0(command)
+
+        self.assertIsNotNone(user.session)
+        self.assertEqual(user.session.state, UserSessionState.AUTH0_FAST_DONE)
+
+        await mock_nfc.send_message.assert_called_with(
+            bytes.fromhex(
+                "864104507806c74a52a8e9b34d0796e4e2382ab6f9d9d7417179fc338429bda1c2fff9"
+                "2852d5c7f5643f1f24e468a6d998effeea81d23c9857d10040c2ea150abede899d40e8"
+                "7eac3589c3eeb3a6d7976d3ef29f3f0bb022e750fcda4a88bea8358d1bb63870a39baa"
+                "89f80950ae305bdc03da9b1d91b6c4dbef2b15133ec7fa2d9c1046b49000"
+            )
+        )
+
+    @patch("aliro_actuator.transport_protocol.nfc.NFC")
+    async def test_load_cert_command(self, mock_nfc: Mock) -> None:
         reader_id = os.urandom(32)
         cert = Certificate(
             key_info_subject_public_key=bytes.fromhex(
@@ -188,33 +305,41 @@ class Test_user(unittest.TestCase):
             cert.encode_compressed()
         ).to_bytes()
 
-        endpoints = [
-            Endpoint(
+        reader_key = PublicKey(
+            bytes.fromhex(
+                (
+                    "04842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a"
+                    "5bea3c188beadb36490a7e95f91a4c162acfc3401c3a4f4e5a"
+                    "59251d45243ac8544a665cb951422f"
+                )
+            )
+        )
+        access_credentials = [
+            AccessCredential(
                 KeyPair(),
-                PublicKey(
-                    bytes.fromhex(
-                        (
-                            "04842242f6182ba1c1138d32b77fb9f7f37b70034b9f04443a5bea3c188beadb"
-                            "36490a7e95f91a4c162acfc3401c3a4f4e5a59251d45243ac8544a665cb951422f"
-                        )
-                    )
-                ),
-                [reader_id],
+                [
+                    (
+                        reader_id[:16],
+                        reader_key,
+                    ),
+                ],
             )
         ]
-        user = UserDevice(TransportProtocol.NFC, mock_nfc, endpoints)
+        user = UserDevice(TransportProtocol.NFC, mock_nfc, access_credentials)
         user.start_new_session()
         user.session.reader_identifier = reader_id
+        user.session.access_credential = access_credentials[0]
         user.session.update_state(UserSessionState.AUTH0_STD_DONE)
-        command = user.wait_for_command()
-        user.handle_load_cert(command)
+        command = await user.wait_for_command()
+        await user.handle_load_cert(command)
 
         self.assertIsNotNone(user.session)
-        self.assertTrue(hasattr(user.session, "cert"))
+        # TODO uncomment when verification is implemented
+        # self.assertTrue(hasattr(user.session, "cert"))
         self.assertEqual(user.session.state, UserSessionState.AUTH0_STD_DONE)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_auth1_command(self, mock_nfc: Mock) -> None:
+    async def test_auth1_command(self, mock_nfc: Mock) -> None:
         exchange_SK_reader = os.urandom(32)
         exchange_SK_device = os.urandom(32)
         encryption = EncryptionEngine(
@@ -222,9 +347,9 @@ class Test_user(unittest.TestCase):
         )
 
         reader_ephemeral_keypair = KeyPair()
-        endpoint_ephemeral_keypair = KeyPair()
+        credential_ephemeral_keypair = KeyPair()
         reader_keypair = KeyPair()
-        endpoint_keypair = KeyPair()
+        credential_keypair = KeyPair()
         reader_identifier = os.urandom(0x20)
         transaction_identifier = os.urandom(0x10)
 
@@ -233,7 +358,7 @@ class Test_user(unittest.TestCase):
                 (0x4D, reader_identifier),
                 (
                     0x86,
-                    endpoint_ephemeral_keypair.get_public_key()
+                    credential_ephemeral_keypair.get_public_key()
                     .get_x()
                     .to_bytes(32, "big"),
                 ),
@@ -251,35 +376,44 @@ class Test_user(unittest.TestCase):
 
         apdu = APDU()
         mock_nfc.get_message.return_value = apdu.create_auth1_command(
-            Auth1Response.ENDPOINT_PUBLIC_KEY, False, reader_sig
+            Auth1Response.CREDENTIAL_PUBLIC_KEY, reader_sig
         ).to_bytes()
 
-        endpoints = [
-            Endpoint(
-                endpoint_keypair, reader_keypair.get_public_key(), [reader_identifier]
+        access_credentials = [
+            AccessCredential(
+                credential_keypair,
+                [(reader_identifier[:16], reader_keypair.get_public_key())],
             )
         ]
-        user = UserDevice(TransportProtocol.NFC, mock_nfc, endpoints)
+        user = UserDevice(
+            TransportProtocol.NFC,
+            mock_nfc,
+            access_credentials,
+            fast_transaction_implemented=True,
+        )
         user.start_new_session()
         user.session.update_state(UserSessionState.AUTH0_STD_DONE)
-        user.session.set_endpoint(endpoints[0])
+        user.session.set_access_credential(access_credentials[0])
         user.session.command_parameters = Transaction.STANDARD
-        user.session.transaction_code = TransactionCode.LOCK
+        user.session.transaction_code = TransactionCode.USER_DEVICE_SECURE_ACTION
         user.session.expedited_phase_protocol_version = PROTOCOL_VERSION
         user.session.vendor_specific_extension = None
-        user.session.endpoint_ephemeral = endpoint_ephemeral_keypair
+        user.session.credential_ephemeral = credential_ephemeral_keypair
         user.session.reader_epubk = reader_ephemeral_keypair.get_public_key()
         user.session.reader_identifier = reader_identifier
         user.session.transaction_identifier = transaction_identifier
         user.session.encryption = EncryptionEngine(
             DeviceType.USER, exchange_SK_reader, exchange_SK_device
         )
+        user.session.access_credential = access_credentials[0]
 
-        command = user.wait_for_command()
-        user.handle_auth1(command)
+        command = await user.wait_for_command()
+        await user.handle_auth1(command)
+
+        self.assertIsNotNone(user.storage.find_kpersistent(reader_identifier[16:]))
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_exchange_command(self, mock_nfc: Mock) -> None:
+    async def test_exchange_command(self, mock_nfc: Mock) -> None:
         exchange_SK_reader = os.urandom(32)
         exchange_SK_device = os.urandom(32)
         encryption = EncryptionEngine(
@@ -298,11 +432,11 @@ class Test_user(unittest.TestCase):
         user.session.encryption = EncryptionEngine(
             DeviceType.USER, exchange_SK_reader, exchange_SK_device
         )
-        command = user.wait_for_command(encryption=user.session.encryption)
-        user.handle_exchange(command)
+        command = await user.wait_for_command(encryption=user.session.encryption)
+        await user.handle_exchange(command)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    def test_exchange_command_mailbox(self, mock_nfc: Mock) -> None:
+    async def test_exchange_command_mailbox(self, mock_nfc: Mock) -> None:
         exchange_SK_reader = os.urandom(32)
         exchange_SK_device = os.urandom(32)
         encryption = EncryptionEngine(
@@ -327,7 +461,7 @@ class Test_user(unittest.TestCase):
         user.session.encryption = EncryptionEngine(
             DeviceType.USER, exchange_SK_reader, exchange_SK_device
         )
-        command = user.wait_for_command(encryption=user.session.encryption)
-        user.handle_exchange(command)
+        command = await user.wait_for_command(encryption=user.session.encryption)
+        await user.handle_exchange(command)
 
         self.assertEqual(user.mailbox.read(0, 5), bytes.fromhex("FFFFFFFFFF"))

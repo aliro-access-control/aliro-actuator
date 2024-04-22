@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from aliro_actuator.hw_driver.pn7160_driver import Driver
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
 
 
 class NFC(TransportProtocolBase):
@@ -21,21 +21,28 @@ class NFC(TransportProtocolBase):
         self.driver = Driver(port)
         self.mode: Mode | None = None
 
-    def initialization(self, mode: Mode) -> None:
+    async def initialization(
+        self,
+        mode: Mode,
+        reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
+        reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        spsm: bytes = bytes.fromhex("0080"),
+    ) -> None:
         self.mode = mode
         self.driver.initialize(mode)
 
     def deinitialization(self) -> None:
         self.driver.deinitialize()
 
-    def wait_for_connection(self) -> None:
-        if self.mode == Mode.CARD_EMULATION:
+    async def wait_for_connection(self) -> None:
+        if self.mode == Mode.USER_DEVICE:
             self.driver.wait_for_reader()
         elif self.mode == Mode.READER:
             self.driver.wait_for_tag()
 
-    def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes, type: MessageType) -> None:
         self.driver.send_message(command)
 
-    def get_message(self) -> bytes:
+    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
         return self.driver.receive_message()
