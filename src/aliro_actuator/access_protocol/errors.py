@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from binascii import hexlify
-
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, STEPUP_PHASE_AID
 
 
@@ -25,12 +23,21 @@ class AccessProtocolError(Exception):
     pass
 
 
+class CryptogramNotFound(AccessProtocolError):
+    pass
+
+
 class SessionError(AccessProtocolError):
     pass
 
 
-class KeyLookupFailed(AccessProtocolError):
-    pass
+class UnexpectedNotificationDataError(AccessProtocolError):
+    def __init__(self, response: bytes, other_info: str = ""):
+        if other_info != "":
+            message = "{}, Data: {!r}".format(other_info, response)
+        else:
+            message = "Data: {!r}".format(response)
+        AccessProtocolError.__init__(self, message)
 
 
 class UnexpectedResponseError(AccessProtocolError):

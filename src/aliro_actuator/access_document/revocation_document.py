@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from aliro_actuator.credential import Credential
+from aliro_actuator.access_document import Document
 
 
-class RevocationDocument(Credential):
+class RevocationDocument(Document):
     pass

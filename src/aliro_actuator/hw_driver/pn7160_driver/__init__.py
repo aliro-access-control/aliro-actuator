@@ -151,7 +151,7 @@ class Driver:
         if self.mode == Mode.READER:
             self.nci.registerTagCallback(ctypes.byref(tagcallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x00, 0)
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             self.nci.nfcHce_registerHceCallback(ctypes.byref(hcecallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x01, 0)
 
@@ -218,7 +218,7 @@ class Driver:
                     "received response: {!r}".format(hexlify(self.response))
                 )
 
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             if not reader_available:
                 raise NoReaderError
 
@@ -239,7 +239,7 @@ class Driver:
             else:
                 raise NoDataReceivedError
 
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             global data_received
             if not reader_available:
                 raise NoReaderError

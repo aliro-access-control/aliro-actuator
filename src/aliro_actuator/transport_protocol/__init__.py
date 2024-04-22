@@ -18,26 +18,39 @@ from enum import Enum
 
 class Mode(Enum):
     READER = 1
-    CARD_EMULATION = 2
+    USER_DEVICE = 2
+
+
+class MessageType(Enum):
+    ANY = 0
+    REQUEST = 1
+    RESPONSE = 2
+    INITIATE_ACCESS_PROTOCOL = 3
 
 
 class TransportProtocolBase(ABC):
     @abstractmethod
-    def initialization(self, mode: Mode) -> None:
+    async def initialization(
+        self,
+        mode: Mode,
+        reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
+        reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        spsm: bytes = bytes.fromhex("0080"),
+    ) -> None:
         pass
 
     @abstractmethod
     def deinitialization(self) -> None:
         pass
 
-    @abstractmethod
-    def wait_for_connection(self) -> None:
+    async def wait_for_connection(self) -> None:
         pass
 
     @abstractmethod
-    def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes, type: MessageType) -> None:
         pass
 
     @abstractmethod
-    def get_message(self) -> bytes:
+    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
         return b""

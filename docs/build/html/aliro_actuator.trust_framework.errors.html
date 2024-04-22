@@ -14,7 +14,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="aliro_actuator.trust_framework.key module" href="aliro_actuator.trust_framework.key.html" />
-    <link rel="prev" title="aliro_actuator.trust_framework.endpoint module" href="aliro_actuator.trust_framework.endpoint.html" />
+    <link rel="prev" title="aliro_actuator.trust_framework.certificate module" href="aliro_actuator.trust_framework.certificate.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -41,6 +41,13 @@
 </dd></dl>
 
 <dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.trust_framework.errors.InvalidIdentifierError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.trust_framework.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidIdentifierError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.trust_framework.errors.InvalidIdentifierError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.trust_framework.errors.TrustFrameworkError" title="aliro_actuator.trust_framework.errors.TrustFrameworkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrustFrameworkError</span></code></a></p>
+<p>Passed when a identifier is invalid.</p>
+</dd></dl>
+
+<dl class="py exception">
 <dt class="sig sig-object py" id="aliro_actuator.trust_framework.errors.InvalidKeyError">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.trust_framework.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidKeyError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.trust_framework.errors.InvalidKeyError" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#aliro_actuator.trust_framework.errors.TrustFrameworkError" title="aliro_actuator.trust_framework.errors.TrustFrameworkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrustFrameworkError</span></code></a></p>
@@ -52,6 +59,19 @@
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.trust_framework.errors.</span></span><span class="sig-name descname"><span class="pre">InvalidKeyFormatError</span></span><a class="headerlink" href="#aliro_actuator.trust_framework.errors.InvalidKeyFormatError" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#aliro_actuator.trust_framework.errors.TrustFrameworkError" title="aliro_actuator.trust_framework.errors.TrustFrameworkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrustFrameworkError</span></code></a></p>
 <p>Passed when a key has the wrong format.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.trust_framework.errors.KeyLookupFailed">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.trust_framework.errors.</span></span><span class="sig-name descname"><span class="pre">KeyLookupFailed</span></span><a class="headerlink" href="#aliro_actuator.trust_framework.errors.KeyLookupFailed" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.trust_framework.errors.TrustFrameworkError" title="aliro_actuator.trust_framework.errors.TrustFrameworkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrustFrameworkError</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="aliro_actuator.trust_framework.errors.MissingPublicKeyError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.trust_framework.errors.</span></span><span class="sig-name descname"><span class="pre">MissingPublicKeyError</span></span><a class="headerlink" href="#aliro_actuator.trust_framework.errors.MissingPublicKeyError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aliro_actuator.trust_framework.errors.TrustFrameworkError" title="aliro_actuator.trust_framework.errors.TrustFrameworkError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrustFrameworkError</span></code></a></p>
+<p>Passed when initializing private key with 32 bytes data, and no public key.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -85,8 +105,8 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">aliro_actuator</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="aliro_actuator.html">aliro_actuator package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="aliro_actuator.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_document.html">aliro_actuator.access_document package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.access_protocol.html">aliro_actuator.access_protocol package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="aliro_actuator.credential.html">aliro_actuator.credential package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.hw_driver.html">aliro_actuator.hw_driver package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="aliro_actuator.transport_protocol.html">aliro_actuator.transport_protocol package</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a></li>
@@ -107,7 +127,7 @@
   <li><a href="modules.html">aliro_actuator</a><ul>
   <li><a href="aliro_actuator.html">aliro_actuator package</a><ul>
   <li><a href="aliro_actuator.trust_framework.html">aliro_actuator.trust_framework package</a><ul>
-      <li>Previous: <a href="aliro_actuator.trust_framework.endpoint.html" title="previous chapter">aliro_actuator.trust_framework.endpoint module</a></li>
+      <li>Previous: <a href="aliro_actuator.trust_framework.certificate.html" title="previous chapter">aliro_actuator.trust_framework.certificate module</a></li>
       <li>Next: <a href="aliro_actuator.trust_framework.key.html" title="next chapter">aliro_actuator.trust_framework.key module</a></li>
   </ul></li>
   </ul></li>
