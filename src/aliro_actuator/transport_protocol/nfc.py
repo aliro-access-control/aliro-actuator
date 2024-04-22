@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
+
 from aliro_actuator.hw_driver.pn7160_driver import Driver
 from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
 
@@ -37,12 +39,12 @@ class NFC(TransportProtocolBase):
 
     async def wait_for_connection(self) -> None:
         if self.mode == Mode.USER_DEVICE:
-            self.driver.wait_for_reader()
+            await asyncio.to_thread(self.driver.wait_for_reader)
         elif self.mode == Mode.READER:
-            self.driver.wait_for_tag()
+            await asyncio.to_thread(self.driver.wait_for_tag)
 
     async def send_message(self, command: bytes, type: MessageType) -> None:
-        self.driver.send_message(command)
+        await asyncio.to_thread(self.driver.send_message, command)
 
     async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
-        return self.driver.receive_message()
+        return await asyncio.to_thread(self.driver.receive_message)
