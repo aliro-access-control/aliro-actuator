@@ -514,11 +514,22 @@ class UserDevice(Device):
             self.session.transaction_identifier,
         )
         Global.logger.debug(
+            "verifying reader authentication data fields: {!r}".format(
+                hexlify(reader_authentication.to_bytes())
+            )
+        )
+        Global.logger.debug(
             "verifying with signature: {!r}".format(
                 hexlify(auth1_command.reader_signature)
             )
         )
-        verified = self.session.get_intermediate_reader_public_key().verify(
+        intermediate_public_key = self.session.get_intermediate_reader_public_key()
+        Global.logger.debug(
+            "verifying with key: {!r}".format(
+                hexlify(intermediate_public_key.as_bytes())
+            )
+        )
+        verified = intermediate_public_key.verify(
             reader_authentication.to_bytes(), auth1_command.reader_signature
         )
         if not verified:
