@@ -514,11 +514,6 @@ class UserDevice(Device):
             self.session.transaction_identifier,
         )
         Global.logger.debug(
-            "verifying reader authentication data fields: {!r}".format(
-                hexlify(reader_authentication.to_bytes())
-            )
-        )
-        Global.logger.debug(
             "verifying with signature: {!r}".format(
                 hexlify(auth1_command.reader_signature)
             )
