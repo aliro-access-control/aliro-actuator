@@ -410,8 +410,13 @@ class Reader(Device):
                 )
 
             Global.logger.info(
-                "Trying to match cryptogram received: {!r}".format(
-                    hexlify(auth0_response.cryptogram)
+                "Trying to decrypt cryptogram received: {!r}".format(
+                    hexlify(auth0_response.cryptogram[:-AUTHENTICATION_TAG_SIZE])
+                )
+            )
+            Global.logger.info(
+                "With authentication tag: {!r}".format(
+                    hexlify(auth0_response.cryptogram[-AUTHENTICATION_TAG_SIZE:])
                 )
             )
             for entry in self.storage.get_kpersistent_list():
@@ -421,7 +426,9 @@ class Reader(Device):
                     entry.kpersistent,
                 )
                 Global.logger.info(
-                    "secret key: {!r}".format(hexlify(self.session.cryptogram_SK))
+                    "trying cryptogram secret key: {!r}".format(
+                        hexlify(self.session.cryptogram_SK)
+                    )
                 )
                 try:
                     decrypted_cryptogram = decrypt_cryptogram(
@@ -429,12 +436,22 @@ class Reader(Device):
                         auth0_response.cryptogram[:-AUTHENTICATION_TAG_SIZE],
                         auth0_response.cryptogram[-AUTHENTICATION_TAG_SIZE:],
                     )
+                    Global.logger.info(
+                        "decryption successful with: {!r}".format(
+                            hexlify(self.session.cryptogram_SK)
+                        )
+                    )
+                    Global.logger.info(
+                        "decrypted cryptogram: {!r}".format(
+                            hexlify(decrypted_cryptogram)
+                        )
+                    )
                     self.session.set_cryptogram_info(
                         TLV.from_bytes(decrypted_cryptogram)
                     )
                     return
                 except VerificationError:
-                    # try the next entry
+                    Global.logger.info("decryption failed, trying next key in storage")
                     pass
 
             raise CryptogramNotFound("Matching Cryptogram not found")
