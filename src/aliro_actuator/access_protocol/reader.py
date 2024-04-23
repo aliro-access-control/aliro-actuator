@@ -20,6 +20,7 @@ from binascii import hexlify
 from aliro_actuator import READER_GROUP_ID_LENGTH, READER_GROUP_SUB_ID_LENGTH, Global
 from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
+    AUTHENTICATION_TAG_SIZE,
     INS,
     Auth1Response,
     Response,
@@ -35,6 +36,7 @@ from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
+    Auth1,
     Exchange,
     TransportProtocol,
 )
@@ -42,8 +44,8 @@ from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
     VerificationError,
-    compute_cryptogram,
     create_salt,
+    decrypt_cryptogram,
 )
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
@@ -421,18 +423,19 @@ class Reader(Device):
                 Global.logger.info(
                     "secret key: {!r}".format(hexlify(self.session.cryptogram_SK))
                 )
-                cryptogram = compute_cryptogram(
-                    self.session.cryptogram_SK,
-                    signaling_bitmap=entry.signaling_bitmap,
-                    credential_signed_timestamp=entry.credential_signed_timestamp,
-                    revocation_signed_timestamp=entry.revocation_signed_timestamp,
-                )
-                Global.logger.info(
-                    "computed cryptogram: {!r}".format(hexlify(cryptogram))
-                )
-                if cryptogram == auth0_response.cryptogram:
-                    self.session.set_credential_public_key(entry.access_credential)
+                try:
+                    decrypted_cryptogram = decrypt_cryptogram(
+                        self.session.cryptogram_SK,
+                        auth0_response.cryptogram[:-AUTHENTICATION_TAG_SIZE],
+                        auth0_response.cryptogram[-AUTHENTICATION_TAG_SIZE:],
+                    )
+                    self.session.set_cryptogram_info(
+                        TLV.from_bytes(decrypted_cryptogram)
+                    )
                     return
+                except VerificationError:
+                    # try the next entry
+                    pass
 
             raise CryptogramNotFound("Matching Cryptogram not found")
 
@@ -947,6 +950,20 @@ class ReaderSession:
 
     def set_credential_public_key(self, key: PublicKey) -> None:
         self.credential_pubk = key
+
+    def set_cryptogram_info(
+        self,
+        decrypted_cryptogram: TLV,
+    ) -> None:
+        self.signaling_bitmap = decrypted_cryptogram.get_bytes(
+            Auth1.SIGNALING_BITMAP_TAG
+        )
+        self.credential_signed_timestamp = decrypted_cryptogram.get_bytes(
+            Auth1.CREDENTIAL_TIMESTAMP_TAG
+        )
+        self.revocation_signed_timestamp = decrypted_cryptogram.get_bytes(
+            Auth1.REVOCATION_TIMESTAMP_TAG
+        )
 
     def set_auth1_info(
         self,
