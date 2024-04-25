@@ -182,6 +182,12 @@ class UserDevice(Device):
 
         Global.logger.info("Transaction Initiation Done")
 
+    async def transaction_termination(self) -> None:
+        """
+        terminates the connection to the reader.
+        """
+        await self.transport_protocol.disconnect()
+
     def get_signaling_bitmap(self) -> bytes:
         out = 0
         if self.access_document is not None:

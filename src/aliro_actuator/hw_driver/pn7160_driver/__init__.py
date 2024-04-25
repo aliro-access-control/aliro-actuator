@@ -157,13 +157,8 @@ class Driver:
 
         Global.logger.info("PN7160 initialized, discovery started")
 
-    def deinitialize(self) -> None:
+    def disconnect(self) -> None:
         self.nci.disableDiscovery()
-
-        result = self.nci.doDeinitialize()
-        if result != 0x00:
-            Global.logger.error("PN7160 deinitialization failed.")
-            raise NCIError(result)
 
     def wait_for_tag(self) -> None:
         Global.logger.info("Waiting for tag")
