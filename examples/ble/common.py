@@ -12,18 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-class TransportProtocolError(Exception):
-    pass
-
-
-class InvalidModeError(TransportProtocolError):
-    pass
-
-
-class NoDataReceivedError(TransportProtocolError):
-    pass
-
-
-class UnexpectedMessageTypeError(TransportProtocolError):
-    pass
+READER_GROUP_IDENTIFIER = bytes.fromhex("00113344667799AA00113344667799AA")
+READER_SUB_GROUP_IDENTIFIER = bytes.fromhex("113344667799AA00113344667799AA00")
