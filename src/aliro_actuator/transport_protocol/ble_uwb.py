@@ -69,7 +69,7 @@ class BLEUWB(TransportProtocolBase):
             )
 
     async def disconnect(self) -> None:
-        pass
+        await self.driver.disconnect(self.driver.connected_devices[0])
 
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()
