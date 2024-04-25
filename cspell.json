@@ -16,6 +16,7 @@
         "FSCI",
         "hexlify",
         "isort",
+        "kpersistent",
         "libavahi",
         "loguru",
         "matangover",
