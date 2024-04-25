@@ -42,6 +42,8 @@ async def main():
         TransactionCode.USER_DEVICE_SECURE_ACTION
     )
     await reader.handle_exchange(False, None, None, None)
+    await reader.handle_control_flow(True)
+    await reader.transaction_termination()
 
 
 if __name__ == "__main__":
