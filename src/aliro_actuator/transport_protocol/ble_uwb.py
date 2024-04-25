@@ -68,6 +68,9 @@ class BLEUWB(TransportProtocolBase):
                 group_resolving_key=self.group_resolving_key,
             )
 
+    def deinitialization(self) -> None:
+        pass
+
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()
         if self.mode == Mode.USER_DEVICE and isinstance(
