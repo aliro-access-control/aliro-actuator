@@ -26,7 +26,10 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
     ProtocolType,
 )
-from aliro_actuator.transport_protocol.errors import UnexpectedMessageTypeError
+from aliro_actuator.transport_protocol.errors import (
+    NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
+)
 
 DEFAULT_PORT = "/dev/ttyUSB0"
 
@@ -69,6 +72,8 @@ class BLEUWB(TransportProtocolBase):
             )
 
     async def disconnect(self) -> None:
+        if len(self.driver.connected_devices) == 0:
+            raise NoDeviceConnectedError
         await self.driver.disconnect(self.driver.connected_devices[0])
 
     async def wait_for_connection(self) -> None:
@@ -80,6 +85,8 @@ class BLEUWB(TransportProtocolBase):
         await self.driver.setup_l2cap_connection(self.spsm)
 
     async def send_message(self, command: bytes, type: MessageType) -> None:
+        if len(self.driver.connected_devices) == 0:
+            raise NoDeviceConnectedError
         Global.logger.info("sending command: {!r}".format(hexlify(command)))
         if type == MessageType.REQUEST:
             protocol_type = ProtocolType.AP
@@ -100,6 +107,8 @@ class BLEUWB(TransportProtocolBase):
         )
 
     async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
+        if len(self.driver.connected_devices) == 0:
+            raise NoDeviceConnectedError
         message_bytes = await self.driver.wait_for_data(
             self.driver.connected_devices[0]
         )
