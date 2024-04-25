@@ -34,7 +34,7 @@ class NFC(TransportProtocolBase):
         self.mode = mode
         self.driver.initialize(mode)
 
-    def deinitialization(self) -> None:
+    async def deinitialization(self) -> None:
         self.driver.deinitialize()
 
     async def wait_for_connection(self) -> None:

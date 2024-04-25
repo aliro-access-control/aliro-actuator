@@ -56,7 +56,7 @@ class Socket(TransportProtocolBase):
             self.host.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.host.settimeout(TIMEOUT)
 
-    def deinitialization(self) -> None:
+    async def deinitialization(self) -> None:
         pass
 
     async def wait_for_connection(self) -> None:
