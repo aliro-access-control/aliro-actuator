@@ -229,6 +229,12 @@ class Reader(Device):
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Transaction Initiation Done")
 
+    async def transaction_termination(self) -> None:
+        """
+        terminates the connection to the reader.
+        """
+        await self.transport_protocol.deinitialization()
+
     async def expedited_transaction_fast(
         self, transaction_code: TransactionCode
     ) -> None:
