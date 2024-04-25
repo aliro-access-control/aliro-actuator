@@ -96,7 +96,6 @@ class MurataBaseDriver:
                     # we always need to check for these messages, as they can be
                     # triggered by the other device
                     try:
-                        channel = response.get_channel_id()
                         id = response.get_device_id()
                         del self.channel_ids[id]
                         self.connected_devices.remove(id)
