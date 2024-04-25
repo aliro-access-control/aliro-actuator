@@ -151,13 +151,15 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
 
-        message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
-        self.write(message)
-        await self.wait_for_confirm(OpGroup.GAP)
-        await self.wait_for_message(
-            OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
-        )
-        self.connected_devices.remove(device_id)
+        while device_id in self.connected_devices:
+            message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
+            self.write(message)
+            await self.wait_for_confirm(OpGroup.GAP)
+            if device_id not in self.connected_devices:
+                break  # received connection complete while waiting for confirm
+            await self.wait_for_message(
+                OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+            )
         Global.logger.info(
             "disconnected from device with device id: {}".format(device_id)
         )
@@ -230,13 +232,15 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
 
-        message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
-        self.write(message)
-        await self.wait_for_confirm(OpGroup.GAP)
-        await self.wait_for_message(
-            OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
-        )
-        self.connected_devices.remove(device_id)
+        while device_id in self.connected_devices:
+            message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
+            self.write(message)
+            await self.wait_for_confirm(OpGroup.GAP)
+            if device_id not in self.connected_devices:
+                break  # received connection complete while waiting for confirm
+            await self.wait_for_message(
+                OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+            )
         Global.logger.info(
             "disconnected from device with device id: {}".format(device_id)
         )

@@ -89,6 +89,20 @@ class MurataBaseDriver:
                     except ErrorReturnedError:
                         pass  # just ignore message
                 if (
+                    response.get_op_group() == OpGroup.GAP
+                    and response.get_op_code()
+                    == OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+                ):
+                    # we always need to check for these messages, as they can be
+                    # triggered by the other device
+                    try:
+                        channel = response.get_channel_id()
+                        id = response.get_device_id()
+                        del self.channel_ids[id]
+                        self.connected_devices.remove(id)
+                    except ErrorReturnedError:
+                        pass  # just ignore message
+                if (
                     response.get_op_group() != op_group
                     or response.get_op_code() != opcode
                 ):

@@ -27,3 +27,7 @@ class NoDataReceivedError(TransportProtocolError):
 
 class UnexpectedMessageTypeError(TransportProtocolError):
     pass
+
+
+class NoDeviceConnectedError(TransportProtocolError):
+    pass
