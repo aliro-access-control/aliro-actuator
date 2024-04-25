@@ -16,7 +16,7 @@ import socket
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.errors import (
     InvalidModeError,
     NoDataReceivedError,
@@ -35,24 +35,31 @@ class Socket(TransportProtocolBase):
     def __init__(self) -> None:
         pass
 
-    def initialization(self, mode: Mode) -> None:
+    async def initialization(
+        self,
+        mode: Mode,
+        reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
+        reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        spsm: bytes = bytes.fromhex("0080"),
+    ) -> None:
         if mode == Mode.READER:
             # init client
             self.mode = Mode.READER
             self.client = socket.socket()
             self.client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.client.settimeout(TIMEOUT)
-        elif mode == Mode.CARD_EMULATION:
+        elif mode == Mode.USER_DEVICE:
             # init host
-            self.mode = Mode.CARD_EMULATION
+            self.mode = Mode.USER_DEVICE
             self.host = socket.socket()
             self.host.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.host.settimeout(TIMEOUT)
 
-    def wait_for_connection(self) -> None:
+    async def wait_for_connection(self) -> None:
         if self.mode == Mode.READER:
             self.client.connect((socket.gethostname(), PORT))
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             self.host.bind((socket.gethostname(), PORT))
             self.host.listen(1)
             self.host, address = self.host.accept()
@@ -60,24 +67,24 @@ class Socket(TransportProtocolBase):
     def disconnect(self) -> None:
         if self.mode == Mode.READER:
             self.client.close()
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             self.host.close()
 
-    def send_message(self, command: bytes) -> None:
+    async def send_message(self, command: bytes, type: MessageType) -> None:
         Global.logger.debug("sending message {!r}".format(hexlify(command)))
         if self.mode == Mode.READER:
             self.client.send(command)
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             self.host.send(command)
 
-    def get_message(self) -> bytes:
+    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
         if self.mode == Mode.READER:
             data = self.client.recv(4096)
             if data == b"":
                 raise NoDataReceivedError
             Global.logger.debug("received message {!r}".format(hexlify(data)))
             return data
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             data = self.host.recv(4096)
             if data == b"":
                 raise NoDataReceivedError
