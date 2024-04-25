@@ -41,10 +41,11 @@ class TransportProtocolBase(ABC):
         pass
 
     @abstractmethod
-    async def deinitialization(self) -> None:
+    async def wait_for_connection(self) -> None:
         pass
 
-    async def wait_for_connection(self) -> None:
+    @abstractmethod
+    async def disconnect(self) -> None:
         pass
 
     @abstractmethod

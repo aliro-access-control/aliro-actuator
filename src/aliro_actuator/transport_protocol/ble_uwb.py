@@ -68,7 +68,7 @@ class BLEUWB(TransportProtocolBase):
                 group_resolving_key=self.group_resolving_key,
             )
 
-    async def deinitialization(self) -> None:
+    async def disconnect(self) -> None:
         pass
 
     async def wait_for_connection(self) -> None:

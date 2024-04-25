@@ -231,9 +231,9 @@ class Reader(Device):
 
     async def transaction_termination(self) -> None:
         """
-        terminates the connection to the reader.
+        terminates the connection to the user device.
         """
-        await self.transport_protocol.deinitialization()
+        await self.transport_protocol.disconnect()
 
     async def expedited_transaction_fast(
         self, transaction_code: TransactionCode
