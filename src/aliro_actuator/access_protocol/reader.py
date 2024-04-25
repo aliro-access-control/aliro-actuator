@@ -78,16 +78,10 @@ class ReaderStorage:
         self,
         access_credential: PublicKey,
         kpersistent: bytes,
-        signaling_bitmap: bytes,
-        credential_signed_timestamp: bytes | None = None,
-        revocation_signed_timestamp: bytes | None = None,
     ) -> ReaderFastCacheEntry:
         data = ReaderFastCacheEntry(
             access_credential=access_credential,
             kpersistent=kpersistent,
-            signaling_bitmap=signaling_bitmap,
-            credential_signed_timestamp=credential_signed_timestamp,
-            revocation_signed_timestamp=revocation_signed_timestamp,
         )
 
         # If an entry already exists for this access credential, remove it
@@ -597,9 +591,6 @@ class Reader(Device):
                 self.session.derive_key_persistent(
                     self.transport_protocol_type, credential_public_key
                 ),
-                auth1_response.signaling_bitmap,
-                auth1_response.credential_signed_timestamp,
-                auth1_response.revocation_signed_timestamp,
             )
             Global.logger.info("added fast cache entry:")
             fast_cache_entry.print_to_log()
@@ -1286,33 +1277,12 @@ class ReaderFastCacheEntry:
         self,
         access_credential: PublicKey,
         kpersistent: bytes,
-        signaling_bitmap: bytes,
-        credential_signed_timestamp: bytes | None = None,
-        revocation_signed_timestamp: bytes | None = None,
     ):
         self.access_credential = access_credential
         self.kpersistent = kpersistent
-        self.signaling_bitmap = signaling_bitmap
-        self.credential_signed_timestamp = credential_signed_timestamp
-        self.revocation_signed_timestamp = revocation_signed_timestamp
 
     def print_to_log(self) -> None:
         Global.logger.info(
             "access credential: {!r}".format(hexlify(self.access_credential.as_bytes()))
         )
         Global.logger.info("kpersistent: {!r}".format(hexlify(self.kpersistent)))
-        Global.logger.info(
-            "signaling bitmap: {!r}".format(hexlify(self.signaling_bitmap))
-        )
-        if self.credential_signed_timestamp is not None:
-            Global.logger.info(
-                "credential signed timestamp: {!r}".format(
-                    hexlify(self.credential_signed_timestamp)
-                )
-            )
-        if self.revocation_signed_timestamp is not None:
-            Global.logger.info(
-                "revocation signed timestamp: {!r}".format(
-                    hexlify(self.revocation_signed_timestamp)
-                )
-            )

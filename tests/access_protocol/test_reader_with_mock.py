@@ -258,7 +258,6 @@ class Test_reader(unittest.TestCase):
             kpersistent=bytes.fromhex(
                 "e0f5b6fb881e3335632eba447bed1a2c84ebfb0556b270974794600dbf0a6c1a"
             ),
-            signaling_bitmap=b"\x00\x3f",
         )
 
         await reader.handle_auth0(Transaction.FAST, TransactionCode.USER_DEVICE)
