@@ -146,6 +146,22 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                 await asyncio.sleep(0.1)
                 pass
 
+    async def disconnect(self, device_id: int) -> None:
+        Global.logger.info("Disconnect")
+        data = bytearray()
+        data.extend(int.to_bytes(device_id, 1, "little"))
+
+        message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
+            OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+        )
+        self.connected_devices.remove(device_id)
+        Global.logger.info(
+            "disconnected from device with device id: {}".format(device_id)
+        )
+
 
 class MurataGAPCentralDriver(MurataBaseDriver):
     async def start_scanning(self) -> None:
@@ -207,6 +223,22 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         self.connected_devices.append(response.get_device_id())
         Global.logger.info(
             "connected to device with device id: {}".format(self.connected_devices[-1])
+        )
+
+    async def disconnect(self, device_id: int) -> None:
+        Global.logger.info("Disconnect")
+        data = bytearray()
+        data.extend(int.to_bytes(device_id, 1, "little"))
+
+        message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
+            OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+        )
+        self.connected_devices.remove(device_id)
+        Global.logger.info(
+            "disconnected from device with device id: {}".format(device_id)
         )
 
     async def search_for_device(
