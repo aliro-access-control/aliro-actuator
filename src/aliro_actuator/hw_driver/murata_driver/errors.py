@@ -78,3 +78,11 @@ class InvalidChecksumError(FSCIError):
             hexlify(expected), hexlify(actual)
         )
         super().__init__(message)
+
+
+class DeviceDisconnectedError(MurataError):
+    """
+    Raised when a device is disconnected.
+    """
+
+    pass

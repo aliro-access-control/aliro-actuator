@@ -5,7 +5,10 @@ from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.encryption import dynamic_tag_generation
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
-from aliro_actuator.hw_driver.murata_driver.errors import NoResponseError
+from aliro_actuator.hw_driver.murata_driver.errors import (
+    DeviceDisconnectedError,
+    NoResponseError,
+)
 from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
 
@@ -151,18 +154,22 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
 
-        while device_id in self.connected_devices:
-            message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
-            self.write(message)
-            await self.wait_for_confirm(OpGroup.GAP)
-            if device_id not in self.connected_devices:
-                break  # received connection complete while waiting for confirm
-            await self.wait_for_message(
-                OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+        try:
+            while device_id in self.connected_devices:
+                message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
+                self.write(message)
+                await self.wait_for_confirm(OpGroup.GAP)
+                await self.wait_for_message(
+                    OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+                )
+            Global.logger.info(
+                "disconnected from device with device id: {}".format(device_id)
             )
-        Global.logger.info(
-            "disconnected from device with device id: {}".format(device_id)
-        )
+        except DeviceDisconnectedError:
+            if device_id not in self.connected_devices:
+                Global.logger.info(
+                    "disconnected from device with device id: {}".format(device_id)
+                )
 
 
 class MurataGAPCentralDriver(MurataBaseDriver):
@@ -232,18 +239,22 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
 
-        while device_id in self.connected_devices:
-            message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
-            self.write(message)
-            await self.wait_for_confirm(OpGroup.GAP)
-            if device_id not in self.connected_devices:
-                break  # received connection complete while waiting for confirm
-            await self.wait_for_message(
-                OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+        try:
+            while device_id in self.connected_devices:
+                message = Message(OpGroup.GAP, OpCodeGAP.DISCONNECT, len(data), data)
+                self.write(message)
+                await self.wait_for_confirm(OpGroup.GAP)
+                await self.wait_for_message(
+                    OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+                )
+            Global.logger.info(
+                "disconnected from device with device id: {}".format(device_id)
             )
-        Global.logger.info(
-            "disconnected from device with device id: {}".format(device_id)
-        )
+        except DeviceDisconnectedError:
+            if device_id not in self.connected_devices:
+                Global.logger.info(
+                    "disconnected from device with device id: {}".format(device_id)
+                )
 
     async def search_for_device(
         self,
