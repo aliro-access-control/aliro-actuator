@@ -5,6 +5,7 @@ import serial
 
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.errors import (
+    DeviceDisconnectedError,
     ErrorReturnedError,
     NoResponseError,
     STXError,
@@ -101,6 +102,7 @@ class MurataBaseDriver:
                         self.connected_devices.remove(id)
                     except ErrorReturnedError:
                         pass  # just ignore message
+                    raise DeviceDisconnectedError
                 if (
                     response.get_op_group() != op_group
                     or response.get_op_code() != opcode
