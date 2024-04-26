@@ -101,6 +101,9 @@ def on_hostcard_emulation_deactivated() -> None:
     Global.logger.info("Reader lost")
     global reader_available
     reader_available = False
+    # notify data_received, so it can stop waiting for data
+    with data_received_notify:
+        data_received_notify.notify()
 
 
 @ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_ubyte), ctypes.c_uint)
@@ -208,6 +211,8 @@ class Driver:
             self.response = bytes(rx_buffer[0:rx_len])
             if rx_len <= 0:
                 Global.logger.warning("no response received")
+                if not tag_available:
+                    raise NoTagError
             else:
                 Global.logger.info(
                     "received response: {!r}".format(hexlify(self.response))
@@ -222,6 +227,9 @@ class Driver:
             tx_buffer = tx(*message)
             result = self.nci.nfcHce_sendCommand(ctypes.byref(tx_buffer), len(message))
             if result != 0:
+                Global.logger.warning("NCI error: {:x}".format(result))
+                if not reader_available:
+                    raise NoTagError
                 raise NCIError(result)
 
     def receive_message(self) -> bytes:
@@ -247,6 +255,8 @@ class Driver:
             while True:
                 with data_received_notify:
                     data_received_notify.wait()
+                if not reader_available:
+                    raise NoTagError
                 if data_received is not None:
                     message = bytes(data_received)
                     data_received = None
