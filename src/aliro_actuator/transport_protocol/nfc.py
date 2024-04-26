@@ -15,7 +15,9 @@
 import asyncio
 
 from aliro_actuator.hw_driver.pn7160_driver import Driver
+from aliro_actuator.hw_driver.pn7160_driver.errors import NoReaderError, NoTagError
 from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 
 
 class NFC(TransportProtocolBase):
@@ -44,7 +46,13 @@ class NFC(TransportProtocolBase):
             await asyncio.to_thread(self.driver.wait_for_tag)
 
     async def send_message(self, command: bytes, type: MessageType) -> None:
-        await asyncio.to_thread(self.driver.send_message, command)
+        try:
+            await asyncio.to_thread(self.driver.send_message, command)
+        except (NoTagError, NoReaderError):
+            raise NoDeviceConnectedError
 
     async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
-        return await asyncio.to_thread(self.driver.receive_message)
+        try:
+            return await asyncio.to_thread(self.driver.receive_message)
+        except (NoTagError, NoReaderError):
+            raise NoDeviceConnectedError
