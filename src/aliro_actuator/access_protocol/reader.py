@@ -119,9 +119,23 @@ class Reader(Device):
         reader_group_identifier (bytes | None, optional): Part of the reader_identifier.
         Defaults to None.
         reader_group_sub_identifier (bytes | None, optional): Part of the
-        reader_identifier. Defaults to None.
         reader_cert (bytes | None, optional): Reader certificate. Defaults to None.
         reader_key (KeyPair | None, optional): Reader Key. Defaults to None.
+        vendor_extension (bytes | None, optional): Defaults to None.
+        fast_transaction_implemented (bool): Indicates if this reader implements the
+        fast transaction. Defaults to True.
+        reader_storage (ReaderStorage | None, optional): Defaults to None.
+        group_resolving_key (bytes, optional): Defaults to
+        0x00000000000000000000000000000000.
+        spsm (bytes, optional): Defaults to 0x0080.
+        transaction_identifier_list (list[bytes] | None, optional): list of transaction
+        identifiers to be used by the reader. first transaction uses index 0, second
+        transaction uses index 1, etc. transaction identifiers are randomly generated if
+        this is set to None. Defaults to None.
+        ephemeral_key_list (list[KeyPair] | None, optional): list of ephemeral keys
+        to be used by the reader. first transaction uses index 0, second
+        transaction uses index 1, etc. Ephemeral keys are randomly generated if
+        this is set to None. Defaults to None.
 
     Raises:
         AccessProtocolError: Raised when arguments have invalid format.
@@ -140,6 +154,8 @@ class Reader(Device):
         reader_storage: ReaderStorage | None = None,
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         spsm: bytes = bytes.fromhex("0080"),
+        transaction_identifier_list: list[bytes] | None = None,
+        ephemeral_key_list: list[KeyPair] | None = None,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -196,6 +212,9 @@ class Reader(Device):
         self.group_resolving_key = group_resolving_key
         self.spsm = spsm
 
+        self.transaction_identifier_list = transaction_identifier_list
+        self.ephemeral_key_list = ephemeral_key_list
+
         Global.logger.info("Initialized Reader")
 
     @property
@@ -219,6 +238,28 @@ class Reader(Device):
         Initializes the hardware and sets up a connection to the card.
         """
         Global.logger.info("Start Transaction Initiation")
+        await self.setup_connection()
+
+        self.start_new_session()
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.wait_for_initiate_access_protocol_notification()
+        else:
+            await self.handle_select(EXPEDITED_PHASE_AID)
+        Global.logger.info("Transaction Initiation Done")
+
+    async def transaction_termination(self) -> None:
+        """
+        Terminates the connection to the user device.
+        """
+        Global.logger.info("Terminating transaction")
+        self.end_session()
+        await self.transport_protocol.disconnect()
+
+    async def setup_connection(self) -> None:
+        Global.logger.info("Setting up connection")
         await self.transport_protocol.initialization(
             Mode.READER,
             reader_group_identifier=self.reader_group_identifier,
@@ -227,29 +268,12 @@ class Reader(Device):
             spsm=self.spsm,
         )
         await self.transport_protocol.wait_for_connection()
-        Global.logger.info("Transaction Initiation Done")
-
-    async def transaction_termination(self) -> None:
-        """
-        terminates the connection to the user device.
-        """
-        Global.logger.info("Terminating transaction")
-        await self.transport_protocol.disconnect()
+        Global.logger.info("Connection established")
 
     async def expedited_transaction_fast(
         self, transaction_code: TransactionCode
     ) -> None:
-        if self.session is None:
-            self.start_new_session()
-
         Global.logger.info("Start Expedited Transaction (fast)")
-        if (
-            self.transport_protocol_type == TransportProtocol.BLE_UWB
-            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
-        ):
-            await self.wait_for_initiate_access_protocol_notification()
-        else:
-            await self.handle_select(EXPEDITED_PHASE_AID)
         await self.handle_auth0(Transaction.FAST, transaction_code)
         Global.logger.info("Expedited Transaction (fast) Done")
 
@@ -264,17 +288,7 @@ class Reader(Device):
             load_cert (bool, optional): Runs the load_cert command if True.
             Defaults to False.
         """
-        if self.session is None:
-            self.start_new_session()
-
         Global.logger.info("Start Expedited Transaction (standard)")
-        if (
-            self.transport_protocol_type == TransportProtocol.BLE_UWB
-            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
-        ):
-            await self.wait_for_initiate_access_protocol_notification()
-        else:
-            await self.handle_select(EXPEDITED_PHASE_AID)
         await self.handle_auth0(Transaction.STANDARD, transaction_code)
         if load_cert:
             await self.handle_load_cert()
@@ -286,8 +300,6 @@ class Reader(Device):
 
     def start_new_session(
         self,
-        transaction_identifier: bytes | None = None,
-        ephemeral_key: KeyPair | None = None,
     ) -> None:
         """
         Start a new reader session. Must be done before using handle commands.
@@ -304,11 +316,27 @@ class Reader(Device):
         self.session = ReaderSession(
             self.reader_key, self.reader_identifier, self.vendor_extension
         )
-        if transaction_identifier is None:
+        if (
+            self.transaction_identifier_list is None
+            or len(self.transaction_identifier_list) == 0
+        ):
             self.session.transaction_identifier = os.urandom(16)
         else:
-            self.session.transaction_identifier = transaction_identifier
-        self.session.generate_ephemeral_key(ephemeral_key)
+            self.session.transaction_identifier = self.transaction_identifier_list.pop(
+                0
+            )
+
+        if self.ephemeral_key_list is None or len(self.ephemeral_key_list) == 0:
+            self.session.generate_ephemeral_key()
+        else:
+            self.session.generate_ephemeral_key(self.ephemeral_key_list.pop(0))
+
+    def end_session(self) -> None:
+        """
+        End the current reader session.
+        """
+        Global.logger.info("Ending session")
+        self.session = None
 
     async def failure_process(self) -> None:
         """
@@ -329,12 +357,13 @@ class Reader(Device):
             # TODO: implement failure event message
             pass
 
-        self.session = None
+        await self.transaction_termination()
 
     async def wait_for_initiate_access_protocol_notification(self) -> None:
         if self.session is None:
             raise SessionError("No Session")
 
+        Global.logger.info("Waiting for Initiate access protocol notification")
         response_str = await self.transport_protocol.get_message(
             MessageType.INITIATE_ACCESS_PROTOCOL
         )
