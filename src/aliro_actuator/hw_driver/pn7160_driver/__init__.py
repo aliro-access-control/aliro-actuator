@@ -229,7 +229,7 @@ class Driver:
             if result != 0:
                 Global.logger.warning("NCI error: {:x}".format(result))
                 if not reader_available:
-                    raise NoTagError
+                    raise NoReaderError
                 raise NCIError(result)
 
     def receive_message(self) -> bytes:
