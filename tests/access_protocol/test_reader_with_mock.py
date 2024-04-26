@@ -241,11 +241,10 @@ class Test_reader(unittest.TestCase):
             ),
             reader_key=reader_key,
             fast_transaction_implemented=True,
+            transaction_identifier_list=[transaction_id],
+            ephemeral_key_list=[reader_ephemeral],
         )
-        reader.start_new_session(
-            transaction_identifier=transaction_id,
-            ephemeral_key=reader_ephemeral,
-        )
+        reader.start_new_session()
         reader.session.set_select_info(
             apdu.parse_response(
                 bytes.fromhex("6f158409a000000909acce5501a508800200005c0201009000"),
@@ -392,8 +391,9 @@ class Test_reader(unittest.TestCase):
             reader_group_sub_identifier,
             reader_key=reader_keypair,
             fast_transaction_implemented=True,
+            transaction_identifier_list=[transaction_identifier],
         )
-        reader.start_new_session(transaction_identifier)
+        reader.start_new_session()
         reader.session.credential_ephemeral_key = (
             credential_ephemeral_keypair.get_public_key()
         )
@@ -443,8 +443,9 @@ class Test_reader(unittest.TestCase):
             reader_group_identifier,
             reader_group_sub_identifier,
             reader_key=reader_keypair,
+            transaction_identifier_list=[transaction_identifier],
         )
-        reader.start_new_session(transaction_identifier)
+        reader.start_new_session()
         reader.session.encryption = encryption_reader
         await reader.handle_exchange(
             atomic_session=False,
@@ -486,8 +487,9 @@ class Test_reader(unittest.TestCase):
             reader_group_identifier,
             reader_group_sub_identifier,
             reader_key=reader_keypair,
+            transaction_identifier_list=[transaction_identifier],
         )
-        reader.start_new_session(transaction_identifier)
+        reader.start_new_session()
         reader.session.encryption = encryption_reader
         read_data = await reader.handle_exchange(
             atomic_session=False,

@@ -38,11 +38,11 @@ if __name__ == "__main__":
         reader_group_identifier=READER_IDENTIFIER[:0x10],
         reader_group_sub_identifier=READER_IDENTIFIER[0x10:0x20],
         reader_key=reader_key,
+        transaction_identifier_list=[TRANSACTION_IDENTIFIER],
+        ephemeral_key_list=[reader_ephemeral_key],
     )
     reader.transaction_initiation()
-    reader.start_new_session(TRANSACTION_IDENTIFIER, reader_ephemeral_key)
 
-    reader.handle_select(AID)
     reader.handle_auth0(Transaction.STANDARD, TransactionCode.USER_DEVICE)
     reader.handle_auth1()
     reader.handle_control_flow(True)

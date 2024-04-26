@@ -59,9 +59,7 @@ class Test_reader(unittest.TestCase):
             reader_group_sub_identifier=b"sub_reader_group",
         )
         await reader.transaction_initiation()
-        reader.start_new_session()
 
-        reader.handle_select(EXPEDITED_PHASE_AID)
         await reader.handle_auth0(
             Transaction.STANDARD,
             TransactionCode.USER_DEVICE,
