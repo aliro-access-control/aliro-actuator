@@ -186,6 +186,7 @@ class UserDevice(Device):
         """
         terminates the connection to the reader.
         """
+        Global.logger.info("Terminating transaction")
         await self.transport_protocol.disconnect()
 
     def get_signaling_bitmap(self) -> bytes:

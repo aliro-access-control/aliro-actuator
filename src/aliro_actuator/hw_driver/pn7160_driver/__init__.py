@@ -240,6 +240,8 @@ class Driver:
             if len(self.response) > 0:
                 return bytes(self.response)
             else:
+                if not tag_available:
+                    raise NoTagError
                 raise NoDataReceivedError
 
         elif self.mode == Mode.USER_DEVICE:

@@ -233,6 +233,7 @@ class Reader(Device):
         """
         terminates the connection to the user device.
         """
+        Global.logger.info("Terminating transaction")
         await self.transport_protocol.disconnect()
 
     async def expedited_transaction_fast(
