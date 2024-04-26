@@ -131,6 +131,7 @@ class UserDevice(Device):
         step_up_aid_required: bool = False,
         access_document_updatable: bool = False,
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        ephemeral_key_list: list[KeyPair] | None = None,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -170,15 +171,24 @@ class UserDevice(Device):
 
         self.group_resolving_key = group_resolving_key
 
+        self.ephemeral_key_list = ephemeral_key_list
+
     async def transaction_initiation(self) -> None:
         """
         Initializes the hardware and sets up a connection to the reader.
         """
         Global.logger.info("Start Transaction Initiation")
-        await self.transport_protocol.initialization(
-            Mode.USER_DEVICE, group_resolving_key=self.group_resolving_key
-        )
-        await self.transport_protocol.wait_for_connection()
+        await self.setup_connection()
+
+        self.start_new_session()
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.send_initiate_access_protocol_notification()
+        else:
+            command = await self.wait_for_command()
+            await self.handle_select(command)
 
         Global.logger.info("Transaction Initiation Done")
 
@@ -187,7 +197,19 @@ class UserDevice(Device):
         terminates the connection to the reader.
         """
         Global.logger.info("Terminating transaction")
+        self.end_session()
         await self.transport_protocol.disconnect()
+
+    async def setup_connection(self) -> None:
+        """
+        Setup up the connection to the reader device.
+        """
+        Global.logger.info("Setting up connection")
+        await self.transport_protocol.initialization(
+            Mode.USER_DEVICE, group_resolving_key=self.group_resolving_key
+        )
+        await self.transport_protocol.wait_for_connection()
+        Global.logger.info("Connection established")
 
     def get_signaling_bitmap(self) -> bytes:
         out = 0
@@ -220,71 +242,69 @@ class UserDevice(Device):
             SessionError: When starting a new session failed.
             NotImplementedError: When a command which is not implemented is received.
         """
-        if self.session is None:
-            self.start_new_session()
-        if self.session is None:
-            raise SessionError("starting session failed")
-
-        if (
-            self.transport_protocol_type == TransportProtocol.BLE_UWB
-            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
-        ):
-            await self.send_initiate_access_protocol_notification()
 
         while True:
-            try:
-                command = await self.wait_for_command(
-                    encryption=self.session.encryption
-                )
-            except (InvalidCommandError, VerificationError):
-                # main loop should continue even when commands are not valid
-                if self.session is None:
-                    # start a new session if the previous one has been terminated
-                    self.start_new_session()
-                continue
-            try:
-                match command.ins:
-                    case INS.SELECT:
-                        await self.handle_select(command)
-                    case INS.AUTH0:
-                        await self.handle_auth0(command)
-                    case INS.AUTH1:
-                        await self.handle_auth1(command)
-                    case INS.LOAD_CERT:
-                        await self.handle_load_cert(command)
-                    case INS.CONTROL_FLOW:
-                        await self.handle_control_flow(command)
-                    case INS.EXCHANGE:
-                        await self.handle_exchange(command)
-                    case _:
-                        raise NotImplementedError(
-                            "command: {} not implemented".format(command.ins)
-                        )
-            except AccessProtocolError as error:
-                Global.logger.error(
-                    "restarting session because of error: {}".format(
-                        error.__class__.__name__
+            await self.transaction_initiation()
+            while True:
+                try:
+                    if self.session is None:
+                        raise SessionError("starting session failed")
+                    command = await self.wait_for_command(
+                        encryption=self.session.encryption
                     )
-                )
-                # main loop should continue even when commands are not valid
-                if self.session is None:
-                    # start a new session if the previous one has been terminated
-                    self.start_new_session()
+                except (InvalidCommandError, VerificationError):
+                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
+                try:
+                    match command.ins:
+                        case INS.SELECT:
+                            await self.handle_select(command)
+                        case INS.AUTH0:
+                            await self.handle_auth0(command)
+                        case INS.AUTH1:
+                            await self.handle_auth1(command)
+                        case INS.LOAD_CERT:
+                            await self.handle_load_cert(command)
+                        case INS.CONTROL_FLOW:
+                            await self.handle_control_flow(command)
+                            await self.transaction_termination()
+                            break
+                        case INS.EXCHANGE:
+                            await self.handle_exchange(command)
+                        case _:
+                            raise NotImplementedError(
+                                "command: {} not implemented".format(command.ins)
+                            )
+                except AccessProtocolError as error:
+                    Global.logger.error(
+                        "restarting session because of error: {}".format(
+                            error.__class__.__name__
+                        )
+                    )
+                    # main loop should continue even when commands are not valid
+                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
 
-    def start_new_session(self, ephemeral_key: KeyPair | None = None) -> None:
+    def start_new_session(self) -> None:
         """
         Start a new user session. Must be done before using handle commands.
         This sessions stores all information received from commands.
         Start a new session to delete all received info and start over.
-
-        Args:
-            ephemeral_key (KeyPair | None, optional): ephemeral reader key used for the
-            session. Randomly generated if None. Defaults to None.
         """
         Global.logger.info("Starting new session")
         self.session = UserSession(self.supported_versions, self.vendor_extension)
 
-        self.session.generate_ephemeral_key(ephemeral_key)
+        if self.ephemeral_key_list is None or len(self.ephemeral_key_list) == 0:
+            self.session.generate_ephemeral_key()
+        else:
+            self.session.generate_ephemeral_key(self.ephemeral_key_list.pop(0))
+
+    def end_session(self) -> None:
+        """
+        End the current reader session.
+        """
+        Global.logger.info("Ending session")
+        self.session = None
 
     async def failure_process(self, error_code: int) -> None:
         """
@@ -297,7 +317,7 @@ class UserDevice(Device):
             response.to_bytes(), MessageType.RESPONSE
         )
 
-        self.session = None
+        await self.transaction_termination()
 
     async def send_initiate_access_protocol_notification(self) -> None:
         """
@@ -769,8 +789,6 @@ class UserDevice(Device):
         elif control_flow_command.s2 == 0x02:
             Global.logger.info("transaction finished with success")
 
-        # End current session
-        self.start_new_session()
         self.session.update_state(UserSessionState.SELECT_DONE)
 
         await self.response_control_flow()

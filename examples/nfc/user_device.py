@@ -43,7 +43,6 @@ async def main():
         access_credentials=access_credentials,
         mailbox=0x20,
     )
-    await reader.transaction_initiation()
     await reader.main_loop()
 
 

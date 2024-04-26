@@ -259,6 +259,9 @@ class Reader(Device):
         await self.transport_protocol.disconnect()
 
     async def setup_connection(self) -> None:
+        """
+        Setup up the connection to the User device.
+        """
         Global.logger.info("Setting up connection")
         await self.transport_protocol.initialization(
             Mode.READER,
@@ -305,12 +308,6 @@ class Reader(Device):
         Start a new reader session. Must be done before using handle commands.
         This sessions stores all information received from commands.
         Start a new session to delete all received info and start over.
-
-        Args:
-            transaction_identifier (bytes | None, optional): Transaction identifier used
-            for this session. Randomly generated if None. Defaults to None.
-            ephemeral_key (KeyPair | None, optional): ephemeral reader key used for the
-            session. Randomly generated if None. Defaults to None.
         """
         Global.logger.info("Starting new session")
         self.session = ReaderSession(
