@@ -256,8 +256,9 @@ class Test_user(unittest.TestCase):
             step_up_aid_required=True,
             mailbox=[(bytes.fromhex("2134"), 0, b"hello")],
             fast_transaction_implemented=True,
+            ephemeral_key_list=[user_ephemeral],
         )
-        user.start_new_session(ephemeral_key=user_ephemeral)
+        user.start_new_session()
         user.session.update_state(UserSessionState.SELECT_DONE)
 
         user.storage.add_kpersistent(
