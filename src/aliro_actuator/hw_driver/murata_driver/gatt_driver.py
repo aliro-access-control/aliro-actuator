@@ -343,7 +343,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         data = int.from_bytes(message.data[5 : 5 + length], "little")
         Global.logger.info("Data written:")
         Global.logger.info("handle: {!r}".format(hexlify(handle)))
-        Global.logger.info("data: {!r}".format(hexlify(data)))
+        Global.logger.info("data: 0x{:x}".format(data))
         return data
 
 
