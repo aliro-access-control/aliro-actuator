@@ -141,6 +141,7 @@ class ReaderMurataDriver(
             properties=Properties.write,
             permissions=Permissions.writable,
         )
+        await self.register_gattserver_callback()
 
     async def setup_connection(
         self,
@@ -171,3 +172,4 @@ class ReaderMurataDriver(
     async def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
         await self.wait_for_connection_event()
+        await self.wait_for_write()

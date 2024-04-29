@@ -1,3 +1,5 @@
+from binascii import hexlify
+
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
@@ -249,6 +251,26 @@ class MurataGATTServerDriver(MurataBaseDriver):
             OpCodeGATTDB.ADD_INCLUDE_DECLARATION_IND,
         )
         return int.from_bytes(response.data, "little")  # handle
+
+    async def register_gattserver_callback(self) -> None:
+        Global.logger.info("Register gattserver callback")
+        message = Message(
+            OpGroup.GATT,
+            OpCodeGATT.GATTSERVER_REGISTER_CALLBACK,
+        )
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GATT)
+
+    async def wait_for_write(self) -> None:
+        message = await self.wait_for_message(
+            OpGroup.GATT, OpCodeGATT.ATTRIBUTE_WRITTEN
+        )
+        handle = change_endianness(message.data[1:3])
+        length = int.from_bytes(message.data[3:5], "little")
+        data = change_endianness(message.data[5 : 5 + length])
+        Global.logger.info("Data written:")
+        Global.logger.info("handle: {!r}".format(hexlify(handle)))
+        Global.logger.info("data: {!r}".format(hexlify(data)))
 
 
 class MurataGATTClientDriver(MurataBaseDriver):
