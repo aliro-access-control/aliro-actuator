@@ -133,7 +133,7 @@ class ReaderMurataDriver(
             properties=Properties.read,
             permissions=Permissions.readable,
         )
-        await self.add_characteristic_declaration_and_value(
+        write_handle = await self.add_characteristic_declaration_and_value(
             USER_DEVICE_CHARACTERISTIC_UUID,
             bytes.fromhex("0000"),
             uuid_type=UuidType.uuid_128_bits,
@@ -142,6 +142,7 @@ class ReaderMurataDriver(
             permissions=Permissions.writable,
         )
         await self.register_gattserver_callback()
+        await self.register_write_notifications([write_handle])
 
     async def setup_connection(
         self,

@@ -261,7 +261,24 @@ class MurataGATTServerDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.GATT)
 
+    async def register_write_notifications(self, handle_list: list[int]) -> None:
+        Global.logger.info("Register write notifications")
+        data = bytearray()
+        data.append(len(handle_list))
+        for handle in handle_list:
+            data.extend(handle.to_bytes(2, "little"))
+
+        message = Message(
+            OpGroup.GATT,
+            OpCodeGATT.REGISTER_HANDLES_FOR_WRITE_NOTIFICATIONS,
+            len(data),
+            data,
+        )
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GATT)
+
     async def wait_for_write(self) -> None:
+        Global.logger.info("Waiting for Write")
         message = await self.wait_for_message(
             OpGroup.GATT, OpCodeGATT.ATTRIBUTE_WRITTEN
         )
