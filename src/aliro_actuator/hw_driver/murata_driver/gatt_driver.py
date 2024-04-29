@@ -313,10 +313,30 @@ class MurataGATTServerDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.GATT)
 
+    async def send_attribute_written_status(self, device_id: int, handle: int) -> None:
+        Global.logger.info("Send attribute written status")
+
+        data = bytearray()
+        data.append(device_id)
+        data.extend(handle.to_bytes(2, "little"))
+        data.append(0x00)  # status
+
+        message = Message(
+            OpGroup.GATT,
+            OpCodeGATT.SEND_ATTRIBUTE_WRITTEN_STATUS,
+            len(data),
+            data,
+        )
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GATT)
+
     async def wait_for_write(self) -> None:
         Global.logger.info("Waiting for Write")
         message = await self.wait_for_message(
             OpGroup.GATT, OpCodeGATT.ATTRIBUTE_WRITTEN
+        )
+        await self.send_attribute_written_status(
+            message.get_device_id(), message.get_handle()
         )
         handle = change_endianness(message.data[1:3])
         length = int.from_bytes(message.data[3:5], "little")

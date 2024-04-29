@@ -147,6 +147,19 @@ class Message:
                 if result != 0x0000:
                     raise ErrorReturnedError(result)
                 return connection_complete_structure[0]
+        elif (
+            self.op_group == OpGroup.GATT
+            and self.op_code == OpCodeGATT.ATTRIBUTE_WRITTEN
+        ):
+            return self.data[0]
+        raise NotImplementedError
+
+    def get_handle(self) -> int:
+        if (
+            self.op_group == OpGroup.GATT
+            and self.op_code == OpCodeGATT.ATTRIBUTE_WRITTEN
+        ):
+            return int.from_bytes(self.data[1:3])
         raise NotImplementedError
 
     def get_advertising_data(self) -> bytes:
