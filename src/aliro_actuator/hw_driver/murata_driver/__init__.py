@@ -180,4 +180,3 @@ class ReaderMurataDriver(
     async def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
         await self.wait_for_connection_event()
-        await self.wait_for_write()
