@@ -124,7 +124,9 @@ class ReaderMurataDriver(
         spsm: bytes,
     ) -> None:
         Global.logger.info("Creating GATT Database")
-        await self.add_primary_service_declaration(0x01, ALIRO_SERVICE_UUID)
+        service_handle = await self.add_primary_service_declaration(
+            0x01, ALIRO_SERVICE_UUID
+        )
         await self.add_characteristic_declaration_and_value(
             READER_CHARACTERISTIC_UUID,
             spsm + bytes.fromhex("020100"),
@@ -141,8 +143,13 @@ class ReaderMurataDriver(
             properties=Properties.write,
             permissions=Permissions.writable,
         )
+        write_value_handle = await self.find_char_value_handle_in_service(
+            service_handle,
+            USER_DEVICE_CHARACTERISTIC_UUID,
+            uuid_type=UuidType.uuid_128_bits,
+        )
         await self.register_gattserver_callback()
-        await self.register_write_notifications([write_handle])
+        await self.register_write_notifications([write_value_handle])
 
     async def setup_connection(
         self,

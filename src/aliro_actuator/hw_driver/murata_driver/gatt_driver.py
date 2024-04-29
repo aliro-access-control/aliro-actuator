@@ -252,6 +252,42 @@ class MurataGATTServerDriver(MurataBaseDriver):
         )
         return int.from_bytes(response.data, "little")  # handle
 
+    async def find_char_value_handle_in_service(
+        self,
+        service_handle: int,
+        uuid: bytes,
+        uuid_type: UuidType = UuidType.uuid_16_bits,
+    ) -> int:
+        Global.logger.info("Find characteristic value handle")
+
+        if uuid_type == UuidType.uuid_16_bits:
+            size = 2
+        elif uuid_type == UuidType.uuid_32_bits:
+            size = 4
+        elif uuid_type == UuidType.uuid_128_bits:
+            size = 16
+        else:
+            raise NotImplementedError
+        uuid_little = change_endianness(uuid[:size])
+
+        data = bytearray()
+        data.extend(service_handle.to_bytes(2, "little"))
+        data.append(uuid_type)
+        data.extend(uuid_little)
+
+        message = Message(
+            OpGroup.GATT_DB,
+            OpCodeGATTDB.FIND_CHAR_VALUE_HANDLE_IN_SERVICE_REQ,
+            len(data),
+            data,
+        )
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GATT_DB)
+        message = await self.wait_for_message(
+            OpGroup.GATT_DB, OpCodeGATTDB.FIND_CHAR_VALUE_HANDLE_IN_SERVICE_IND
+        )
+        return int.from_bytes(message.data, "little")
+
     async def register_gattserver_callback(self) -> None:
         Global.logger.info("Register gattserver callback")
         message = Message(
