@@ -159,7 +159,7 @@ class Message:
             self.op_group == OpGroup.GATT
             and self.op_code == OpCodeGATT.ATTRIBUTE_WRITTEN
         ):
-            return int.from_bytes(self.data[1:3])
+            return int.from_bytes(self.data[1:3], "little")
         raise NotImplementedError
 
     def get_advertising_data(self) -> bytes:
