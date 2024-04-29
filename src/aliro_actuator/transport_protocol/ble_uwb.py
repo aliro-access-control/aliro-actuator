@@ -29,9 +29,11 @@ from aliro_actuator.transport_protocol.ble_message_format import (
 from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
+    UnknownVersionRequestedError,
 )
 
 DEFAULT_PORT = "/dev/ttyUSB0"
+SUPPORTED_VERSIONS = [0x0100]
 
 
 class BLEUWB(TransportProtocolBase):
@@ -78,6 +80,16 @@ class BLEUWB(TransportProtocolBase):
 
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()
+        if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
+            ble_version = await self.driver.wait_for_write()
+            Global.logger.info(
+                "Checking ble version requested by User Device: 0x{:4x}".format(
+                    ble_version
+                )
+            )
+            if ble_version not in SUPPORTED_VERSIONS:
+                raise UnknownVersionRequestedError
+            Global.logger.info("Valid ble version requested by User Device")
         if self.mode == Mode.USER_DEVICE and isinstance(
             self.driver, UserDeviceMurataDriver
         ):

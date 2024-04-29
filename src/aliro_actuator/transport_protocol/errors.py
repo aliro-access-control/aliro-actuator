@@ -31,3 +31,7 @@ class UnexpectedMessageTypeError(TransportProtocolError):
 
 class NoDeviceConnectedError(TransportProtocolError):
     pass
+
+
+class UnknownVersionRequestedError(TransportProtocolError):
+    pass

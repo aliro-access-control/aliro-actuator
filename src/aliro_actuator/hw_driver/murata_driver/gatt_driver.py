@@ -330,7 +330,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.GATT)
 
-    async def wait_for_write(self) -> None:
+    async def wait_for_write(self) -> int:
         Global.logger.info("Waiting for Write")
         message = await self.wait_for_message(
             OpGroup.GATT, OpCodeGATT.ATTRIBUTE_WRITTEN
@@ -340,10 +340,11 @@ class MurataGATTServerDriver(MurataBaseDriver):
         )
         handle = change_endianness(message.data[1:3])
         length = int.from_bytes(message.data[3:5], "little")
-        data = change_endianness(message.data[5 : 5 + length])
+        data = int.from_bytes(message.data[5 : 5 + length], "little")
         Global.logger.info("Data written:")
         Global.logger.info("handle: {!r}".format(hexlify(handle)))
         Global.logger.info("data: {!r}".format(hexlify(data)))
+        return data
 
 
 class MurataGATTClientDriver(MurataBaseDriver):
