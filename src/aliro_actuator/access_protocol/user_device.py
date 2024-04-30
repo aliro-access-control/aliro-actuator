@@ -205,8 +205,13 @@ class UserDevice(Device):
         Setup up the connection to the reader device.
         """
         Global.logger.info("Setting up connection")
+        reader_group_list = []
+        for access_credential in self.access_credentials:
+            reader_group_list.append(access_credential.get_all_reader_id())
         await self.transport_protocol.initialization(
-            Mode.USER_DEVICE, group_resolving_key=self.group_resolving_key
+            Mode.USER_DEVICE,
+            group_resolving_key=self.group_resolving_key,
+            reader_group_identifier_list=reader_group_list,
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Connection established")

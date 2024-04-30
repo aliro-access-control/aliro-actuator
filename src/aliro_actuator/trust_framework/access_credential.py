@@ -45,7 +45,7 @@ class AccessCredential:
         Returns:
             bool: True if this access_credential has the given reader group identifier.
         """
-        if group_identifier in map(lambda x: x[0], self.reader_id_key_list):
+        if group_identifier in self.get_all_reader_id():
             return True
         return False
 
@@ -60,6 +60,9 @@ class AccessCredential:
 
     def get_credential_public_key(self) -> PublicKey:
         return self.user_device_key_pair.get_public_key()
+
+    def get_all_reader_id(self) -> list[bytes]:
+        return list(map(lambda x: x[0], self.reader_id_key_list))
 
     def get_key_slot(self) -> bytes:
         # TODO implement
