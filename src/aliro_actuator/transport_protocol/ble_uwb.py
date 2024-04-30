@@ -52,6 +52,7 @@ class BLEUWB(TransportProtocolBase):
         reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
         reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        reader_group_identifier_list: list = [],
         spsm: bytes = bytes.fromhex("0080"),
     ) -> None:
         self.mode = mode
@@ -68,9 +69,11 @@ class BLEUWB(TransportProtocolBase):
                 group_resolving_key=self.group_resolving_key,
             )
         elif self.mode == Mode.USER_DEVICE:
+            truncated_list = [lambda x: x[:8] for x in reader_group_identifier_list]
             self.driver = UserDeviceMurataDriver(self.port)
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
+                reader_group_identifier_list=truncated_list,
             )
 
     async def disconnect(self) -> None:

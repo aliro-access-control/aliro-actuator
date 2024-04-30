@@ -1,3 +1,5 @@
+from binascii import hexlify
+
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.encryption import dynamic_tag_generation
 from aliro_actuator.hw_driver.murata_driver.errors import GATTError
@@ -28,21 +30,39 @@ class UserDeviceMurataDriver(
     async def setup_connection(
         self,
         group_resolving_key: bytes,
+        reader_group_identifier_list: list,
     ) -> None:
         Global.logger.info("setup ble connection")
         self.group_resolving_key = group_resolving_key
+        self.reader_group_identifier_list = reader_group_identifier_list
         await self.start_scanning()
 
     async def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
+        Global.logger.info(
+            "Looking for devices with aliro service uuid: {!r}".format(
+                hexlify(ALIRO_SERVICE_UUID)
+            )
+        )
+        Global.logger.info(
+            "Looking for devices with dynamic tag, generated using group resolving key: {!r}".format(
+                hexlify(self.group_resolving_key)
+            )
+        )
+        Global.logger.info(
+            "Looking for devices with reader group id in list: {}".format(
+                ", ".join(hex(x) for x in self.reader_group_identifier_list)
+            )
+        )
         (
             address_type,
             address,
             advertising_address_resolved,
         ) = await self.search_for_device(
             ALIRO_SERVICE_UUID,
-            False,
+            True,
             self.group_resolving_key,
+            self.reader_group_identifier_list,
         )
         await self.stop_scanning()
         await self.connect(address_type, address, advertising_address_resolved)

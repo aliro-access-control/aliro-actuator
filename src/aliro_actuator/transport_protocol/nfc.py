@@ -31,6 +31,7 @@ class NFC(TransportProtocolBase):
         reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
         reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        reader_group_identifier_list: list = [],
         spsm: bytes = bytes.fromhex("0080"),
     ) -> None:
         self.mode = mode

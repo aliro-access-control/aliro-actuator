@@ -261,6 +261,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         service_uuid: bytes,
         check_dynamic_tag: bool = False,
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        reader_group_id: list | None = None,
     ) -> tuple[int, bytes, int]:
         self.set_low_timeout()
         while True:
@@ -278,14 +279,21 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                             hexlify(address), hexlify(advertising_data)
                         )
                     )
-                    if change_endianness(advertising_data[5:7]) == service_uuid and (
-                        not check_dynamic_tag
-                        or dynamic_tag_generation(
-                            group_resolving_key=group_resolving_key,
-                            expiry_timestamp=advertising_data[19:23],
-                            advertising_address=address,
+                    if (
+                        change_endianness(advertising_data[5:7]) == service_uuid
+                        and (
+                            not check_dynamic_tag
+                            or dynamic_tag_generation(
+                                group_resolving_key=group_resolving_key,
+                                expiry_timestamp=advertising_data[19:23],
+                                advertising_address=address,
+                            )
+                            == advertising_data[24:31]
                         )
-                        == advertising_data[24:31]
+                        and (
+                            reader_group_id is None
+                            or advertising_data[9:17] in reader_group_id
+                        )
                     ):
                         Global.logger.info("Device Found!\n")
                         self.set_normal_timeout()
