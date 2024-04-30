@@ -41,15 +41,9 @@ class Test_user(unittest.TestCase):
     def test_select(self) -> None:
         user = UserDevice(TransportProtocol.SOCKET_NFC)
         user.transaction_initiation()
-        user.start_new_session()
-        response = user.wait_for_command(INS.SELECT)
-        user.handle_select(response)
 
     def test_auth0(self) -> None:
         user = UserDevice(TransportProtocol.SOCKET_NFC)
         user.transaction_initiation()
-        user.start_new_session()
-        response = user.wait_for_command(INS.SELECT)
-        user.handle_select(response)
         response = user.wait_for_command(INS.AUTH0)
         user.handle_auth0(response)

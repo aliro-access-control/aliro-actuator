@@ -1070,7 +1070,7 @@ class Response(Message):
                 raise InvalidResponseDataError(
                     self.as_bytes, "Cryptogram has invalid length"
                 )
-            Global.logger.debug("cryptogram: {!r}".format(self.cryptogram))
+            Global.logger.debug("cryptogram: {!r}".format(hexlify(self.cryptogram)))
         except IndexError:
             self.cryptogram = None
             Global.logger.debug("No cryptogram found")

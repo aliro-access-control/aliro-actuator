@@ -31,6 +31,15 @@ class SessionError(AccessProtocolError):
     pass
 
 
+class UnexpectedNotificationDataError(AccessProtocolError):
+    def __init__(self, response: bytes, other_info: str = ""):
+        if other_info != "":
+            message = "{}, Data: {!r}".format(other_info, response)
+        else:
+            message = "Data: {!r}".format(response)
+        AccessProtocolError.__init__(self, message)
+
+
 class UnexpectedResponseError(AccessProtocolError):
     """
     Raised when a different Response is received than expected.

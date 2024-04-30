@@ -279,6 +279,17 @@ def compute_cryptogram(
     ).to_bytes()
 
     cipher = AES.new(cryptogram_sk, AES.MODE_GCM, nonce=b"\x00" * 12)
-    cipher.update(b"")
     ciphertext, authentication_tag = cipher.encrypt_and_digest(plain_payload)
     return ciphertext + authentication_tag
+
+
+def decrypt_cryptogram(
+    cryptogram_sk: bytes, cryptogram: bytes, authentication_tag: bytes
+) -> bytes:
+    cipher = AES.new(cryptogram_sk, AES.MODE_GCM, nonce=b"\x00" * 12)
+    plaintext = cipher.decrypt(cryptogram)
+    try:
+        cipher.verify(authentication_tag)
+    except ValueError:
+        raise VerificationError
+    return plaintext

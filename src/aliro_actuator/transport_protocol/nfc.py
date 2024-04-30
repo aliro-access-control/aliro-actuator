@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
+
 from aliro_actuator.hw_driver.pn7160_driver import Driver
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.hw_driver.pn7160_driver.errors import NoReaderError, NoTagError
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 
 
 class NFC(TransportProtocolBase):
@@ -21,18 +25,35 @@ class NFC(TransportProtocolBase):
         self.driver = Driver(port)
         self.mode: Mode | None = None
 
-    def initialization(self, mode: Mode) -> None:
+    async def initialization(
+        self,
+        mode: Mode,
+        reader_group_identifier: bytes = 16 * bytes.fromhex("00"),
+        reader_group_sub_identifier: bytes = 16 * bytes.fromhex("00"),
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        reader_group_identifier_list: list = [],
+        spsm: bytes = bytes.fromhex("0080"),
+    ) -> None:
         self.mode = mode
         self.driver.initialize(mode)
 
-    def wait_for_connection(self) -> None:
-        if self.mode == Mode.CARD_EMULATION:
-            self.driver.wait_for_reader()
+    async def disconnect(self) -> None:
+        self.driver.disconnect()
+
+    async def wait_for_connection(self) -> None:
+        if self.mode == Mode.USER_DEVICE:
+            await asyncio.to_thread(self.driver.wait_for_reader)
         elif self.mode == Mode.READER:
-            self.driver.wait_for_tag()
+            await asyncio.to_thread(self.driver.wait_for_tag)
 
-    def send_message(self, command: bytes) -> None:
-        self.driver.send_message(command)
+    async def send_message(self, command: bytes, type: MessageType) -> None:
+        try:
+            await asyncio.to_thread(self.driver.send_message, command)
+        except (NoTagError, NoReaderError) as error:
+            raise NoDeviceConnectedError from error
 
-    def get_message(self) -> bytes:
-        return self.driver.receive_message()
+    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
+        try:
+            return await asyncio.to_thread(self.driver.receive_message)
+        except (NoTagError, NoReaderError) as error:
+            raise NoDeviceConnectedError from error

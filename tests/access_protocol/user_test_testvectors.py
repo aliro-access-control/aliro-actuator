@@ -39,9 +39,9 @@ if __name__ == "__main__":
         AccessCredential(user_key, [(READER_GROUP_IDENTIFIER, reader_public_key)])
     ]
     card = UserDevice(
-        TransportProtocol.SOCKET_NFC, access_credentials=access_credentials
+        TransportProtocol.SOCKET_NFC,
+        access_credentials=access_credentials,
+        ephemeral_key_list=[user_ephemeral_key],
     )
 
-    card.transaction_initiation()
-    card.start_new_session(user_ephemeral_key)
     card.main_loop()
