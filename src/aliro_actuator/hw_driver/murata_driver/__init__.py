@@ -51,7 +51,7 @@ class UserDeviceMurataDriver(
         )
         Global.logger.info(
             "Looking for devices with reader group id in list: {}".format(
-                ", ".join(hex(x) for x in self.reader_group_identifier_list)
+                ", ".join(str(hexlify(x)) for x in self.reader_group_identifier_list)
             )
         )
         (
