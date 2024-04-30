@@ -12,26 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import os
 import sys
 
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
 
-from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol import MessageType, Mode
 from aliro_actuator.transport_protocol.socket import Socket
 
-if __name__ == "__main__":
+
+async def main() -> None:
     # while True:
     try:
         reader = Socket()
-        reader.initialization(Mode.READER)
-        reader.wait_for_connection()
-        received_message = reader.get_message()
+        await reader.initialization(Mode.READER)
+        await reader.wait_for_connection()
+        received_message = await reader.get_message()
         new_message = bytearray()
         for digit in received_message:
             new_message.append(digit + 1)
-        reader.send_message(bytes(new_message))
+        await reader.send_message(bytes(new_message), MessageType.RESPONSE)
     except ConnectionRefusedError:
         pass
     # reader.disconnect()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

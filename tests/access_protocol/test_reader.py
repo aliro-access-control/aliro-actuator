@@ -35,34 +35,32 @@ class Test_reader(unittest.TestCase):
     def tearDown(self) -> None:
         self.other.communicate()
 
-    def test_initiation(self) -> None:
+    async def test_initiation(self) -> None:
         reader = Reader(
             TransportProtocol.SOCKET_NFC,
             reader_group_identifier=b"test_readergroup",
             reader_group_sub_identifier=b"sub_reader_group",
         )
-        reader.transaction_initiation()
+        await reader.transaction_initiation()
 
-    def test_select(self) -> None:
+    async def test_select(self) -> None:
         reader = Reader(
             TransportProtocol.SOCKET_NFC,
             reader_group_identifier=b"test_readergroup",
             reader_group_sub_identifier=b"sub_reader_group",
         )
-        reader.transaction_initiation()
-        response = reader.command_select(EXPEDITED_PHASE_AID)
+        await reader.transaction_initiation()
+        response = await reader.command_select(EXPEDITED_PHASE_AID)
 
-    def test_auth0(self) -> None:
+    async def test_auth0(self) -> None:
         reader = Reader(
             TransportProtocol.SOCKET_NFC,
             reader_group_identifier=b"test_readergroup",
             reader_group_sub_identifier=b"sub_reader_group",
         )
-        reader.transaction_initiation()
-        reader.start_new_session()
+        await reader.transaction_initiation()
 
-        reader.handle_select(EXPEDITED_PHASE_AID)
-        reader.handle_auth0(
+        await reader.handle_auth0(
             Transaction.STANDARD,
             TransactionCode.USER_DEVICE,
         )

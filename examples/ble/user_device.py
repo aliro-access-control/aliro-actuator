@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import os
 import sys
 
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
-
-import asyncio
 
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.user_device import UserDevice
@@ -39,7 +38,7 @@ async def main():
     access_credentials = [AccessCredential(credential_keypair, reader_identifier_list)]
 
     reader = UserDevice(
-        transport_protocol=TransportProtocol.NFC,
+        transport_protocol=TransportProtocol.BLE_UWB,
         access_credentials=access_credentials,
         mailbox=0x20,
     )

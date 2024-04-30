@@ -59,7 +59,8 @@ from aliro_actuator.access_protocol.errors import (
     VersionError,
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import (
@@ -80,6 +81,10 @@ class UserStorage:
         self.kpersistent_map: dict[bytes, bytes] = {}
 
     def add_kpersistent(self, kpersistent: bytes, reader_group_sub_id: bytes) -> None:
+        Global.logger.info("adding Kpersistent: {!r}".format(hexlify(kpersistent)))
+        Global.logger.info(
+            "with reader sub id: {!r}".format(hexlify(reader_group_sub_id))
+        )
         self.kpersistent_map[reader_group_sub_id] = kpersistent
 
     def find_kpersistent(self, reader_group_sub_id: bytes) -> bytes | None:
@@ -125,6 +130,8 @@ class UserDevice(Device):
         user_device_storage: UserStorage | None = None,
         step_up_aid_required: bool = False,
         access_document_updatable: bool = False,
+        group_resolving_key: bytes = 16 * bytes.fromhex("00"),
+        ephemeral_key_list: list[KeyPair] | None = None,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -162,15 +169,52 @@ class UserDevice(Device):
         self.has_issuer_backend = False
         self.has_bound_application = False
 
-    def transaction_initiation(self) -> None:
+        self.group_resolving_key = group_resolving_key
+
+        self.ephemeral_key_list = ephemeral_key_list
+
+    async def transaction_initiation(self) -> None:
         """
         Initializes the hardware and sets up a connection to the reader.
         """
         Global.logger.info("Start Transaction Initiation")
-        self.transport_protocol.initialization(Mode.CARD_EMULATION)
-        self.transport_protocol.wait_for_connection()
+        await self.setup_connection()
+
+        self.start_new_session()
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.send_initiate_access_protocol_notification()
+        else:
+            command = await self.wait_for_command()
+            await self.handle_select(command)
 
         Global.logger.info("Transaction Initiation Done")
+
+    async def transaction_termination(self) -> None:
+        """
+        terminates the connection to the reader.
+        """
+        Global.logger.info("Terminating transaction")
+        self.end_session()
+        await self.transport_protocol.disconnect()
+
+    async def setup_connection(self) -> None:
+        """
+        Setup up the connection to the reader device.
+        """
+        Global.logger.info("Setting up connection")
+        reader_group_list = []
+        for access_credential in self.access_credentials:
+            reader_group_list.extend(access_credential.get_all_reader_id())
+        await self.transport_protocol.initialization(
+            Mode.USER_DEVICE,
+            group_resolving_key=self.group_resolving_key,
+            reader_group_identifier_list=reader_group_list,
+        )
+        await self.transport_protocol.wait_for_connection()
+        Global.logger.info("Connection established")
 
     def get_signaling_bitmap(self) -> bytes:
         out = 0
@@ -194,7 +238,7 @@ class UserDevice(Device):
             out |= 1 << 9
         return out.to_bytes(2, "big")
 
-    def main_loop(self) -> None:
+    async def main_loop(self) -> None:
         """
         Starts a loop, where every command received is replied with an appropriate response.
         Should keep running, even when receiving invalid commands.
@@ -203,71 +247,97 @@ class UserDevice(Device):
             SessionError: When starting a new session failed.
             NotImplementedError: When a command which is not implemented is received.
         """
-        if self.session is None:
-            self.start_new_session()
-        if self.session is None:
-            raise SessionError("starting session failed")
 
         while True:
-            try:
-                command = self.wait_for_command(encryption=self.session.encryption)
-            except (InvalidCommandError, VerificationError):
-                # main loop should continue even when commands are not valid
-                if self.session is None:
-                    # start a new session if the previous one has been terminated
-                    self.start_new_session()
-                continue
-            try:
-                match command.ins:
-                    case INS.SELECT:
-                        self.handle_select(command)
-                    case INS.AUTH0:
-                        self.handle_auth0(command)
-                    case INS.AUTH1:
-                        self.handle_auth1(command)
-                    case INS.LOAD_CERT:
-                        self.handle_load_cert(command)
-                    case INS.CONTROL_FLOW:
-                        self.handle_control_flow(command)
-                    case INS.EXCHANGE:
-                        self.handle_exchange(command)
-                    case _:
-                        raise NotImplementedError(
-                            "command: {} not implemented".format(command.ins)
+            await self.transaction_initiation()
+            while True:
+                try:
+                    if self.session is None:
+                        raise SessionError("starting session failed")
+                    command = await self.wait_for_command(
+                        encryption=self.session.encryption
+                    )
+                except (InvalidCommandError, VerificationError):
+                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
+                try:
+                    match command.ins:
+                        case INS.SELECT:
+                            await self.handle_select(command)
+                        case INS.AUTH0:
+                            await self.handle_auth0(command)
+                        case INS.AUTH1:
+                            await self.handle_auth1(command)
+                        case INS.LOAD_CERT:
+                            await self.handle_load_cert(command)
+                        case INS.CONTROL_FLOW:
+                            await self.handle_control_flow(command)
+                            await self.transaction_termination()
+                            break
+                        case INS.EXCHANGE:
+                            await self.handle_exchange(command)
+                        case _:
+                            raise NotImplementedError(
+                                "command: {} not implemented".format(command.ins)
+                            )
+                except AccessProtocolError as error:
+                    Global.logger.error(
+                        "restarting session because of error: {}".format(
+                            error.__class__.__name__
                         )
-            except AccessProtocolError:
-                # main loop should continue even when commands are not valid
-                if self.session is None:
-                    # start a new session if the previous one has been terminated
-                    self.start_new_session()
+                    )
+                    # main loop should continue even when commands are not valid
+                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
 
-    def start_new_session(self, ephemeral_key: KeyPair | None = None) -> None:
+    def start_new_session(self) -> None:
         """
         Start a new user session. Must be done before using handle commands.
         This sessions stores all information received from commands.
         Start a new session to delete all received info and start over.
-
-        Args:
-            ephemeral_key (KeyPair | None, optional): ephemeral reader key used for the
-            session. Randomly generated if None. Defaults to None.
         """
         Global.logger.info("Starting new session")
         self.session = UserSession(self.supported_versions, self.vendor_extension)
 
-        self.session.generate_ephemeral_key(ephemeral_key)
+        if self.ephemeral_key_list is None or len(self.ephemeral_key_list) == 0:
+            self.session.generate_ephemeral_key()
+        else:
+            self.session.generate_ephemeral_key(self.ephemeral_key_list.pop(0))
 
-    def failure_process(self, error_code: int) -> None:
+    def end_session(self) -> None:
+        """
+        End the current reader session.
+        """
+        Global.logger.info("Ending session")
+        self.session = None
+
+    async def failure_process(self, error_code: int) -> None:
         """
         Should be called when a failure state has occurred.
         returns an error code.
         Destroys all session bound keys and data.
         """
         response = self.apdu.create_error_response(error_code)
-        self.transport_protocol.send_message(response.to_bytes())
+        await self.transport_protocol.send_message(
+            response.to_bytes(), MessageType.RESPONSE
+        )
 
-        self.session = None
+        await self.transaction_termination()
 
-    def handle_select(self, select_command: Command) -> bytes:
+    async def send_initiate_access_protocol_notification(self) -> None:
+        """
+        Used by BLE, after a connection is established.
+        """
+        proprietary = create_proprietary_information(
+            CSA_APPLICATION_TYPE,
+            self.supported_versions,
+        )
+        attribute = BleAttribute(0x00, proprietary.to_bytes())
+        await self.transport_protocol.send_message(
+            attribute.to_bytes(), MessageType.INITIATE_ACCESS_PROTOCOL
+        )
+
+    async def handle_select(self, select_command: Command) -> bytes:
         """
         Parse a select command and send the appropriate response.
 
@@ -293,13 +363,13 @@ class UserDevice(Device):
             or select_command.aid == STEPUP_PHASE_AID
         ):
             Global.logger.warning("Invalid AID")
-            self.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
+            await self.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
             raise InvalidAIDError(select_command.to_bytes(), select_command.aid)
 
         self.session.update_state(UserSessionState.SELECT_DONE)
 
         Global.logger.info("Sending Select Response")
-        self.response_select(
+        await self.response_select(
             select_command.aid,
             CSA_APPLICATION_TYPE,
             self.supported_versions,
@@ -307,7 +377,7 @@ class UserDevice(Device):
 
         return select_command.aid
 
-    def handle_auth0(self, auth0_command: Command) -> None:
+    async def handle_auth0(self, auth0_command: Command) -> None:
         """
         Parse a auth0 command and send the appropriate response.
 
@@ -327,9 +397,12 @@ class UserDevice(Device):
 
         if self.session is None:
             raise SessionError("No Session")
-        if not self.session.state_valid(UserSessionState.SELECT_DONE):
+        if not self.session.state_valid(UserSessionState.SELECT_DONE) and (
+            self.transport_protocol_type != TransportProtocol.BLE_UWB
+            and self.transport_protocol_type != TransportProtocol.SOCKET_BLE
+        ):
             state = self.session.state
-            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             raise SessionError("unexpected state for auth0 command: {}".format(state))
 
         Global.logger.info("Received AUTH0 Command")
@@ -337,7 +410,7 @@ class UserDevice(Device):
             auth0_command.expedited_phase_protocol_version
             not in self.supported_versions
         ):
-            self.failure_process(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
+            await self.failure_process(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
             raise VersionError
 
         try:
@@ -353,7 +426,7 @@ class UserDevice(Device):
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
             Global.logger.info("Sending AUTH0 Response")
-            self.response_auth0(self.session.get_credential_epubkey().as_bytes())
+            await self.response_auth0(self.session.get_credential_epubkey().as_bytes())
         elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
             kpersistent = self.storage.find_kpersistent(
@@ -382,12 +455,12 @@ class UserDevice(Device):
 
             self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
             Global.logger.info("Sending AUTH0 Response")
-            self.response_auth0(
+            await self.response_auth0(
                 credential_epubk=self.session.get_credential_epubkey().as_bytes(),
                 cryptogram=cryptogram,
             )
 
-    def handle_load_cert(self, load_cert_command: Command) -> None:
+    async def handle_load_cert(self, load_cert_command: Command) -> None:
         """
         Parse a load cert command and send the appropriate response.
 
@@ -410,8 +483,10 @@ class UserDevice(Device):
             [UserSessionState.AUTH0_FAST_DONE, UserSessionState.AUTH0_STD_DONE]
         ):
             state = self.session.state
-            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError("unexpected state for auth0 command: {}".format(state))
+            await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError(
+                "unexpected state for load cert command: {}".format(state)
+            )
 
         Global.logger.info("Received LOAD CERT Command")
         try:
@@ -422,11 +497,11 @@ class UserDevice(Device):
                 load_cert_command.reader_cert, reader_public_key
             )
         except CertificateDecodingError as error:
-            self.response_load_cert()
+            await self.response_load_cert()
             raise error
-        self.response_load_cert()
+        await self.response_load_cert()
 
-    def handle_auth1(self, auth1_command: Command) -> None:
+    async def handle_auth1(self, auth1_command: Command) -> None:
         """
         Parse a auth1 command and send the appropriate response.
 
@@ -450,8 +525,8 @@ class UserDevice(Device):
             [UserSessionState.AUTH0_FAST_DONE, UserSessionState.AUTH0_STD_DONE]
         ):
             state = self.session.state
-            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError("unexpected state for auth0 command: {}".format(state))
+            await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError("unexpected state for auth1 command: {}".format(state))
 
         Global.logger.info("Received AUTH1 Command")
         if auth1_command.certificate_data is not None:
@@ -465,7 +540,7 @@ class UserDevice(Device):
                 )
             except CertificateDecodingError:
                 Global.logger.error("Error decoding certificate")
-                self.failure_process(StatusBytes.GENERIC_ERROR)
+                await self.failure_process(StatusBytes.GENERIC_ERROR)
                 return
 
         reader_authentication = create_reader_authentication(
@@ -479,11 +554,17 @@ class UserDevice(Device):
                 hexlify(auth1_command.reader_signature)
             )
         )
-        verified = self.session.get_intermediate_reader_public_key().verify(
+        intermediate_public_key = self.session.get_intermediate_reader_public_key()
+        Global.logger.debug(
+            "verifying with key: {!r}".format(
+                hexlify(intermediate_public_key.as_bytes())
+            )
+        )
+        verified = intermediate_public_key.verify(
             reader_authentication.to_bytes(), auth1_command.reader_signature
         )
         if not verified:
-            self.failure_process(StatusBytes.GENERIC_ERROR)
+            await self.failure_process(StatusBytes.GENERIC_ERROR)
             raise AccessProtocolError("reader authentication data not verified")
         Global.logger.info("reader authentication data verified successfully")
 
@@ -499,7 +580,7 @@ class UserDevice(Device):
             )
         except KeyLookupFailed as error:
             # could not find reader public key
-            self.failure_process(StatusBytes.GENERIC_ERROR)
+            await self.failure_process(StatusBytes.GENERIC_ERROR)
             raise error
 
         Global.logger.info("creating user device authentication")
@@ -526,8 +607,10 @@ class UserDevice(Device):
         if self.session.encryption is None:
             raise AccessProtocolError("no encryption engine found")
 
+        self.session.update_state(UserSessionState.AUTH1_DONE)
+
         Global.logger.info("sending AUTH1 response")
-        self.response_auth1(
+        await self.response_auth1(
             self.session.access_credential.get_key_slot(),
             self.session.access_credential.get_credential_public_key().as_bytes(),
             auth1_command.expected_response,
@@ -537,7 +620,7 @@ class UserDevice(Device):
             signaling_bitmap=self.get_signaling_bitmap(),
         )
 
-    def handle_exchange(self, exchange_command: Command) -> None:
+    async def handle_exchange(self, exchange_command: Command) -> None:
         """
         Parse an exchange command and send the appropriate response.
 
@@ -566,12 +649,14 @@ class UserDevice(Device):
             ]
         ):
             state = self.session.state
-            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
-            raise SessionError("unexpected state for auth0 command: {}".format(state))
+            await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError(
+                "unexpected state for exchange command: {}".format(state)
+            )
 
         if not self.session.encryption.check_counters_valid():
             # End current session
-            self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             return
 
         self.session.update_state(UserSessionState.EXCHANGE_DONE)
@@ -583,7 +668,7 @@ class UserDevice(Device):
             > 0
         ):
             if self.mailbox is None:
-                self.return_exchange_error_and_close_channel()
+                await self.return_exchange_error_and_close_channel()
                 return
 
             for read in exchange_command.read_requests:
@@ -592,7 +677,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(read[0:2], "big"), int.from_bytes(read[2:4], "big")
                 ):
-                    self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel()
                     return
 
             for write in exchange_command.write_requests:
@@ -601,7 +686,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(write[0:2], "big"), len(write) - 2
                 ):
-                    self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel()
                     return
 
             for set in exchange_command.set_requests:
@@ -610,7 +695,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(set[0:2], "big"), int.from_bytes(set[2:4], "big")
                 ):
-                    self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel()
                     return
 
         # handle notifications
@@ -663,11 +748,11 @@ class UserDevice(Device):
         for read_command in read_data:
             exchange_payload.extend(read_command[0].to_bytes(2, "big"))
             exchange_payload.extend(read_command[1])
-        exchange_payload.extend(bytes([0x02, 0x00, 0x00]))
+        exchange_payload.extend(bytes([0x00, 0x02, 0x00, 0x00]))
 
-        self.response_exchange(exchange_payload, self.session.encryption)
+        await self.response_exchange(exchange_payload, self.session.encryption)
 
-    def return_exchange_error_and_close_channel(self) -> None:
+    async def return_exchange_error_and_close_channel(self) -> None:
         """
         Return an exchange error and close the channel.
         Used when an exchange fails.
@@ -682,9 +767,9 @@ class UserDevice(Device):
             raise AccessProtocolError("no encryption engine found")
 
         exchange_payload = bytes.fromhex("0002FFFF")
-        self.response_exchange(exchange_payload, self.session.encryption)
+        await self.response_exchange(exchange_payload, self.session.encryption)
 
-    def handle_control_flow(self, control_flow_command: Command) -> None:
+    async def handle_control_flow(self, control_flow_command: Command) -> None:
         """
         Parse an control flow command and send the appropriate response.
 
@@ -709,13 +794,11 @@ class UserDevice(Device):
         elif control_flow_command.s2 == 0x02:
             Global.logger.info("transaction finished with success")
 
-        # End current session
-        self.start_new_session()
         self.session.update_state(UserSessionState.SELECT_DONE)
 
-        self.response_control_flow()
+        await self.response_control_flow()
 
-    def wait_for_command(
+    async def wait_for_command(
         self,
         expected_command: INS | list[INS] | None = None,
         encryption: EncryptionEngine | None = None,
@@ -743,28 +826,28 @@ class UserDevice(Device):
             expected_command = [expected_command]
 
         Global.logger.info("Waiting for command")
-        command_str = self.transport_protocol.get_message()
+        command_str = await self.transport_protocol.get_message()
         Global.logger.info("Received command")
         try:
             command = self.apdu.parse_command(command_str, encryption)
         except InvalidCLAError as error:
-            self.failure_process(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
+            await self.failure_process(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
             raise error
         except InvalidParameterError as error:
-            self.failure_process(StatusBytes.INCORRECT_P1_P2)
+            await self.failure_process(StatusBytes.INCORRECT_P1_P2)
             raise error
         except InvalidCommandError as error:
-            self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+            await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
             raise error
         except VerificationError as error:
-            self.failure_process(StatusBytes.SECURITY_STATUS_NOT_SATISFIED)
+            await self.failure_process(StatusBytes.SECURITY_STATUS_NOT_SATISFIED)
             raise error
 
         if expected_command is not None and command.ins not in expected_command:
             raise UnexpectedCommandError
         return command
 
-    def response_auth0(
+    async def response_auth0(
         self, credential_epubk: bytes, cryptogram: bytes | None = None
     ) -> None:
         """
@@ -772,14 +855,17 @@ class UserDevice(Device):
 
         Args:
             credential_epubk (bytes): Credential Ephemeral public key.
-            cryptogram (bytes | None, optional): authentication cryptogram. Defaults to None.
+            cryptogram (bytes | None, optional): authentication cryptogram.
+            Defaults to None.
         """
         auth0_response = self.apdu.create_auth0_response(
             credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
-        self.transport_protocol.send_message(auth0_response.to_bytes())
+        await self.transport_protocol.send_message(
+            auth0_response.to_bytes(), MessageType.RESPONSE
+        )
 
-    def response_auth1(
+    async def response_auth1(
         self,
         key_slot: bytes | None,
         credential_public_key: bytes | None,
@@ -798,7 +884,8 @@ class UserDevice(Device):
         Args:
             key_slot (bytes | None): First 8 byes of the keyIdentifier.
             credential_public_key (bytes | None): Credential long term public key.
-            expected_response (Auth1Response): expected response (keyslot or credential public key)
+            expected_response (Auth1Response): expected response (keyslot or
+            credential public key)
             signature (bytes): User device authentication signature.
             encryption (EncryptionEngine): Encryption engine to encrypt the response.
             status (int, optional): response status. Defaults to StatusBytes.SUCCESS.
@@ -819,9 +906,11 @@ class UserDevice(Device):
             credential_signed_timestamp,
             revocation_signed_timestamp,
         )
-        self.transport_protocol.send_message(auth1_response.to_bytes())
+        await self.transport_protocol.send_message(
+            auth1_response.to_bytes(), MessageType.RESPONSE
+        )
 
-    def response_select(
+    async def response_select(
         self,
         aid: bytes,
         type: int,
@@ -850,7 +939,9 @@ class UserDevice(Device):
             maximum_response_apdu=maximum_response_apdu,
             vendor_specific_tlv=vendor_specific_tlv,
         )
-        self.transport_protocol.send_message(select_response.to_bytes())
+        await self.transport_protocol.send_message(
+            select_response.to_bytes(), MessageType.RESPONSE
+        )
 
     def response_envelope(self) -> None:
         raise NotImplementedError
@@ -858,14 +949,16 @@ class UserDevice(Device):
     def response_get_response(self) -> None:
         raise NotImplementedError
 
-    def response_load_cert(self) -> None:
+    async def response_load_cert(self) -> None:
         """
         Create and send a load cert response.
         """
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
-        self.transport_protocol.send_message(load_cert_response.to_bytes())
+        await self.transport_protocol.send_message(
+            load_cert_response.to_bytes(), MessageType.RESPONSE
+        )
 
-    def response_exchange(
+    async def response_exchange(
         self,
         payload: bytes,
         encryption: EncryptionEngine,
@@ -880,16 +973,20 @@ class UserDevice(Device):
         exchange_response = self.apdu.create_exchange_response(
             payload, encryption, StatusBytes.SUCCESS
         )
-        self.transport_protocol.send_message(exchange_response.to_bytes())
+        await self.transport_protocol.send_message(
+            exchange_response.to_bytes(), MessageType.RESPONSE
+        )
 
-    def response_control_flow(self) -> None:
+    async def response_control_flow(self) -> None:
         """
         Create and send a control flow response.
         """
         control_flow_response = self.apdu.create_control_flow_response(
             StatusBytes.SUCCESS
         )
-        self.transport_protocol.send_message(control_flow_response.to_bytes())
+        await self.transport_protocol.send_message(
+            control_flow_response.to_bytes(), MessageType.RESPONSE
+        )
 
 
 class UserSessionState(Enum):
@@ -1076,7 +1173,6 @@ class UserSession:
             transaction_identifier=self.transaction_identifier,
             flag=bytes([self.command_parameters, self.transaction_code]),
             proprietary_information=proprietary_information,
-            credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]

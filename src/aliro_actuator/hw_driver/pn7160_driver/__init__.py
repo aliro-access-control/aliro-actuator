@@ -35,8 +35,16 @@ from aliro_actuator.hw_driver.pn7160_driver.errors import (
 from aliro_actuator.transport_protocol import Mode
 
 DRIVER_PATH = Path(__file__).parent
-ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[3]  # 4 levels up: aliro_actuator/src/aliro_actuator/hw_driver/pn7160_driver
-DEFAULT_NCI_LIB_PATH = ACTUATOR_ROOT_PATH /"third_party"/"nxp_nfc"/"lib"/"libnfc_nci_linux-1.so.0.0.0"
+ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[
+    3
+]  # 4 levels up: aliro_actuator/src/aliro_actuator/hw_driver/pn7160_driver
+DEFAULT_NCI_LIB_PATH = (
+    ACTUATOR_ROOT_PATH
+    / "third_party"
+    / "nxp_nfc"
+    / "lib"
+    / "libnfc_nci_linux-1.so.0.0.0"
+)
 
 RX_MAX = 0x100
 
@@ -93,6 +101,9 @@ def on_hostcard_emulation_deactivated() -> None:
     Global.logger.info("Reader lost")
     global reader_available
     reader_available = False
+    # notify data_received, so it can stop waiting for data
+    with data_received_notify:
+        data_received_notify.notify()
 
 
 @ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_ubyte), ctypes.c_uint)
@@ -118,7 +129,7 @@ class Driver:
         self.nci_location = nci_location
         if nci_location is None:
             self.nci_location = DEFAULT_NCI_LIB_PATH
-            
+
         try:
             self.nci = ctypes.CDLL(self.nci_location)
         except OSError:
@@ -143,11 +154,14 @@ class Driver:
         if self.mode == Mode.READER:
             self.nci.registerTagCallback(ctypes.byref(tagcallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x00, 0)
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             self.nci.nfcHce_registerHceCallback(ctypes.byref(hcecallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x01, 0)
 
         Global.logger.info("PN7160 initialized, discovery started")
+
+    def disconnect(self) -> None:
+        self.nci.disableDiscovery()
 
     def wait_for_tag(self) -> None:
         Global.logger.info("Waiting for tag")
@@ -197,12 +211,14 @@ class Driver:
             self.response = bytes(rx_buffer[0:rx_len])
             if rx_len <= 0:
                 Global.logger.warning("no response received")
+                if not tag_available:
+                    raise NoTagError
             else:
                 Global.logger.info(
                     "received response: {!r}".format(hexlify(self.response))
                 )
 
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             if not reader_available:
                 raise NoReaderError
 
@@ -211,6 +227,9 @@ class Driver:
             tx_buffer = tx(*message)
             result = self.nci.nfcHce_sendCommand(ctypes.byref(tx_buffer), len(message))
             if result != 0:
+                Global.logger.warning("NCI error: {:x}".format(result))
+                if not reader_available:
+                    raise NoReaderError
                 raise NCIError(result)
 
     def receive_message(self) -> bytes:
@@ -221,9 +240,11 @@ class Driver:
             if len(self.response) > 0:
                 return bytes(self.response)
             else:
+                if not tag_available:
+                    raise NoTagError
                 raise NoDataReceivedError
 
-        elif self.mode == Mode.CARD_EMULATION:
+        elif self.mode == Mode.USER_DEVICE:
             global data_received
             if not reader_available:
                 raise NoReaderError
@@ -236,6 +257,8 @@ class Driver:
             while True:
                 with data_received_notify:
                     data_received_notify.wait()
+                if not reader_available:
+                    raise NoTagError
                 if data_received is not None:
                     message = bytes(data_received)
                     data_received = None

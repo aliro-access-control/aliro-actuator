@@ -29,6 +29,9 @@ sudo -E $(which poetry) install --no-root
 sudo -E $(which poetry) shell
 ```
 
+If using BLE, the firmware of the murata board needs to be updated. 
+For instructions, see the readme in ```third_party/murata_fw```
+
 ### (re)building the nci library
 In case the install script does not work as expected, the following steps can be followed for a manual install.
 
