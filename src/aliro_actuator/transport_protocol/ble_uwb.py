@@ -69,7 +69,7 @@ class BLEUWB(TransportProtocolBase):
                 group_resolving_key=self.group_resolving_key,
             )
         elif self.mode == Mode.USER_DEVICE:
-            truncated_list = [lambda x: x[:8] for x in reader_group_identifier_list]
+            truncated_list = list(map(lambda x: x[:8], reader_group_identifier_list))
             self.driver = UserDeviceMurataDriver(self.port)
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
