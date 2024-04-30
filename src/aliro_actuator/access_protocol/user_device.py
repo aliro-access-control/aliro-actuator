@@ -207,7 +207,7 @@ class UserDevice(Device):
         Global.logger.info("Setting up connection")
         reader_group_list = []
         for access_credential in self.access_credentials:
-            reader_group_list.append(access_credential.get_all_reader_id())
+            reader_group_list.extend(access_credential.get_all_reader_id())
         await self.transport_protocol.initialization(
             Mode.USER_DEVICE,
             group_resolving_key=self.group_resolving_key,
