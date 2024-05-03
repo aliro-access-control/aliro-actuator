@@ -122,7 +122,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         Global.logger.info("Wait for data")
         while True:
             try:
-                message = self.read()
+                message = await self.read()
                 message.print()
                 if (
                     message.op_group == OpGroup.L2CAP

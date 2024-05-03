@@ -131,7 +131,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         self.set_low_timeout()
         while True:
             try:
-                message = self.read()
+                message = await self.read()
                 message.print()
                 if (
                     message.op_group == OpGroup.GAP
@@ -266,7 +266,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         self.set_low_timeout()
         while True:
             try:
-                message = self.read()
+                message = await self.read()
                 message.print()
                 if (
                     message.op_group == OpGroup.GAP

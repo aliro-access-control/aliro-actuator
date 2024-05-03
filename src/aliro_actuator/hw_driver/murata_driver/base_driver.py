@@ -52,14 +52,14 @@ class MurataBaseDriver:
     def set_normal_timeout(self) -> None:
         self.serial.timeout = TIMEOUT
 
-    def read(self) -> Message:
-        header = self.serial.read(5)
+    async def read(self) -> Message:
+        header = await asyncio.to_thread(self.serial.read(5))
         if len(header) == 0:
             raise NoResponseError
         if header[0] != 0x02:
             raise STXError
-        data = self.serial.read(get_length_from_header(header))
-        checksum = self.serial.read(1)
+        data = await asyncio.to_thread(self.serial.read(get_length_from_header(header)))
+        checksum = await asyncio.to_thread(self.serial.read(1))
         message = Message(
             header[1], header[2], get_length_from_header(header), data, checksum
         )
@@ -75,7 +75,7 @@ class MurataBaseDriver:
         self.set_low_timeout()
         while True:
             try:
-                response = self.read()
+                response = await self.read()
                 response.print()
                 if (
                     response.get_op_group() == OpGroup.L2CAP
