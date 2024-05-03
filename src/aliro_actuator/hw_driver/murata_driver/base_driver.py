@@ -53,13 +53,13 @@ class MurataBaseDriver:
         self.serial.timeout = TIMEOUT
 
     async def read(self) -> Message:
-        header = await asyncio.to_thread(self.serial.read(5))
+        header = await asyncio.to_thread(self.serial.read, 5)
         if len(header) == 0:
             raise NoResponseError
         if header[0] != 0x02:
             raise STXError
-        data = await asyncio.to_thread(self.serial.read(get_length_from_header(header)))
-        checksum = await asyncio.to_thread(self.serial.read(1))
+        data = await asyncio.to_thread(self.serial.read, get_length_from_header(header))
+        checksum = await asyncio.to_thread(self.serial.read, 1)
         message = Message(
             header[1], header[2], get_length_from_header(header), data, checksum
         )
@@ -98,7 +98,8 @@ class MurataBaseDriver:
                     # triggered by the other device
                     try:
                         id = response.get_device_id()
-                        del self.channel_ids[id]
+                        if id in self.channel_ids.keys():
+                            del self.channel_ids[id]
                         self.connected_devices.remove(id)
                     except ErrorReturnedError:
                         pass  # just ignore message
