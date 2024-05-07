@@ -405,7 +405,7 @@ class Command(Message):
 
         Checks the fields and raises errors for invalid fields.
         """
-        Global.logger.debug("Parsing select command:")
+        Global.logger.info("Parsing select command:")
         self._check_cla(True)
         self._check_ins(INS.SELECT)
         self._check_parameters(0x04, 0x00)
@@ -426,7 +426,7 @@ class Command(Message):
         Checks the fields and raises errors for invalid fields.
         """
 
-        Global.logger.debug("Parsing envelope command:")
+        Global.logger.info("Parsing envelope command:")
         self._check_cla(True)
         self._check_ins(INS.ENVELOPE)
         self._check_parameters(0x00, 0x00)
@@ -439,7 +439,7 @@ class Command(Message):
         Checks the fields and raises errors for invalid fields.
         """
 
-        Global.logger.debug("Parsing get_response command:")
+        Global.logger.info("Parsing get_response command:")
         self._check_cla(True)
         self._check_ins(INS.GET_RESPONSE)
         self._check_parameters(0x00, 0x00)
@@ -460,7 +460,7 @@ class Command(Message):
         reader_identifier: bytes
         vendor_specific_extension: bytes | None
         """
-        Global.logger.debug("Parsing auth0 command:")
+        Global.logger.info("Parsing auth0 command:")
         self._check_cla(False)
         self._check_ins(INS.AUTH0)
         self._check_parameters(0x00, 0x00)
@@ -604,7 +604,7 @@ class Command(Message):
 
         Checks the fields and raises errors for invalid fields.
         """
-        Global.logger.debug("Parsing load_cert command:")
+        Global.logger.info("Parsing load_cert command:")
         self._check_cla(False)
         self._check_ins(INS.LOAD_CERT)
         self._check_parameters(0x00, 0x00)
@@ -630,7 +630,7 @@ class Command(Message):
         reader_signature: bytes
         certificate_data: bytes | None
         """
-        Global.logger.debug("Parsing auth1 command:")
+        Global.logger.info("Parsing auth1 command:")
         self._check_cla(False)
         self._check_ins(INS.AUTH1)
         self._check_parameters(0x00, 0x00)
@@ -707,7 +707,7 @@ class Command(Message):
         ursk
         update_doc
         """
-        Global.logger.debug("Parsing exchange command:")
+        Global.logger.info("Parsing exchange command:")
         self._check_cla(False)
         self._check_ins(INS.EXCHANGE)
         self._check_parameters(0x00, 0x00)
@@ -785,7 +785,7 @@ class Command(Message):
 
         Checks the fields and raises errors for invalid fields.
         """
-        Global.logger.debug("Parsing control flow command:")
+        Global.logger.info("Parsing control flow command:")
         self._check_cla(False)
         self._check_ins(INS.CONTROL_FLOW)
         self._check_parameters(0x00, 0x00)
