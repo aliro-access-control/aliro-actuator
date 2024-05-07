@@ -397,7 +397,7 @@ class Command(Message):
             le = self.le
             if le == 256:
                 le = 0  # log actual value send
-            Global.logger.info("Valid Le found: 0x{:02x}".format(self.le))
+            Global.logger.info("Valid Le found: 0x{:02x}".format(le))
 
     def parse_as_select(self) -> None:
         """
