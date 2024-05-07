@@ -357,9 +357,22 @@ class Command(Message):
         if interindustry:
             if self.cla != 0x00:
                 raise InvalidCLAError(self.as_bytes)
+            else:
+                Global.logger.info("Valid CLA found: 0x{:02x}".format(self.cla))
         else:
             if self.cla != 0x80:
                 raise InvalidCLAError(self.as_bytes)
+            else:
+                Global.logger.info("Valid CLA found: 0x{:02x}".format(self.cla))
+
+    def _check_ins(self, expected_ins: INS) -> None:
+        """
+        Check if the INS is valid.
+        """
+        if self.ins != expected_ins:
+            raise InvalidINSError(self.as_bytes)
+        else:
+            Global.logger.info("Valid INS found: 0x{:02x}".format(self.ins))
 
     def _check_parameters(self, expected_p1: int, expected_p2: int) -> None:
         """
@@ -367,6 +380,9 @@ class Command(Message):
         """
         if self.p1 != expected_p1 or self.p2 != expected_p2:
             raise InvalidParameterError(self.as_bytes)
+        else:
+            Global.logger.info("Valid P1 found: 0x{:02x}".format(self.p1))
+            Global.logger.info("Valid P2 found: 0x{:02x}".format(self.p2))
 
     def _check_le(self, expected_le: int = 256) -> None:
         """
@@ -377,6 +393,11 @@ class Command(Message):
         """
         if self.le != expected_le:
             raise InvalidLeError(self.as_bytes)
+        else:
+            le = self.le
+            if le == 256:
+                le = 0  # log actual value send
+            Global.logger.info("Valid Le found: 0x{:02x}".format(self.le))
 
     def parse_as_select(self) -> None:
         """
@@ -386,6 +407,7 @@ class Command(Message):
         """
         Global.logger.debug("Parsing select command:")
         self._check_cla(True)
+        self._check_ins(INS.SELECT)
         self._check_parameters(0x04, 0x00)
         self._check_le()
 
@@ -406,6 +428,7 @@ class Command(Message):
 
         Global.logger.debug("Parsing envelope command:")
         self._check_cla(True)
+        self._check_ins(INS.ENVELOPE)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
 
@@ -418,6 +441,7 @@ class Command(Message):
 
         Global.logger.debug("Parsing get_response command:")
         self._check_cla(True)
+        self._check_ins(INS.GET_RESPONSE)
         self._check_parameters(0x00, 0x00)
         if self.data is not None:
             raise InvalidCommandDataError(self.as_bytes)
@@ -438,6 +462,7 @@ class Command(Message):
         """
         Global.logger.debug("Parsing auth0 command:")
         self._check_cla(False)
+        self._check_ins(INS.AUTH0)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
         self._check_le()
@@ -581,6 +606,7 @@ class Command(Message):
         """
         Global.logger.debug("Parsing load_cert command:")
         self._check_cla(False)
+        self._check_ins(INS.LOAD_CERT)
         self._check_parameters(0x00, 0x00)
         self._check_le()
 
@@ -606,6 +632,7 @@ class Command(Message):
         """
         Global.logger.debug("Parsing auth1 command:")
         self._check_cla(False)
+        self._check_ins(INS.AUTH1)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
         self._check_le()
@@ -682,6 +709,7 @@ class Command(Message):
         """
         Global.logger.debug("Parsing exchange command:")
         self._check_cla(False)
+        self._check_ins(INS.EXCHANGE)
         self._check_parameters(0x00, 0x00)
         self._check_le()
 
@@ -759,6 +787,7 @@ class Command(Message):
         """
         Global.logger.debug("Parsing control flow command:")
         self._check_cla(False)
+        self._check_ins(INS.CONTROL_FLOW)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
         self._check_le(0)
