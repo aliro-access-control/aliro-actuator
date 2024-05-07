@@ -409,7 +409,6 @@ class Command(Message):
         self._check_cla(True)
         self._check_ins(INS.SELECT)
         self._check_parameters(0x04, 0x00)
-        self._check_le()
 
         if self.lc > Select.AID_LEN:
             raise InvalidCommandDataError(self.as_bytes, "AID too long")
@@ -417,7 +416,11 @@ class Command(Message):
             raise InvalidCommandDataError(self.as_bytes, "No AID found")
 
         self.aid = self.data
+        Global.logger.info("Valid Le found: 0x{:02x}".format(self.lc))
+        Global.logger.debug("Data needs to be verified during handling")
         Global.logger.debug("AID: {!r}".format(hexlify(self.aid)))
+
+        self._check_le()
 
     def parse_as_envelope(self) -> None:
         """
@@ -465,7 +468,9 @@ class Command(Message):
         self._check_ins(INS.AUTH0)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
-        self._check_le()
+        Global.logger.debug(
+            "Data contains TLV structure: {}".format(self.tlv_data.to_data())
+        )
 
         try:
             command_parameters_bytes = self.tlv_data.get_bytes(Auth0.COMMAND_TAG)
@@ -597,6 +602,8 @@ class Command(Message):
         except IndexError:
             self.vendor_specific_extension = None
             Global.logger.debug("No vendor specific extensions found")
+
+        self._check_le()
 
     def parse_as_load_cert(self) -> None:
         """
