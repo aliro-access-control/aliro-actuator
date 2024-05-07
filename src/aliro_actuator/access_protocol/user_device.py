@@ -364,7 +364,7 @@ class UserDevice(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("Received Select Command")
+        Global.logger.info("Handling Select Command")
         if not (
             select_command.aid == EXPEDITED_PHASE_AID
             or select_command.aid == STEPUP_PHASE_AID
@@ -412,7 +412,7 @@ class UserDevice(Device):
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             raise SessionError("unexpected state for auth0 command: {}".format(state))
 
-        Global.logger.info("Received AUTH0 Command")
+        Global.logger.info("Handling AUTH0 Command")
         if (
             auth0_command.expedited_phase_protocol_version
             not in self.supported_versions
@@ -495,7 +495,7 @@ class UserDevice(Device):
                 "unexpected state for load cert command: {}".format(state)
             )
 
-        Global.logger.info("Received LOAD CERT Command")
+        Global.logger.info("Handling LOAD CERT Command")
         try:
             reader_public_key = self.session.get_reader_public_key()
             if reader_public_key is None:
@@ -535,7 +535,7 @@ class UserDevice(Device):
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             raise SessionError("unexpected state for auth1 command: {}".format(state))
 
-        Global.logger.info("Received AUTH1 Command")
+        Global.logger.info("Handling AUTH1 Command")
         if auth1_command.certificate_data is not None:
             Global.logger.info("AUTH1 Command contains certificate")
             try:
@@ -661,6 +661,7 @@ class UserDevice(Device):
                 "unexpected state for exchange command: {}".format(state)
             )
 
+        Global.logger.info("Handling EXCHANGE Command")
         if not self.session.encryption.check_counters_valid():
             # End current session
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
@@ -795,7 +796,7 @@ class UserDevice(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("Received CONTROL FLOW Command")
+        Global.logger.info("Handling CONTROL FLOW Command")
         if control_flow_command.s1 == 0x00:
             Global.logger.info("transaction finished with failure")
         elif control_flow_command.s2 == 0x02:
