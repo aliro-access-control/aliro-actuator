@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+from binascii import hexlify
+
 from ber_tlv.tlv import BadLength, BadParameter, BadTag, Tlv, UnexpectedEnd
 
 from aliro_actuator.access_protocol.errors import AccessProtocolError
@@ -202,3 +204,24 @@ class TLV:
         returns the tlv as a list of tuples
         """
         return self.data
+
+    def to_print(self) -> str:
+        """
+        returns a printable string.
+
+        Returns:
+            str: printable string with tags, values and lengths of this TLV
+        """
+        element_list = []
+        for element in self.data:
+            element_print = "("
+            element_print += "0x{:02x}, ".format(element[0])
+            element_print += "0x{:02x}, ".format(len(element[1]))
+            if isinstance(element[1], bytes):
+                element_print += "0x{!r}".format(hexlify(element[1]))
+            elif isinstance(element[1], list):
+                element_print += "0x{!r}".format(hexlify(TLV(element[1]).to_bytes()))
+            element_print += ")"
+            element_list.append(element_print)
+        result = "[{}]".format(", ".join(x for x in element_list))
+        return result

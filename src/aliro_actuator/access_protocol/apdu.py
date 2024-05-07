@@ -469,7 +469,7 @@ class Command(Message):
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
         Global.logger.debug(
-            "Data contains TLV structure: {}".format(self.tlv_data.to_data())
+            "Data contains TLV structure: {}".format(self.tlv_data.to_print())
         )
 
         try:
