@@ -468,6 +468,7 @@ class Command(Message):
         self._check_ins(INS.AUTH0)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
+        Global.logger.debug("Data needs to be verified during handling")
         Global.logger.debug(
             "Data contains TLV structure: {}".format(self.tlv_data.to_print())
         )
@@ -481,8 +482,11 @@ class Command(Message):
             self.command_parameters = int.from_bytes(
                 command_parameters_bytes, byteorder="big"
             )
+            Global.logger.info(
+                "Command parameters (tag 0x{:02x}) present".format(Auth0.COMMAND_TAG)
+            )
             Global.logger.debug(
-                "Command parameters: {}".format(self.command_parameters)
+                "Command parameters value: 0x{:02x}".format(self.command_parameters)
             )
         except IndexError as error:
             raise InvalidCommandDataError(
@@ -499,7 +503,14 @@ class Command(Message):
             self.transaction_code = int.from_bytes(
                 transaction_code_bytes, byteorder="big"
             )
-            Global.logger.debug("Transaction code: {}".format(self.transaction_code))
+            Global.logger.info(
+                "Transaction code (tag 0x{:02x}) present".format(
+                    Auth0.TRANSACTION_CODE_TAG
+                )
+            )
+            Global.logger.debug(
+                "Transaction code value: 0x{:02x}".format(self.transaction_code)
+            )
         except IndexError as error:
             raise InvalidCommandDataError(
                 self.as_bytes,
@@ -518,8 +529,13 @@ class Command(Message):
             self.expedited_phase_protocol_version = int.from_bytes(
                 expedited_phase_protocol_version_bytes, byteorder="big"
             )
+            Global.logger.info(
+                "Expedited transaction protocol version (tag 0x{:02x}) present".format(
+                    Auth0.ETPV_TAG
+                )
+            )
             Global.logger.debug(
-                "expedited transaction protocol version: {}".format(
+                "Expedited transaction protocol version value: 0x{:02x}".format(
                     self.expedited_phase_protocol_version
                 )
             )
@@ -538,8 +554,15 @@ class Command(Message):
                     self.as_bytes,
                     "reader epubk has invalid length",
                 )
+            Global.logger.info(
+                "Reader ephemeral public key (tag 0x{:02x}) present".format(
+                    Auth0.READER_EPUBK_TAG
+                )
+            )
             Global.logger.debug(
-                "reader ephemeral public key: {!r}".format(hexlify(self.reader_epubk))
+                "Reader ephemeral public key value: {!r}".format(
+                    hexlify(self.reader_epubk)
+                )
             )
         except IndexError as error:
             raise InvalidCommandDataError(
@@ -556,8 +579,13 @@ class Command(Message):
                     self.as_bytes,
                     "transaction identifier has invalid length",
                 )
+            Global.logger.info(
+                "transaction identifier (tag 0x{:02x}) present".format(
+                    Auth0.TRANSACTION_ID_TAG
+                )
+            )
             Global.logger.debug(
-                "transaction identifier: {!r}".format(
+                "transaction identifier value: {!r}".format(
                     hexlify(self.transaction_identifier)
                 )
             )
@@ -576,8 +604,13 @@ class Command(Message):
                     self.as_bytes,
                     "reader identifier has invalid length",
                 )
+            Global.logger.info(
+                "Reader identifier (tag 0x{:02x}) present".format(
+                    Auth0.READER_IDENTIFIER_TAG
+                )
+            )
             Global.logger.debug(
-                "reader identifier: {!r}".format(hexlify(self.reader_identifier))
+                "Reader identifier value: {!r}".format(hexlify(self.reader_identifier))
             )
         except IndexError as error:
             raise InvalidCommandDataError(
@@ -594,14 +627,22 @@ class Command(Message):
                     self.as_bytes,
                     "vendor specific extension has invalid length",
                 )
+            Global.logger.info(
+                "Vendor specific extension (tag 0x{:02x}) present".format(
+                    Auth0.VENDOR_SPECIFIC_TAG
+                )
+            )
             Global.logger.debug(
-                "vendor specific extension: {!r}".format(
+                "Vendor specific extension value: {!r}".format(
                     hexlify(self.vendor_specific_extension)
                 )
             )
         except IndexError:
             self.vendor_specific_extension = None
-            Global.logger.debug("No vendor specific extensions found")
+            Global.logger.info(
+                "No vendor specific extensions (tag 0x{:02x}) found "
+                "(this tag is optional)".format(Auth0.VENDOR_SPECIFIC_TAG)
+            )
 
         self._check_le()
 
@@ -615,15 +656,18 @@ class Command(Message):
         self._check_cla(False)
         self._check_ins(INS.LOAD_CERT)
         self._check_parameters(0x00, 0x00)
-        self._check_le()
 
         if self.data is None:
-            raise InvalidCommandDataError(self.as_bytes)
+            raise InvalidCommandDataError(
+                self.as_bytes, "No certificate in load cert command"
+            )
         self.reader_cert = self.data
 
+        Global.logger.debug("Data needs to be verified during handling")
         Global.logger.debug(
-            "reader certificate: {!r}".format(hexlify(self.reader_cert))
+            "Reader certificate: {!r}".format(hexlify(self.reader_cert))
         )
+        self._check_le()
 
     def parse_as_auth1(self) -> None:
         """
@@ -642,7 +686,10 @@ class Command(Message):
         self._check_ins(INS.AUTH1)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
-        self._check_le()
+        Global.logger.debug("Data needs to be verified during handling")
+        Global.logger.debug(
+            "Data contains TLV structure: {}".format(self.tlv_data.to_print())
+        )
 
         try:
             command_parameters_bytes = self.tlv_data.get_bytes(Auth1.COMMAND_TAG)
@@ -652,8 +699,11 @@ class Command(Message):
                     "command parameters has invalid length",
                 )
             self.command_parameters = int.from_bytes(command_parameters_bytes, "big")
+            Global.logger.info(
+                "Command parameters (tag 0x{:02x}) present".format(Auth1.COMMAND_TAG)
+            )
             Global.logger.debug(
-                "command parameters: {!r}".format(self.command_parameters)
+                "Command parameters value: {!r}".format(self.command_parameters)
             )
             if self.command_parameters & 0x01 == 0x01:
                 self.expected_response = Auth1Response.CREDENTIAL_PUBLIC_KEY
@@ -676,8 +726,11 @@ class Command(Message):
                     self.as_bytes,
                     "reader signature has invalid length",
                 )
+            Global.logger.info(
+                "Reader signature (tag 0x{:02x}) present".format(Auth1.READER_SIG_TAG)
+            )
             Global.logger.debug(
-                "reader signature: {!r}".format(hexlify(self.reader_signature))
+                "Reader signature value: {!r}".format(hexlify(self.reader_signature))
             )
         except IndexError as error:
             raise InvalidCommandDataError(
@@ -689,12 +742,20 @@ class Command(Message):
             self.certificate_data: bytes | None = self.tlv_data.get_bytes(
                 Auth1.CERTIFICATE_TAG
             )
+            Global.logger.info(
+                "Certificate data (tag 0x{:02x}) present".format(Auth1.CERTIFICATE_TAG)
+            )
             Global.logger.debug(
-                "certificate data: {!r}".format(hexlify(self.certificate_data))
+                "Certificate data: {!r}".format(hexlify(self.certificate_data))
             )
         except IndexError:
             self.certificate_data = None
-            Global.logger.debug("No certificate data found")
+            Global.logger.debug(
+                "No certificate data (tag 0x{:02x}) found "
+                "(this tag is optional)".format(Auth1.CERTIFICATE_TAG)
+            )
+
+        self._check_le()
 
     def parse_as_exchange(self, encryption: EncryptionEngine | None = None) -> None:
         """
@@ -718,7 +779,6 @@ class Command(Message):
         self._check_cla(False)
         self._check_ins(INS.EXCHANGE)
         self._check_parameters(0x00, 0x00)
-        self._check_le()
 
         if self.data is None:
             raise InvalidCommandDataError(self.as_bytes)
@@ -740,10 +800,14 @@ class Command(Message):
                 "decrypted payload: {!r}".format(hexlify(self.decrypted_payload))
             )
 
+            Global.logger.debug("Data needs to be verified during handling")
             self.atomic_session = self.decrypted_payload[0] == 0x01
             Global.logger.debug("atomic session: {}".format(self.atomic_session))
 
             self.payload_tlv = TLV.from_bytes(self.decrypted_payload[1:])
+            Global.logger.debug(
+                "Data contains TLV structure: {}".format(self.payload_tlv.to_print())
+            )
 
             self.read_requests = self.payload_tlv.get_all_bytes_of_tag(
                 Exchange.READ_TAG
@@ -786,6 +850,8 @@ class Command(Message):
                 self.update_doc = None
                 Global.logger.debug("no update_doc found")
 
+        self._check_le()
+
     def parse_as_control_flow(self) -> None:
         """
         Parse this command as a Control Flow command.
@@ -797,23 +863,55 @@ class Command(Message):
         self._check_ins(INS.CONTROL_FLOW)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
-        self._check_le(0)
+        Global.logger.debug("Data needs to be verified during handling")
+        Global.logger.debug(
+            "Data contains TLV structure: {}".format(self.tlv_data.to_print())
+        )
 
-        self.s1 = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S1_TAG), "big")
-        self.s2 = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S2_TAG), "big")
-        Global.logger.debug("s1: {}".format(self.s1))
-        Global.logger.debug("s2: {}".format(self.s2))
+        try:
+            self.s1 = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S1_TAG), "big")
+            Global.logger.info(
+                "S1 parameter (tag 0x{:02x}) present".format(ControlFlow.S1_TAG)
+            )
+            Global.logger.debug("S1 parameter value: {}".format(self.s1))
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing S1 Parameter, tag: {:#x})".format(error.args[0]),
+            ) from error
+
+        try:
+            self.s2 = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S2_TAG), "big")
+            Global.logger.info(
+                "S2 parameter (tag 0x{:02x}) present".format(ControlFlow.S2_TAG)
+            )
+            Global.logger.debug("s2: {}".format(self.s2))
+        except IndexError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "missing S2 Parameter, tag: {:#x}".format(error.args[0]),
+            ) from error
 
         try:
             self.domain_specific_data: bytes | None = self.tlv_data.get_bytes(
                 ControlFlow.DOMAIN_SPECIFIC_TAG
             )
+            Global.logger.info(
+                "Domain specific data (tag 0x{:02x}) present".format(
+                    ControlFlow.DOMAIN_SPECIFIC_TAG
+                )
+            )
             Global.logger.debug(
-                "domain specific data: {!r}".format(self.domain_specific_data)
+                "Domain specific data: {!r}".format(self.domain_specific_data)
             )
         except IndexError:
             self.domain_specific_data = None
-            Global.logger.debug("No domain specific data found")
+            Global.logger.debug(
+                "No domain specific data (tag 0x{:02x}) found "
+                "(this tag is optional)".format(ControlFlow.DOMAIN_SPECIFIC_TAG)
+            )
+
+        self._check_le(0)
 
 
 class Response(Message):
