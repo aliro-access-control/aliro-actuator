@@ -218,9 +218,9 @@ class TLV:
             element_print += "0x{:02x}, ".format(element[0])
             element_print += "0x{:02x}, ".format(len(element[1]))
             if isinstance(element[1], bytes):
-                element_print += "0x{!r}".format(hexlify(element[1]))
+                element_print += "{!r}".format(hexlify(element[1]))
             elif isinstance(element[1], list):
-                element_print += "0x{!r}".format(hexlify(TLV(element[1]).to_bytes()))
+                element_print += "{!r}".format(hexlify(TLV(element[1]).to_bytes()))
             element_print += ")"
             element_list.append(element_print)
         result = "[{}]".format(", ".join(x for x in element_list))
