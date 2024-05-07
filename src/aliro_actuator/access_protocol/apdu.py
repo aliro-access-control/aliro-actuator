@@ -399,6 +399,42 @@ class Command(Message):
                 le = 0  # log actual value send
             Global.logger.info("Valid Le found: 0x{:02x}".format(le))
 
+    def _get_bits_and_enumerate(
+        self,
+        value: int,
+        bitmask: int,
+        enum_class: type,
+        value_name: str,
+    ) -> int:
+        """
+        Gets the bits from the value and makes it an enumerator.
+
+        Args:
+            value (int): original value on which to apply bitmask
+            bitmask (int): bitmask to apply
+            enum_class (type): value returned will be this class
+            value_name (str): name used in logging
+
+        Raises:
+            InvalidCommandDataError: raised if the value does not fit in enum_class
+
+        Returns:
+            int: enum_class of the bitmasked value
+        """
+        try:
+            value_bits_int = value & bitmask
+            value_bits_enum = enum_class(value_bits_int)
+            Global.logger.info(
+                value_name
+                + " has valid value: {}".format(self.request_expedited_phase.name)
+            )
+        except ValueError as error:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                value_name + " has invalid value: {}".format(value_bits_int),
+            ) from error
+        return value_bits_enum
+
     def parse_as_select(self) -> None:
         """
         Parse this command as a Select command.
@@ -416,7 +452,7 @@ class Command(Message):
             raise InvalidCommandDataError(self.as_bytes, "No AID found")
 
         self.aid = self.data
-        Global.logger.info("Valid Le found: 0x{:02x}".format(self.lc))
+        Global.logger.info("Valid Lc found: 0x{:02x}".format(self.lc))
         Global.logger.debug("Data needs to be verified during handling")
         Global.logger.debug("AID: {!r}".format(hexlify(self.aid)))
 
@@ -488,6 +524,12 @@ class Command(Message):
             Global.logger.debug(
                 "Command parameters value: 0x{:02x}".format(self.command_parameters)
             )
+            self.request_expedited_phase = self._get_bits_and_enumerate(
+                self.command_parameters,
+                0x01,
+                Transaction,
+                "Request expedited phase bit",
+            )
         except IndexError as error:
             raise InvalidCommandDataError(
                 self.as_bytes,
@@ -500,7 +542,7 @@ class Command(Message):
                 raise InvalidCommandDataError(
                     self.as_bytes, "transaction code has invalid length"
                 )
-            self.transaction_code = int.from_bytes(
+            transaction_code_int = int.from_bytes(
                 transaction_code_bytes, byteorder="big"
             )
             Global.logger.info(
@@ -509,7 +551,10 @@ class Command(Message):
                 )
             )
             Global.logger.debug(
-                "Transaction code value: 0x{:02x}".format(self.transaction_code)
+                "Transaction code value: 0x{:02x}".format(transaction_code_int)
+            )
+            self.transaction_code = self._get_bits_and_enumerate(
+                transaction_code_int, 0xFF, TransactionCode, "Transaction code"
             )
         except IndexError as error:
             raise InvalidCommandDataError(
@@ -705,10 +750,10 @@ class Command(Message):
             Global.logger.debug(
                 "Command parameters value: {!r}".format(self.command_parameters)
             )
-            if self.command_parameters & 0x01 == 0x01:
-                self.expected_response = Auth1Response.CREDENTIAL_PUBLIC_KEY
-            else:
-                self.expected_response = Auth1Response.KEY_SLOT
+            self.expected_response = self._get_bits_and_enumerate(
+                self.command_parameters, 0x01, Auth1Response, "Expected response"
+            )
+
             if self.command_parameters & 0x02 == 0x02:
                 self.request_access_credentials = True
             else:
@@ -750,7 +795,7 @@ class Command(Message):
             )
         except IndexError:
             self.certificate_data = None
-            Global.logger.debug(
+            Global.logger.info(
                 "No certificate data (tag 0x{:02x}) found "
                 "(this tag is optional)".format(Auth1.CERTIFICATE_TAG)
             )
@@ -869,11 +914,12 @@ class Command(Message):
         )
 
         try:
-            self.s1 = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S1_TAG), "big")
+            s1_int = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S1_TAG), "big")
             Global.logger.info(
                 "S1 parameter (tag 0x{:02x}) present".format(ControlFlow.S1_TAG)
             )
-            Global.logger.debug("S1 parameter value: {}".format(self.s1))
+            Global.logger.debug("S1 parameter value: {}".format(s1_int))
+            self.s1 = self._get_bits_and_enumerate(s1_int, 0xFF, S1, "S1 parameter")
         except IndexError as error:
             raise InvalidCommandDataError(
                 self.as_bytes,
@@ -881,11 +927,12 @@ class Command(Message):
             ) from error
 
         try:
-            self.s2 = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S2_TAG), "big")
+            s2_int = int.from_bytes(self.tlv_data.get_bytes(ControlFlow.S2_TAG), "big")
             Global.logger.info(
                 "S2 parameter (tag 0x{:02x}) present".format(ControlFlow.S2_TAG)
             )
-            Global.logger.debug("s2: {}".format(self.s2))
+            Global.logger.debug("S2 parameter value: {}".format(s2_int))
+            self.s2 = self._get_bits_and_enumerate(s2_int, 0xFF, S2, "S2 parameter")
         except IndexError as error:
             raise InvalidCommandDataError(
                 self.as_bytes,
