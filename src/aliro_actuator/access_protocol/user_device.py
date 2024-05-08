@@ -708,7 +708,9 @@ class UserDevice(Device):
 
         # handle notifications
         if exchange_command.notify is not None:
-            errors = exchange_command.notify.get_all_bytes_of_tag(0xC1)
+            errors = []
+            for notify in exchange_command.notify:
+                errors.extend(notify.get_all_bytes_of_tag(0xC1))
             for error in errors:
                 if error is None:
                     raise AccessProtocolError

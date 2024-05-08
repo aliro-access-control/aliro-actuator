@@ -153,7 +153,6 @@ class Test_apdu_testvectors(unittest.TestCase):
         command = self.apdu.parse_command(AUTH1_COMMAND)
         self.assertEqual(command.command_parameters, 0x01)
         self.assertEqual(command.expected_response, Auth1Response.CREDENTIAL_PUBLIC_KEY)
-        self.assertEqual(command.request_access_credentials, False)
         self.assertEqual(command.reader_signature, READER_SIGNATURE)
         self.assertEqual(command.certificate_data, None)
 

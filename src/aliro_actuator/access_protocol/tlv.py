@@ -168,6 +168,29 @@ class TLV:
                 bytes_list.append(element)
         return bytes_list
 
+    def get_all_tlv_of_tag(self, tag: int) -> list[TLV]:
+        """
+        Similar to get_all_of_tag, but the list only contains tlv objects.
+        Raises an error when a no byte object is found.
+
+        Args:
+            tag (int): tag number
+
+        Raises:
+            TlvError: Raised when value is not of type bytes.
+
+        Returns:
+            list[bytes]: list with all values with given tag
+        """
+        list = self.get_all_of_tag(tag)
+        bytes_list = []
+        for element in list:
+            if not isinstance(element, TLV):
+                raise TlvError
+            else:
+                bytes_list.append(element)
+        return bytes_list
+
     @staticmethod
     def from_bytes(data_bytes: bytes) -> TLV:
         """
