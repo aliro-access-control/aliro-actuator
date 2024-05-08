@@ -172,6 +172,7 @@ class Message:
 
     def __init__(self) -> None:
         self.as_bytes = bytes()
+        self.invalid_data_error: type = Exception
 
     def to_bytes(self) -> bytes:
         return self.as_bytes
@@ -186,6 +187,27 @@ class Message:
             version = int.from_bytes(bytes([pt1, pt2]), byteorder="big")
             result.append(version)
         return result
+
+    def _parse_tlv(self) -> None:
+        """
+        Parse the data field of this Message as TLV values (BER-TLV, ISO 7816-4).
+
+        Resulting tlv data can be found in the tlv_data attribute.
+        This dictionary contains the tags as keys and values as values.
+        If a tag has no value, the value in the dictionary is None.
+        """
+        try:
+            if hasattr(self, "data") and self.data is not None:
+                self.tlv_data = TLV.from_bytes(self.data)
+            else:
+                raise self.invalid_data_error(
+                    self.as_bytes,
+                    "Trying to parse data as TLV, but no data is available",
+                )
+        except TlvError as error:
+            raise self.invalid_data_error(
+                self.as_bytes, "Data is an invalid TLV"
+            ) from error
 
     def _enumerate(
         self,
@@ -202,8 +224,8 @@ class Message:
             enum_class (type): type of the enumerator
 
         Raises:
-            InvalidCommandDataError: raised if the value is not a valid value of
-            the enumerator
+            InvalidCommandDataError | InvalidResponseDataError: raised if the value is
+            not a valid value of the enumerator
 
         Returns:
             int: enum_class of the bitmasked value
@@ -214,7 +236,7 @@ class Message:
                 "{} has valid value: {}".format(value_name, value_enum.name)
             )
         except ValueError as error:
-            raise InvalidCommandDataError(
+            raise self.invalid_data_error(
                 self.as_bytes,
                 "{} has invalid value: {}".format(value_name, value),
             ) from error
@@ -290,11 +312,11 @@ class Message:
         try:
             value_bytes = tlv_data.get_bytes(tag)
             if length is not None and len(value_bytes) != length:
-                raise InvalidCommandDataError(
+                raise self.invalid_data_error(
                     self.as_bytes, f"{value_name} has invalid length"
                 )
             if max_length is not None and len(value_bytes) > max_length:
-                raise InvalidCommandDataError(
+                raise self.invalid_data_error(
                     self.as_bytes, f"{value_name} has invalid length"
                 )
             Global.logger.info(value_name + " (tag 0x{:02x}) present".format(tag))
@@ -302,7 +324,7 @@ class Message:
                 "{} value: {!r}".format(value_name, hexlify(value_bytes))
             )
         except IndexError as error:
-            raise InvalidCommandDataError(
+            raise self.invalid_data_error(
                 self.as_bytes,
                 "Missing {}, tag: {:#x}".format(value_name, error.args[0]),
             ) from error
@@ -332,7 +354,7 @@ class Message:
             InvalidCommandDataError: Raised if element has invalid length
 
         Returns:
-            bytes: the element requested
+            bytes | None: the element requested, None if not found
         """
         try:
             return self._get_bytes_from_TLV(
@@ -342,7 +364,7 @@ class Message:
                 max_length,
                 tlv_data,
             )
-        except InvalidCommandDataError:
+        except (InvalidCommandDataError, InvalidResponseDataError):
             Global.logger.info(
                 "No {} (tag 0x{:02x}) found "
                 "(this tag is optional)".format(value_name, tag)
@@ -383,11 +405,11 @@ class Message:
         value_list = tlv_data.get_all_bytes_of_tag(tag)
         for value in value_list:
             if length is not None and len(value) != length:
-                raise InvalidCommandDataError(
+                raise self.invalid_data_error(
                     self.as_bytes, f"{value_name} has invalid length"
                 )
             if max_length is not None and len(value) > max_length:
-                raise InvalidCommandDataError(
+                raise self.invalid_data_error(
                     self.as_bytes, f"{value_name} has invalid length"
                 )
             Global.logger.info(value_name + " (tag 0x{:02x}) present".format(tag))
@@ -400,6 +422,105 @@ class Message:
             )
 
         return value_list
+
+    def _get_TLV_from_TLV(
+        self,
+        value_name: str,
+        tag: int,
+        length: int | None = None,
+        max_length: int | None = None,
+        tlv_data: TLV | None = None,
+    ) -> TLV:
+        """
+        Get TLV from a TLV, perform relevant checks and log everything.
+
+        Args:
+            value_name (str): name of the variable, used in logging
+            tag (int): Tag of the TLV
+            length: int | None,
+            max_length: int | None,
+            tlv_data (TLV | None, optional): tlv to get the value from. self.tlv_data
+            is used if None. Defaults to None.
+
+        Raises:
+            AttributeError: raised if self.tlv_data is requested but does not exist.
+            InvalidCommandDataError: Raised if element cannot be found in TLV, or has
+            invalid length
+
+        Returns:
+            bytes: the element requested
+        """
+        if tlv_data is None:
+            if hasattr(self, "tlv_data"):
+                tlv_data = self.tlv_data
+            else:
+                raise AttributeError
+        try:
+            value_tlv = tlv_data.get_tlv(tag)
+            if length is not None and len(value_tlv.to_bytes()) != length:
+                raise self.invalid_data_error(
+                    self.as_bytes, f"{value_name} has invalid length"
+                )
+            if max_length is not None and len(value_tlv.to_bytes()) > max_length:
+                raise self.invalid_data_error(
+                    self.as_bytes, f"{value_name} has invalid length"
+                )
+            Global.logger.info(value_name + " (tag 0x{:02x}) present".format(tag))
+            Global.logger.debug(
+                "{} value: {!r}".format(value_name, hexlify(value_tlv.to_bytes()))
+            )
+        except IndexError as error:
+            raise self.invalid_data_error(
+                self.as_bytes,
+                "Missing {}, tag: {:#x}".format(value_name, error.args[0]),
+            ) from error
+        except TlvError as error:
+            raise self.invalid_data_error(
+                self.as_bytes, "{} is not a valid TLV".format(value_name)
+            ) from error
+
+        return value_tlv
+
+    def _get_optional_TLV_from_TLV(
+        self,
+        value_name: str,
+        tag: int,
+        length: int | None = None,
+        max_length: int | None = None,
+        tlv_data: TLV | None = None,
+    ) -> TLV | None:
+        """
+        Get TLV from a TLV, perform relevant checks and log everything.
+
+        Args:
+            value_name (str): name of the variable, used in logging
+            tag (int): Tag of the TLV
+            length (int): Length of the TLV element
+            max_length (int): Maximum length of the TLV element
+            tlv_data (TLV | None, optional): tlv to get the value from. self.tlv_data
+            is used if None. Defaults to None.
+
+        Raises:
+            AttributeError: raised if self.tlv_data is requested but does not exist.
+            InvalidCommandDataError: Raised if element has invalid length
+
+        Returns:
+            TLV | None: the element requested, None if not found
+        """
+        try:
+            return self._get_TLV_from_TLV(
+                value_name,
+                tag,
+                length,
+                max_length,
+                tlv_data,
+            )
+        except (InvalidCommandDataError, InvalidResponseDataError):
+            Global.logger.info(
+                "No {} (tag 0x{:02x}) found "
+                "(this tag is optional)".format(value_name, tag)
+            )
+            return None
 
     def _get_multiple_optional_TLV_from_TLV(
         self,
@@ -435,17 +556,15 @@ class Message:
         value_list = tlv_data.get_all_tlv_of_tag(tag)
         for value in value_list:
             if length is not None and len(value.to_bytes()) != length:
-                raise InvalidCommandDataError(
+                raise self.invalid_data_error(
                     self.as_bytes, f"{value_name} has invalid length"
                 )
             if max_length is not None and len(value.to_bytes()) > max_length:
-                raise InvalidCommandDataError(
+                raise self.invalid_data_error(
                     self.as_bytes, f"{value_name} has invalid length"
                 )
             Global.logger.info(value_name + " (tag 0x{:02x}) present".format(tag))
-            Global.logger.debug(
-                "{} value: {!r}".format(value_name, value.to_print())
-            )
+            Global.logger.debug("{} value: {!r}".format(value_name, value.to_print()))
 
         if len(value_list) == 0:
             Global.logger.info(
@@ -461,6 +580,7 @@ class Message:
         tag: int,
         length: int,
         tlv_data: TLV | None = None,
+        index: int = 0,
     ) -> int:
         """
         Get int from a TLV, perform relevant checks and log everything
@@ -486,16 +606,16 @@ class Message:
             else:
                 raise AttributeError
         try:
-            value_bytes = tlv_data.get_bytes(tag)
+            value_bytes = tlv_data.get_bytes(tag, index=index)
             if len(value_bytes) != length:
-                raise InvalidCommandDataError(
+                raise self.invalid_data_error(
                     self.as_bytes, f"{value_name} has invalid length"
                 )
             value_int = int.from_bytes(value_bytes, byteorder="big")
             Global.logger.info("{} (tag 0x{:02x}) present".format(value_name, tag))
             Global.logger.debug("{} value: 0x{:02x}".format(value_name, value_int))
         except IndexError as error:
-            raise InvalidCommandDataError(
+            raise self.invalid_data_error(
                 self.as_bytes,
                 "Missing {}, tag: {:#x}".format(value_name, error.args[0]),
             ) from error
@@ -525,6 +645,8 @@ class Command(Message):
         self.lc = -1
         self.le = -1
         self.data: bytes | None = None
+
+        self.invalid_data_error = InvalidCommandDataError
 
     @classmethod
     def create_from_parameters(
@@ -648,19 +770,6 @@ class Command(Message):
 
         data = bytes(command[data_start : data_start + lc])
         return lc, data, le
-
-    def _parse_tlv(self) -> None:
-        """
-        Parse the data field of this command as TLV values (BER-TLV, ISO 7816-4).
-
-        Resulting tlv data can be found in the tlv_data attribute.
-        This dictionary contains the tags as keys and values as values.
-        If a tag has no value, the value in the dictionary is None.
-        """
-        if self.data is not None:
-            self.tlv_data = TLV.from_bytes(self.data)
-        else:
-            raise InvalidCommandDataError(self.as_bytes)
 
     def _check_cla(self, interindustry: bool) -> None:
         """
@@ -1033,6 +1142,8 @@ class Response(Message):
         self.status = 0x00
         self.data: bytes | None = None
 
+        self.invalid_data_error = InvalidResponseDataError
+
     @property
     def sw1(self) -> int:
         return (self.status & 0xFF00) >> 8
@@ -1115,139 +1226,68 @@ class Response(Message):
         Global.logger.debug("Parsing select response:")
 
         self._check_status()
+        self._parse_tlv()
 
-        if self.data is None:
-            raise InvalidResponseDataError(self.as_bytes, "No data available")
-        try:
-            data_tlv = TLV.from_bytes(self.data)
-        except TlvError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes, "Data is an invalid TLV"
-            ) from error
-
-        try:
-            FCI_tlv = data_tlv.get_tlv(Select.FCI_TAG)
-        except IndexError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "missing File Control Information (FCI), tag: {:#x}".format(
-                    error.args[0]
-                ),
-            ) from error
-        except TlvError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes, "File Control Information (FCI) is not a valid TLV"
-            ) from error
-
-        try:
-            self.compl_aid = FCI_tlv.get_bytes(Select.AID_TAG)
-            if len(self.compl_aid) != Select.AID_LEN:
-                raise InvalidResponseDataError(self.as_bytes, "AID has invalid length")
-        except IndexError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "missing AID, tag: {:#x}".format(error.args[0]),
-            ) from error
-
-        try:
-            self.proprietary_tlv = FCI_tlv.get_tlv(Select.PROPRIETARY_TAG)
-            Global.logger.debug("compl aid: {!r}".format(hexlify(self.compl_aid)))
-        except IndexError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "missing Proprietary information, tag: {:#x}".format(error.args[0]),
-            ) from error
-        except TlvError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes, "Proprietary information is not a valid TLV"
-            ) from error
-
-        try:
-            type_bytes = self.proprietary_tlv.get_bytes(Select.TYPE_TAG)
-            if len(type_bytes) != Select.TYPE_LEN:
-                raise InvalidResponseDataError(self.as_bytes, "Type has invalid length")
-            self.type = int.from_bytes(type_bytes, byteorder="big")
-            Global.logger.debug("type: {}".format(self.type))
-        except IndexError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "missing Type, tag: {:#x}".format(error.args[0]),
-            ) from error
-
-        try:
-            etspv_bytes = self.proprietary_tlv.get_bytes(Select.ETSPV_TAG)
-            if (len(etspv_bytes) % 2) == 1:
-                raise InvalidResponseDataError(
-                    self.as_bytes,
-                    "expedited_phase_supported_protocol_versions has invalid length",
-                )
-            self.expedited_phase_supported_protocol_versions = self._data_to_2byte_list(
-                etspv_bytes
-            )
-            Global.logger.debug(
-                "expedited transaction supported protocol versions: {}".format(
-                    self.expedited_phase_supported_protocol_versions
-                )
-            )
-        except IndexError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "missing expedited_phase_supported_protocol_versions, tag: {:#x}".format(
-                    error.args[0]
-                ),
-            ) from error
-
-        self.maximum_command_apdu = None
-        self.maximum_response_apdu = None
-        try:
-            extended_length = self.proprietary_tlv.get_tlv(Select.EXTENDED_INFO_TAG)
-            if len(extended_length.to_bytes()) != Select.EXTENDED_INFO_LEN:
-                raise InvalidResponseDataError(
-                    self.as_bytes, "Extended Length Information has invalid length"
-                )
-            try:
-                self.maximum_command_apdu = int.from_bytes(
-                    extended_length.get_bytes(Select.MAX_COMMAND_TAG, index=0), "big"
-                )
-            except IndexError as error:
-                raise InvalidResponseDataError(
-                    self.as_bytes,
-                    "missing Maximum Command APDU, tag: {:#x}".format(error.args[0]),
-                ) from error
-            try:
-                self.maximum_response_apdu = int.from_bytes(
-                    extended_length.get_bytes(Select.MAX_RESPONSE_TAG, index=1), "big"
-                )
-            except IndexError as error:
-                raise InvalidResponseDataError(
-                    self.as_bytes,
-                    "missing Maximum response, tag: {:#x}".format(error.args[0]),
-                ) from error
-        except IndexError:
-            pass
-        Global.logger.debug(
-            "maximum command apdu: {}".format(self.maximum_command_apdu)
-        )
-        Global.logger.debug(
-            "maximum response apdu: {}".format(self.maximum_response_apdu)
+        FCI_tlv = self._get_TLV_from_TLV(
+            "File Control Information (FCI)", Select.FCI_TAG
         )
 
-        self.vendor_specific_extensions = None
-        try:
-            self.vendor_specific_extensions = self.proprietary_tlv.get_tlv(
-                Select.VENDOR_SPECIFIC_TAG
-            )
-            Global.logger.debug(
-                "vendor specific extensions: {!r}".format(
-                    hexlify(self.vendor_specific_extensions.to_bytes())
-                )
-            )
-        except IndexError:
-            pass
-        except TlvError as error:
+        self.compl_aid = self._get_bytes_from_TLV(
+            "AID", Select.AID_TAG, Select.AID_LEN, tlv_data=FCI_tlv
+        )
+
+        self.proprietary_tlv = self._get_TLV_from_TLV(
+            "Proprietary information", Select.PROPRIETARY_TAG, tlv_data=FCI_tlv
+        )
+
+        self.type = self._get_int_from_TLV(
+            "Type", Select.TYPE_TAG, Select.TYPE_LEN, tlv_data=self.proprietary_tlv
+        )
+
+        etspv_bytes = self._get_bytes_from_TLV(
+            "Expedited phase supported protocol versions",
+            Select.ETSPV_TAG,
+            tlv_data=self.proprietary_tlv,
+        )
+        if (len(etspv_bytes) % 2) == 1:
             raise InvalidResponseDataError(
-                self.as_bytes, "Vendor specific extensions is not a valid TLV"
-            ) from error
+                self.as_bytes,
+                "Expedited phase supported protocol versions has invalid length",
+            )
+        self.expedited_phase_supported_protocol_versions = self._data_to_2byte_list(
+            etspv_bytes
+        )
+
+        extended_length = self._get_optional_TLV_from_TLV(
+            "Extended Length Information",
+            Select.EXTENDED_INFO_TAG,
+            Select.EXTENDED_INFO_LEN,
+            tlv_data=self.proprietary_tlv,
+        )
+        if extended_length is None:
+            self.maximum_command_apdu = None
+            self.maximum_response_apdu = None
+        else:
+            self.maximum_command_apdu = self._get_int_from_TLV(
+                "Maximum Command APDU",
+                Select.MAX_COMMAND_TAG,
+                Select.MAX_COMMAND_LEN,
+                tlv_data=extended_length,
+                index=0,
+            )
+            self.maximum_response_apdu = self._get_int_from_TLV(
+                "Maximum Command APDU",
+                Select.MAX_COMMAND_TAG,
+                Select.MAX_COMMAND_LEN,
+                tlv_data=extended_length,
+                index=1,
+            )
+
+        self.vendor_specific_extensions = self._get_optional_TLV_from_TLV(
+            "Vendor specific extensions",
+            Select.VENDOR_SPECIFIC_TAG,
+            tlv_data=self.proprietary_tlv,
+        )
 
     def parse_as_envelope(self) -> None:
         """
@@ -1274,61 +1314,23 @@ class Response(Message):
         """
         Global.logger.debug("Parsing auth0 response:")
         self._check_status()
+        self._parse_tlv()
 
-        if self.data is None:
-            raise InvalidResponseDataError(self.as_bytes, "No data available")
-        try:
-            data_tlv = TLV.from_bytes(self.data)
-        except TlvError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes, "Data is an invalid TLV"
-            ) from error
+        self.credential_epubk = self._get_bytes_from_TLV(
+            "Credential Ephemeral Public Key",
+            Auth0.CREDENTIAL_EPUBK_TAG,
+            Auth0.CREDENTIAL_EPUBK_LEN,
+        )
 
-        try:
-            self.credential_epubk = data_tlv.get_bytes(Auth0.CREDENTIAL_EPUBK_TAG)
-            if len(self.credential_epubk) != Auth0.CREDENTIAL_EPUBK_LEN:
-                raise InvalidResponseDataError(
-                    self.as_bytes, "Credential Ephemeral Public Key has invalid length"
-                )
-            Global.logger.debug(
-                "credential epubk: {!r}".format(hexlify(self.credential_epubk))
-            )
-        except IndexError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "missing Credential Ephemeral Public Key, tag: {:#x}".format(
-                    error.args[0]
-                ),
-            ) from error
+        self.cryptogram = self._get_optional_bytes_from_TLV(
+            "Cryptogram", Auth0.CRYPTOGRAM_TAG, Auth0.CRYPTOGRAM_LEN
+        )
 
-        try:
-            self.cryptogram: bytes | None = data_tlv.get_bytes(Auth0.CRYPTOGRAM_TAG)
-            if len(self.cryptogram) != Auth0.CRYPTOGRAM_LEN:
-                raise InvalidResponseDataError(
-                    self.as_bytes, "Cryptogram has invalid length"
-                )
-            Global.logger.debug("cryptogram: {!r}".format(hexlify(self.cryptogram)))
-        except IndexError:
-            self.cryptogram = None
-            Global.logger.debug("No cryptogram found")
-
-        try:
-            self.vendor_specific_extensions = data_tlv.get_tlv(
-                Auth0.VENDOR_SPECIFIC_TAG
-            )
-            if (
-                len(self.vendor_specific_extensions.to_bytes())
-                > Auth0.RE_VENDOR_SPECIFIC_MAX_LEN
-            ):
-                raise InvalidResponseDataError(
-                    self.as_bytes, "vendor specific extensions have invalid length"
-                )
-            Global.logger.debug(
-                "vendor specific extensions: {!r}".format(self.cryptogram)
-            )
-        except IndexError:
-            self.vendor_specific_extensions = None
-            Global.logger.debug("No vendor specific extensions found")
+        self.vendor_specific_extensions = self._get_optional_TLV_from_TLV(
+            "Vendor specific extensions",
+            Auth0.VENDOR_SPECIFIC_TAG,
+            max_length=Auth0.RE_VENDOR_SPECIFIC_MAX_LEN,
+        )
 
     def parse_as_auth1(self, encryption: EncryptionEngine | None = None) -> None:
         """
@@ -1374,119 +1376,56 @@ class Response(Message):
         )
 
         try:
-            self.payload_tlv = TLV.from_bytes(self.decrypted_payload)
+            self.tlv_data = TLV.from_bytes(self.decrypted_payload)
         except TlvError as error:
             raise InvalidResponseDataError(
                 self.as_bytes, "Data is an invalid TLV"
             ) from error
 
-        try:
-            self.key_slot: bytes | None = self.payload_tlv.get_bytes(Auth1.KEY_SLOT_TAG)
-            if len(self.key_slot) != Auth1.KEY_SLOT_LEN:
-                raise InvalidResponseDataError(
-                    self.as_bytes, "Key slot has invalid length"
-                )
-            Global.logger.debug("keyslot: {!r}".format(hexlify(self.key_slot)))
-        except IndexError:
-            self.key_slot = None
-            Global.logger.debug("no keyslot found")
+        self.key_slot = self._get_optional_bytes_from_TLV(
+            "Key slot", Auth1.KEY_SLOT_TAG, Auth1.KEY_SLOT_LEN
+        )
 
-        try:
-            self.credential_public_key: bytes | None = self.payload_tlv.get_bytes(
-                Auth1.CREDENTIAL_PUBK_TAG
-            )
-            if len(self.credential_public_key) != Auth1.CREDENTIAL_PUBK_LEN:
-                raise InvalidResponseDataError(
-                    self.as_bytes, "credential public key has invalid length"
-                )
-            Global.logger.debug(
-                "credential public key: {!r}".format(
-                    hexlify(self.credential_public_key)
-                )
-            )
-        except IndexError:
-            self.credential_public_key = None
-            Global.logger.debug("no credential public key found")
+        self.credential_public_key = self._get_optional_bytes_from_TLV(
+            "Credential public key",
+            Auth1.CREDENTIAL_PUBK_TAG,
+            Auth1.CREDENTIAL_PUBK_LEN,
+        )
 
         if self.key_slot is None and self.credential_public_key is None:
             raise InvalidResponseDataError(
                 self.as_bytes, "No key slot or credential public key found"
             )
-
-        try:
-            self.user_device_signature = self.payload_tlv.get_bytes(
-                Auth1.USER_DEVICE_SIG_TAG
-            )
-            Global.logger.debug(
-                "user device signature: {!r}".format(
-                    hexlify(self.user_device_signature)
-                )
-            )
-        except IndexError as error:
+        if self.key_slot is not None and self.credential_public_key is not None:
             raise InvalidResponseDataError(
-                self.as_bytes, "No user device signature tag found"
-            ) from error
+                self.as_bytes, "Both key slot and credential public key found"
+            )
 
-        try:
-            self.private_mailbox_data: bytes | None = self.payload_tlv.get_bytes(
-                Auth1.MAILBOX_DATA_TAG
-            )
-            Global.logger.debug(
-                "private_mailbox_data: {!r}".format(hexlify(self.private_mailbox_data))
-            )
-        except IndexError:
-            self.private_mailbox_data = None
-            Global.logger.debug("no private_mailbox_data found")
+        self.user_device_signature = self._get_bytes_from_TLV(
+            "User device signature",
+            Auth1.USER_DEVICE_SIG_TAG,
+            Auth1.USER_DEVICE_SIG_LEN,
+        )
 
-        try:
-            self.signaling_bitmap = self.payload_tlv.get_bytes(
-                Auth1.SIGNALING_BITMAP_TAG
-            )
-            if len(self.signaling_bitmap) != Auth1.SIGNALING_BITMAP_LEN:
-                raise InvalidResponseDataError(
-                    self.as_bytes, "signaling bitmap has invalid length"
-                )
-            Global.logger.debug(
-                "signaling bitmap: {!r}".format(hexlify(self.signaling_bitmap))
-            )
-        except IndexError as error:
-            raise InvalidResponseDataError(
-                self.as_bytes, "No signaling bitmap found"
-            ) from error
+        self.private_mailbox_data = self._get_optional_bytes_from_TLV(
+            "Private_mailbox_data", Auth1.MAILBOX_DATA_TAG
+        )
 
-        try:
-            self.credential_signed_timestamp: bytes | None = self.payload_tlv.get_bytes(
-                Auth1.CREDENTIAL_TIMESTAMP_TAG
-            )
-            if len(self.credential_signed_timestamp) != Auth1.CREDENTIAL_TIMESTAMP_LEN:
-                raise InvalidResponseDataError(
-                    self.as_bytes, "Credential signed timestamp has invalid length"
-                )
-            Global.logger.debug(
-                "credential_signed_timestamp: {!r}".format(
-                    hexlify(self.credential_signed_timestamp)
-                )
-            )
-        except IndexError:
-            self.credential_signed_timestamp = None
-            Global.logger.debug("no credential_signed_timestamp found")
+        self.signaling_bitmap = self._get_bytes_from_TLV(
+            "Signaling bitmap", Auth1.SIGNALING_BITMAP_TAG, Auth1.SIGNALING_BITMAP_LEN
+        )
 
-        try:
-            self.revocation_signed_timestamp: bytes | None = self.payload_tlv.get_bytes(
-                Auth1.REVOCATION_TIMESTAMP_TAG
-            )
-            if len(self.revocation_signed_timestamp) != Auth1.REVOCATION_TIMESTAMP_LEN:
-                raise InvalidResponseDataError(
-                    self.as_bytes, "Revocation signed timestamp has invalid length"
-                )
-            Global.logger.debug(
-                "revocation_signed_timestamp: {!r}".format(
-                    hexlify(self.revocation_signed_timestamp)
-                )
-            )
-        except IndexError:
-            self.revocation_signed_timestamp = None
-            Global.logger.debug("no revocation_signed_timestamp found")
+        self.credential_signed_timestamp = self._get_optional_bytes_from_TLV(
+            "Credential signed timestamp",
+            Auth1.CREDENTIAL_TIMESTAMP_TAG,
+            Auth1.CREDENTIAL_TIMESTAMP_LEN,
+        )
+
+        self.revocation_signed_timestamp = self._get_optional_bytes_from_TLV(
+            "Revocation signed timestamp",
+            Auth1.REVOCATION_TIMESTAMP_TAG,
+            Auth1.REVOCATION_TIMESTAMP_LEN,
+        )
 
     def parse_as_load_cert(self) -> None:
         """

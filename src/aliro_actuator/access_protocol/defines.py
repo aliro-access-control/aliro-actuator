@@ -42,6 +42,8 @@ class Select:
     AID_LEN = 9
     TYPE_LEN = 2
     EXTENDED_INFO_LEN = 8
+    MAX_COMMAND_LEN = 2
+    MAX_RESPONSE_LEN = 2
 
 
 # Auth0 defines
