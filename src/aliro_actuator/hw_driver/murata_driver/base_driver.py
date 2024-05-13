@@ -33,11 +33,12 @@ class MurataBaseDriver:
         self.channel_ids: dict[int, int] = dict()
 
     def open(self) -> None:
-        self.serial = serial.Serial(self.com_port, 115200, timeout=0)
+        self.serial = serial.Serial(self.com_port, 115200, timeout=0.1)
 
-        # clean serial buffer
+        Global.logger.debug("cleaning serial buffer (if this takes too long, make sure "
+                            "the murata has been reset by pressing switch SW1)")
         while True:
-            data = self.serial.read(5)
+            data = self.serial.read(1)
             if len(data) == 0:
                 break
 
