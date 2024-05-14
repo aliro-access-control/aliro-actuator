@@ -61,10 +61,10 @@ data_received_notify = threading.Condition()
 
 @ctypes.CFUNCTYPE(None, ctypes.POINTER(nfc_tag_info_t))
 def on_tag_arrival(tag_info: ctypes.POINTER(nfc_tag_info_t)) -> None:
-    Global.logger.info("tag arrived")
-    Global.logger.info("type: {}".format(tag_info.contents.technology))
-    Global.logger.info(
-        "ID: {!r}".format(
+    Global.logger.debug("NFC tag arrived")
+    Global.logger.debug("NFC tag type: {}".format(tag_info.contents.technology))
+    Global.logger.debug(
+        "NFC tag ID: {!r}".format(
             hexlify(tag_info.contents.uid[0 : tag_info.contents.uid_length])
         )
     )
@@ -79,14 +79,14 @@ def on_tag_arrival(tag_info: ctypes.POINTER(nfc_tag_info_t)) -> None:
 
 @ctypes.CFUNCTYPE(None)
 def on_tag_departure() -> None:
-    Global.logger.info("tag departed")
+    Global.logger.debug("NFC tag departed")
     global tag_available
     tag_available = False
 
 
 @ctypes.CFUNCTYPE(None, ctypes.c_ubyte)
 def on_hostcard_emulation_activated(mode: int) -> None:
-    Global.logger.info("Reader detected, mode: {}".format(mode))
+    Global.logger.debug("NFC Reader detected, mode: {}".format(mode))
     global reader_available
     global data_received
     global reader_status_change
@@ -98,7 +98,7 @@ def on_hostcard_emulation_activated(mode: int) -> None:
 
 @ctypes.CFUNCTYPE(None)
 def on_hostcard_emulation_deactivated() -> None:
-    Global.logger.info("Reader lost")
+    Global.logger.debug("NFC Reader lost")
     global reader_available
     reader_available = False
     # notify data_received, so it can stop waiting for data
@@ -108,7 +108,7 @@ def on_hostcard_emulation_deactivated() -> None:
 
 @ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_ubyte), ctypes.c_uint)
 def on_data_received(data: ctypes.POINTER(ctypes.c_ubyte), data_length: int) -> None:
-    Global.logger.info("received data")
+    Global.logger.debug("received data over NFC")
     global data_received
     data_received = bytes(data[:data_length])
     with data_received_notify:
@@ -139,7 +139,7 @@ class Driver:
             raise NCINotFoundError
 
     def initialize(self, mode: Mode) -> None:
-        Global.logger.info("Starting PN7160 initialization")
+        Global.logger.debug("Starting PN7160 initialization")
         self.mode = mode
 
         self.nci.InitializeLogLevel()
@@ -158,33 +158,33 @@ class Driver:
             self.nci.nfcHce_registerHceCallback(ctypes.byref(hcecallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x01, 0)
 
-        Global.logger.info("PN7160 initialized, discovery started")
+        Global.logger.info("PN7160 initialized, NFC discovery started")
 
     def disconnect(self) -> None:
         self.nci.disableDiscovery()
 
     def wait_for_tag(self) -> None:
-        Global.logger.info("Waiting for tag")
+        Global.logger.info("Waiting for NFC tag")
         if tag_available:
-            Global.logger.info("tag found")
+            Global.logger.info("NFC tag found")
             return
         while True:
             with tag_status_change:
                 tag_status_change.wait()
             if tag_available:
-                Global.logger.info("tag found")
+                Global.logger.info("NFC tag found")
                 return
 
     def wait_for_reader(self) -> None:
-        Global.logger.info("Waiting for reader")
+        Global.logger.info("Waiting for NFC reader")
         if reader_available:
-            Global.logger.info("reader found")
+            Global.logger.info("NFC reader found")
             return
         while True:
             with reader_status_change:
                 reader_status_change.wait()
             if reader_available:
-                Global.logger.info("reader found")
+                Global.logger.info("NFC reader found")
                 return
 
     def send_message(self, message: bytes) -> None:
@@ -195,7 +195,9 @@ class Driver:
             if not tag_available:
                 raise NoTagError
 
-            Global.logger.info("sending message: {!r}".format(hexlify(message)))
+            Global.logger.debug(
+                "sending message using NFC: {!r}".format(hexlify(message))
+            )
             tx = ctypes.c_ubyte * len(message)
             tx_buffer = tx(*message)
             rx = ctypes.c_ubyte * RX_MAX
@@ -210,19 +212,21 @@ class Driver:
             )
             self.response = bytes(rx_buffer[0:rx_len])
             if rx_len <= 0:
-                Global.logger.warning("no response received")
+                Global.logger.warning("no response received using NFC")
                 if not tag_available:
                     raise NoTagError
             else:
-                Global.logger.info(
-                    "received response: {!r}".format(hexlify(self.response))
+                Global.logger.debug(
+                    "received response using NFC: {!r}".format(hexlify(self.response))
                 )
 
         elif self.mode == Mode.USER_DEVICE:
             if not reader_available:
                 raise NoReaderError
 
-            Global.logger.info("sending message: {!r}".format(hexlify(message)))
+            Global.logger.debug(
+                "sending message using NFC: {!r}".format(hexlify(message))
+            )
             tx = ctypes.c_ubyte * len(message)
             tx_buffer = tx(*message)
             result = self.nci.nfcHce_sendCommand(ctypes.byref(tx_buffer), len(message))
@@ -251,9 +255,11 @@ class Driver:
             if data_received is not None:
                 message = bytes(data_received)
                 data_received = None
-                Global.logger.info("received message: {!r}".format(hexlify(message)))
+                Global.logger.debug(
+                    "received message using NFC: {!r}".format(hexlify(message))
+                )
                 return message
-            Global.logger.info("Waiting for message")
+            Global.logger.debug("Waiting for NFC message")
             while True:
                 with data_received_notify:
                     data_received_notify.wait()
@@ -262,7 +268,9 @@ class Driver:
                 if data_received is not None:
                     message = bytes(data_received)
                     data_received = None
-                    Global.logger.info("received message: {}".format(hexlify(message)))
+                    Global.logger.debug(
+                        "received message using NFC: {}".format(hexlify(message))
+                    )
                     return message
         else:
             raise DriverNotInitializedError
