@@ -132,7 +132,6 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         while True:
             try:
                 message = await self.read()
-                message.print()
                 if (
                     message.op_group == OpGroup.GAP
                     and message.op_code == OpCodeGAP.CONNECTION_EVENT_CONNECTED
@@ -144,6 +143,9 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                     self.set_normal_timeout()
                     self.connected_devices.append(device_id)
                     return
+                else:
+                    Global.logger.debug("Unexpected message received:")
+                    message.print()
             except NoResponseError:
                 # sleep so other processes can run
                 await asyncio.sleep(0.1)
@@ -267,7 +269,6 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         while True:
             try:
                 message = await self.read()
-                message.print()
                 if (
                     message.op_group == OpGroup.GAP
                     and message.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
@@ -298,6 +299,9 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                         Global.logger.info("Device Found!\n")
                         self.set_normal_timeout()
                         return message.get_address()
+                else:
+                    Global.logger.debug("Unexpected message received:")
+                    message.print()
             except NoResponseError:
                 # sleep so other processes can run
                 await asyncio.sleep(0.1)
