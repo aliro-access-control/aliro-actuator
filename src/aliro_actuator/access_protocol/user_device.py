@@ -432,7 +432,7 @@ class UserDevice(Device):
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
-            Global.logger.info("Sending AUTH0 Response")
+
             await self.response_auth0(self.session.get_credential_epubkey().as_bytes())
         elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
@@ -461,7 +461,7 @@ class UserDevice(Device):
                 cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
 
             self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
-            Global.logger.info("Sending AUTH0 Response")
+
             await self.response_auth0(
                 credential_epubk=self.session.get_credential_epubkey().as_bytes(),
                 cryptogram=cryptogram,
@@ -871,6 +871,7 @@ class UserDevice(Device):
         auth0_response = self.apdu.create_auth0_response(
             credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
+        Global.logger.info("Sending AUTH0 response")
         await self.transport_protocol.send_message(
             auth0_response.to_bytes(), MessageType.RESPONSE
         )
@@ -916,6 +917,7 @@ class UserDevice(Device):
             credential_signed_timestamp,
             revocation_signed_timestamp,
         )
+        Global.logger.info("Sending AUTH1 response")
         await self.transport_protocol.send_message(
             auth1_response.to_bytes(), MessageType.RESPONSE
         )
@@ -949,6 +951,7 @@ class UserDevice(Device):
             maximum_response_apdu=maximum_response_apdu,
             vendor_specific_tlv=vendor_specific_tlv,
         )
+        Global.logger.info("Sending SELECT response")
         await self.transport_protocol.send_message(
             select_response.to_bytes(), MessageType.RESPONSE
         )
@@ -964,6 +967,7 @@ class UserDevice(Device):
         Create and send a load cert response.
         """
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
+        Global.logger.info("Sending LOAD CERT response")
         await self.transport_protocol.send_message(
             load_cert_response.to_bytes(), MessageType.RESPONSE
         )
@@ -983,6 +987,7 @@ class UserDevice(Device):
         exchange_response = self.apdu.create_exchange_response(
             payload, encryption, StatusBytes.SUCCESS
         )
+        Global.logger.info("Sending EXCHANGE response")
         await self.transport_protocol.send_message(
             exchange_response.to_bytes(), MessageType.RESPONSE
         )
@@ -994,6 +999,7 @@ class UserDevice(Device):
         control_flow_response = self.apdu.create_control_flow_response(
             StatusBytes.SUCCESS
         )
+        Global.logger.info("Sending CONTROL FLOW response")
         await self.transport_protocol.send_message(
             control_flow_response.to_bytes(), MessageType.RESPONSE
         )

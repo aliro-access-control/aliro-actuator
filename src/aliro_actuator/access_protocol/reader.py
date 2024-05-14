@@ -767,7 +767,7 @@ class Reader(Device):
         vendor_extension: bytes | None = None,
     ) -> Response:
         """
-        Create and send a auth0 command.
+        Create and send a auth0 command, and wait for a response.
 
         Args:
             transaction (Transaction): fast or standard
@@ -792,13 +792,15 @@ class Reader(Device):
             vendor_extension,
         )
 
-        Global.logger.info("Sending AUTH0")
+        Global.logger.info("Sending AUTH0 command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for AUTH0 response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.AUTH0)
-        Global.logger.info("Parsed AUTH0 Response")
 
         return response
 
@@ -812,7 +814,7 @@ class Reader(Device):
         encryption: EncryptionEngine | None = None,
     ) -> Response:
         """
-        Create and send a auth1 command.
+        Create and send a auth1 command, and wait for a response.
 
         Args:
             expected_response (Auth1Response): key slot or credential public key
@@ -834,22 +836,23 @@ class Reader(Device):
         Global.logger.debug(
             "reader authentication data signature: {!r}".format(hexlify(reader_sig))
         )
-
         command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
-        Global.logger.info("Sending AUTH1")
+        Global.logger.info("Sending AUTH1 command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for AUTH1 response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.AUTH1, encryption)
-        Global.logger.info("Parsed AUTH1 Response")
 
         return response
 
     async def command_select(self, aid: bytes) -> Response:
         """
-        Create and send a select command.
+        Create and send a select command, and wait for a response.
 
         Args:
             aid (bytes): AID to be send.
@@ -859,14 +862,15 @@ class Reader(Device):
         """
         command = self.apdu.create_select_command(aid)
 
-        Global.logger.info("Sending Select")
-        Global.logger.debug("using AID: {!r}".format(hexlify(aid)))
+        Global.logger.info("Sending SELECT command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for SELECT response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.SELECT)
-        Global.logger.info("Parsed Select Response")
 
         return response
 
@@ -878,7 +882,7 @@ class Reader(Device):
 
     async def command_load_cert(self, compressed_cert: bytes) -> Response:
         """
-        Create and send a load_cert command.
+        Create and send a load_cert command, and wait for a response.
 
         Args:
             compressed_cert (bytes): compressed certificate to send.
@@ -888,13 +892,15 @@ class Reader(Device):
         """
         command = self.apdu.create_load_cert_command(compressed_cert)
 
-        Global.logger.info("Sending load cert")
+        Global.logger.info("Sending LOAD CERT command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for LOAD CERT response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.LOAD_CERT)
-        Global.logger.info("Parsed load cert Response")
 
         return response
 
@@ -902,7 +908,7 @@ class Reader(Device):
         self, atomic_session: bool, payload: TLV, encryption: EncryptionEngine
     ) -> Response:
         """
-        Create and send a exchange command.
+        Create and send a exchange command, and wait for a response.
 
         Args:
             atomic_session (bool): if True, this is part of an atomic session
@@ -915,13 +921,15 @@ class Reader(Device):
         """
         command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
 
-        Global.logger.info("Sending exchange")
+        Global.logger.info("Sending EXCHANGE command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for EXCHANGE response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.EXCHANGE, encryption)
-        Global.logger.info("Parsed exchange Response")
 
         return response
 
@@ -929,7 +937,7 @@ class Reader(Device):
         self, s1: int, s2: int, domain_specific_data: bytes | None = None
     ) -> Response:
         """
-        Create and send a exchange command.
+        Create and send a exchange command, and wait for a response.
 
         Args:
             s1 (int):
@@ -941,13 +949,15 @@ class Reader(Device):
         """
         command = self.apdu.create_control_flow_command(s1, s2, domain_specific_data)
 
-        Global.logger.info("Sending control flow")
+        Global.logger.info("Sending CONTROL FLOW command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for CONTROL FLOW response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
-        Global.logger.info("Parsed control flow Response")
 
         return response
 
