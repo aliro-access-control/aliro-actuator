@@ -76,7 +76,6 @@ class MurataBaseDriver:
         while True:
             try:
                 response = await self.read()
-                response.print()
                 if (
                     response.get_op_group() == OpGroup.L2CAP
                     and response.get_op_code() == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
@@ -108,7 +107,8 @@ class MurataBaseDriver:
                     response.get_op_group() != op_group
                     or response.get_op_code() != opcode
                 ):
-                    continue
+                    Global.logger.debug("Unexpected Command received:")
+                    response.print()
                 Global.logger.info(
                     "Received message with opGroup: {} and opCode: 0x{:x}".format(
                         OpGroup(op_group).name, opcode

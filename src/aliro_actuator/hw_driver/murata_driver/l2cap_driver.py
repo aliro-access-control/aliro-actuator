@@ -123,7 +123,6 @@ class MurataL2CAPDriver(MurataBaseDriver):
         while True:
             try:
                 message = await self.read()
-                message.print()
                 if (
                     message.op_group == OpGroup.L2CAP
                     and message.op_code == OpCodeL2CAP.LE_CB_DATA
@@ -136,6 +135,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
                         data = message.get_packet()
                         Global.logger.info("Received data: {!r}".format(hexlify(data)))
                         return data
+                else:
+                    Global.logger.debug("Unexpected message received:")
+                    message.print()
             except NoResponseError:
                 # sleep so other processes can run
                 await asyncio.sleep(0.1)
