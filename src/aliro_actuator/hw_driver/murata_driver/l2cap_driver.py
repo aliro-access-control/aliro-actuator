@@ -68,6 +68,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
                 OpGroup.L2CAP,
                 OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE,
             )
+            Global.logger.debug("LE PSM connection Complete")
             try:
                 response.check_for_error()
                 break
@@ -99,6 +100,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
             OpGroup.L2CAP,
             OpCodeL2CAP.LOCAL_CREDITS_NOTIFICATION,
         )
+        Global.logger.debug("Le credits send Complete")
         return response.data
 
     async def send_le_cb_data(self, device_id: int, data_to_send: bytes) -> None:

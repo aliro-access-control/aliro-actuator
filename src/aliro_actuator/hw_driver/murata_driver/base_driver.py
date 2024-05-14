@@ -109,11 +109,7 @@ class MurataBaseDriver:
                 ):
                     Global.logger.debug("Unexpected Command received:")
                     response.print()
-                Global.logger.debug(
-                    "Received message with opGroup: {} and opCode: 0x{:x}".format(
-                        OpGroup(op_group).name, opcode
-                    )
-                )
+                    continue
                 self.set_normal_timeout()
                 return response
             except NoResponseError:
