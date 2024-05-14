@@ -30,6 +30,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         response = await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_PUBLIC_ADDRESS_READY
         )
+        Global.logger.debug("Read public device address ready")
         return response.data
 
     async def set_advertising_parameters(self) -> None:
@@ -53,6 +54,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_ADVERTISING_PARAMETERS_SETUP_COMPLETE
         )
+        Global.logger.debug("Advertising parameters setup complete")
 
     async def set_advertising_data(
         self,
@@ -96,6 +98,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_ADVERTISING_DATA_SETUP_COMPLETE
         )
+        Global.logger.debug("Advertising data setup complete")
 
     async def set_tx_power_level(self, power_level: int, channel: int) -> None:
         Global.logger.debug("Set tx power level")
@@ -108,6 +111,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_TX_POWER_LEVEL_SET_COMPLETE
         )
+        Global.logger.debug("tx power level set complete")
 
     async def start_advertising(self) -> None:
         Global.logger.info("Start Advertising")
@@ -117,6 +121,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED
         )
+        Global.logger.debug("Advertising started")
 
     async def stop_advertising(self) -> None:
         Global.logger.info("Stop Advertising")
@@ -126,6 +131,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED
         )
+        Global.logger.debug("Advertising stopped")
 
     async def wait_for_connection_event(self) -> None:
         self.set_low_timeout()
@@ -164,6 +170,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                 await self.wait_for_message(
                     OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
                 )
+                Global.logger.debug("Device disconnected")
             Global.logger.info(
                 "disconnected from device with device id: {}".format(device_id)
             )
@@ -194,6 +201,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
         await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        Global.logger.debug("Scanning Started")
 
     async def stop_scanning(self) -> None:
         Global.logger.info("Stop Scanning")
@@ -201,6 +209,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
         await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        Global.logger.debug("Scanning Stopped")
 
     async def connect(
         self,
@@ -249,6 +258,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                 await self.wait_for_message(
                     OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
                 )
+                Global.logger.debug("Device disconnected")
             Global.logger.info(
                 "disconnected from device with device id: {}".format(device_id)
             )

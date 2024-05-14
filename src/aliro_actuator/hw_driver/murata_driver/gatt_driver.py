@@ -48,6 +48,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         response = await self.wait_for_message(
             OpGroup.GATT_DB, OpCodeGATTDB.ADD_PRIMARY_SERVICE_DECLARATION_IND
         )
+        Global.logger.debug("Primary service added")
         return int.from_bytes(response.data, "little")  # handle
 
     async def add_secondary_service_declaration(
@@ -79,6 +80,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         response = await self.wait_for_message(
             OpGroup.GATT_DB, OpCodeGATTDB.ADD_SECONDARY_SERVICE_DECLARATION_IND
         )
+        Global.logger.debug("Secondary service added")
         return int.from_bytes(response.data, "little")  # handle
 
     async def add_cccd(self) -> int:
@@ -92,6 +94,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         response = await self.wait_for_message(
             OpGroup.GATT_DB, OpCodeGATTDB.ADD_CCCD_IND
         )
+        Global.logger.debug("CCCD added")
         return int.from_bytes(response.data, "little")  # cccd handle
 
     async def add_characteristic_declaration_and_value(
@@ -134,6 +137,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         response = await self.wait_for_message(
             OpGroup.GATT_DB, OpCodeGATTDB.ADD_CHARACTERISTIC_DECLARATION_AND_VALUE_IND
         )
+        Global.logger.debug("Characteristic declaration and value added")
         return int.from_bytes(response.data, "little")  # handle
 
     async def add_characteristic_declaration_with_unique_value(
@@ -172,6 +176,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             OpGroup.GATT_DB,
             OpCodeGATTDB.ADD_CHARACTERISTIC_DECLARATION_WITH_UNIQUE_VALUE_IND,
         )
+        Global.logger.debug("Characteristic declaration with unique value added")
         return int.from_bytes(response.data, "little")  # handle
 
     async def add_characteristic_descriptor(
@@ -212,6 +217,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             OpGroup.GATT_DB,
             OpCodeGATTDB.ADD_CHARACTERISTIC_DESCRIPTOR_IND,
         )
+        Global.logger.debug("Characteristic descriptor added")
         return int.from_bytes(response.data, "little")  # handle
 
     async def add_include_declaration(
@@ -250,6 +256,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
             OpGroup.GATT_DB,
             OpCodeGATTDB.ADD_INCLUDE_DECLARATION_IND,
         )
+        Global.logger.debug("Include declaration added")
         return int.from_bytes(response.data, "little")  # handle
 
     async def find_char_value_handle_in_service(
@@ -286,6 +293,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         message = await self.wait_for_message(
             OpGroup.GATT_DB, OpCodeGATTDB.FIND_CHAR_VALUE_HANDLE_IN_SERVICE_IND
         )
+        Global.logger.debug("Characteristic Value handle found")
         return int.from_bytes(message.data, "little")
 
     async def register_gattserver_callback(self) -> None:
@@ -335,6 +343,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         message = await self.wait_for_message(
             OpGroup.GATT, OpCodeGATT.ATTRIBUTE_WRITTEN
         )
+        Global.logger.debug("Characteristic written")
         await self.send_attribute_written_status(
             message.get_device_id(), message.get_handle()
         )
@@ -386,6 +395,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
             OpGroup.GATT,
             OpCodeGATT.PROCEDURE_DISCOVER_ALL_PRIMARY_SERVICES,
         )
+        Global.logger.debug("All primary services discovered")
         return response.get_services()
 
     async def discover_all_characteristics_of_service(
@@ -409,6 +419,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
             OpGroup.GATT,
             OpCodeGATT.PROCEDURE_DISCOVER_ALL_CHARACTERISTICS,
         )
+        Global.logger.debug("All characteristics discovered")
         return response.get_service()
 
     async def read_characteristic_value(
@@ -432,6 +443,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
             OpGroup.GATT,
             OpCodeGATT.PROCEDURE_READ_CHARACTERISTIC_VALUE,
         )
+        Global.logger.debug("Characteristic value read done")
         return response.get_characteristic()
 
     async def write_characteristic_value(
@@ -464,4 +476,5 @@ class MurataGATTClientDriver(MurataBaseDriver):
             OpGroup.GATT,
             OpCodeGATT.PROCEDURE_WRITE_CHARACTERISTIC_VALUE,
         )
+        Global.logger.debug("Characteristic value write done")
         response.check_for_error()
