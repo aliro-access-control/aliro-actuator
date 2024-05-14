@@ -66,7 +66,7 @@ class MurataBaseDriver:
         return message
 
     def write(self, message: Message) -> None:
-        Global.logger.info(
+        Global.logger.debug(
             "writing to Murata: {!r}".format(hexlify(message.to_bytes()))
         )
         self.serial.write(message.to_bytes())
@@ -109,7 +109,7 @@ class MurataBaseDriver:
                 ):
                     Global.logger.debug("Unexpected Command received:")
                     response.print()
-                Global.logger.info(
+                Global.logger.debug(
                     "Received message with opGroup: {} and opCode: 0x{:x}".format(
                         OpGroup(op_group).name, opcode
                     )
@@ -129,4 +129,4 @@ class MurataBaseDriver:
             raise ErrorReturnedError(
                 int.from_bytes(response.get_data(), "little"), accepted
             )
-        Global.logger.info("confirm received")
+        Global.logger.debug("confirm received")

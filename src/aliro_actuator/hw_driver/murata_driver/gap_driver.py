@@ -15,7 +15,7 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
 
 class MurataGAPPeripheralDriver(MurataBaseDriver):
     async def host_initialize(self) -> None:
-        Global.logger.info("Initializing host")
+        Global.logger.debug("Initializing host")
         message = Message(OpGroup.GAP, OpCodeGAP.HOST_INITIALIZE)
         self.write(message)
         await self.wait_for_confirm(
@@ -23,7 +23,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         )
 
     async def read_public_device_address(self) -> bytes:
-        Global.logger.info("Read public device address")
+        Global.logger.debug("Read public device address")
         message = Message(OpGroup.GAP, OpCodeGAP.READ_PUBLIC_DEVICE_ADDRESS)
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
@@ -33,7 +33,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         return response.data
 
     async def set_advertising_parameters(self) -> None:
-        Global.logger.info("Setting advertising parameters")
+        Global.logger.debug("Setting advertising parameters")
 
         data = bytearray()
         data.extend(int.to_bytes(320, 2, "little"))  # MinInterval
@@ -65,7 +65,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         dynamic_tag_timestamp: bytes,
         dynamic_tag: bytes,
     ) -> None:
-        Global.logger.info("Setting advertising data")
+        Global.logger.debug("Setting advertising data")
 
         data = bytearray()
         data.append(0x01)  # advertising data included
@@ -98,7 +98,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         )
 
     async def set_tx_power_level(self, power_level: int, channel: int) -> None:
-        Global.logger.info("Set tx power level")
+        Global.logger.debug("Set tx power level")
         data = bytearray()
         data.append(power_level)
         data.append(channel)
@@ -152,7 +152,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                 pass
 
     async def disconnect(self, device_id: int) -> None:
-        Global.logger.info("Disconnect")
+        Global.logger.debug("Disconnect")
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
 
@@ -208,7 +208,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         peer_address: bytes,
         use_peer_identity_address: int,
     ) -> None:
-        Global.logger.info("Connect")
+        Global.logger.debug("Connect")
         data = bytearray()
         data.extend(int.to_bytes(36, 2, "little"))  # scan interval
         data.extend(int.to_bytes(18, 2, "little"))  # scan window
@@ -237,7 +237,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         )
 
     async def disconnect(self, device_id: int) -> None:
-        Global.logger.info("Disconnect")
+        Global.logger.debug("Disconnect")
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
 
@@ -275,7 +275,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                 ):
                     advertising_data = message.get_advertising_data()
                     _, address, _ = message.get_address()
-                    Global.logger.info(
+                    Global.logger.debug(
                         "Scanned device with address: {!r} and data: {!r}".format(
                             hexlify(address), hexlify(advertising_data)
                         )
@@ -296,7 +296,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                             or advertising_data[9:17] in reader_group_id
                         )
                     ):
-                        Global.logger.info("Device Found!\n")
+                        Global.logger.info("Device Found!")
                         self.set_normal_timeout()
                         return message.get_address()
                 else:
