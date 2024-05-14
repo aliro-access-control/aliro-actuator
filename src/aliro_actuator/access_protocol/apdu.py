@@ -669,14 +669,21 @@ class Command(Message):
 
         new_command = Command()
         new_command.cla = cla
+        Global.logger.debug("Command CLA: 0x{:02x}".format(new_command.cla))
         new_command.ins = ins
+        Global.logger.debug("Command INS: 0x{:02x}".format(new_command.ins))
         new_command.p1 = p1
+        Global.logger.debug("Command P1: 0x{:02x}".format(new_command.p1))
         new_command.p2 = p2
+        Global.logger.debug("Command P2: 0x{:02x}".format(new_command.p2))
         if len(data) > 0:
             new_command.lc = len(data)
             new_command.data = data
+            Global.logger.debug("Command lc: 0x{:02x}".format(new_command.lc))
+            Global.logger.debug("Command data: {!r}".format(hexlify(new_command.data)))
         if le is not None:
             new_command.le = le
+            Global.logger.debug("Command le: 0x{:02x}".format(new_command.le))
 
         message = bytearray()
         message.append(cla)
@@ -828,7 +835,7 @@ class Command(Message):
 
         Checks the fields and raises errors for invalid fields.
         """
-        Global.logger.info("Parsing select command:")
+        Global.logger.info("Parsing SELECT command:")
         self._check_cla(True)
         self._check_ins(INS.SELECT)
         self._check_parameters(0x04, 0x00)
@@ -844,6 +851,7 @@ class Command(Message):
         Global.logger.debug("AID: {!r}".format(hexlify(self.aid)))
 
         self._check_le()
+        Global.logger.info("Done parsing SELECT command")
 
     def parse_as_envelope(self) -> None:
         """
@@ -852,11 +860,12 @@ class Command(Message):
         Checks the fields and raises errors for invalid fields.
         """
 
-        Global.logger.info("Parsing envelope command:")
+        Global.logger.info("Parsing ENVELOPE command:")
         self._check_cla(True)
         self._check_ins(INS.ENVELOPE)
         self._check_parameters(0x00, 0x00)
         self._parse_tlv()
+        Global.logger.info("Done parsing ENVELOPE command")
 
     def parse_as_get_response(self) -> None:
         """
@@ -865,12 +874,13 @@ class Command(Message):
         Checks the fields and raises errors for invalid fields.
         """
 
-        Global.logger.info("Parsing get_response command:")
+        Global.logger.info("Parsing GET RESPONSE command:")
         self._check_cla(True)
         self._check_ins(INS.GET_RESPONSE)
         self._check_parameters(0x00, 0x00)
         if self.data is not None:
             raise InvalidCommandDataError(self.as_bytes)
+        Global.logger.info("Done parsing GET RESPONSE command")
 
     def parse_as_auth0(self) -> None:
         """
@@ -942,6 +952,7 @@ class Command(Message):
         )
 
         self._check_le()
+        Global.logger.info("Done parsing AUTH0 command")
 
     def parse_as_load_cert(self) -> None:
         """
@@ -965,6 +976,7 @@ class Command(Message):
             "Reader certificate: {!r}".format(hexlify(self.reader_cert))
         )
         self._check_le()
+        Global.logger.info("Done parsing LOAD CERT command")
 
     def parse_as_auth1(self) -> None:
         """
@@ -978,7 +990,7 @@ class Command(Message):
         reader_signature: bytes
         certificate_data: bytes | None
         """
-        Global.logger.info("Parsing auth1 command:")
+        Global.logger.info("Parsing AUTH1 command:")
         self._check_cla(False)
         self._check_ins(INS.AUTH1)
         self._check_parameters(0x00, 0x00)
@@ -1004,6 +1016,7 @@ class Command(Message):
         )
 
         self._check_le()
+        Global.logger.info("Done parsing AUTH1 command")
 
     def parse_as_exchange(self, encryption: EncryptionEngine | None = None) -> None:
         """
@@ -1092,6 +1105,7 @@ class Command(Message):
             )
 
         self._check_le()
+        Global.logger.info("Done parsing EXCHANGE command")
 
     def parse_as_control_flow(self) -> None:
         """
@@ -1099,7 +1113,7 @@ class Command(Message):
 
         Checks the fields and raises errors for invalid fields.
         """
-        Global.logger.info("Parsing control flow command:")
+        Global.logger.info("Parsing CONTROL FLOW command:")
         self._check_cla(False)
         self._check_ins(INS.CONTROL_FLOW)
         self._check_parameters(0x00, 0x00)
@@ -1124,6 +1138,7 @@ class Command(Message):
         )
 
         self._check_le(0)
+        Global.logger.info("Done parsing CONTROL FLOW command")
 
 
 class Response(Message):
@@ -1190,7 +1205,7 @@ class Response(Message):
         cls, data: bytes | None = None, status: int = StatusBytes.SUCCESS
     ) -> Response:
         """
-        Create a Command from its fields.
+        Create a Response from its fields.
         """
         if status > MAX_VALUE_2_BYTES:
             raise CreateResponseError
@@ -1198,7 +1213,9 @@ class Response(Message):
         new_response = Response()
 
         if data is not None:
+            Global.logger.debug("Response data: {!r}".format(hexlify(data)))
             new_response.data = data
+        Global.logger.debug("Response status: 0x{:04x}".format(status))
         new_response.status = status
 
         as_bytes = bytearray()
@@ -1223,7 +1240,7 @@ class Response(Message):
         maximum_response_apdu: int
         vendor_specific_extensions: TLV
         """
-        Global.logger.debug("Parsing select response:")
+        Global.logger.debug("Parsing SELECT response:")
 
         self._check_status()
         self._parse_tlv()
@@ -1288,20 +1305,23 @@ class Response(Message):
             Select.VENDOR_SPECIFIC_TAG,
             tlv_data=self.proprietary_tlv,
         )
+        Global.logger.info("Done parsing SELECT response")
 
     def parse_as_envelope(self) -> None:
         """
         Parse this response as a envelope response.
         """
-        Global.logger.debug("Parsing envelope response:")
+        Global.logger.debug("Parsing ENVELOPE response:")
         self._check_status()
+        Global.logger.info("Done parsing ENVELOPE response")
 
     def parse_as_get_response(self) -> None:
         """
         Parse this response as a get_response response.
         """
-        Global.logger.debug("Parsing get_response response:")
+        Global.logger.debug("Parsing GET RESPONSE response:")
         self._check_status()
+        Global.logger.info("Done parsing GET RESPONSE response")
 
     def parse_as_auth0(self) -> None:
         """
@@ -1312,7 +1332,7 @@ class Response(Message):
         cryptogram: bytes (if present)
         vendor_specific_extensions: tlv (if present)
         """
-        Global.logger.debug("Parsing auth0 response:")
+        Global.logger.debug("Parsing AUTH0 response:")
         self._check_status()
         self._parse_tlv()
 
@@ -1331,6 +1351,7 @@ class Response(Message):
             Auth0.VENDOR_SPECIFIC_TAG,
             max_length=Auth0.RE_VENDOR_SPECIFIC_MAX_LEN,
         )
+        Global.logger.info("Done parsing AUTH0 response")
 
     def parse_as_auth1(self, encryption: EncryptionEngine | None = None) -> None:
         """
@@ -1349,7 +1370,7 @@ class Response(Message):
         credential_signed_timestamp: bytes | None
         revocation_signed_timestamp: bytes | None
         """
-        Global.logger.debug("Parsing auth1 response:")
+        Global.logger.debug("Parsing AUTH1 response:")
         self._check_status()
 
         if self.data is None:
@@ -1426,13 +1447,15 @@ class Response(Message):
             Auth1.REVOCATION_TIMESTAMP_TAG,
             Auth1.REVOCATION_TIMESTAMP_LEN,
         )
+        Global.logger.info("Done parsing AUTH1 response")
 
     def parse_as_load_cert(self) -> None:
         """
         Parse this response as a Auth1 response.
         """
-        Global.logger.debug("Parsing load_cert response:")
+        Global.logger.debug("Parsing LOAD CERT response:")
         self._check_status()
+        Global.logger.debug("Done parsing LOAD CERT response")
 
     def parse_as_exchange(self, encryption: EncryptionEngine | None = None) -> None:
         """
@@ -1445,7 +1468,7 @@ class Response(Message):
         status_code: bytes
         read_data: bytes
         """
-        Global.logger.debug("Parsing exchange response:")
+        Global.logger.debug("Parsing EXCHANGE response:")
         self._check_status()
 
         if self.data is None:
@@ -1473,13 +1496,15 @@ class Response(Message):
 
             self.read_data = self.decrypted_payload[:-4]
             Global.logger.debug("read_data: {!r}".format(hexlify(self.read_data)))
+        Global.logger.info("Done parsing EXCHANGE response")
 
     def parse_as_control_flow(self) -> None:
         """
         Parse this response as a control_flow response.
         """
-        Global.logger.debug("Parsing control_flow response:")
+        Global.logger.debug("Parsing CONTROL FLOW response:")
         self._check_status()
+        Global.logger.info("Done parsing CONTROL FLOW response")
 
 
 class APDU:
@@ -1559,8 +1584,10 @@ class APDU:
         return response
 
     def create_select_command(self, aid: bytes) -> Command:
+        Global.logger.info("Creating SELECT command")
         if len(aid) > 0x10:
             raise ValueError
+        Global.logger.debug("Setting Data to AID: {!r}".format(hexlify(aid)))
 
         return self.create_command(
             cla=0x00,
@@ -1581,6 +1608,7 @@ class APDU:
         vendor_specific_tlv: TLV | None = None,
         status: int = StatusBytes.SUCCESS,
     ) -> Response:
+        Global.logger.info("Creating SELECT response")
         proprietary = create_proprietary_information(
             type,
             expedited_phase_supported_protocol_versions,
@@ -1596,6 +1624,9 @@ class APDU:
 
         data_tlv: list[tuple[int, bytes | list]] = [(Select.FCI_TAG, FCI_tlv)]
         data_bytes = TLV(data_tlv)
+        Global.logger.debug(
+            "Response contains TLV structure: {}".format(data_bytes.to_print())
+        )
 
         return Response.create_from_parameters(data_bytes.to_bytes(), status)
 
@@ -1609,6 +1640,7 @@ class APDU:
         reader_identifier: bytes,
         vendor_extension: bytes | None = None,
     ) -> Command:
+        Global.logger.info("Creating AUTH0 command")
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.COMMAND_TAG, transaction_type.to_bytes(1, "big")),
             (Auth0.TRANSACTION_CODE_TAG, transaction_code.to_bytes(1, "big")),
@@ -1620,6 +1652,9 @@ class APDU:
         if vendor_extension is not None:
             data_tlv.append((Auth0.VENDOR_SPECIFIC_TAG, vendor_extension))
         data = TLV(data_tlv)
+        Global.logger.debug(
+            "Command contains TLV structure: {}".format(data.to_print())
+        )
 
         return self.create_command(
             cla=0x80,
@@ -1633,6 +1668,7 @@ class APDU:
     def create_auth0_response(
         self, credential_epubk: bytes, status: int, cryptogram: bytes | None = None
     ) -> Response:
+        Global.logger.info("Creating AUTH0 response")
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.CREDENTIAL_EPUBK_TAG, credential_epubk)
         ]
@@ -1640,9 +1676,13 @@ class APDU:
             data_tlv.append((Auth0.CRYPTOGRAM_TAG, cryptogram))
 
         data_bytes = TLV(data_tlv)
+        Global.logger.debug(
+            "Response contains TLV structure: {}".format(data_bytes.to_print())
+        )
         return Response.create_from_parameters(data_bytes.to_bytes(), status)
 
     def create_load_cert_command(self, compressed_reader_cert: bytes) -> Command:
+        Global.logger.info("Creating LOAD CERT command")
         return self.create_command(
             cla=0x80,
             ins=INS.LOAD_CERT,
@@ -1653,6 +1693,7 @@ class APDU:
         )
 
     def create_load_cert_response(self, status: int) -> Response:
+        Global.logger.info("Creating LOAD CERT response")
         return Response.create_from_parameters(status=status)
 
     def create_auth1_command(
@@ -1661,6 +1702,7 @@ class APDU:
         reader_sig: bytes,
         certificate_data: bytes | None = None,
     ) -> Command:
+        Global.logger.info("Creating AUTH1 command")
         if len(reader_sig) != 64:
             raise ValueError
 
@@ -1674,6 +1716,9 @@ class APDU:
             data_fields.append((Auth1.CERTIFICATE_TAG, certificate_data))
 
         data = TLV(data_fields)
+        Global.logger.debug(
+            "Command contains TLV structure: {}".format(data.to_print())
+        )
 
         return self.create_command(
             cla=0x80,
@@ -1697,6 +1742,7 @@ class APDU:
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
     ) -> Response:
+        Global.logger.info("Creating AUTH1 response")
         Global.logger.info("creating response payload")
         auth1_payload: list[tuple[int, bytes | list]] = []
         if expected_response == Auth1Response.KEY_SLOT:
@@ -1766,6 +1812,9 @@ class APDU:
             )
 
         auth1_payload_tlv = TLV(auth1_payload)
+        Global.logger.debug(
+            "Response contains TLV structure: {}".format(auth1_payload_tlv.to_print())
+        )
 
         Global.logger.info("encrypting response payload")
         encrypted_payload, tag = encryption.encrypt(
@@ -1778,6 +1827,7 @@ class APDU:
     def create_control_flow_command(
         self, S1: int, S2: int, domain_specific_data: bytes | None = None
     ) -> Command:
+        Global.logger.info("Creating CONTROL FLOW command")
         if domain_specific_data is not None and len(domain_specific_data) > 250:
             raise ValueError
 
@@ -1789,6 +1839,9 @@ class APDU:
             data_fields.append((ControlFlow.DOMAIN_SPECIFIC_TAG, domain_specific_data))
 
         data = TLV(data_fields)
+        Global.logger.debug(
+            "Command contains TLV structure: {}".format(data.to_print())
+        )
 
         return self.create_command(
             cla=0x80,
@@ -1800,14 +1853,16 @@ class APDU:
         )
 
     def create_control_flow_response(self, status: int) -> Response:
+        Global.logger.info("Creating CONTROL FLOW response")
         return Response.create_from_parameters(status=status)
 
     def create_exchange_command(
         self, atomic_session: bool, payload_tlv: TLV, encryption: EncryptionEngine
     ) -> Command:
+        Global.logger.info("Creating EXCHANGE command")
         payload = atomic_session.to_bytes(1, "big") + payload_tlv.to_bytes()
 
-        Global.logger.info("encrypting exchange command payload")
+        Global.logger.info("encrypting EXCHANGE command payload")
         encrypted_payload, tag = encryption.encrypt(
             payload,
         )
@@ -1825,7 +1880,8 @@ class APDU:
     def create_exchange_response(
         self, payload: bytes, encryption: EncryptionEngine, status: int
     ) -> Response:
-        Global.logger.info("encrypting exchange response payload")
+        Global.logger.info("Creating EXCHANGE response")
+        Global.logger.info("encrypting EXCHANGE response payload")
         encrypted_payload, tag = encryption.encrypt(
             payload,
         )
@@ -1834,6 +1890,7 @@ class APDU:
         return Response.create_from_parameters(payload, status)
 
     def create_envelope_command(self, payload: bytes) -> Command:
+        Global.logger.info("Creating ENVELOPE command")
         return self.create_command(
             cla=0x00,
             ins=INS.ENVELOPE,
@@ -1846,6 +1903,7 @@ class APDU:
     def create_envelope_response(
         self, payload: bytes | None = None, status: int = StatusBytes.SUCCESS
     ) -> Response:
+        Global.logger.info("Creating ENVELOPE response")
         return Response.create_from_parameters(payload, status)
 
     def create_get_response_command(self, payload: bytes) -> Command:
@@ -1859,6 +1917,7 @@ class APDU:
         )
 
     def create_get_response_response(self, payload: bytes, status: int) -> Response:
+        Global.logger.info("Creating GET RESPONSE response")
         return Response.create_from_parameters(payload, status)
 
     def create_command(
@@ -1883,4 +1942,5 @@ class APDU:
         return Command.create_from_parameters(cla, ins, p1, p2, data, le)
 
     def create_error_response(self, status_bytes: int) -> Response:
+        Global.logger.info("Creating error response")
         return Response.create_from_parameters(status=status_bytes)
