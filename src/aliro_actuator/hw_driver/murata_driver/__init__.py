@@ -119,7 +119,7 @@ class UserDeviceMurataDriver(
             self.connected_devices[0], reader_characteristic
         )
         read_value = value.get_value()
-        Global.logger.debug("read values: {!r}".format(read_value))
+        Global.logger.debug("read values: {!r}".format(hexlify(read_value)))
         no_versions = read_value[2] // 2  # every version is 2 byte long
         versions = []
         for index in range(no_versions):
