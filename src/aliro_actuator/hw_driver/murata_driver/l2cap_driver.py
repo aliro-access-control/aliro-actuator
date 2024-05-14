@@ -14,13 +14,13 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeL2CAP, OpGroup
 
 class MurataL2CAPDriver(MurataBaseDriver):
     async def setup_l2cap_connection(self, psm: bytes) -> None:
-        Global.logger.info("Setup l2cap connection")
+        Global.logger.debug("Setup l2cap connection")
         await self.register_le_cb_callback()
         await self.register_le_psm(psm)
         await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
 
     async def register_le_cb_callback(self) -> None:
-        Global.logger.info("Register Le Cb callback")
+        Global.logger.debug("Register Le Cb callback")
         message = Message(
             OpGroup.L2CAP,
             OpCodeL2CAP.REGISTER_LE_CB_CALLBACKS,
@@ -29,7 +29,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         await self.wait_for_confirm(OpGroup.L2CAP)
 
     async def register_le_psm(self, psm: bytes, psm_mtu: int = 0xFF) -> None:
-        Global.logger.info("Register Le PSM")
+        Global.logger.debug("Register Le PSM")
         data = bytearray()
         data.extend(change_endianness(psm[:2]))
         data.extend(psm_mtu.to_bytes(2, "little"))
@@ -46,7 +46,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
     async def connect_le_psm(
         self, device_id: int, psm: bytes, initial_credits: int
     ) -> int:
-        Global.logger.info("Connect Le PSM")
+        Global.logger.debug("Connect Le PSM")
         data = bytearray()
         data.extend(change_endianness(psm[:2]))
         data.append(device_id)
@@ -81,7 +81,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         return self.channel_ids[device_id]
 
     async def send_le_credit(self, device_id: int, no_credits: int) -> bytes:
-        Global.logger.info("Send Le Credit")
+        Global.logger.debug("Send Le Credit")
         data = bytearray()
         data.append(device_id)
         data.extend(self.channel_ids[device_id].to_bytes(2, "little"))
@@ -102,7 +102,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         return response.data
 
     async def send_le_cb_data(self, device_id: int, data_to_send: bytes) -> None:
-        Global.logger.info("Send le cb data")
+        Global.logger.debug("Send le cb data")
         data = bytearray()
         data.append(device_id)
         data.extend(self.channel_ids[device_id].to_bytes(2, "little"))
@@ -119,7 +119,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         await self.wait_for_confirm(OpGroup.L2CAP)
 
     async def wait_for_data(self, device_id_requested: int) -> bytes:
-        Global.logger.info("Wait for data")
+        Global.logger.debug("Wait for data")
         while True:
             try:
                 message = await self.read()
@@ -128,12 +128,12 @@ class MurataL2CAPDriver(MurataBaseDriver):
                     and message.op_code == OpCodeL2CAP.LE_CB_DATA
                 ):
                     device_id = message.get_device_id()
-                    Global.logger.info(
+                    Global.logger.debug(
                         "Received data from device id: {:x}".format(device_id)
                     )
                     if device_id == device_id_requested:
                         data = message.get_packet()
-                        Global.logger.info("Received data: {!r}".format(hexlify(data)))
+                        Global.logger.debug("Received data: {!r}".format(hexlify(data)))
                         return data
                 else:
                     Global.logger.debug("Unexpected message received:")

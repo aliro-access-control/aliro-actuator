@@ -22,7 +22,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
     async def add_primary_service_declaration(
         self, handle: int, uuid: bytes, uuid_type: UuidType = UuidType.uuid_16_bits
     ) -> int:
-        Global.logger.info("Primary Service Declaration")
+        Global.logger.debug("Primary Service Declaration")
         if uuid_type == UuidType.uuid_16_bits:
             size = 2
         elif uuid_type == UuidType.uuid_32_bits:
@@ -53,7 +53,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
     async def add_secondary_service_declaration(
         self, handle: int, uuid: bytes, uuid_type: UuidType = UuidType.uuid_16_bits
     ) -> int:
-        Global.logger.info("Secondary Service Declaration")
+        Global.logger.debug("Secondary Service Declaration")
         if uuid_type == UuidType.uuid_16_bits:
             size = 2
         elif uuid_type == UuidType.uuid_32_bits:
@@ -82,7 +82,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         return int.from_bytes(response.data, "little")  # handle
 
     async def add_cccd(self) -> int:
-        Global.logger.info("Add cccd")
+        Global.logger.debug("Add cccd")
         message = Message(
             OpGroup.GATT_DB,
             OpCodeGATTDB.ADD_CCCD_REQ,
@@ -103,7 +103,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         value_length: int = 0x01,
         permissions: int = Permissions.readable,
     ) -> int:
-        Global.logger.info("Add characteristic declaration and value")
+        Global.logger.debug("Add characteristic declaration and value")
         if uuid_type == UuidType.uuid_16_bits:
             size = 2
         elif uuid_type == UuidType.uuid_32_bits:
@@ -143,7 +143,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         properties: int = Properties.read,
         permissions: int = Permissions.readable,
     ) -> int:
-        Global.logger.info("Add characteristic declaration with unique value")
+        Global.logger.debug("Add characteristic declaration with unique value")
         if uuid_type == UuidType.uuid_16_bits:
             size = 2
         elif uuid_type == UuidType.uuid_32_bits:
@@ -182,7 +182,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         value_length: int = 0x01,
         permissions: int = Permissions.readable,
     ) -> int:
-        Global.logger.info("Add characteristic descriptor")
+        Global.logger.debug("Add characteristic descriptor")
         if uuid_type == UuidType.uuid_16_bits:
             size = 2
         elif uuid_type == UuidType.uuid_32_bits:
@@ -221,7 +221,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         uuid: bytes,
         uuid_type: UuidType = UuidType.uuid_16_bits,
     ) -> int:
-        Global.logger.info("Add include declaration")
+        Global.logger.debug("Add include declaration")
         if uuid_type == UuidType.uuid_16_bits:
             size = 2
         elif uuid_type == UuidType.uuid_32_bits:
@@ -258,7 +258,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         uuid: bytes,
         uuid_type: UuidType = UuidType.uuid_16_bits,
     ) -> int:
-        Global.logger.info("Find characteristic value handle")
+        Global.logger.debug("Find characteristic value handle")
 
         if uuid_type == UuidType.uuid_16_bits:
             size = 2
@@ -289,7 +289,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         return int.from_bytes(message.data, "little")
 
     async def register_gattserver_callback(self) -> None:
-        Global.logger.info("Register gattserver callback")
+        Global.logger.debug("Register gattserver callback")
         message = Message(
             OpGroup.GATT,
             OpCodeGATT.GATTSERVER_REGISTER_CALLBACK,
@@ -298,7 +298,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         await self.wait_for_confirm(OpGroup.GATT)
 
     async def register_write_notifications(self, handle_list: list[int]) -> None:
-        Global.logger.info("Register write notifications")
+        Global.logger.debug("Register write notifications")
         data = bytearray()
         data.append(len(handle_list))
         for handle in handle_list:
@@ -314,7 +314,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         await self.wait_for_confirm(OpGroup.GATT)
 
     async def send_attribute_written_status(self, device_id: int, handle: int) -> None:
-        Global.logger.info("Send attribute written status")
+        Global.logger.debug("Send attribute written status")
 
         data = bytearray()
         data.append(device_id)
@@ -331,7 +331,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         await self.wait_for_confirm(OpGroup.GATT)
 
     async def wait_for_write(self) -> int:
-        Global.logger.info("Waiting for Write")
+        Global.logger.debug("Waiting for Write")
         message = await self.wait_for_message(
             OpGroup.GATT, OpCodeGATT.ATTRIBUTE_WRITTEN
         )
@@ -349,7 +349,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
 
 class MurataGATTClientDriver(MurataBaseDriver):
     async def register_notification_callback(self) -> None:
-        Global.logger.info("Register notification callback")
+        Global.logger.debug("Register notification callback")
         message = Message(
             OpGroup.GATT,
             OpCodeGATT.REGISTER_NOTIFICATION_CALLBACK,
@@ -358,7 +358,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
         await self.wait_for_confirm(OpGroup.GATT)
 
     async def register_procedure_callback(self) -> None:
-        Global.logger.info("Register procedure callback")
+        Global.logger.debug("Register procedure callback")
         message = Message(
             OpGroup.GATT,
             OpCodeGATT.REGISTER_PROCEDURE_CALLBACK,
@@ -369,7 +369,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
     async def discover_all_primary_services(
         self, device_id: int, no_services: int = 0x03
     ) -> list:
-        Global.logger.info("Discover all primary services")
+        Global.logger.debug("Discover all primary services")
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
         data.append(no_services)
@@ -391,7 +391,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
     async def discover_all_characteristics_of_service(
         self, device_id: int, service: Service, no_characteristics: int = 0x01
     ) -> Service:
-        Global.logger.info("Discover all characteristics of service")
+        Global.logger.debug("Discover all characteristics of service")
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
         data.extend(service.to_bytes())
@@ -414,7 +414,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
     async def read_characteristic_value(
         self, device_id: int, characteristic: Characteristic
     ) -> Characteristic:
-        Global.logger.info("Read characteristic value")
+        Global.logger.debug("Read characteristic value")
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
         data.extend(characteristic.to_bytes())
@@ -441,7 +441,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
         value: int,
         value_length: int = 0x01,
     ) -> None:
-        Global.logger.info("Write characteristic value")
+        Global.logger.debug("Write characteristic value")
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
         data.extend(characteristic.to_bytes())
