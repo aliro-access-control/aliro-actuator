@@ -257,6 +257,7 @@ class Reader(Device):
         Global.logger.info("Terminating transaction")
         self.end_session()
         await self.transport_protocol.disconnect()
+        Global.logger.info("Transaction Termination Done")
 
     async def setup_connection(self) -> None:
         """
@@ -371,6 +372,11 @@ class Reader(Device):
 
         if self.session.application_type != CSA_APPLICATION_TYPE:
             raise AccessProtocolError("User send unknown application type")
+        else:
+            Global.logger.info(
+                "Application type valid: 0x{:04x}".format(self.session.application_type)
+            )
+
         if (
             PROTOCOL_VERSION
             not in self.session.expedited_phase_supported_protocol_versions
@@ -378,6 +384,17 @@ class Reader(Device):
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
             )
+        else:
+            Global.logger.info(
+                "Protocol versions contains valid version: {}".format(
+                    ", ".join(
+                        str(hex(x))
+                        for x in self.session.expedited_phase_supported_protocol_versions
+                    )
+                )
+            )
+
+        Global.logger.info("Initiate access protocol notification handling done")
 
     async def handle_select(self, aid: bytes) -> None:
         """
@@ -397,7 +414,6 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("SELECT Command")
         try:
             response = await self.command_select(aid)
         except InvalidStatusError as error:
@@ -409,16 +425,33 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
+        Global.logger.info("handling SELECT response")
         if response.compl_aid != EXPEDITED_PHASE_AID:
             raise AccessProtocolError("User send unknown AID")
+        else:
+            Global.logger.info("AID valid: {!r}".format(response.compl_aid))
+
         if response.type != CSA_APPLICATION_TYPE:
             raise AccessProtocolError("User send unknown application type")
+        else:
+            Global.logger.info("Application type valid: 0x{:04x}".format(response.type))
+
         if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
             )
+        else:
+            Global.logger.info(
+                "Protocol versions contains valid version: {}".format(
+                    ", ".join(
+                        str(hex(x))
+                        for x in response.expedited_phase_supported_protocol_versions
+                    )
+                )
+            )
 
         self.session.set_select_info(response)
+        Global.logger.info("handling SELECT response done")
 
     async def handle_auth0(
         self, transaction_type: Transaction, transaction_code: TransactionCode
@@ -445,7 +478,6 @@ class Reader(Device):
         ):
             raise AccessProtocolError("Requested fast transaction but does not support")
 
-        Global.logger.info("AUTH0 Command")
         try:
             auth0_response = await self.command_auth0(
                 transaction=transaction_type,
@@ -460,7 +492,8 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
-        Global.logger.info("checking Auth0 response fields")
+        Global.logger.info("Handling AUTH0 response")
+        Global.logger.info("Checking Auth0 response fields")
         try:
             credential_ephemeral_public_key = PublicKey(auth0_response.credential_epubk)
         except InvalidKeyError as error:
@@ -469,8 +502,9 @@ class Reader(Device):
                     hexlify(auth0_response.credential_epubk)
                 )
             ) from error
+        Global.logger.info("Credential ephemeral public key is a valid key")
 
-        Global.logger.info("saving Auth0 response data")
+        Global.logger.info("Saving Auth0 response data to session")
         self.session.set_flag(transaction_type, transaction_code)
         self.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
         self.session.set_response_vendor_extension(
@@ -483,59 +517,67 @@ class Reader(Device):
                 raise AccessProtocolError(
                     "User send cryptogram during a standard transaction"
                 )
+            else:
+                Global.logger.info(
+                    "No cryptogram send during a standard transaction (as expected)"
+                )
         else:
-            if auth0_response.cryptogram is None:
-                await self.failure_process()
-                raise AccessProtocolError(
-                    "User did not send cryptogram during a fast transaction"
-                )
+            await self.decrypt_cryptogram(auth0_response.cryptogram)
 
-            Global.logger.info(
-                "Trying to decrypt cryptogram received: {!r}".format(
-                    hexlify(auth0_response.cryptogram[:-AUTHENTICATION_TAG_SIZE])
-                )
+        Global.logger.info("handling AUTH0 command done")
+
+    async def decrypt_cryptogram(self, cryptogram: bytes | None) -> None:
+        if self.session is None:
+            raise SessionError("No Session")
+
+        if cryptogram is None:
+            await self.failure_process()
+            raise AccessProtocolError(
+                "User did not send cryptogram during a fast transaction"
+            )
+
+        Global.logger.info(
+            "Trying to decrypt cryptogram received: {!r}".format(
+                hexlify(cryptogram[:-AUTHENTICATION_TAG_SIZE])
+            )
+        )
+        Global.logger.info(
+            "With authentication tag: {!r}".format(
+                hexlify(cryptogram[-AUTHENTICATION_TAG_SIZE:])
+            )
+        )
+        for entry in self.storage.get_kpersistent_list():
+            self.session.derive_key_volatile_fast(
+                self.transport_protocol_type,
+                entry.access_credential,
+                entry.kpersistent,
             )
             Global.logger.info(
-                "With authentication tag: {!r}".format(
-                    hexlify(auth0_response.cryptogram[-AUTHENTICATION_TAG_SIZE:])
+                "trying cryptogram secret key: {!r}".format(
+                    hexlify(self.session.cryptogram_SK)
                 )
             )
-            for entry in self.storage.get_kpersistent_list():
-                self.session.derive_key_volatile_fast(
-                    self.transport_protocol_type,
-                    entry.access_credential,
-                    entry.kpersistent,
+            try:
+                decrypted_cryptogram = decrypt_cryptogram(
+                    self.session.cryptogram_SK,
+                    cryptogram[:-AUTHENTICATION_TAG_SIZE],
+                    cryptogram[-AUTHENTICATION_TAG_SIZE:],
                 )
                 Global.logger.info(
-                    "trying cryptogram secret key: {!r}".format(
+                    "decryption successful with: {!r}".format(
                         hexlify(self.session.cryptogram_SK)
                     )
                 )
-                try:
-                    decrypted_cryptogram = decrypt_cryptogram(
-                        self.session.cryptogram_SK,
-                        auth0_response.cryptogram[:-AUTHENTICATION_TAG_SIZE],
-                        auth0_response.cryptogram[-AUTHENTICATION_TAG_SIZE:],
-                    )
-                    Global.logger.info(
-                        "decryption successful with: {!r}".format(
-                            hexlify(self.session.cryptogram_SK)
-                        )
-                    )
-                    Global.logger.info(
-                        "decrypted cryptogram: {!r}".format(
-                            hexlify(decrypted_cryptogram)
-                        )
-                    )
-                    self.session.set_cryptogram_info(
-                        TLV.from_bytes(decrypted_cryptogram)
-                    )
-                    return
-                except VerificationError:
-                    Global.logger.info("decryption failed, trying next key in storage")
-                    pass
+                Global.logger.info(
+                    "decrypted cryptogram: {!r}".format(hexlify(decrypted_cryptogram))
+                )
+                self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
+                return
+            except VerificationError:
+                Global.logger.info("decryption failed, trying next key in storage")
+                pass
 
-            raise CryptogramNotFound("Matching Cryptogram not found")
+        raise CryptogramNotFound("Matching Cryptogram not found")
 
     async def handle_load_cert(self) -> None:
         """
@@ -551,7 +593,6 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("LOAD CERT Command")
         if self.reader_cert is None:
             raise AccessProtocolError("No reader cert available")
 
@@ -560,6 +601,9 @@ class Reader(Device):
         except InvalidResponseError as error:
             await self.failure_process()
             raise error
+
+        Global.logger.info("Handling LOAD CERT response")
+        Global.logger.info("Handling LOAD CERT response done")
 
     async def handle_auth1(
         self,
@@ -580,7 +624,6 @@ class Reader(Device):
         self.session.set_shared_key()
         self.session.derive_key_volatile(self.transport_protocol_type)
 
-        Global.logger.info("AUTH1 Command")
         try:
             auth1_response = await self.command_auth1(
                 expected_response=expected_response,
@@ -594,42 +637,76 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
-        Global.logger.info("Checking Auth1 response fields")
-        if expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
-            if auth1_response.credential_public_key is None:
-                await self.failure_process()
-                raise AccessProtocolError(
-                    "Requested credential public key, but none was received"
-                )
-            credential_public_key = PublicKey(auth1_response.credential_public_key)
-        elif expected_response == Auth1Response.KEY_SLOT:
-            if auth1_response.key_slot is None:
-                await self.failure_process()
-                raise AccessProtocolError("Requested keyslot, but none was received")
-            credential_public_key = self.session.lookup_credential_public_key(
-                auth1_response.key_slot
-            )
+        Global.logger.info("Handling AUTH1 response")
+        Global.logger.info("Checking AUTH1 response fields")
+        await self.handle_auth1_credential_public_key(
+            expected_response,
+            auth1_response.credential_public_key,
+            auth1_response.key_slot,
+        )
 
-        Global.logger.info("Checking credential authentication data")
-        self.session.set_credential_public_key(credential_public_key)
         if not self.session.check_user_device_authentication(
             auth1_response.user_device_signature
         ):
             await self.failure_process()
             raise AccessProtocolError("User device signature authentication failed")
+        else:
+            Global.logger.info("User device signature authentication succeeded")
 
         if self.fast_transaction_implemented:
+            Global.logger.info("Adding Kpersistent")
             fast_cache_entry = self.storage.add_kpersistent(
-                credential_public_key,
+                self.session.credential_pubk,
                 self.session.derive_key_persistent(
-                    self.transport_protocol_type, credential_public_key
+                    self.transport_protocol_type, self.session.credential_pubk
                 ),
             )
             Global.logger.info("added fast cache entry:")
             fast_cache_entry.print_to_log()
 
-        Global.logger.info("Save AUTH1 response")
+        Global.logger.info("Save AUTH1 response data to session")
         self.session.set_auth1_info(auth1_response)
+
+        Global.logger.info("Handling AUTH1 response done")
+
+    async def handle_auth1_credential_public_key(
+        self,
+        expected_response: int,
+        credential_public_key_bytes: bytes | None,
+        key_slot: bytes | None,
+    ) -> None:
+        if self.session is None:
+            raise SessionError("No Session")
+
+        if expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
+            Global.logger.info("Key type request is access credential public key")
+            if credential_public_key_bytes is None:
+                await self.failure_process()
+                raise AccessProtocolError(
+                    "Requested credential public key, but none was received"
+                )
+            if key_slot is not None:
+                await self.failure_process()
+                raise AccessProtocolError(
+                    "Requested credential public key, but key slot was received"
+                )
+            credential_public_key = PublicKey(credential_public_key_bytes)
+            Global.logger.info("Access credential public key is a valid key")
+        elif expected_response == Auth1Response.KEY_SLOT:
+            Global.logger.info("Key type request is key slot")
+            if key_slot is None:
+                await self.failure_process()
+                raise AccessProtocolError("Requested keyslot, but none was received")
+            if credential_public_key_bytes is not None:
+                await self.failure_process()
+                raise AccessProtocolError(
+                    "Requested keyslot, but credential public key was received"
+                )
+            credential_public_key = self.session.lookup_credential_public_key(key_slot)
+            Global.logger.info(
+                "Access credential public key could be found with key slot"
+            )
+        self.session.set_credential_public_key(credential_public_key)
 
     async def handle_control_flow(self, success: bool) -> None:
         """
@@ -653,9 +730,15 @@ class Reader(Device):
         else:
             s1 = 0x00
 
-        await self.command_control_flow(s1, 0x00)
+        try:
+            await self.command_control_flow(s1, 0x00)
+        except (InvalidResponseError, VerificationError) as error:
+            await self.failure_process()
+            raise error
 
+        Global.logger.info("Handling AUTH1 response")
         self.session = None
+        Global.logger.info("Handling AUTH1 response done")
 
     async def handle_exchange(
         self,
@@ -1139,7 +1222,7 @@ class ReaderSession:
     ) -> None:
         self.flag = bytes([transaction, transaction_code])
 
-    def set_response_vendor_extension(self, vendor_extension: bytes | None) -> None:
+    def set_response_vendor_extension(self, vendor_extension: TLV | None) -> None:
         self.response_vendor_extension = vendor_extension
 
     def set_credential_ephemeral_key(self, key: PublicKey) -> None:
@@ -1201,11 +1284,22 @@ class ReaderSession:
         self.revocation_signed_timestamp = auth1_response.revocation_signed_timestamp
 
     def check_user_device_authentication(self, user_device_signature: bytes) -> bool:
+        Global.logger.info("Checking credential authentication data")
         data = create_user_device_authentication(
             self.reader_identifier,
             self.credential_ephemeral_key,
             self.reader_ephemeral.get_public_key(),
             self.transaction_identifier,
+        )
+        Global.logger.debug(
+            "verifying user data with key: {!r}".format(
+                hexlify(self.credential_pubk.as_bytes())
+            )
+        )
+        Global.logger.debug(
+            "verifying user data with signature: {!r}".format(
+                hexlify(user_device_signature)
+            )
         )
         return self.credential_pubk.verify(data.to_bytes(), user_device_signature)
 
@@ -1224,6 +1318,8 @@ class ReaderSession:
         )
 
     def derive_key_volatile(self, transport_protocol: TransportProtocol) -> None:
+        Global.logger.debug("Deriving key (volatile)")
+
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
             info.extend(self.command_vendor_extension)
@@ -1241,12 +1337,22 @@ class ReaderSession:
             flag=self.flag,
             proprietary_information=self.proprietary_tlv.to_bytes(),
         )
+
         derived_key = derive_key(self.shared_key, bytes(info), 160, salt)
         self.exchange_SK_reader = derived_key[0:32]
         self.exchange_SK_device = derived_key[32:64]
         self.step_up_SK = derived_key[64:96]
         self.ble_SK = derived_key[96:128]
         self.UR_SK = derived_key[128:160]
+        Global.logger.debug(
+            "exchange SK reader: {!r}".format(hexlify(self.exchange_SK_reader))
+        )
+        Global.logger.debug(
+            "exchange SK device: {!r}".format(hexlify(self.exchange_SK_device))
+        )
+        Global.logger.debug("step up SK: {!r}".format(hexlify(self.step_up_SK)))
+        Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
+        Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
 
         self.encryption = EncryptionEngine(
             DeviceType.READER, self.exchange_SK_reader, self.exchange_SK_device
@@ -1258,6 +1364,7 @@ class ReaderSession:
         credential: PublicKey,
         k_persistent: bytes,
     ) -> None:
+        Global.logger.debug("Deriving key (volatile fast)")
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
             info.extend(self.command_vendor_extension)
@@ -1283,9 +1390,20 @@ class ReaderSession:
         self.ble_SK = derived_key[96:128]
         self.UR_SK = derived_key[128:160]
 
+        Global.logger.debug("cryptogram SK: {!r}".format(hexlify(self.cryptogram_SK)))
+        Global.logger.debug(
+            "exchange SK reader: {!r}".format(hexlify(self.exchange_SK_reader))
+        )
+        Global.logger.debug(
+            "exchange SK device: {!r}".format(hexlify(self.exchange_SK_device))
+        )
+        Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
+        Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
+
     def derive_key_persistent(
         self, transport_protocol: TransportProtocol, credential: PublicKey
     ) -> bytes:
+        Global.logger.debug("Deriving key (persistent)")
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
             info.extend(self.command_vendor_extension)
