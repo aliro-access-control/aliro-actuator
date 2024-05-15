@@ -26,14 +26,15 @@ TIMEOUT_LOW = 0.2  # seconds, for polling (lower so other processes can still ru
 
 
 class MurataBaseDriver:
-    def __init__(self, com_port: str):
+    def __init__(self, com_port: str, baudrate: int):
         self.com_port = com_port
+        self.baudrate = baudrate
         self.open()
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
 
     def open(self) -> None:
-        self.serial = serial.Serial(self.com_port, 115200, timeout=0.1)
+        self.serial = serial.Serial(self.com_port, self.baudrate, timeout=0.1)
 
         Global.logger.debug(
             "cleaning serial buffer (if this takes too long, make sure "
