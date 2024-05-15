@@ -209,12 +209,18 @@ class PrivateKey(Key):
 
         (figure 8-7 of the Aliro spec)
         """
+        Global.logger.debug("Computing shared key")
+        Global.logger.debug(
+            "Using public key: {!r}".format(hexlify(public_key.as_bytes()))
+        )
+        Global.logger.debug("Using shared info: {!r}".format(hexlify(shared_info)))
         shared_key = self.key.exchange(ec.ECDH(), public_key.key)
         derived_key = X963KDF(
             algorithm=hashes.SHA256(),
             length=32,
             sharedinfo=shared_info,
         ).derive(shared_key)
+        Global.logger.debug("computed shared key: {!r}".format(hexlify(derived_key)))
         return derived_key
 
     def as_bytes(self, short: bool = True) -> bytes:
@@ -316,10 +322,16 @@ def derive_key(input_key: bytes, info: bytes, length: int, salt: bytes) -> bytes
 
     (figure 8-8 of the Aliro spec)
     """
+    Global.logger.debug("Key derivation using:")
+    Global.logger.debug("Shared key: {!r}".format(hexlify(input_key)))
+    Global.logger.debug("Info: {!r}".format(hexlify(info)))
+    Global.logger.debug("Salt: {!r}".format(hexlify(salt)))
+    Global.logger.debug("Length: {}".format(length))
     derived_key = HKDF(
         algorithm=hashes.SHA256(),
         length=length,
         salt=salt,
         info=info,
     ).derive(input_key)
+    Global.logger.debug("Derived key: {!r}".format(hexlify(derived_key)))
     return derived_key
