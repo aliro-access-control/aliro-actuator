@@ -33,6 +33,7 @@ from aliro_actuator.transport_protocol.errors import (
 )
 
 DEFAULT_PORT = "/dev/ttyUSB0"
+DEFAULT_BAUDRATE = "115200"
 SUPPORTED_VERSIONS = [0x0100]
 
 
@@ -40,11 +41,16 @@ class BLEUWB(TransportProtocolBase):
     def __init__(
         self,
         port: str | None = None,
+        baudrate: int | None = None,
     ) -> None:
         if port is not None:
             self.port = port
         else:
             self.port = DEFAULT_PORT
+        if baudrate is not None:
+            self.baudrate = baudrate
+        else:
+            self.baudrate = DEFAULT_BAUDRATE
 
     async def initialization(
         self,
@@ -60,7 +66,7 @@ class BLEUWB(TransportProtocolBase):
         self.spsm = spsm
         if self.mode == Mode.READER:
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
-                ReaderMurataDriver(self.port)
+                ReaderMurataDriver(self.port, self.baudrate)
             )
             await self.driver.setup_gatt_database(self.spsm)
             await self.driver.setup_connection(
@@ -70,7 +76,7 @@ class BLEUWB(TransportProtocolBase):
             )
         elif self.mode == Mode.USER_DEVICE:
             truncated_list = list(map(lambda x: x[:8], reader_group_identifier_list))
-            self.driver = UserDeviceMurataDriver(self.port)
+            self.driver = UserDeviceMurataDriver(self.port, self.baudrate)
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
                 reader_group_identifier_list=truncated_list,
