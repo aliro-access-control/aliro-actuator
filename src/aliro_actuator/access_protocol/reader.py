@@ -414,6 +414,7 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
+        Global.logger.info("Handling SELECT with AID: {!r}".format(hexlify(aid)))
         try:
             response = await self.command_select(aid)
         except InvalidStatusError as error:
@@ -478,6 +479,11 @@ class Reader(Device):
         ):
             raise AccessProtocolError("Requested fast transaction but does not support")
 
+        Global.logger.info(
+            "Handling AUTH0 with transaction type: {} and transaction code: {}".format(
+                transaction_type.name, transaction_code.name
+            )
+        )
         try:
             auth0_response = await self.command_auth0(
                 transaction=transaction_type,
@@ -596,6 +602,7 @@ class Reader(Device):
         if self.reader_cert is None:
             raise AccessProtocolError("No reader cert available")
 
+        Global.logger.info("Handling LOAD CERT")
         try:
             await self.command_load_cert(self.reader_cert.encode_compressed())
         except InvalidResponseError as error:
@@ -624,6 +631,9 @@ class Reader(Device):
         self.session.set_shared_key()
         self.session.derive_key_volatile(self.transport_protocol_type)
 
+        Global.logger.info(
+            "Handling AUTH1 with key type request: {}".format(expected_response.name)
+        )
         try:
             auth1_response = await self.command_auth1(
                 expected_response=expected_response,
@@ -723,15 +733,17 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("CONTROL FLOW Command")
-
         if success:
             s1 = 0x01
         else:
             s1 = 0x00
+        s2 = 0x00
 
+        Global.logger.info(
+            "Handling CONTROL FLOW with s1: 0x{:02x} and s2: 0x{:02x}".format(s1, s2)
+        )
         try:
-            await self.command_control_flow(s1, 0x00)
+            await self.command_control_flow(s1, s2)
         except (InvalidResponseError, VerificationError) as error:
             await self.failure_process()
             raise error
@@ -773,7 +785,9 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("EXCHANGE Command")
+        Global.logger.info(
+            "Handling EXCHANGE with atomic session: {}".format(atomic_session)
+        )
 
         payload: list[tuple[int, bytes | list]] = []
         if read_requests is not None:
@@ -820,22 +834,47 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
+        Global.logger.info("Handling EXCHANGE response")
         if response.status_code != bytes.fromhex("00020000"):
             await self.failure_process()
-            Global.logger.error(
-                "exchange returned error status: {!r}".format(response.status_code)
+            raise AccessProtocolError(
+                "EXCHANGE returned error status at end of payload: {!r}".format(
+                    response.status_code
+                )
             )
-            return []
+        Global.logger.info(
+            "All requests handled successfully, status: {!r}".format(
+                response.status_code
+            )
+        )
 
-        read_data = []
+        Global.logger.info("Checking read data")
+        if len(response.read_data) == 0:
+            if read_requests is not None and len(read_requests) != 0:
+                raise AccessProtocolError(
+                    "Send EXCHANGE command with read requests, but no read data found "
+                    "in response"
+                )
+            else:
+                Global.logger.info("No read data found, as expected")
+        else:
+            read_data = []
+            index = 0
+            while index < len(response.read_data):
+                length = int.from_bytes(response.read_data[index : index + 2], "big")
+                data = response.read_data[index + 2 : index + 2 + length]
+                read_data.append(data)
+                index = index + 2 + length
+                Global.logger.info("Read data found: {!r}".format(hexlify(data)))
+            if read_requests is None or len(read_requests) != len(read_data):
+                raise AccessProtocolError(
+                    "Number of read requests in EXCHANGE command ({}) differs from "
+                    "number of read data in response ({})".format(
+                        len(read_requests), len(read_data)
+                    )
+                )
 
-        index = 0
-        while index < len(response.read_data):
-            length = int.from_bytes(response.read_data[index : index + 2], "big")
-            data = response.read_data[index + 2 : index + 2 + length]
-            read_data.append(data)
-            index = index + 2 + length
-            Global.logger.info("read data: {!r}".format(hexlify(data)))
+        Global.logger.info("Handling EXCHANGE response done")
 
         return read_data
 
