@@ -80,7 +80,9 @@ class PublicKey(Key):
                 )
             except ValueError:
                 raise InvalidKeyError(key)
-        Global.logger.debug("created public key: {!r}".format(hexlify(self.as_bytes())))
+        Global.logger.debug(
+            "created public key object: {!r}".format(hexlify(self.as_bytes()))
+        )
 
     def as_bytes(self) -> bytes:
         """

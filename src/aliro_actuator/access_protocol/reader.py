@@ -36,6 +36,7 @@ from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
+    STEPUP_PHASE_AID,
     Auth1,
     Exchange,
     Select,
@@ -427,15 +428,27 @@ class Reader(Device):
             raise error
 
         Global.logger.info("handling SELECT response")
-        if response.compl_aid != EXPEDITED_PHASE_AID:
-            raise AccessProtocolError("User send unknown AID")
+        if response.compl_aid == EXPEDITED_PHASE_AID:
+            Global.logger.info(
+                "AID valid for expedited phase: {!r}".format(
+                    hexlify(response.compl_aid)
+                )
+            )
+        elif response.compl_aid == STEPUP_PHASE_AID:
+            Global.logger.info(
+                "AID valid for step-up phase: {!r}".format(hexlify(response.compl_aid))
+            )
         else:
-            Global.logger.info("AID valid: {!r}".format(response.compl_aid))
+            raise AccessProtocolError("User send unknown AID")
 
         if response.type != CSA_APPLICATION_TYPE:
             raise AccessProtocolError("User send unknown application type")
         else:
-            Global.logger.info("Application type valid: 0x{:04x}".format(response.type))
+            Global.logger.info(
+                "Application type valid (CSA application): 0x{:04x}".format(
+                    response.type
+                )
+            )
 
         if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
             raise AccessProtocolError(
@@ -443,11 +456,12 @@ class Reader(Device):
             )
         else:
             Global.logger.info(
-                "Protocol versions contains valid version: {}".format(
+                "Protocol versions ({}) contains valid version: 0x{:04x}".format(
                     ", ".join(
                         str(hex(x))
                         for x in response.expedited_phase_supported_protocol_versions
-                    )
+                    ),
+                    PROTOCOL_VERSION,
                 )
             )
 
@@ -499,7 +513,7 @@ class Reader(Device):
             raise error
 
         Global.logger.info("Handling AUTH0 response")
-        Global.logger.info("Checking Auth0 response fields")
+        Global.logger.info("Checking credential ephemeral public key")
         try:
             credential_ephemeral_public_key = PublicKey(auth0_response.credential_epubk)
         except InvalidKeyError as error:
@@ -1125,13 +1139,6 @@ class ReaderSession:
         self.maximum_command_apdu = select_response.maximum_command_apdu
         self.maximum_response_apdu = select_response.maximum_response_apdu
         self.proprietary_tlv = select_response.proprietary_tlv
-        Global.logger.debug("Complete AID: {!r}".format(hexlify(self.compl_aid)))
-        Global.logger.debug("application type: {}".format(self.application_type))
-        Global.logger.debug(
-            "Expedited Transaction Supported Versions: {!r}".format(
-                self.expedited_phase_supported_protocol_versions
-            )
-        )
 
     def set_initiate_access_protocol_info(
         self, initiate_access_protocol_notification: bytes
