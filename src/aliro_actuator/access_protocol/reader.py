@@ -415,7 +415,7 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("Handling SELECT with AID: {!r}".format(hexlify(aid)))
+        Global.logger.info("Start handling SELECT with AID: {!r}".format(hexlify(aid)))
         try:
             response = await self.command_select(aid)
         except InvalidStatusError as error:
@@ -427,7 +427,7 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
-        Global.logger.info("handling SELECT response")
+        Global.logger.info("Handling SELECT response")
         if response.compl_aid == EXPEDITED_PHASE_AID:
             Global.logger.info(
                 "AID valid for expedited phase: {!r}".format(
@@ -466,7 +466,7 @@ class Reader(Device):
             )
 
         self.session.set_select_info(response)
-        Global.logger.info("handling SELECT response done")
+        Global.logger.info("Handling SELECT response done")
 
     async def handle_auth0(
         self, transaction_type: Transaction, transaction_code: TransactionCode
@@ -494,9 +494,8 @@ class Reader(Device):
             raise AccessProtocolError("Requested fast transaction but does not support")
 
         Global.logger.info(
-            "Handling AUTH0 with transaction type: {} and transaction code: {}".format(
-                transaction_type.name, transaction_code.name
-            )
+            "Start handling AUTH0 with transaction type: {} and "
+            "transaction code: {}".format(transaction_type.name, transaction_code.name)
         )
         try:
             auth0_response = await self.command_auth0(
@@ -544,7 +543,7 @@ class Reader(Device):
         else:
             await self.decrypt_cryptogram(auth0_response.cryptogram)
 
-        Global.logger.info("handling AUTH0 command done")
+        Global.logger.info("Handling AUTH0 command done")
 
     async def decrypt_cryptogram(self, cryptogram: bytes | None) -> None:
         if self.session is None:
@@ -616,7 +615,7 @@ class Reader(Device):
         if self.reader_cert is None:
             raise AccessProtocolError("No reader cert available")
 
-        Global.logger.info("Handling LOAD CERT")
+        Global.logger.info("Start handling LOAD CERT")
         try:
             await self.command_load_cert(self.reader_cert.encode_compressed())
         except InvalidResponseError as error:
@@ -646,7 +645,9 @@ class Reader(Device):
         self.session.derive_key_volatile(self.transport_protocol_type)
 
         Global.logger.info(
-            "Handling AUTH1 with key type request: {}".format(expected_response.name)
+            "Start handling AUTH1 with key type request: {}".format(
+                expected_response.name
+            )
         )
         try:
             auth1_response = await self.command_auth1(
@@ -714,6 +715,8 @@ class Reader(Device):
                 raise AccessProtocolError(
                     "Requested credential public key, but key slot was received"
                 )
+            else:
+                Global.logger.info("no key slot present, as required")
             credential_public_key = PublicKey(credential_public_key_bytes)
             Global.logger.info("Access credential public key is a valid key")
         elif expected_response == Auth1Response.KEY_SLOT:
@@ -726,6 +729,8 @@ class Reader(Device):
                 raise AccessProtocolError(
                     "Requested keyslot, but credential public key was received"
                 )
+            else:
+                Global.logger.info("no credential public key present, as required")
             credential_public_key = self.session.lookup_credential_public_key(key_slot)
             Global.logger.info(
                 "Access credential public key could be found with key slot"
@@ -754,7 +759,9 @@ class Reader(Device):
         s2 = 0x00
 
         Global.logger.info(
-            "Handling CONTROL FLOW with s1: 0x{:02x} and s2: 0x{:02x}".format(s1, s2)
+            "Start handling CONTROL FLOW with s1: 0x{:02x} and s2: 0x{:02x}".format(
+                s1, s2
+            )
         )
         try:
             await self.command_control_flow(s1, s2)
@@ -800,7 +807,7 @@ class Reader(Device):
             raise SessionError("No Session")
 
         Global.logger.info(
-            "Handling EXCHANGE with atomic session: {}".format(atomic_session)
+            "Start handling EXCHANGE with atomic session: {}".format(atomic_session)
         )
 
         payload: list[tuple[int, bytes | list]] = []
@@ -965,6 +972,7 @@ class Reader(Device):
         Returns:
             Response: Response containing the received data.
         """
+        Global.logger.info("Creating reader authentication data signature")
         data = create_reader_authentication(
             reader_identifier, credential_epubk, reader_epubk, transaction_identifier
         )

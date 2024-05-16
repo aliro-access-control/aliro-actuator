@@ -1178,6 +1178,8 @@ class Response(Message):
     def _check_status(self, valid_codes: list[int] = [StatusBytes.SUCCESS]) -> None:
         if self.status not in valid_codes:
             raise InvalidStatusError(self.as_bytes, self.status)
+        else:
+            Global.logger.info("Valid status found: 0x{:02x}".format(self.status))
 
     @classmethod
     def create_from_bytestring(cls, bytestring: bytes) -> Response:
@@ -1370,7 +1372,7 @@ class Response(Message):
         credential_signed_timestamp: bytes | None
         revocation_signed_timestamp: bytes | None
         """
-        Global.logger.debug("Parsing AUTH1 response:")
+        Global.logger.info("Parsing AUTH1 response:")
         self._check_status()
 
         if self.data is None:
@@ -1453,9 +1455,9 @@ class Response(Message):
         """
         Parse this response as a Auth1 response.
         """
-        Global.logger.debug("Parsing LOAD CERT response:")
+        Global.logger.info("Parsing LOAD CERT response:")
         self._check_status()
-        Global.logger.debug("Done parsing LOAD CERT response")
+        Global.logger.info("Done parsing LOAD CERT response")
 
     def parse_as_exchange(self, encryption: EncryptionEngine | None = None) -> None:
         """
