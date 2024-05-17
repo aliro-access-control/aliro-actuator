@@ -1818,10 +1818,15 @@ class APDU:
             "Response contains TLV structure: {}".format(auth1_payload_tlv.to_print())
         )
 
-        Global.logger.info("encrypting response payload")
+        Global.logger.debug("encrypting response payload")
         encrypted_payload, tag = encryption.encrypt(
             auth1_payload_tlv.to_bytes(),
         )
+
+        Global.logger.debug(
+            "encrypted payload: {!r}".format(hexlify(encrypted_payload))
+        )
+        Global.logger.debug("authentication tag: {!r}".format(hexlify(tag)))
 
         payload = bytes([*encrypted_payload, *tag])
         return Response.create_from_parameters(payload, status)

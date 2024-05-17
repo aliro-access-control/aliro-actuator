@@ -57,7 +57,7 @@ def create_user_device_authentication(
 
     data = TLV(data_fields)
     Global.logger.debug(
-        "user device authentication data: {!r}".format(hexlify(data.to_bytes()))
+        "Created user device authentication data: {!r}".format(hexlify(data.to_bytes()))
     )
 
     return data

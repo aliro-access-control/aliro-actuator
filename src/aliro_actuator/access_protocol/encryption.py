@@ -302,6 +302,7 @@ def compute_cryptogram(
     cipher = AES.new(cryptogram_sk, AES.MODE_GCM, nonce=b"\x00" * 12)
     ciphertext, authentication_tag = cipher.encrypt_and_digest(plain_payload)
 
+    Global.logger.info("Cryptogram computation done")
     Global.logger.info("Cryptogram encrypted payload: {!r}".format(hexlify(ciphertext)))
     Global.logger.info(
         "Cryptogram authentication tag: {!r}".format(hexlify(authentication_tag))

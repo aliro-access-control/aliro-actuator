@@ -390,7 +390,6 @@ class UserDevice(Device):
             await self.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
             raise InvalidAIDError(select_command.to_bytes(), select_command.aid)
 
-        Global.logger.info("Sending Select Response")
         await self.response_select(
             select_command.aid,
             CSA_APPLICATION_TYPE,
@@ -437,7 +436,7 @@ class UserDevice(Device):
             raise VersionError
         else:
             Global.logger.info(
-                "requested version 0x{:04x} is supported (supported: {})".format(
+                "Requested version 0x{:04x} is supported (supported versions: {})".format(
                     auth0_command.expedited_phase_protocol_version,
                     ", ".join(str(hex(x)) for x in self.supported_versions),
                 )
@@ -454,6 +453,16 @@ class UserDevice(Device):
         for access_credential in self.access_credentials:
             if access_credential.has_identifier(self.session.reader_group_identifier):
                 self.session.set_access_credential(access_credential)
+                Global.logger.info("Access credential found")
+                Global.logger.info(
+                    "Reader public key in access credential: {!r}".format(
+                        hexlify(
+                            access_credential.get_reader_public_key(
+                                self.session.reader_group_identifier
+                            ).as_bytes()
+                        )
+                    )
+                )
                 break
         else:
             Global.logger.error("Access credential cannot be found")
@@ -596,9 +605,10 @@ class UserDevice(Device):
         await self.check_reader_authentication_data(auth1_command.reader_signature)
 
         try:
-            Global.logger.info("creating shared keys")
+            Global.logger.info("Creating shared keys")
             self.session.set_shared_key()
             self.session.derive_key_volatile(self.transport_protocol_type)
+            Global.logger.info("Creating Kpersistent")
             self.storage.add_kpersistent(
                 kpersistent=self.session.derive_key_persistent(
                     self.transport_protocol_type
@@ -610,23 +620,18 @@ class UserDevice(Device):
             await self.failure_process(StatusBytes.GENERIC_ERROR)
             raise error
 
-        Global.logger.info("creating user device authentication")
+        Global.logger.info("Creating user device authentication")
         device_authentication = create_user_device_authentication(
             self.session.reader_identifier,
             self.session.get_credential_epubkey(),
             self.session.reader_epubk,
             self.session.transaction_identifier,
         )
-        Global.logger.debug(
-            "created user device authentication_data: {!r}".format(
-                hexlify(device_authentication.to_bytes())
-            )
-        )
         signature = self.session.access_credential.sign(
             device_authentication.to_bytes()
         )
         Global.logger.debug(
-            "created user device authentication_data signature: {!r}".format(
+            "Created user device authentication_data signature: {!r}".format(
                 hexlify(signature)
             )
         )
@@ -636,7 +641,6 @@ class UserDevice(Device):
 
         self.session.update_state(UserSessionState.AUTH1_DONE)
 
-        Global.logger.info("sending AUTH1 response")
         await self.response_auth1(
             self.session.access_credential.get_key_slot(),
             self.session.access_credential.get_credential_public_key().as_bytes(),
@@ -1306,18 +1310,20 @@ class UserSession:
         return self.get_reader_public_key()
 
     def get_reader_public_key(self) -> PublicKey:
+        Global.logger.debug("Looking for reader public key")
         if hasattr(self, "access_credential"):
-            Global.logger.info("has access_credential")
             if self.access_credential.has_identifier(self.reader_group_identifier):
                 reader_public_key = self.access_credential.get_reader_public_key(
                     self.reader_group_identifier
                 )
-                Global.logger.info(
-                    "set reader public key from access_credentials: {!r}".format(
+                Global.logger.debug(
+                    "Got reader public key from access_credentials: {!r}".format(
                         hexlify(reader_public_key.as_bytes())
                     )
                 )
                 return reader_public_key
+        else:
+            Global.logger.warning("No access credential set")
         raise KeyLookupFailed
 
 
