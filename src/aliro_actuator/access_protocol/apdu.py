@@ -896,7 +896,7 @@ class Command(Message):
         reader_identifier: bytes
         vendor_specific_extension: bytes | None
         """
-        Global.logger.info("Parsing auth0 command:")
+        Global.logger.info("Parsing AUTH0 command:")
         self._check_cla(False)
         self._check_ins(INS.AUTH0)
         self._check_parameters(0x00, 0x00)
@@ -960,7 +960,7 @@ class Command(Message):
 
         Checks the fields and raises errors for invalid fields.
         """
-        Global.logger.info("Parsing load_cert command:")
+        Global.logger.info("Parsing LOAD CERT command:")
         self._check_cla(False)
         self._check_ins(INS.LOAD_CERT)
         self._check_parameters(0x00, 0x00)
@@ -1036,7 +1036,7 @@ class Command(Message):
         ursk
         update_doc
         """
-        Global.logger.info("Parsing exchange command:")
+        Global.logger.info("Parsing EXCHANGE command:")
         self._check_cla(False)
         self._check_ins(INS.EXCHANGE)
         self._check_parameters(0x00, 0x00)
