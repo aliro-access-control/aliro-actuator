@@ -270,6 +270,25 @@ def compute_cryptogram(
     ):
         raise ValueError("Invalid input for cryptogram")
 
+    Global.logger.debug(
+        "Computing Cryptogram using cryptogram sk: {!r}".format(hexlify(cryptogram_sk))
+    )
+    Global.logger.debug(
+        "Computing Cryptogram using signaling bitmap: {!r}".format(
+            hexlify(signaling_bitmap)
+        )
+    )
+    Global.logger.debug(
+        "Computing Cryptogram using credential signed timestamp: {!r}".format(
+            hexlify(credential_signed_timestamp)
+        )
+    )
+    Global.logger.debug(
+        "Computing Cryptogram using revocation signed timestamp: {!r}".format(
+            hexlify(revocation_signed_timestamp)
+        )
+    )
+
     plain_payload = TLV(
         [
             (Auth1.SIGNALING_BITMAP_TAG, signaling_bitmap),
@@ -278,8 +297,16 @@ def compute_cryptogram(
         ]
     ).to_bytes()
 
+    Global.logger.info("Cryptogram payload: {!r}".format(hexlify(plain_payload)))
+
     cipher = AES.new(cryptogram_sk, AES.MODE_GCM, nonce=b"\x00" * 12)
     ciphertext, authentication_tag = cipher.encrypt_and_digest(plain_payload)
+
+    Global.logger.info("Cryptogram encrypted payload: {!r}".format(hexlify(ciphertext)))
+    Global.logger.info(
+        "Cryptogram authentication tag: {!r}".format(hexlify(authentication_tag))
+    )
+
     return ciphertext + authentication_tag
 
 

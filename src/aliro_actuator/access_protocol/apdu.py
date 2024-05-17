@@ -378,7 +378,7 @@ class Message:
         length: int | None = None,
         max_length: int | None = None,
         tlv_data: TLV | None = None,
-    ) -> list:
+    ) -> list[bytes]:
         """
         Get bytes from a TLV, perform relevant checks and log everything.
 
