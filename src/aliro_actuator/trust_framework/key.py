@@ -113,10 +113,10 @@ class PublicKey(Key):
             s = int.from_bytes(signature[32:64], "big")
             signature_asn1 = encode_dss_signature(r, s)
             self.key.verify(signature_asn1, data, ec.ECDSA(hashes.SHA256()))
-            Global.logger.info("verification succeeded")
+            Global.logger.debug("verification succeeded")
             return True
         except (ValueError, InvalidSignature):
-            Global.logger.info("verification failed")
+            Global.logger.debug("verification failed")
             return False
 
     def get_x(self) -> int:
@@ -202,7 +202,6 @@ class PrivateKey(Key):
         signature_asn1 = self.key.sign(data, ec.ECDSA(hashes.SHA256()))
         (r, s) = decode_dss_signature(signature_asn1)
         signature = r.to_bytes(32, "big") + s.to_bytes(32, "big")
-        Global.logger.debug("created signature: {!r}".format(hexlify(signature)))
         return signature
 
     def compute_shared_key(self, public_key: PublicKey, shared_info: bytes) -> bytes:
