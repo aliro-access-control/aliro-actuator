@@ -473,7 +473,7 @@ class UserDevice(Device):
                 )
                 break
         else:
-            Global.logger.error("Access credential cannot be found")
+            raise AccessProtocolError("Access credential cannot be found")
 
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
