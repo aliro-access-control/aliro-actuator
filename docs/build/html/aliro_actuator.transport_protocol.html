@@ -39,6 +39,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="aliro_actuator.transport_protocol.ble_uwb.html">aliro_actuator.transport_protocol.ble_uwb module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.transport_protocol.ble_uwb.html#aliro_actuator.transport_protocol.ble_uwb.BLEUWB"><code class="docutils literal notranslate"><span class="pre">BLEUWB</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.transport_protocol.ble_uwb.html#aliro_actuator.transport_protocol.ble_uwb.BLEUWB.disconnect"><code class="docutils literal notranslate"><span class="pre">BLEUWB.disconnect()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.transport_protocol.ble_uwb.html#aliro_actuator.transport_protocol.ble_uwb.BLEUWB.get_message"><code class="docutils literal notranslate"><span class="pre">BLEUWB.get_message()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.transport_protocol.ble_uwb.html#aliro_actuator.transport_protocol.ble_uwb.BLEUWB.initialization"><code class="docutils literal notranslate"><span class="pre">BLEUWB.initialization()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.transport_protocol.ble_uwb.html#aliro_actuator.transport_protocol.ble_uwb.BLEUWB.send_message"><code class="docutils literal notranslate"><span class="pre">BLEUWB.send_message()</span></code></a></li>
@@ -50,11 +51,15 @@
 <li class="toctree-l1"><a class="reference internal" href="aliro_actuator.transport_protocol.errors.html">aliro_actuator.transport_protocol.errors module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.transport_protocol.errors.html#aliro_actuator.transport_protocol.errors.InvalidModeError"><code class="docutils literal notranslate"><span class="pre">InvalidModeError</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.transport_protocol.errors.html#aliro_actuator.transport_protocol.errors.NoDataReceivedError"><code class="docutils literal notranslate"><span class="pre">NoDataReceivedError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.transport_protocol.errors.html#aliro_actuator.transport_protocol.errors.NoDeviceConnectedError"><code class="docutils literal notranslate"><span class="pre">NoDeviceConnectedError</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.transport_protocol.errors.html#aliro_actuator.transport_protocol.errors.TransportProtocolError"><code class="docutils literal notranslate"><span class="pre">TransportProtocolError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.transport_protocol.errors.html#aliro_actuator.transport_protocol.errors.UnexpectedMessageTypeError"><code class="docutils literal notranslate"><span class="pre">UnexpectedMessageTypeError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="aliro_actuator.transport_protocol.errors.html#aliro_actuator.transport_protocol.errors.UnknownVersionRequestedError"><code class="docutils literal notranslate"><span class="pre">UnknownVersionRequestedError</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="aliro_actuator.transport_protocol.nfc.html">aliro_actuator.transport_protocol.nfc module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="aliro_actuator.transport_protocol.nfc.html#aliro_actuator.transport_protocol.nfc.NFC"><code class="docutils literal notranslate"><span class="pre">NFC</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="aliro_actuator.transport_protocol.nfc.html#aliro_actuator.transport_protocol.nfc.NFC.disconnect"><code class="docutils literal notranslate"><span class="pre">NFC.disconnect()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.transport_protocol.nfc.html#aliro_actuator.transport_protocol.nfc.NFC.get_message"><code class="docutils literal notranslate"><span class="pre">NFC.get_message()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.transport_protocol.nfc.html#aliro_actuator.transport_protocol.nfc.NFC.initialization"><code class="docutils literal notranslate"><span class="pre">NFC.initialization()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="aliro_actuator.transport_protocol.nfc.html#aliro_actuator.transport_protocol.nfc.NFC.send_message"><code class="docutils literal notranslate"><span class="pre">NFC.send_message()</span></code></a></li>
@@ -80,18 +85,45 @@
 <section id="module-aliro_actuator.transport_protocol">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-aliro_actuator.transport_protocol" title="Link to this heading">¶</a></h2>
 <dl class="py class">
+<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.MessageType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.transport_protocol.</span></span><span class="sig-name descname"><span class="pre">MessageType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.transport_protocol.MessageType" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.MessageType.ANY">
+<span class="sig-name descname"><span class="pre">ANY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#aliro_actuator.transport_protocol.MessageType.ANY" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.MessageType.INITIATE_ACCESS_PROTOCOL">
+<span class="sig-name descname"><span class="pre">INITIATE_ACCESS_PROTOCOL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#aliro_actuator.transport_protocol.MessageType.INITIATE_ACCESS_PROTOCOL" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.MessageType.REQUEST">
+<span class="sig-name descname"><span class="pre">REQUEST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#aliro_actuator.transport_protocol.MessageType.REQUEST" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.MessageType.RESPONSE">
+<span class="sig-name descname"><span class="pre">RESPONSE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#aliro_actuator.transport_protocol.MessageType.RESPONSE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="aliro_actuator.transport_protocol.Mode">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.transport_protocol.</span></span><span class="sig-name descname"><span class="pre">Mode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#aliro_actuator.transport_protocol.Mode" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
 <p>An enumeration.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.Mode.CARD_EMULATION">
-<span class="sig-name descname"><span class="pre">CARD_EMULATION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#aliro_actuator.transport_protocol.Mode.CARD_EMULATION" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.Mode.READER">
+<span class="sig-name descname"><span class="pre">READER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#aliro_actuator.transport_protocol.Mode.READER" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.Mode.READER">
-<span class="sig-name descname"><span class="pre">READER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#aliro_actuator.transport_protocol.Mode.READER" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.Mode.USER_DEVICE">
+<span class="sig-name descname"><span class="pre">USER_DEVICE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#aliro_actuator.transport_protocol.Mode.USER_DEVICE" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -101,23 +133,28 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">aliro_actuator.transport_protocol.</span></span><span class="sig-name descname"><span class="pre">TransportProtocolBase</span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.transport_protocol.TransportProtocolBase.disconnect">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.disconnect" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.transport_protocol.TransportProtocolBase.get_message">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_message</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.get_message" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expected_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.transport_protocol.MessageType" title="aliro_actuator.transport_protocol.MessageType"><span class="pre">MessageType</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">MessageType.ANY</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.get_message" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.transport_protocol.TransportProtocolBase.initialization">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">initialization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.transport_protocol.Mode" title="aliro_actuator.transport_protocol.Mode"><span class="pre">Mode</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.initialization" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">initialization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.transport_protocol.Mode" title="aliro_actuator.transport_protocol.Mode"><span class="pre">Mode</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_group_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_group_sub_identifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_resolving_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_group_identifier_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spsm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b'\x00\x80'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.initialization" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.transport_protocol.TransportProtocolBase.send_message">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">send_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.send_message" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">send_message</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#aliro_actuator.transport_protocol.MessageType" title="aliro_actuator.transport_protocol.MessageType"><span class="pre">MessageType</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.send_message" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.transport_protocol.TransportProtocolBase.wait_for_connection">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wait_for_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.wait_for_connection" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">async</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">wait_for_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#aliro_actuator.transport_protocol.TransportProtocolBase.wait_for_connection" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

@@ -97,6 +97,21 @@ Can be empty if tag was not found.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.get_all_tlv_of_tag">
+<span class="sig-name descname"><span class="pre">get_all_tlv_of_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#aliro_actuator.access_protocol.tlv.TLV" title="aliro_actuator.access_protocol.tlv.TLV"><span class="pre">TLV</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.get_all_tlv_of_tag" title="Link to this definition">¶</a></dt>
+<dd><p>Similar to get_all_of_tag, but the list only contains tlv objects.
+Raises an error when a no byte object is found.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>tag (int): tag number</p>
+</dd>
+<dt>Raises:</dt><dd><p>TlvError: Raised when value is not of type bytes.</p>
+</dd>
+<dt>Returns:</dt><dd><p>list[bytes]: list with all values with given tag</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.get_bytes">
 <span class="sig-name descname"><span class="pre">get_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.get_bytes" title="Link to this definition">¶</a></dt>
 <dd><p>Similar to get_value, but always returns a bytestring.
@@ -164,6 +179,16 @@ the TLV.</p>
 <dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.to_data">
 <span class="sig-name descname"><span class="pre">to_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.to_data" title="Link to this definition">¶</a></dt>
 <dd><p>returns the tlv as a list of tuples</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="aliro_actuator.access_protocol.tlv.TLV.to_print">
+<span class="sig-name descname"><span class="pre">to_print</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#aliro_actuator.access_protocol.tlv.TLV.to_print" title="Link to this definition">¶</a></dt>
+<dd><p>returns a printable string.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>str: printable string with tags, values and lengths of this TLV</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

@@ -11,45 +11,45 @@
 \contentsline {subparagraph}{aliro\_actuator.access\_document.errors module}{7}{subparagraph*.11}%
 \contentsline {subparagraph}{aliro\_actuator.access\_document.revocation\_document module}{8}{subparagraph*.14}%
 \contentsline {subparagraph}{Module contents}{8}{subparagraph*.16}%
-\contentsline {paragraph}{aliro\_actuator.access\_protocol package}{8}{paragraph*.20}%
-\contentsline {subparagraph}{Submodules}{8}{subparagraph*.21}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.apdu module}{8}{subparagraph*.22}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.authentication module}{13}{subparagraph*.114}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.defines module}{14}{subparagraph*.117}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.encryption module}{17}{subparagraph*.201}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.errors module}{19}{subparagraph*.212}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.mailbox module}{20}{subparagraph*.232}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.reader module}{22}{subparagraph*.247}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.tlv module}{26}{subparagraph*.295}%
-\contentsline {subparagraph}{aliro\_actuator.access\_protocol.user\_device module}{28}{subparagraph*.307}%
-\contentsline {subparagraph}{Module contents}{32}{subparagraph*.362}%
-\contentsline {subparagraph}{Access Protocol}{32}{subparagraph*.363}%
-\contentsline {paragraph}{aliro\_actuator.hw\_driver package}{32}{paragraph*.366}%
-\contentsline {subparagraph}{Subpackages}{32}{subparagraph*.367}%
-\contentsline {subparagraph}{aliro\_actuator.hw\_driver.pn7160\_driver package}{32}{subparagraph*.368}%
-\contentsline {subparagraph}{Submodules}{32}{subparagraph*.369}%
-\contentsline {subparagraph}{aliro\_actuator.hw\_driver.pn7160\_driver.api module}{33}{subparagraph*.370}%
-\contentsline {subparagraph}{aliro\_actuator.hw\_driver.pn7160\_driver.errors module}{34}{subparagraph*.392}%
-\contentsline {subparagraph}{Module contents}{34}{subparagraph*.400}%
-\contentsline {subparagraph}{Module contents}{35}{subparagraph*.407}%
-\contentsline {paragraph}{aliro\_actuator.transport\_protocol package}{35}{paragraph*.408}%
-\contentsline {subparagraph}{Submodules}{35}{subparagraph*.409}%
-\contentsline {subparagraph}{aliro\_actuator.transport\_protocol.ble\_uwb module}{35}{subparagraph*.410}%
-\contentsline {subparagraph}{aliro\_actuator.transport\_protocol.errors module}{35}{subparagraph*.416}%
-\contentsline {subparagraph}{aliro\_actuator.transport\_protocol.nfc module}{35}{subparagraph*.420}%
-\contentsline {subparagraph}{aliro\_actuator.transport\_protocol.socket module}{36}{subparagraph*.426}%
-\contentsline {subparagraph}{Module contents}{36}{subparagraph*.433}%
-\contentsline {paragraph}{aliro\_actuator.trust\_framework package}{36}{paragraph*.442}%
-\contentsline {subparagraph}{Submodules}{36}{subparagraph*.443}%
-\contentsline {subparagraph}{aliro\_actuator.trust\_framework.access\_credential module}{36}{subparagraph*.444}%
-\contentsline {subparagraph}{aliro\_actuator.trust\_framework.certificate module}{37}{subparagraph*.451}%
-\contentsline {subparagraph}{aliro\_actuator.trust\_framework.errors module}{38}{subparagraph*.463}%
-\contentsline {subparagraph}{aliro\_actuator.trust\_framework.key module}{38}{subparagraph*.471}%
-\contentsline {subparagraph}{aliro\_actuator.trust\_framework.reader\_identifier module}{40}{subparagraph*.492}%
-\contentsline {subparagraph}{Module contents}{40}{subparagraph*.497}%
-\contentsline {subsubsection}{\numberline {3.1.1.2}Submodules}{40}{subsubsection.3.1.1.2}%
-\contentsline {paragraph}{aliro\_actuator.log module}{40}{paragraph*.498}%
-\contentsline {subsubsection}{\numberline {3.1.1.3}Module contents}{41}{subsubsection.3.1.1.3}%
-\contentsline {chapter}{\numberline {4}Indices and tables}{43}{chapter.4}%
-\contentsline {chapter}{Python Module Index}{45}{section*.507}%
-\contentsline {chapter}{Index}{47}{section*.508}%
+\contentsline {paragraph}{aliro\_actuator.access\_protocol package}{8}{paragraph*.21}%
+\contentsline {subparagraph}{Submodules}{8}{subparagraph*.22}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.apdu module}{8}{subparagraph*.23}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.authentication module}{13}{subparagraph*.115}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.defines module}{14}{subparagraph*.118}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.encryption module}{17}{subparagraph*.208}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.errors module}{19}{subparagraph*.221}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.mailbox module}{21}{subparagraph*.243}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.reader module}{22}{subparagraph*.258}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.tlv module}{27}{subparagraph*.323}%
+\contentsline {subparagraph}{aliro\_actuator.access\_protocol.user\_device module}{29}{subparagraph*.337}%
+\contentsline {subparagraph}{Module contents}{35}{subparagraph*.409}%
+\contentsline {subparagraph}{Access Protocol}{35}{subparagraph*.410}%
+\contentsline {paragraph}{aliro\_actuator.hw\_driver package}{35}{paragraph*.413}%
+\contentsline {subparagraph}{Subpackages}{35}{subparagraph*.414}%
+\contentsline {subparagraph}{aliro\_actuator.hw\_driver.pn7160\_driver package}{35}{subparagraph*.415}%
+\contentsline {subparagraph}{Submodules}{35}{subparagraph*.416}%
+\contentsline {subparagraph}{aliro\_actuator.hw\_driver.pn7160\_driver.api module}{35}{subparagraph*.417}%
+\contentsline {subparagraph}{aliro\_actuator.hw\_driver.pn7160\_driver.errors module}{36}{subparagraph*.439}%
+\contentsline {subparagraph}{Module contents}{37}{subparagraph*.447}%
+\contentsline {subparagraph}{Module contents}{37}{subparagraph*.455}%
+\contentsline {paragraph}{aliro\_actuator.transport\_protocol package}{37}{paragraph*.456}%
+\contentsline {subparagraph}{Submodules}{37}{subparagraph*.457}%
+\contentsline {subparagraph}{aliro\_actuator.transport\_protocol.ble\_uwb module}{37}{subparagraph*.458}%
+\contentsline {subparagraph}{aliro\_actuator.transport\_protocol.errors module}{38}{subparagraph*.465}%
+\contentsline {subparagraph}{aliro\_actuator.transport\_protocol.nfc module}{38}{subparagraph*.472}%
+\contentsline {subparagraph}{aliro\_actuator.transport\_protocol.socket module}{38}{subparagraph*.479}%
+\contentsline {subparagraph}{Module contents}{39}{subparagraph*.486}%
+\contentsline {paragraph}{aliro\_actuator.trust\_framework package}{40}{paragraph*.501}%
+\contentsline {subparagraph}{Submodules}{40}{subparagraph*.502}%
+\contentsline {subparagraph}{aliro\_actuator.trust\_framework.access\_credential module}{40}{subparagraph*.503}%
+\contentsline {subparagraph}{aliro\_actuator.trust\_framework.certificate module}{40}{subparagraph*.511}%
+\contentsline {subparagraph}{aliro\_actuator.trust\_framework.errors module}{41}{subparagraph*.525}%
+\contentsline {subparagraph}{aliro\_actuator.trust\_framework.key module}{42}{subparagraph*.533}%
+\contentsline {subparagraph}{aliro\_actuator.trust\_framework.reader\_identifier module}{43}{subparagraph*.554}%
+\contentsline {subparagraph}{Module contents}{43}{subparagraph*.559}%
+\contentsline {subsubsection}{\numberline {3.1.1.2}Submodules}{43}{subsubsection.3.1.1.2}%
+\contentsline {paragraph}{aliro\_actuator.log module}{43}{paragraph*.560}%
+\contentsline {subsubsection}{\numberline {3.1.1.3}Module contents}{44}{subsubsection.3.1.1.3}%
+\contentsline {chapter}{\numberline {4}Indices and tables}{45}{chapter.4}%
+\contentsline {chapter}{Python Module Index}{47}{section*.569}%
+\contentsline {chapter}{Index}{49}{section*.570}%
