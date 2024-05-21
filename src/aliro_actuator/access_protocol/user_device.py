@@ -473,7 +473,11 @@ class UserDevice(Device):
                 )
                 break
         else:
-            raise AccessProtocolError("Access credential cannot be found")
+            raise AccessProtocolError(
+                "Could not find key for reader identifier: {!r}".format(
+                    hexlify(self.session.reader_group_identifier)
+                )
+            )
 
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
