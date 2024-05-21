@@ -15,6 +15,7 @@
 \indexentry{module@\spxentry{module}!aliro\_actuator.access\_document@\spxentry{aliro\_actuator.access\_document}|hyperpage}{8}
 \indexentry{aliro\_actuator.access\_document@\spxentry{aliro\_actuator.access\_document}!module@\spxentry{module}|hyperpage}{8}
 \indexentry{Document (class in aliro\_actuator.access\_document)@\spxentry{Document}\spxextra{class in aliro\_actuator.access\_document}|hyperpage}{8}
+\indexentry{get\_timestamp() (aliro\_actuator.access\_document.Document method)@\spxentry{get\_timestamp()}\spxextra{aliro\_actuator.access\_document.Document method}|hyperpage}{8}
 \indexentry{retrieve() (aliro\_actuator.access\_document.Document method)@\spxentry{retrieve()}\spxextra{aliro\_actuator.access\_document.Document method}|hyperpage}{8}
 \indexentry{store() (aliro\_actuator.access\_document.Document method)@\spxentry{store()}\spxextra{aliro\_actuator.access\_document.Document method}|hyperpage}{8}
 \indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.apdu@\spxentry{aliro\_actuator.access\_protocol.apdu}|hyperpage}{8}
@@ -25,7 +26,7 @@
 \indexentry{create\_auth1\_command() (aliro\_actuator.access\_protocol.apdu.APDU method)@\spxentry{create\_auth1\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}|hyperpage}{8}
 \indexentry{create\_auth1\_response() (aliro\_actuator.access\_protocol.apdu.APDU method)@\spxentry{create\_auth1\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}|hyperpage}{8}
 \indexentry{create\_command() (aliro\_actuator.access\_protocol.apdu.APDU method)@\spxentry{create\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}|hyperpage}{8}
-\indexentry{create\_control\_flow\_command() (aliro\_actuator.access\_protocol.apdu.APDU method)@\spxentry{create\_control\_flow\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}|hyperpage}{9}
+\indexentry{create\_control\_flow\_command() (aliro\_actuator.access\_protocol.apdu.APDU method)@\spxentry{create\_control\_flow\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}|hyperpage}{8}
 \indexentry{create\_control\_flow\_response() (aliro\_actuator.access\_protocol.apdu.APDU method)@\spxentry{create\_control\_flow\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}|hyperpage}{9}
 \indexentry{create\_envelope\_command() (aliro\_actuator.access\_protocol.apdu.APDU method)@\spxentry{create\_envelope\_command()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}|hyperpage}{9}
 \indexentry{create\_envelope\_response() (aliro\_actuator.access\_protocol.apdu.APDU method)@\spxentry{create\_envelope\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.APDU method}|hyperpage}{9}
@@ -45,7 +46,7 @@
 \indexentry{KEY\_SLOT (aliro\_actuator.access\_protocol.apdu.Auth1Response attribute)@\spxentry{KEY\_SLOT}\spxextra{aliro\_actuator.access\_protocol.apdu.Auth1Response attribute}|hyperpage}{9}
 \indexentry{Command (class in aliro\_actuator.access\_protocol.apdu)@\spxentry{Command}\spxextra{class in aliro\_actuator.access\_protocol.apdu}|hyperpage}{9}
 \indexentry{create\_from\_bytestring() (aliro\_actuator.access\_protocol.apdu.Command class method)@\spxentry{create\_from\_bytestring()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command class method}|hyperpage}{9}
-\indexentry{create\_from\_parameters() (aliro\_actuator.access\_protocol.apdu.Command class method)@\spxentry{create\_from\_parameters()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command class method}|hyperpage}{10}
+\indexentry{create\_from\_parameters() (aliro\_actuator.access\_protocol.apdu.Command class method)@\spxentry{create\_from\_parameters()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command class method}|hyperpage}{9}
 \indexentry{parse\_as\_auth0() (aliro\_actuator.access\_protocol.apdu.Command method)@\spxentry{parse\_as\_auth0()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}|hyperpage}{10}
 \indexentry{parse\_as\_auth1() (aliro\_actuator.access\_protocol.apdu.Command method)@\spxentry{parse\_as\_auth1()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}|hyperpage}{10}
 \indexentry{parse\_as\_control\_flow() (aliro\_actuator.access\_protocol.apdu.Command method)@\spxentry{parse\_as\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.apdu.Command method}|hyperpage}{10}
@@ -57,7 +58,7 @@
 \indexentry{INS (class in aliro\_actuator.access\_protocol.apdu)@\spxentry{INS}\spxextra{class in aliro\_actuator.access\_protocol.apdu}|hyperpage}{10}
 \indexentry{AUTH0 (aliro\_actuator.access\_protocol.apdu.INS attribute)@\spxentry{AUTH0}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}|hyperpage}{10}
 \indexentry{AUTH1 (aliro\_actuator.access\_protocol.apdu.INS attribute)@\spxentry{AUTH1}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}|hyperpage}{10}
-\indexentry{CONTROL\_FLOW (aliro\_actuator.access\_protocol.apdu.INS attribute)@\spxentry{CONTROL\_FLOW}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}|hyperpage}{11}
+\indexentry{CONTROL\_FLOW (aliro\_actuator.access\_protocol.apdu.INS attribute)@\spxentry{CONTROL\_FLOW}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}|hyperpage}{10}
 \indexentry{ENVELOPE (aliro\_actuator.access\_protocol.apdu.INS attribute)@\spxentry{ENVELOPE}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}|hyperpage}{11}
 \indexentry{EXCHANGE (aliro\_actuator.access\_protocol.apdu.INS attribute)@\spxentry{EXCHANGE}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}|hyperpage}{11}
 \indexentry{GET\_RESPONSE (aliro\_actuator.access\_protocol.apdu.INS attribute)@\spxentry{GET\_RESPONSE}\spxextra{aliro\_actuator.access\_protocol.apdu.INS attribute}|hyperpage}{11}
@@ -73,7 +74,7 @@
 \indexentry{parse\_as\_control\_flow() (aliro\_actuator.access\_protocol.apdu.Response method)@\spxentry{parse\_as\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}|hyperpage}{11}
 \indexentry{parse\_as\_envelope() (aliro\_actuator.access\_protocol.apdu.Response method)@\spxentry{parse\_as\_envelope()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}|hyperpage}{11}
 \indexentry{parse\_as\_exchange() (aliro\_actuator.access\_protocol.apdu.Response method)@\spxentry{parse\_as\_exchange()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}|hyperpage}{11}
-\indexentry{parse\_as\_get\_response() (aliro\_actuator.access\_protocol.apdu.Response method)@\spxentry{parse\_as\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}|hyperpage}{12}
+\indexentry{parse\_as\_get\_response() (aliro\_actuator.access\_protocol.apdu.Response method)@\spxentry{parse\_as\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}|hyperpage}{11}
 \indexentry{parse\_as\_load\_cert() (aliro\_actuator.access\_protocol.apdu.Response method)@\spxentry{parse\_as\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}|hyperpage}{12}
 \indexentry{parse\_as\_select() (aliro\_actuator.access\_protocol.apdu.Response method)@\spxentry{parse\_as\_select()}\spxextra{aliro\_actuator.access\_protocol.apdu.Response method}|hyperpage}{12}
 \indexentry{sw1 (aliro\_actuator.access\_protocol.apdu.Response property)@\spxentry{sw1}\spxextra{aliro\_actuator.access\_protocol.apdu.Response property}|hyperpage}{12}
@@ -92,10 +93,10 @@
 \indexentry{FUNCTIONS\_IN\_CLA\_NOT\_SUPPORTED (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{FUNCTIONS\_IN\_CLA\_NOT\_SUPPORTED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{12}
 \indexentry{FUNCTION\_NOT\_SUPPORTED (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{FUNCTION\_NOT\_SUPPORTED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{12}
 \indexentry{GENERIC\_ERROR (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{GENERIC\_ERROR}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{12}
-\indexentry{INCORRECT\_P1\_P2 (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INCORRECT\_P1\_P2}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{13}
-\indexentry{INCORRECT\_PARAMETERS\_IN\_DATA (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INCORRECT\_PARAMETERS\_IN\_DATA}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{13}
-\indexentry{INCORRECT\_SECURE\_MESSAGING\_DOS (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INCORRECT\_SECURE\_MESSAGING\_DOS}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{13}
-\indexentry{INVALID\_CLASS (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INVALID\_CLASS}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{13}
+\indexentry{INCORRECT\_P1\_P2 (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INCORRECT\_P1\_P2}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{12}
+\indexentry{INCORRECT\_PARAMETERS\_IN\_DATA (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INCORRECT\_PARAMETERS\_IN\_DATA}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{12}
+\indexentry{INCORRECT\_SECURE\_MESSAGING\_DOS (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INCORRECT\_SECURE\_MESSAGING\_DOS}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{12}
+\indexentry{INVALID\_CLASS (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INVALID\_CLASS}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{12}
 \indexentry{INVALID\_INSTRUCTION (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{INVALID\_INSTRUCTION}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{13}
 \indexentry{LOGICAL\_CHANNEL\_NOT\_SUPPORTED (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{LOGICAL\_CHANNEL\_NOT\_SUPPORTED}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{13}
 \indexentry{MEMORY\_FAILURE (aliro\_actuator.access\_protocol.apdu.StatusBytes attribute)@\spxentry{MEMORY\_FAILURE}\spxextra{aliro\_actuator.access\_protocol.apdu.StatusBytes attribute}|hyperpage}{13}
@@ -138,13 +139,13 @@
 \indexentry{VENDOR\_SPECIFIC\_MAX\_LEN (aliro\_actuator.access\_protocol.defines.Auth0 attribute)@\spxentry{VENDOR\_SPECIFIC\_MAX\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}|hyperpage}{14}
 \indexentry{VENDOR\_SPECIFIC\_TAG (aliro\_actuator.access\_protocol.defines.Auth0 attribute)@\spxentry{VENDOR\_SPECIFIC\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth0 attribute}|hyperpage}{14}
 \indexentry{Auth1 (class in aliro\_actuator.access\_protocol.defines)@\spxentry{Auth1}\spxextra{class in aliro\_actuator.access\_protocol.defines}|hyperpage}{14}
-\indexentry{CERTIFICATE\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CERTIFICATE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
-\indexentry{COMMAND\_LEN (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{COMMAND\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
-\indexentry{COMMAND\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{COMMAND\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
-\indexentry{CREDENTIAL\_PUBK\_LEN (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CREDENTIAL\_PUBK\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
-\indexentry{CREDENTIAL\_PUBK\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CREDENTIAL\_PUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
-\indexentry{CREDENTIAL\_TIMESTAMP\_LEN (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CREDENTIAL\_TIMESTAMP\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
-\indexentry{CREDENTIAL\_TIMESTAMP\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CREDENTIAL\_TIMESTAMP\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
+\indexentry{CERTIFICATE\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CERTIFICATE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{14}
+\indexentry{COMMAND\_LEN (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{COMMAND\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{14}
+\indexentry{COMMAND\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{COMMAND\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{14}
+\indexentry{CREDENTIAL\_PUBK\_LEN (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CREDENTIAL\_PUBK\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{14}
+\indexentry{CREDENTIAL\_PUBK\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CREDENTIAL\_PUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{14}
+\indexentry{CREDENTIAL\_TIMESTAMP\_LEN (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CREDENTIAL\_TIMESTAMP\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{14}
+\indexentry{CREDENTIAL\_TIMESTAMP\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{CREDENTIAL\_TIMESTAMP\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{14}
 \indexentry{KEY\_SLOT\_LEN (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{KEY\_SLOT\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
 \indexentry{KEY\_SLOT\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{KEY\_SLOT\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
 \indexentry{MAILBOX\_DATA\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{MAILBOX\_DATA\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
@@ -158,18 +159,22 @@
 \indexentry{USER\_DEVICE\_SIG\_TAG (aliro\_actuator.access\_protocol.defines.Auth1 attribute)@\spxentry{USER\_DEVICE\_SIG\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Auth1 attribute}|hyperpage}{15}
 \indexentry{ControlFlow (class in aliro\_actuator.access\_protocol.defines)@\spxentry{ControlFlow}\spxextra{class in aliro\_actuator.access\_protocol.defines}|hyperpage}{15}
 \indexentry{DOMAIN\_SPECIFIC\_TAG (aliro\_actuator.access\_protocol.defines.ControlFlow attribute)@\spxentry{DOMAIN\_SPECIFIC\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}|hyperpage}{15}
+\indexentry{S1\_LEN (aliro\_actuator.access\_protocol.defines.ControlFlow attribute)@\spxentry{S1\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}|hyperpage}{15}
 \indexentry{S1\_TAG (aliro\_actuator.access\_protocol.defines.ControlFlow attribute)@\spxentry{S1\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}|hyperpage}{15}
+\indexentry{S2\_LEN (aliro\_actuator.access\_protocol.defines.ControlFlow attribute)@\spxentry{S2\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}|hyperpage}{15}
 \indexentry{S2\_TAG (aliro\_actuator.access\_protocol.defines.ControlFlow attribute)@\spxentry{S2\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}|hyperpage}{15}
 \indexentry{Exchange (class in aliro\_actuator.access\_protocol.defines)@\spxentry{Exchange}\spxextra{class in aliro\_actuator.access\_protocol.defines}|hyperpage}{15}
 \indexentry{NOTIFY\_TAG (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{NOTIFY\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}|hyperpage}{15}
+\indexentry{READ\_LEN (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{READ\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}|hyperpage}{15}
 \indexentry{READ\_TAG (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{READ\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}|hyperpage}{15}
+\indexentry{SET\_LEN (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{SET\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}|hyperpage}{15}
 \indexentry{SET\_TAG (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{SET\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}|hyperpage}{15}
 \indexentry{UPDATE\_DOC\_TAG (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{UPDATE\_DOC\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}|hyperpage}{15}
 \indexentry{URSK\_TAG (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{URSK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}|hyperpage}{15}
 \indexentry{WRITE\_TAG (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{WRITE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}|hyperpage}{15}
-\indexentry{ReaderAuth (class in aliro\_actuator.access\_protocol.defines)@\spxentry{ReaderAuth}\spxextra{class in aliro\_actuator.access\_protocol.defines}|hyperpage}{16}
-\indexentry{CREDENTIAL\_EPUBK\_TAG (aliro\_actuator.access\_protocol.defines.ReaderAuth attribute)@\spxentry{CREDENTIAL\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}|hyperpage}{16}
-\indexentry{READER\_EPUBK\_TAG (aliro\_actuator.access\_protocol.defines.ReaderAuth attribute)@\spxentry{READER\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}|hyperpage}{16}
+\indexentry{ReaderAuth (class in aliro\_actuator.access\_protocol.defines)@\spxentry{ReaderAuth}\spxextra{class in aliro\_actuator.access\_protocol.defines}|hyperpage}{15}
+\indexentry{CREDENTIAL\_EPUBK\_TAG (aliro\_actuator.access\_protocol.defines.ReaderAuth attribute)@\spxentry{CREDENTIAL\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}|hyperpage}{15}
+\indexentry{READER\_EPUBK\_TAG (aliro\_actuator.access\_protocol.defines.ReaderAuth attribute)@\spxentry{READER\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}|hyperpage}{15}
 \indexentry{READER\_IDENTIFIER\_TAG (aliro\_actuator.access\_protocol.defines.ReaderAuth attribute)@\spxentry{READER\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}|hyperpage}{16}
 \indexentry{TRANSACTION\_IDENTIFIER\_TAG (aliro\_actuator.access\_protocol.defines.ReaderAuth attribute)@\spxentry{TRANSACTION\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}|hyperpage}{16}
 \indexentry{USAGE (aliro\_actuator.access\_protocol.defines.ReaderAuth attribute)@\spxentry{USAGE}\spxextra{aliro\_actuator.access\_protocol.defines.ReaderAuth attribute}|hyperpage}{16}
@@ -181,7 +186,9 @@
 \indexentry{EXTENDED\_INFO\_LEN (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{EXTENDED\_INFO\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
 \indexentry{EXTENDED\_INFO\_TAG (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{EXTENDED\_INFO\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
 \indexentry{FCI\_TAG (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{FCI\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
+\indexentry{MAX\_COMMAND\_LEN (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{MAX\_COMMAND\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
 \indexentry{MAX\_COMMAND\_TAG (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{MAX\_COMMAND\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
+\indexentry{MAX\_RESPONSE\_LEN (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{MAX\_RESPONSE\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
 \indexentry{MAX\_RESPONSE\_TAG (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{MAX\_RESPONSE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
 \indexentry{PROPRIETARY\_TAG (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{PROPRIETARY\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
 \indexentry{TYPE\_LEN (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{TYPE\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}|hyperpage}{16}
@@ -195,7 +202,7 @@
 \indexentry{UserDeviceAuth (class in aliro\_actuator.access\_protocol.defines)@\spxentry{UserDeviceAuth}\spxextra{class in aliro\_actuator.access\_protocol.defines}|hyperpage}{16}
 \indexentry{CREDENTIAL\_EPUBK\_TAG (aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute)@\spxentry{CREDENTIAL\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute}|hyperpage}{16}
 \indexentry{READER\_EPUBK\_TAG (aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute)@\spxentry{READER\_EPUBK\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute}|hyperpage}{16}
-\indexentry{READER\_IDENTIFIER\_TAG (aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute)@\spxentry{READER\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute}|hyperpage}{17}
+\indexentry{READER\_IDENTIFIER\_TAG (aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute)@\spxentry{READER\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute}|hyperpage}{16}
 \indexentry{TRANSACTION\_IDENTIFIER\_TAG (aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute)@\spxentry{TRANSACTION\_IDENTIFIER\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute}|hyperpage}{17}
 \indexentry{USAGE (aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute)@\spxentry{USAGE}\spxextra{aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute}|hyperpage}{17}
 \indexentry{USAGE\_TAG (aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute)@\spxentry{USAGE\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.UserDeviceAuth attribute}|hyperpage}{17}
@@ -209,13 +216,16 @@
 \indexentry{decrypt() (aliro\_actuator.access\_protocol.encryption.EncryptionEngine method)@\spxentry{decrypt()}\spxextra{aliro\_actuator.access\_protocol.encryption.EncryptionEngine method}|hyperpage}{17}
 \indexentry{encrypt() (aliro\_actuator.access\_protocol.encryption.EncryptionEngine method)@\spxentry{encrypt()}\spxextra{aliro\_actuator.access\_protocol.encryption.EncryptionEngine method}|hyperpage}{17}
 \indexentry{VerificationError@\spxentry{VerificationError}|hyperpage}{18}
+\indexentry{compute\_cryptogram() (in module aliro\_actuator.access\_protocol.encryption)@\spxentry{compute\_cryptogram()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}|hyperpage}{18}
 \indexentry{create\_proprietary\_information() (in module aliro\_actuator.access\_protocol.encryption)@\spxentry{create\_proprietary\_information()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}|hyperpage}{18}
 \indexentry{create\_salt() (in module aliro\_actuator.access\_protocol.encryption)@\spxentry{create\_salt()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}|hyperpage}{18}
+\indexentry{decrypt\_cryptogram() (in module aliro\_actuator.access\_protocol.encryption)@\spxentry{decrypt\_cryptogram()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}|hyperpage}{18}
 \indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.errors@\spxentry{aliro\_actuator.access\_protocol.errors}|hyperpage}{19}
 \indexentry{aliro\_actuator.access\_protocol.errors@\spxentry{aliro\_actuator.access\_protocol.errors}!module@\spxentry{module}|hyperpage}{19}
 \indexentry{AccessProtocolError@\spxentry{AccessProtocolError}|hyperpage}{19}
 \indexentry{CreateCommandError@\spxentry{CreateCommandError}|hyperpage}{19}
 \indexentry{CreateResponseError@\spxentry{CreateResponseError}|hyperpage}{19}
+\indexentry{CryptogramNotFound@\spxentry{CryptogramNotFound}|hyperpage}{19}
 \indexentry{InvalidAIDError@\spxentry{InvalidAIDError}|hyperpage}{19}
 \indexentry{InvalidCLAError@\spxentry{InvalidCLAError}|hyperpage}{19}
 \indexentry{InvalidCommandDataError@\spxentry{InvalidCommandDataError}|hyperpage}{19}
@@ -224,300 +234,352 @@
 \indexentry{InvalidLcError@\spxentry{InvalidLcError}|hyperpage}{19}
 \indexentry{InvalidLeError@\spxentry{InvalidLeError}|hyperpage}{19}
 \indexentry{InvalidParameterError@\spxentry{InvalidParameterError}|hyperpage}{19}
-\indexentry{InvalidResponseDataError@\spxentry{InvalidResponseDataError}|hyperpage}{19}
-\indexentry{InvalidResponseError@\spxentry{InvalidResponseError}|hyperpage}{19}
+\indexentry{InvalidResponseDataError@\spxentry{InvalidResponseDataError}|hyperpage}{20}
+\indexentry{InvalidResponseError@\spxentry{InvalidResponseError}|hyperpage}{20}
 \indexentry{InvalidStatusError@\spxentry{InvalidStatusError}|hyperpage}{20}
 \indexentry{MessageTooLongError@\spxentry{MessageTooLongError}|hyperpage}{20}
 \indexentry{SessionError@\spxentry{SessionError}|hyperpage}{20}
 \indexentry{UnexpectedCommandError@\spxentry{UnexpectedCommandError}|hyperpage}{20}
+\indexentry{UnexpectedNotificationDataError@\spxentry{UnexpectedNotificationDataError}|hyperpage}{20}
 \indexentry{UnexpectedResponseError@\spxentry{UnexpectedResponseError}|hyperpage}{20}
 \indexentry{VersionError@\spxentry{VersionError}|hyperpage}{20}
-\indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.mailbox@\spxentry{aliro\_actuator.access\_protocol.mailbox}|hyperpage}{20}
-\indexentry{aliro\_actuator.access\_protocol.mailbox@\spxentry{aliro\_actuator.access\_protocol.mailbox}!module@\spxentry{module}|hyperpage}{20}
-\indexentry{Mailbox (class in aliro\_actuator.access\_protocol.mailbox)@\spxentry{Mailbox}\spxextra{class in aliro\_actuator.access\_protocol.mailbox}|hyperpage}{20}
-\indexentry{DATA\_TAG (aliro\_actuator.access\_protocol.mailbox.Mailbox attribute)@\spxentry{DATA\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}|hyperpage}{20}
-\indexentry{INDEX\_TAG (aliro\_actuator.access\_protocol.mailbox.Mailbox attribute)@\spxentry{INDEX\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}|hyperpage}{20}
-\indexentry{START\_OF\_DATA\_TAG (aliro\_actuator.access\_protocol.mailbox.Mailbox attribute)@\spxentry{START\_OF\_DATA\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}|hyperpage}{20}
-\indexentry{check\_boundaries() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{check\_boundaries()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{20}
-\indexentry{data\_is\_set() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{data\_is\_set()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{20}
-\indexentry{get\_data() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{get\_data()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{20}
+\indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.mailbox@\spxentry{aliro\_actuator.access\_protocol.mailbox}|hyperpage}{21}
+\indexentry{aliro\_actuator.access\_protocol.mailbox@\spxentry{aliro\_actuator.access\_protocol.mailbox}!module@\spxentry{module}|hyperpage}{21}
+\indexentry{Mailbox (class in aliro\_actuator.access\_protocol.mailbox)@\spxentry{Mailbox}\spxextra{class in aliro\_actuator.access\_protocol.mailbox}|hyperpage}{21}
+\indexentry{DATA\_TAG (aliro\_actuator.access\_protocol.mailbox.Mailbox attribute)@\spxentry{DATA\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}|hyperpage}{21}
+\indexentry{INDEX\_TAG (aliro\_actuator.access\_protocol.mailbox.Mailbox attribute)@\spxentry{INDEX\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}|hyperpage}{21}
+\indexentry{START\_OF\_DATA\_TAG (aliro\_actuator.access\_protocol.mailbox.Mailbox attribute)@\spxentry{START\_OF\_DATA\_TAG}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox attribute}|hyperpage}{21}
+\indexentry{check\_boundaries() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{check\_boundaries()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{21}
+\indexentry{data\_is\_set() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{data\_is\_set()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{21}
+\indexentry{get\_data() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{get\_data()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{21}
 \indexentry{get\_raw() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{get\_raw()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{21}
 \indexentry{get\_tlv() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{get\_tlv()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{21}
 \indexentry{read() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{read()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{21}
 \indexentry{set() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{set()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{21}
-\indexentry{write() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{write()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{21}
-\indexentry{MailboxFormatError@\spxentry{MailboxFormatError}|hyperpage}{21}
-\indexentry{MailboxPermissionError@\spxentry{MailboxPermissionError}|hyperpage}{21}
+\indexentry{write() (aliro\_actuator.access\_protocol.mailbox.Mailbox method)@\spxentry{write()}\spxextra{aliro\_actuator.access\_protocol.mailbox.Mailbox method}|hyperpage}{22}
+\indexentry{MailboxFormatError@\spxentry{MailboxFormatError}|hyperpage}{22}
+\indexentry{MailboxPermissionError@\spxentry{MailboxPermissionError}|hyperpage}{22}
 \indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.reader@\spxentry{aliro\_actuator.access\_protocol.reader}|hyperpage}{22}
 \indexentry{aliro\_actuator.access\_protocol.reader@\spxentry{aliro\_actuator.access\_protocol.reader}!module@\spxentry{module}|hyperpage}{22}
 \indexentry{Reader (class in aliro\_actuator.access\_protocol.reader)@\spxentry{Reader}\spxextra{class in aliro\_actuator.access\_protocol.reader}|hyperpage}{22}
-\indexentry{command\_auth0() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_auth0()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{22}
-\indexentry{command\_auth1() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_auth1()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{22}
-\indexentry{command\_control\_flow() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{22}
+\indexentry{command\_auth0() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_auth0()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
+\indexentry{command\_auth1() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_auth1()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
+\indexentry{command\_control\_flow() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
 \indexentry{command\_envelope() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_envelope()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
 \indexentry{command\_exchange() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_exchange()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{command\_get\_response() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{command\_load\_cert() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{command\_select() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_select()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{expedited\_transaction\_fast() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{expedited\_transaction\_fast()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{expedited\_transaction\_standard() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{expedited\_transaction\_standard()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{failure\_process() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{failure\_process()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{handle\_auth0() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_auth0()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{handle\_auth1() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_auth1()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{23}
-\indexentry{handle\_control\_flow() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
-\indexentry{handle\_exchange() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_exchange()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
-\indexentry{handle\_load\_cert() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
-\indexentry{handle\_select() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_select()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
-\indexentry{reader\_group\_identifier (aliro\_actuator.access\_protocol.reader.Reader property)@\spxentry{reader\_group\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.Reader property}|hyperpage}{24}
-\indexentry{reader\_group\_sub\_identifier (aliro\_actuator.access\_protocol.reader.Reader property)@\spxentry{reader\_group\_sub\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.Reader property}|hyperpage}{24}
-\indexentry{reader\_identifier (aliro\_actuator.access\_protocol.reader.Reader property)@\spxentry{reader\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.Reader property}|hyperpage}{24}
-\indexentry{start\_new\_session() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{start\_new\_session()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{25}
-\indexentry{step\_up\_transaction() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{step\_up\_transaction()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{25}
-\indexentry{transaction\_initiation() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{transaction\_initiation()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{25}
-\indexentry{ReaderSession (class in aliro\_actuator.access\_protocol.reader)@\spxentry{ReaderSession}\spxextra{class in aliro\_actuator.access\_protocol.reader}|hyperpage}{25}
-\indexentry{can\_retrieve\_access\_credential() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{can\_retrieve\_access\_credential()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{can\_retrieve\_revocation\_document() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{can\_retrieve\_revocation\_document()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{check\_user\_device\_authentication() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{check\_user\_device\_authentication()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{decrypt\_payload() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{decrypt\_payload()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{derive\_key\_volatile() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{derive\_key\_volatile()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{encrypt\_payload() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{encrypt\_payload()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{generate\_ephemeral\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{generate\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{get\_credential\_ephemeral\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{get\_credential\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{get\_reader\_epubkey() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{get\_reader\_epubkey()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{lookup\_credential\_public\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{lookup\_credential\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{reader\_group\_identifier (aliro\_actuator.access\_protocol.reader.ReaderSession property)@\spxentry{reader\_group\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}|hyperpage}{25}
-\indexentry{reader\_group\_sub\_identifier (aliro\_actuator.access\_protocol.reader.ReaderSession property)@\spxentry{reader\_group\_sub\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}|hyperpage}{25}
-\indexentry{reader\_identifier (aliro\_actuator.access\_protocol.reader.ReaderSession property)@\spxentry{reader\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}|hyperpage}{25}
-\indexentry{set\_auth1\_info() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_auth1\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{set\_credential\_ephemeral\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_credential\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{set\_credential\_public\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_credential\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{set\_flag() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_flag()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{set\_response\_vendor\_extension() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_response\_vendor\_extension()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{set\_select\_info() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_select\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{25}
-\indexentry{set\_shared\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_shared\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
-\indexentry{step\_up\_aid\_select\_required() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{step\_up\_aid\_select\_required()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
-\indexentry{transaction\_identifier (aliro\_actuator.access\_protocol.reader.ReaderSession property)@\spxentry{transaction\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}|hyperpage}{26}
-\indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.tlv@\spxentry{aliro\_actuator.access\_protocol.tlv}|hyperpage}{26}
-\indexentry{aliro\_actuator.access\_protocol.tlv@\spxentry{aliro\_actuator.access\_protocol.tlv}!module@\spxentry{module}|hyperpage}{26}
-\indexentry{TLV (class in aliro\_actuator.access\_protocol.tlv)@\spxentry{TLV}\spxextra{class in aliro\_actuator.access\_protocol.tlv}|hyperpage}{26}
-\indexentry{add\_value() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{add\_value()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{26}
-\indexentry{from\_bytes() (aliro\_actuator.access\_protocol.tlv.TLV static method)@\spxentry{from\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV static method}|hyperpage}{26}
-\indexentry{get\_all\_bytes\_of\_tag() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_all\_bytes\_of\_tag()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{26}
-\indexentry{get\_all\_of\_tag() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_all\_of\_tag()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{26}
-\indexentry{get\_bytes() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{26}
-\indexentry{get\_tlv() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_tlv()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{27}
-\indexentry{get\_value() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_value()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{27}
-\indexentry{to\_bytes() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{to\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{27}
-\indexentry{to\_data() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{to\_data()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{27}
-\indexentry{TlvError@\spxentry{TlvError}|hyperpage}{27}
-\indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.user\_device@\spxentry{aliro\_actuator.access\_protocol.user\_device}|hyperpage}{28}
-\indexentry{aliro\_actuator.access\_protocol.user\_device@\spxentry{aliro\_actuator.access\_protocol.user\_device}!module@\spxentry{module}|hyperpage}{28}
-\indexentry{MailboxSession (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{MailboxSession}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{28}
-\indexentry{MailboxSession.Command (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{MailboxSession.Command}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{28}
-\indexentry{SET (aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute)@\spxentry{SET}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute}|hyperpage}{28}
-\indexentry{WRITE (aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute)@\spxentry{WRITE}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute}|hyperpage}{28}
-\indexentry{add\_set() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{add\_set()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{28}
-\indexentry{add\_write() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{add\_write()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{28}
-\indexentry{execute\_commands() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{execute\_commands()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{28}
-\indexentry{is\_started() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{is\_started()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{28}
-\indexentry{start() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{start()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{28}
-\indexentry{stop() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{stop()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{28}
-\indexentry{UserDevice (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserDevice}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{28}
-\indexentry{failure\_process() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{failure\_process()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{28}
-\indexentry{handle\_auth0() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_auth0()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{28}
-\indexentry{handle\_auth1() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_auth1()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{29}
-\indexentry{handle\_control\_flow() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{29}
-\indexentry{handle\_exchange() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_exchange()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{29}
-\indexentry{handle\_load\_cert() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{29}
-\indexentry{handle\_select() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_select()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{29}
-\indexentry{main\_loop() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{main\_loop()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{29}
-\indexentry{response\_auth0() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_auth0()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
-\indexentry{response\_auth1() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_auth1()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
-\indexentry{response\_control\_flow() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
-\indexentry{response\_envelope() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_envelope()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
-\indexentry{response\_exchange() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_exchange()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
-\indexentry{response\_get\_response() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
-\indexentry{response\_load\_cert() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
-\indexentry{response\_select() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_select()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
-\indexentry{return\_exchange\_error\_and\_close\_channel() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{return\_exchange\_error\_and\_close\_channel()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
-\indexentry{start\_new\_session() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{start\_new\_session()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
-\indexentry{transaction\_initiation() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{transaction\_initiation()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
-\indexentry{wait\_for\_command() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{wait\_for\_command()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
-\indexentry{UserSession (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserSession}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{31}
-\indexentry{derive\_key\_persistent() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{derive\_key\_persistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{31}
-\indexentry{derive\_key\_volatile() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{derive\_key\_volatile()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{31}
-\indexentry{generate\_ephemeral\_key() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{generate\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{31}
-\indexentry{get\_credential\_epubkey() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{get\_credential\_epubkey()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{31}
-\indexentry{get\_reader\_public\_key() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{get\_reader\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{31}
-\indexentry{get\_transaction\_type() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{get\_transaction\_type()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{31}
-\indexentry{reader\_group\_identifier (aliro\_actuator.access\_protocol.user\_device.UserSession property)@\spxentry{reader\_group\_identifier}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession property}|hyperpage}{31}
-\indexentry{reader\_group\_sub\_identifier (aliro\_actuator.access\_protocol.user\_device.UserSession property)@\spxentry{reader\_group\_sub\_identifier}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession property}|hyperpage}{32}
-\indexentry{reader\_identifier (aliro\_actuator.access\_protocol.user\_device.UserSession property)@\spxentry{reader\_identifier}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession property}|hyperpage}{32}
-\indexentry{set\_access\_credential() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{set\_access\_credential()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{32}
-\indexentry{set\_auth0\_data() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{set\_auth0\_data()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{32}
-\indexentry{set\_cert\_and\_verify() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{set\_cert\_and\_verify()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{32}
-\indexentry{set\_shared\_key() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{set\_shared\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{32}
-\indexentry{state\_valid() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{state\_valid()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{32}
-\indexentry{update\_state() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{update\_state()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{32}
-\indexentry{UserSessionState (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserSessionState}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{32}
-\indexentry{AUTH0\_FAST\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{AUTH0\_FAST\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{32}
-\indexentry{AUTH0\_STD\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{AUTH0\_STD\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{32}
-\indexentry{AUTH1\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{AUTH1\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{32}
-\indexentry{EXCHANGE\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{EXCHANGE\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{32}
-\indexentry{SELECT\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{SELECT\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{32}
-\indexentry{SESSION\_START (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{SESSION\_START}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{32}
-\indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol@\spxentry{aliro\_actuator.access\_protocol}|hyperpage}{32}
-\indexentry{aliro\_actuator.access\_protocol@\spxentry{aliro\_actuator.access\_protocol}!module@\spxentry{module}|hyperpage}{32}
-\indexentry{Device (class in aliro\_actuator.access\_protocol)@\spxentry{Device}\spxextra{class in aliro\_actuator.access\_protocol}|hyperpage}{32}
-\indexentry{support\_extended\_length\_apdu (aliro\_actuator.access\_protocol.Device property)@\spxentry{support\_extended\_length\_apdu}\spxextra{aliro\_actuator.access\_protocol.Device property}|hyperpage}{32}
-\indexentry{module@\spxentry{module}!aliro\_actuator.hw\_driver.pn7160\_driver.api@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{33}
-\indexentry{aliro\_actuator.hw\_driver.pn7160\_driver.api@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.api}!module@\spxentry{module}|hyperpage}{33}
-\indexentry{TECHNOLOGY\_MASK (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{TECHNOLOGY\_MASK}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{33}
-\indexentry{DEFAULT (aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute)@\spxentry{DEFAULT}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute}|hyperpage}{33}
-\indexentry{MASK\_A (aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute)@\spxentry{MASK\_A}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute}|hyperpage}{33}
-\indexentry{ndef\_info\_t (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{ndef\_info\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{33}
-\indexentry{current\_ndef\_length (aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute)@\spxentry{current\_ndef\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}|hyperpage}{33}
-\indexentry{is\_def (aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute)@\spxentry{is\_def}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}|hyperpage}{33}
-\indexentry{is\_writable (aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute)@\spxentry{is\_writable}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}|hyperpage}{33}
-\indexentry{max\_ndef\_length (aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute)@\spxentry{max\_ndef\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}|hyperpage}{33}
-\indexentry{nfcHostCardEmulationCallback\_t (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{nfcHostCardEmulationCallback\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{33}
-\indexentry{onDataReceived (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute)@\spxentry{onDataReceived}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}|hyperpage}{33}
-\indexentry{onHostCardEmulationActivated (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute)@\spxentry{onHostCardEmulationActivated}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}|hyperpage}{33}
-\indexentry{onHostCardEmulationDeactivated (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute)@\spxentry{onHostCardEmulationDeactivated}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}|hyperpage}{33}
-\indexentry{nfcTagCallback\_t (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{nfcTagCallback\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{33}
-\indexentry{onTagArrival (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute)@\spxentry{onTagArrival}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute}|hyperpage}{33}
-\indexentry{onTagDeparture (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute)@\spxentry{onTagDeparture}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute}|hyperpage}{33}
-\indexentry{nfc\_tag\_info\_t (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{nfc\_tag\_info\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{33}
-\indexentry{handle (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{handle}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{33}
-\indexentry{protocol (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{protocol}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{33}
-\indexentry{technology (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{technology}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{33}
-\indexentry{uid (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{uid}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{33}
-\indexentry{uid\_length (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{uid\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{34}
-\indexentry{module@\spxentry{module}!aliro\_actuator.hw\_driver.pn7160\_driver.errors@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.errors}|hyperpage}{34}
-\indexentry{aliro\_actuator.hw\_driver.pn7160\_driver.errors@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.errors}!module@\spxentry{module}|hyperpage}{34}
-\indexentry{DriverNotInitializedError@\spxentry{DriverNotInitializedError}|hyperpage}{34}
-\indexentry{NCIError@\spxentry{NCIError}|hyperpage}{34}
-\indexentry{NCINotFoundError@\spxentry{NCINotFoundError}|hyperpage}{34}
-\indexentry{NoDataReceivedError@\spxentry{NoDataReceivedError}|hyperpage}{34}
-\indexentry{NoReaderError@\spxentry{NoReaderError}|hyperpage}{34}
-\indexentry{NoTagError@\spxentry{NoTagError}|hyperpage}{34}
-\indexentry{PN7160DriverError@\spxentry{PN7160DriverError}|hyperpage}{34}
-\indexentry{module@\spxentry{module}!aliro\_actuator.hw\_driver.pn7160\_driver@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver}|hyperpage}{34}
-\indexentry{aliro\_actuator.hw\_driver.pn7160\_driver@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver}!module@\spxentry{module}|hyperpage}{34}
-\indexentry{Driver (class in aliro\_actuator.hw\_driver.pn7160\_driver)@\spxentry{Driver}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver}|hyperpage}{34}
-\indexentry{initialize() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{initialize()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{34}
-\indexentry{receive\_message() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{receive\_message()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{34}
-\indexentry{send\_message() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{34}
-\indexentry{wait\_for\_reader() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{wait\_for\_reader()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{34}
-\indexentry{wait\_for\_tag() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{wait\_for\_tag()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{34}
-\indexentry{module@\spxentry{module}!aliro\_actuator.hw\_driver@\spxentry{aliro\_actuator.hw\_driver}|hyperpage}{35}
-\indexentry{aliro\_actuator.hw\_driver@\spxentry{aliro\_actuator.hw\_driver}!module@\spxentry{module}|hyperpage}{35}
-\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol.ble\_uwb@\spxentry{aliro\_actuator.transport\_protocol.ble\_uwb}|hyperpage}{35}
-\indexentry{aliro\_actuator.transport\_protocol.ble\_uwb@\spxentry{aliro\_actuator.transport\_protocol.ble\_uwb}!module@\spxentry{module}|hyperpage}{35}
-\indexentry{BLEUWB (class in aliro\_actuator.transport\_protocol.ble\_uwb)@\spxentry{BLEUWB}\spxextra{class in aliro\_actuator.transport\_protocol.ble\_uwb}|hyperpage}{35}
-\indexentry{get\_message() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{35}
-\indexentry{initialization() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{35}
-\indexentry{send\_message() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{35}
-\indexentry{wait\_for\_connection() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{35}
-\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol.errors@\spxentry{aliro\_actuator.transport\_protocol.errors}|hyperpage}{35}
-\indexentry{aliro\_actuator.transport\_protocol.errors@\spxentry{aliro\_actuator.transport\_protocol.errors}!module@\spxentry{module}|hyperpage}{35}
-\indexentry{InvalidModeError@\spxentry{InvalidModeError}|hyperpage}{35}
-\indexentry{NoDataReceivedError@\spxentry{NoDataReceivedError}|hyperpage}{35}
-\indexentry{TransportProtocolError@\spxentry{TransportProtocolError}|hyperpage}{35}
-\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol.nfc@\spxentry{aliro\_actuator.transport\_protocol.nfc}|hyperpage}{35}
-\indexentry{aliro\_actuator.transport\_protocol.nfc@\spxentry{aliro\_actuator.transport\_protocol.nfc}!module@\spxentry{module}|hyperpage}{35}
-\indexentry{NFC (class in aliro\_actuator.transport\_protocol.nfc)@\spxentry{NFC}\spxextra{class in aliro\_actuator.transport\_protocol.nfc}|hyperpage}{35}
-\indexentry{get\_message() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{35}
-\indexentry{initialization() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{35}
-\indexentry{send\_message() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{35}
-\indexentry{wait\_for\_connection() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{35}
-\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol.socket@\spxentry{aliro\_actuator.transport\_protocol.socket}|hyperpage}{36}
-\indexentry{aliro\_actuator.transport\_protocol.socket@\spxentry{aliro\_actuator.transport\_protocol.socket}!module@\spxentry{module}|hyperpage}{36}
-\indexentry{Socket (class in aliro\_actuator.transport\_protocol.socket)@\spxentry{Socket}\spxextra{class in aliro\_actuator.transport\_protocol.socket}|hyperpage}{36}
-\indexentry{disconnect() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{36}
-\indexentry{get\_message() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{36}
-\indexentry{initialization() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{36}
-\indexentry{send\_message() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{36}
-\indexentry{wait\_for\_connection() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{36}
-\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol@\spxentry{aliro\_actuator.transport\_protocol}|hyperpage}{36}
-\indexentry{aliro\_actuator.transport\_protocol@\spxentry{aliro\_actuator.transport\_protocol}!module@\spxentry{module}|hyperpage}{36}
-\indexentry{Mode (class in aliro\_actuator.transport\_protocol)@\spxentry{Mode}\spxextra{class in aliro\_actuator.transport\_protocol}|hyperpage}{36}
-\indexentry{CARD\_EMULATION (aliro\_actuator.transport\_protocol.Mode attribute)@\spxentry{CARD\_EMULATION}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}|hyperpage}{36}
-\indexentry{READER (aliro\_actuator.transport\_protocol.Mode attribute)@\spxentry{READER}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}|hyperpage}{36}
-\indexentry{TransportProtocolBase (class in aliro\_actuator.transport\_protocol)@\spxentry{TransportProtocolBase}\spxextra{class in aliro\_actuator.transport\_protocol}|hyperpage}{36}
-\indexentry{get\_message() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{36}
-\indexentry{initialization() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{36}
-\indexentry{send\_message() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{36}
-\indexentry{wait\_for\_connection() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{36}
-\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.access\_credential@\spxentry{aliro\_actuator.trust\_framework.access\_credential}|hyperpage}{36}
-\indexentry{aliro\_actuator.trust\_framework.access\_credential@\spxentry{aliro\_actuator.trust\_framework.access\_credential}!module@\spxentry{module}|hyperpage}{36}
-\indexentry{AccessCredential (class in aliro\_actuator.trust\_framework.access\_credential)@\spxentry{AccessCredential}\spxextra{class in aliro\_actuator.trust\_framework.access\_credential}|hyperpage}{36}
-\indexentry{get\_credential\_public\_key() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_credential\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{37}
-\indexentry{get\_key\_slot() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_key\_slot()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{37}
-\indexentry{get\_reader\_public\_key() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_reader\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{37}
-\indexentry{has\_identifier() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{has\_identifier()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{37}
-\indexentry{sign() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{37}
-\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.certificate@\spxentry{aliro\_actuator.trust\_framework.certificate}|hyperpage}{37}
-\indexentry{aliro\_actuator.trust\_framework.certificate@\spxentry{aliro\_actuator.trust\_framework.certificate}!module@\spxentry{module}|hyperpage}{37}
-\indexentry{Certificate (class in aliro\_actuator.trust\_framework.certificate)@\spxentry{Certificate}\spxextra{class in aliro\_actuator.trust\_framework.certificate}|hyperpage}{37}
-\indexentry{decode() (aliro\_actuator.trust\_framework.certificate.Certificate class method)@\spxentry{decode()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate class method}|hyperpage}{37}
-\indexentry{decode\_compressed() (aliro\_actuator.trust\_framework.certificate.Certificate class method)@\spxentry{decode\_compressed()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate class method}|hyperpage}{37}
-\indexentry{default\_issuer (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_issuer}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{37}
-\indexentry{default\_serial\_number (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_serial\_number}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{37}
-\indexentry{default\_subject (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_subject}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{37}
-\indexentry{default\_validity\_not\_after (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_validity\_not\_after}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{37}
-\indexentry{default\_validity\_not\_before (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_validity\_not\_before}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{37}
-\indexentry{encode\_compressed() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{encode\_compressed()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}|hyperpage}{37}
-\indexentry{get\_public\_key() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{get\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}|hyperpage}{37}
-\indexentry{verify() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}|hyperpage}{37}
-\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.errors@\spxentry{aliro\_actuator.trust\_framework.errors}|hyperpage}{38}
-\indexentry{aliro\_actuator.trust\_framework.errors@\spxentry{aliro\_actuator.trust\_framework.errors}!module@\spxentry{module}|hyperpage}{38}
-\indexentry{CertificateDecodingError@\spxentry{CertificateDecodingError}|hyperpage}{38}
-\indexentry{InvalidIdentifierError@\spxentry{InvalidIdentifierError}|hyperpage}{38}
-\indexentry{InvalidKeyError@\spxentry{InvalidKeyError}|hyperpage}{38}
-\indexentry{InvalidKeyFormatError@\spxentry{InvalidKeyFormatError}|hyperpage}{38}
-\indexentry{KeyLookupFailed@\spxentry{KeyLookupFailed}|hyperpage}{38}
-\indexentry{MissingPublicKeyError@\spxentry{MissingPublicKeyError}|hyperpage}{38}
-\indexentry{TrustFrameworkError@\spxentry{TrustFrameworkError}|hyperpage}{38}
-\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.key@\spxentry{aliro\_actuator.trust\_framework.key}|hyperpage}{38}
-\indexentry{aliro\_actuator.trust\_framework.key@\spxentry{aliro\_actuator.trust\_framework.key}!module@\spxentry{module}|hyperpage}{38}
-\indexentry{Key (class in aliro\_actuator.trust\_framework.key)@\spxentry{Key}\spxextra{class in aliro\_actuator.trust\_framework.key}|hyperpage}{38}
-\indexentry{KeyPair (class in aliro\_actuator.trust\_framework.key)@\spxentry{KeyPair}\spxextra{class in aliro\_actuator.trust\_framework.key}|hyperpage}{38}
-\indexentry{get\_private\_key() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{get\_private\_key()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{38}
-\indexentry{get\_public\_key() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{get\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{38}
-\indexentry{get\_public\_key\_as\_bytes() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{get\_public\_key\_as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{39}
-\indexentry{sign() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{39}
-\indexentry{verify() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{39}
-\indexentry{PrivateKey (class in aliro\_actuator.trust\_framework.key)@\spxentry{PrivateKey}\spxextra{class in aliro\_actuator.trust\_framework.key}|hyperpage}{39}
-\indexentry{as\_bytes() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{39}
-\indexentry{as\_pem() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{as\_pem()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{39}
-\indexentry{compute\_shared\_key() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{compute\_shared\_key()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{39}
-\indexentry{generate\_public\_key() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{generate\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{39}
-\indexentry{sign() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{39}
-\indexentry{PublicKey (class in aliro\_actuator.trust\_framework.key)@\spxentry{PublicKey}\spxextra{class in aliro\_actuator.trust\_framework.key}|hyperpage}{39}
-\indexentry{as\_bytes() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{39}
-\indexentry{as\_pem() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{as\_pem()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{39}
-\indexentry{get\_x() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{get\_x()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{39}
-\indexentry{get\_y() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{get\_y()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{39}
-\indexentry{verify() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{39}
-\indexentry{derive\_key() (in module aliro\_actuator.trust\_framework.key)@\spxentry{derive\_key()}\spxextra{in module aliro\_actuator.trust\_framework.key}|hyperpage}{39}
-\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.reader\_identifier@\spxentry{aliro\_actuator.trust\_framework.reader\_identifier}|hyperpage}{40}
-\indexentry{aliro\_actuator.trust\_framework.reader\_identifier@\spxentry{aliro\_actuator.trust\_framework.reader\_identifier}!module@\spxentry{module}|hyperpage}{40}
-\indexentry{ReaderIdentifier (class in aliro\_actuator.trust\_framework.reader\_identifier)@\spxentry{ReaderIdentifier}\spxextra{class in aliro\_actuator.trust\_framework.reader\_identifier}|hyperpage}{40}
-\indexentry{as\_bytes() (aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method)@\spxentry{as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method}|hyperpage}{40}
-\indexentry{get\_group() (aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method)@\spxentry{get\_group()}\spxextra{aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method}|hyperpage}{40}
-\indexentry{get\_group\_sub() (aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method)@\spxentry{get\_group\_sub()}\spxextra{aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method}|hyperpage}{40}
-\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework@\spxentry{aliro\_actuator.trust\_framework}|hyperpage}{40}
-\indexentry{aliro\_actuator.trust\_framework@\spxentry{aliro\_actuator.trust\_framework}!module@\spxentry{module}|hyperpage}{40}
-\indexentry{module@\spxentry{module}!aliro\_actuator.log@\spxentry{aliro\_actuator.log}|hyperpage}{40}
-\indexentry{aliro\_actuator.log@\spxentry{aliro\_actuator.log}!module@\spxentry{module}|hyperpage}{40}
-\indexentry{InterceptHandler (class in aliro\_actuator.log)@\spxentry{InterceptHandler}\spxextra{class in aliro\_actuator.log}|hyperpage}{40}
-\indexentry{emit() (aliro\_actuator.log.InterceptHandler method)@\spxentry{emit()}\spxextra{aliro\_actuator.log.InterceptHandler method}|hyperpage}{40}
-\indexentry{loglevel\_mapping (aliro\_actuator.log.InterceptHandler attribute)@\spxentry{loglevel\_mapping}\spxextra{aliro\_actuator.log.InterceptHandler attribute}|hyperpage}{40}
-\indexentry{LoggingConfigError@\spxentry{LoggingConfigError}|hyperpage}{40}
-\indexentry{configure\_logging() (in module aliro\_actuator.log)@\spxentry{configure\_logging()}\spxextra{in module aliro\_actuator.log}|hyperpage}{40}
-\indexentry{module@\spxentry{module}!aliro\_actuator@\spxentry{aliro\_actuator}|hyperpage}{41}
-\indexentry{aliro\_actuator@\spxentry{aliro\_actuator}!module@\spxentry{module}|hyperpage}{41}
-\indexentry{Global (class in aliro\_actuator)@\spxentry{Global}\spxextra{class in aliro\_actuator}|hyperpage}{41}
-\indexentry{logger (aliro\_actuator.Global attribute)@\spxentry{logger}\spxextra{aliro\_actuator.Global attribute}|hyperpage}{41}
-\indexentry{set\_logger() (aliro\_actuator.Global class method)@\spxentry{set\_logger()}\spxextra{aliro\_actuator.Global class method}|hyperpage}{41}
+\indexentry{command\_get\_response() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{command\_load\_cert() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{command\_select() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{command\_select()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{decrypt\_cryptogram() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{decrypt\_cryptogram()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{end\_session() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{end\_session()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{expedited\_transaction\_fast() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{expedited\_transaction\_fast()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{expedited\_transaction\_standard() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{expedited\_transaction\_standard()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{failure\_process() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{failure\_process()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{handle\_auth0() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_auth0()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{handle\_auth1() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_auth1()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{24}
+\indexentry{handle\_auth1\_credential\_public\_key() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_auth1\_credential\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{25}
+\indexentry{handle\_control\_flow() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{25}
+\indexentry{handle\_exchange() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_exchange()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{25}
+\indexentry{handle\_load\_cert() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{25}
+\indexentry{handle\_select() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_select()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{25}
+\indexentry{reader\_group\_identifier (aliro\_actuator.access\_protocol.reader.Reader property)@\spxentry{reader\_group\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.Reader property}|hyperpage}{25}
+\indexentry{reader\_group\_sub\_identifier (aliro\_actuator.access\_protocol.reader.Reader property)@\spxentry{reader\_group\_sub\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.Reader property}|hyperpage}{25}
+\indexentry{reader\_identifier (aliro\_actuator.access\_protocol.reader.Reader property)@\spxentry{reader\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.Reader property}|hyperpage}{25}
+\indexentry{setup\_connection() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{setup\_connection()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{26}
+\indexentry{start\_new\_session() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{start\_new\_session()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{26}
+\indexentry{step\_up\_transaction() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{step\_up\_transaction()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{26}
+\indexentry{transaction\_initiation() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{transaction\_initiation()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{26}
+\indexentry{transaction\_termination() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{transaction\_termination()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{26}
+\indexentry{wait\_for\_initiate\_access\_protocol\_notification() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{wait\_for\_initiate\_access\_protocol\_notification()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}|hyperpage}{26}
+\indexentry{ReaderFastCacheEntry (class in aliro\_actuator.access\_protocol.reader)@\spxentry{ReaderFastCacheEntry}\spxextra{class in aliro\_actuator.access\_protocol.reader}|hyperpage}{26}
+\indexentry{print\_to\_log() (aliro\_actuator.access\_protocol.reader.ReaderFastCacheEntry method)@\spxentry{print\_to\_log()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderFastCacheEntry method}|hyperpage}{26}
+\indexentry{ReaderSession (class in aliro\_actuator.access\_protocol.reader)@\spxentry{ReaderSession}\spxextra{class in aliro\_actuator.access\_protocol.reader}|hyperpage}{26}
+\indexentry{can\_retrieve\_access\_credential() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{can\_retrieve\_access\_credential()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{can\_retrieve\_revocation\_document() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{can\_retrieve\_revocation\_document()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{check\_user\_device\_authentication() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{check\_user\_device\_authentication()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{decrypt\_payload() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{decrypt\_payload()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{derive\_key\_persistent() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{derive\_key\_persistent()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{derive\_key\_volatile() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{derive\_key\_volatile()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{derive\_key\_volatile\_fast() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{derive\_key\_volatile\_fast()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{encrypt\_payload() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{encrypt\_payload()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{generate\_ephemeral\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{generate\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{get\_credential\_ephemeral\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{get\_credential\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{get\_reader\_epubkey() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{get\_reader\_epubkey()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{lookup\_credential\_public\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{lookup\_credential\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{26}
+\indexentry{reader\_group\_identifier (aliro\_actuator.access\_protocol.reader.ReaderSession property)@\spxentry{reader\_group\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}|hyperpage}{26}
+\indexentry{reader\_group\_sub\_identifier (aliro\_actuator.access\_protocol.reader.ReaderSession property)@\spxentry{reader\_group\_sub\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}|hyperpage}{26}
+\indexentry{reader\_identifier (aliro\_actuator.access\_protocol.reader.ReaderSession property)@\spxentry{reader\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}|hyperpage}{27}
+\indexentry{set\_auth1\_info() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_auth1\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{set\_credential\_ephemeral\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_credential\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{set\_credential\_public\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_credential\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{set\_cryptogram\_info() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_cryptogram\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{set\_flag() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_flag()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{set\_initiate\_access\_protocol\_info() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_initiate\_access\_protocol\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{set\_response\_vendor\_extension() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_response\_vendor\_extension()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{set\_select\_info() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_select\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{set\_shared\_key() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_shared\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{step\_up\_aid\_select\_required() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{step\_up\_aid\_select\_required()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}|hyperpage}{27}
+\indexentry{transaction\_identifier (aliro\_actuator.access\_protocol.reader.ReaderSession property)@\spxentry{transaction\_identifier}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession property}|hyperpage}{27}
+\indexentry{ReaderStorage (class in aliro\_actuator.access\_protocol.reader)@\spxentry{ReaderStorage}\spxextra{class in aliro\_actuator.access\_protocol.reader}|hyperpage}{27}
+\indexentry{add\_kpersistent() (aliro\_actuator.access\_protocol.reader.ReaderStorage method)@\spxentry{add\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderStorage method}|hyperpage}{27}
+\indexentry{clear\_kpersistent() (aliro\_actuator.access\_protocol.reader.ReaderStorage method)@\spxentry{clear\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderStorage method}|hyperpage}{27}
+\indexentry{get\_kpersistent\_list() (aliro\_actuator.access\_protocol.reader.ReaderStorage method)@\spxentry{get\_kpersistent\_list()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderStorage method}|hyperpage}{27}
+\indexentry{remove\_kpersistent() (aliro\_actuator.access\_protocol.reader.ReaderStorage method)@\spxentry{remove\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderStorage method}|hyperpage}{27}
+\indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.tlv@\spxentry{aliro\_actuator.access\_protocol.tlv}|hyperpage}{27}
+\indexentry{aliro\_actuator.access\_protocol.tlv@\spxentry{aliro\_actuator.access\_protocol.tlv}!module@\spxentry{module}|hyperpage}{27}
+\indexentry{TLV (class in aliro\_actuator.access\_protocol.tlv)@\spxentry{TLV}\spxextra{class in aliro\_actuator.access\_protocol.tlv}|hyperpage}{27}
+\indexentry{add\_value() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{add\_value()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{27}
+\indexentry{from\_bytes() (aliro\_actuator.access\_protocol.tlv.TLV static method)@\spxentry{from\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV static method}|hyperpage}{27}
+\indexentry{get\_all\_bytes\_of\_tag() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_all\_bytes\_of\_tag()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{28}
+\indexentry{get\_all\_of\_tag() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_all\_of\_tag()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{28}
+\indexentry{get\_all\_tlv\_of\_tag() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_all\_tlv\_of\_tag()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{28}
+\indexentry{get\_bytes() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{28}
+\indexentry{get\_tlv() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_tlv()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{28}
+\indexentry{get\_value() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_value()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{29}
+\indexentry{to\_bytes() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{to\_bytes()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{29}
+\indexentry{to\_data() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{to\_data()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{29}
+\indexentry{to\_print() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{to\_print()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}|hyperpage}{29}
+\indexentry{TlvError@\spxentry{TlvError}|hyperpage}{29}
+\indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol.user\_device@\spxentry{aliro\_actuator.access\_protocol.user\_device}|hyperpage}{29}
+\indexentry{aliro\_actuator.access\_protocol.user\_device@\spxentry{aliro\_actuator.access\_protocol.user\_device}!module@\spxentry{module}|hyperpage}{29}
+\indexentry{MailboxSession (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{MailboxSession}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{29}
+\indexentry{MailboxSession.Command (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{MailboxSession.Command}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{29}
+\indexentry{SET (aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute)@\spxentry{SET}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute}|hyperpage}{29}
+\indexentry{WRITE (aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute)@\spxentry{WRITE}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession.Command attribute}|hyperpage}{29}
+\indexentry{add\_set() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{add\_set()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{29}
+\indexentry{add\_write() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{add\_write()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{29}
+\indexentry{execute\_commands() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{execute\_commands()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{29}
+\indexentry{is\_started() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{is\_started()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{29}
+\indexentry{start() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{start()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{30}
+\indexentry{stop() (aliro\_actuator.access\_protocol.user\_device.MailboxSession method)@\spxentry{stop()}\spxextra{aliro\_actuator.access\_protocol.user\_device.MailboxSession method}|hyperpage}{30}
+\indexentry{UserDevice (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserDevice}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{30}
+\indexentry{check\_reader\_authentication\_data() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{check\_reader\_authentication\_data()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
+\indexentry{end\_session() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{end\_session()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
+\indexentry{failure\_process() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{failure\_process()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
+\indexentry{get\_signaling\_bitmap() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{get\_signaling\_bitmap()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
+\indexentry{handle\_auth0() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_auth0()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{30}
+\indexentry{handle\_auth1() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_auth1()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
+\indexentry{handle\_control\_flow() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
+\indexentry{handle\_exchange() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_exchange()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
+\indexentry{handle\_load\_cert() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
+\indexentry{handle\_select() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_select()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
+\indexentry{main\_loop() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{main\_loop()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
+\indexentry{response\_auth0() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_auth0()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{31}
+\indexentry{response\_auth1() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_auth1()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{response\_control\_flow() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{response\_envelope() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_envelope()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{response\_exchange() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_exchange()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{response\_get\_response() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_get\_response()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{response\_load\_cert() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_load\_cert()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{response\_select() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{response\_select()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{return\_exchange\_error\_and\_close\_channel() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{return\_exchange\_error\_and\_close\_channel()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{send\_initiate\_access\_protocol\_notification() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{send\_initiate\_access\_protocol\_notification()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{32}
+\indexentry{setup\_connection() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{setup\_connection()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{33}
+\indexentry{start\_new\_session() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{start\_new\_session()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{33}
+\indexentry{transaction\_initiation() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{transaction\_initiation()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{33}
+\indexentry{transaction\_termination() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{transaction\_termination()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{33}
+\indexentry{wait\_for\_command() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{wait\_for\_command()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}|hyperpage}{33}
+\indexentry{UserMode (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserMode}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{33}
+\indexentry{TEST (aliro\_actuator.access\_protocol.user\_device.UserMode attribute)@\spxentry{TEST}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserMode attribute}|hyperpage}{33}
+\indexentry{USER (aliro\_actuator.access\_protocol.user\_device.UserMode attribute)@\spxentry{USER}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserMode attribute}|hyperpage}{33}
+\indexentry{UserSession (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserSession}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{33}
+\indexentry{derive\_key\_persistent() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{derive\_key\_persistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{33}
+\indexentry{derive\_key\_volatile() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{derive\_key\_volatile()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{33}
+\indexentry{derive\_key\_volatile\_fast() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{derive\_key\_volatile\_fast()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{33}
+\indexentry{generate\_ephemeral\_key() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{generate\_ephemeral\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{33}
+\indexentry{get\_credential\_epubkey() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{get\_credential\_epubkey()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{33}
+\indexentry{get\_intermediate\_reader\_public\_key() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{get\_intermediate\_reader\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{get\_reader\_public\_key() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{get\_reader\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{get\_transaction\_type() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{get\_transaction\_type()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{reader\_group\_identifier (aliro\_actuator.access\_protocol.user\_device.UserSession property)@\spxentry{reader\_group\_identifier}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession property}|hyperpage}{34}
+\indexentry{reader\_group\_sub\_identifier (aliro\_actuator.access\_protocol.user\_device.UserSession property)@\spxentry{reader\_group\_sub\_identifier}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession property}|hyperpage}{34}
+\indexentry{reader\_identifier (aliro\_actuator.access\_protocol.user\_device.UserSession property)@\spxentry{reader\_identifier}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession property}|hyperpage}{34}
+\indexentry{set\_access\_credential() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{set\_access\_credential()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{set\_auth0\_data() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{set\_auth0\_data()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{set\_cert\_and\_verify() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{set\_cert\_and\_verify()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{set\_shared\_key() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{set\_shared\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{state\_valid() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{state\_valid()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{update\_state() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{update\_state()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}|hyperpage}{34}
+\indexentry{UserSessionState (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserSessionState}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{34}
+\indexentry{AUTH0\_FAST\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{AUTH0\_FAST\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{34}
+\indexentry{AUTH0\_STD\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{AUTH0\_STD\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{34}
+\indexentry{AUTH1\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{AUTH1\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{34}
+\indexentry{EXCHANGE\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{EXCHANGE\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{34}
+\indexentry{SELECT\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{SELECT\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{34}
+\indexentry{SELECT\_STEP\_UP\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{SELECT\_STEP\_UP\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{34}
+\indexentry{SESSION\_START (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{SESSION\_START}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}|hyperpage}{34}
+\indexentry{UserStorage (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserStorage}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}|hyperpage}{34}
+\indexentry{add\_kpersistent() (aliro\_actuator.access\_protocol.user\_device.UserStorage method)@\spxentry{add\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserStorage method}|hyperpage}{34}
+\indexentry{clear\_kpersistent() (aliro\_actuator.access\_protocol.user\_device.UserStorage method)@\spxentry{clear\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserStorage method}|hyperpage}{34}
+\indexentry{find\_kpersistent() (aliro\_actuator.access\_protocol.user\_device.UserStorage method)@\spxentry{find\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserStorage method}|hyperpage}{34}
+\indexentry{remove\_kpersistent() (aliro\_actuator.access\_protocol.user\_device.UserStorage method)@\spxentry{remove\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserStorage method}|hyperpage}{34}
+\indexentry{module@\spxentry{module}!aliro\_actuator.access\_protocol@\spxentry{aliro\_actuator.access\_protocol}|hyperpage}{35}
+\indexentry{aliro\_actuator.access\_protocol@\spxentry{aliro\_actuator.access\_protocol}!module@\spxentry{module}|hyperpage}{35}
+\indexentry{Device (class in aliro\_actuator.access\_protocol)@\spxentry{Device}\spxextra{class in aliro\_actuator.access\_protocol}|hyperpage}{35}
+\indexentry{support\_extended\_length\_apdu (aliro\_actuator.access\_protocol.Device property)@\spxentry{support\_extended\_length\_apdu}\spxextra{aliro\_actuator.access\_protocol.Device property}|hyperpage}{35}
+\indexentry{module@\spxentry{module}!aliro\_actuator.hw\_driver.pn7160\_driver.api@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{35}
+\indexentry{aliro\_actuator.hw\_driver.pn7160\_driver.api@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.api}!module@\spxentry{module}|hyperpage}{35}
+\indexentry{TECHNOLOGY\_MASK (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{TECHNOLOGY\_MASK}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{35}
+\indexentry{DEFAULT (aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute)@\spxentry{DEFAULT}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute}|hyperpage}{35}
+\indexentry{MASK\_A (aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute)@\spxentry{MASK\_A}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.TECHNOLOGY\_MASK attribute}|hyperpage}{35}
+\indexentry{ndef\_info\_t (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{ndef\_info\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{35}
+\indexentry{current\_ndef\_length (aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute)@\spxentry{current\_ndef\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}|hyperpage}{35}
+\indexentry{is\_def (aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute)@\spxentry{is\_def}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}|hyperpage}{35}
+\indexentry{is\_writable (aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute)@\spxentry{is\_writable}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}|hyperpage}{35}
+\indexentry{max\_ndef\_length (aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute)@\spxentry{max\_ndef\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.ndef\_info\_t attribute}|hyperpage}{35}
+\indexentry{nfcHostCardEmulationCallback\_t (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{nfcHostCardEmulationCallback\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{35}
+\indexentry{onDataReceived (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute)@\spxentry{onDataReceived}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}|hyperpage}{35}
+\indexentry{onHostCardEmulationActivated (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute)@\spxentry{onHostCardEmulationActivated}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}|hyperpage}{35}
+\indexentry{onHostCardEmulationDeactivated (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute)@\spxentry{onHostCardEmulationDeactivated}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcHostCardEmulationCallback\_t attribute}|hyperpage}{35}
+\indexentry{nfcTagCallback\_t (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{nfcTagCallback\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{36}
+\indexentry{onTagArrival (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute)@\spxentry{onTagArrival}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute}|hyperpage}{36}
+\indexentry{onTagDeparture (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute)@\spxentry{onTagDeparture}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfcTagCallback\_t attribute}|hyperpage}{36}
+\indexentry{nfc\_tag\_info\_t (class in aliro\_actuator.hw\_driver.pn7160\_driver.api)@\spxentry{nfc\_tag\_info\_t}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver.api}|hyperpage}{36}
+\indexentry{handle (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{handle}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{36}
+\indexentry{protocol (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{protocol}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{36}
+\indexentry{technology (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{technology}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{36}
+\indexentry{uid (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{uid}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{36}
+\indexentry{uid\_length (aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute)@\spxentry{uid\_length}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.api.nfc\_tag\_info\_t attribute}|hyperpage}{36}
+\indexentry{module@\spxentry{module}!aliro\_actuator.hw\_driver.pn7160\_driver.errors@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.errors}|hyperpage}{36}
+\indexentry{aliro\_actuator.hw\_driver.pn7160\_driver.errors@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver.errors}!module@\spxentry{module}|hyperpage}{36}
+\indexentry{DriverNotInitializedError@\spxentry{DriverNotInitializedError}|hyperpage}{36}
+\indexentry{NCIError@\spxentry{NCIError}|hyperpage}{36}
+\indexentry{NCINotFoundError@\spxentry{NCINotFoundError}|hyperpage}{36}
+\indexentry{NoDataReceivedError@\spxentry{NoDataReceivedError}|hyperpage}{36}
+\indexentry{NoReaderError@\spxentry{NoReaderError}|hyperpage}{36}
+\indexentry{NoTagError@\spxentry{NoTagError}|hyperpage}{36}
+\indexentry{PN7160DriverError@\spxentry{PN7160DriverError}|hyperpage}{36}
+\indexentry{module@\spxentry{module}!aliro\_actuator.hw\_driver.pn7160\_driver@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver}|hyperpage}{37}
+\indexentry{aliro\_actuator.hw\_driver.pn7160\_driver@\spxentry{aliro\_actuator.hw\_driver.pn7160\_driver}!module@\spxentry{module}|hyperpage}{37}
+\indexentry{Driver (class in aliro\_actuator.hw\_driver.pn7160\_driver)@\spxentry{Driver}\spxextra{class in aliro\_actuator.hw\_driver.pn7160\_driver}|hyperpage}{37}
+\indexentry{disconnect() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{37}
+\indexentry{initialize() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{initialize()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{37}
+\indexentry{receive\_message() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{receive\_message()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{37}
+\indexentry{send\_message() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{37}
+\indexentry{wait\_for\_reader() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{wait\_for\_reader()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{37}
+\indexentry{wait\_for\_tag() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{wait\_for\_tag()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}|hyperpage}{37}
+\indexentry{module@\spxentry{module}!aliro\_actuator.hw\_driver@\spxentry{aliro\_actuator.hw\_driver}|hyperpage}{37}
+\indexentry{aliro\_actuator.hw\_driver@\spxentry{aliro\_actuator.hw\_driver}!module@\spxentry{module}|hyperpage}{37}
+\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol.ble\_uwb@\spxentry{aliro\_actuator.transport\_protocol.ble\_uwb}|hyperpage}{37}
+\indexentry{aliro\_actuator.transport\_protocol.ble\_uwb@\spxentry{aliro\_actuator.transport\_protocol.ble\_uwb}!module@\spxentry{module}|hyperpage}{37}
+\indexentry{BLEUWB (class in aliro\_actuator.transport\_protocol.ble\_uwb)@\spxentry{BLEUWB}\spxextra{class in aliro\_actuator.transport\_protocol.ble\_uwb}|hyperpage}{37}
+\indexentry{disconnect() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{37}
+\indexentry{get\_message() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{37}
+\indexentry{initialization() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{37}
+\indexentry{send\_message() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{37}
+\indexentry{wait\_for\_connection() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}|hyperpage}{37}
+\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol.errors@\spxentry{aliro\_actuator.transport\_protocol.errors}|hyperpage}{38}
+\indexentry{aliro\_actuator.transport\_protocol.errors@\spxentry{aliro\_actuator.transport\_protocol.errors}!module@\spxentry{module}|hyperpage}{38}
+\indexentry{InvalidModeError@\spxentry{InvalidModeError}|hyperpage}{38}
+\indexentry{NoDataReceivedError@\spxentry{NoDataReceivedError}|hyperpage}{38}
+\indexentry{NoDeviceConnectedError@\spxentry{NoDeviceConnectedError}|hyperpage}{38}
+\indexentry{TransportProtocolError@\spxentry{TransportProtocolError}|hyperpage}{38}
+\indexentry{UnexpectedMessageTypeError@\spxentry{UnexpectedMessageTypeError}|hyperpage}{38}
+\indexentry{UnknownVersionRequestedError@\spxentry{UnknownVersionRequestedError}|hyperpage}{38}
+\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol.nfc@\spxentry{aliro\_actuator.transport\_protocol.nfc}|hyperpage}{38}
+\indexentry{aliro\_actuator.transport\_protocol.nfc@\spxentry{aliro\_actuator.transport\_protocol.nfc}!module@\spxentry{module}|hyperpage}{38}
+\indexentry{NFC (class in aliro\_actuator.transport\_protocol.nfc)@\spxentry{NFC}\spxextra{class in aliro\_actuator.transport\_protocol.nfc}|hyperpage}{38}
+\indexentry{disconnect() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{38}
+\indexentry{get\_message() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{38}
+\indexentry{initialization() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{38}
+\indexentry{send\_message() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{38}
+\indexentry{wait\_for\_connection() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}|hyperpage}{38}
+\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol.socket@\spxentry{aliro\_actuator.transport\_protocol.socket}|hyperpage}{38}
+\indexentry{aliro\_actuator.transport\_protocol.socket@\spxentry{aliro\_actuator.transport\_protocol.socket}!module@\spxentry{module}|hyperpage}{38}
+\indexentry{Socket (class in aliro\_actuator.transport\_protocol.socket)@\spxentry{Socket}\spxextra{class in aliro\_actuator.transport\_protocol.socket}|hyperpage}{38}
+\indexentry{disconnect() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{38}
+\indexentry{get\_message() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{38}
+\indexentry{initialization() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{38}
+\indexentry{send\_message() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{39}
+\indexentry{wait\_for\_connection() (aliro\_actuator.transport\_protocol.socket.Socket method)@\spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.socket.Socket method}|hyperpage}{39}
+\indexentry{module@\spxentry{module}!aliro\_actuator.transport\_protocol@\spxentry{aliro\_actuator.transport\_protocol}|hyperpage}{39}
+\indexentry{aliro\_actuator.transport\_protocol@\spxentry{aliro\_actuator.transport\_protocol}!module@\spxentry{module}|hyperpage}{39}
+\indexentry{MessageType (class in aliro\_actuator.transport\_protocol)@\spxentry{MessageType}\spxextra{class in aliro\_actuator.transport\_protocol}|hyperpage}{39}
+\indexentry{ANY (aliro\_actuator.transport\_protocol.MessageType attribute)@\spxentry{ANY}\spxextra{aliro\_actuator.transport\_protocol.MessageType attribute}|hyperpage}{39}
+\indexentry{INITIATE\_ACCESS\_PROTOCOL (aliro\_actuator.transport\_protocol.MessageType attribute)@\spxentry{INITIATE\_ACCESS\_PROTOCOL}\spxextra{aliro\_actuator.transport\_protocol.MessageType attribute}|hyperpage}{39}
+\indexentry{REQUEST (aliro\_actuator.transport\_protocol.MessageType attribute)@\spxentry{REQUEST}\spxextra{aliro\_actuator.transport\_protocol.MessageType attribute}|hyperpage}{39}
+\indexentry{RESPONSE (aliro\_actuator.transport\_protocol.MessageType attribute)@\spxentry{RESPONSE}\spxextra{aliro\_actuator.transport\_protocol.MessageType attribute}|hyperpage}{39}
+\indexentry{Mode (class in aliro\_actuator.transport\_protocol)@\spxentry{Mode}\spxextra{class in aliro\_actuator.transport\_protocol}|hyperpage}{39}
+\indexentry{READER (aliro\_actuator.transport\_protocol.Mode attribute)@\spxentry{READER}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}|hyperpage}{39}
+\indexentry{USER\_DEVICE (aliro\_actuator.transport\_protocol.Mode attribute)@\spxentry{USER\_DEVICE}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}|hyperpage}{39}
+\indexentry{TransportProtocolBase (class in aliro\_actuator.transport\_protocol)@\spxentry{TransportProtocolBase}\spxextra{class in aliro\_actuator.transport\_protocol}|hyperpage}{39}
+\indexentry{disconnect() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{39}
+\indexentry{get\_message() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{39}
+\indexentry{initialization() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{initialization()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{39}
+\indexentry{send\_message() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{send\_message()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{39}
+\indexentry{wait\_for\_connection() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{wait\_for\_connection()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}|hyperpage}{39}
+\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.access\_credential@\spxentry{aliro\_actuator.trust\_framework.access\_credential}|hyperpage}{40}
+\indexentry{aliro\_actuator.trust\_framework.access\_credential@\spxentry{aliro\_actuator.trust\_framework.access\_credential}!module@\spxentry{module}|hyperpage}{40}
+\indexentry{AccessCredential (class in aliro\_actuator.trust\_framework.access\_credential)@\spxentry{AccessCredential}\spxextra{class in aliro\_actuator.trust\_framework.access\_credential}|hyperpage}{40}
+\indexentry{get\_all\_reader\_id() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_all\_reader\_id()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{40}
+\indexentry{get\_credential\_public\_key() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_credential\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{40}
+\indexentry{get\_key\_slot() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_key\_slot()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{40}
+\indexentry{get\_reader\_public\_key() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_reader\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{40}
+\indexentry{has\_identifier() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{has\_identifier()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{40}
+\indexentry{sign() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}|hyperpage}{40}
+\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.certificate@\spxentry{aliro\_actuator.trust\_framework.certificate}|hyperpage}{40}
+\indexentry{aliro\_actuator.trust\_framework.certificate@\spxentry{aliro\_actuator.trust\_framework.certificate}!module@\spxentry{module}|hyperpage}{40}
+\indexentry{Certificate (class in aliro\_actuator.trust\_framework.certificate)@\spxentry{Certificate}\spxextra{class in aliro\_actuator.trust\_framework.certificate}|hyperpage}{40}
+\indexentry{decode() (aliro\_actuator.trust\_framework.certificate.Certificate class method)@\spxentry{decode()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate class method}|hyperpage}{40}
+\indexentry{decode\_compressed() (aliro\_actuator.trust\_framework.certificate.Certificate class method)@\spxentry{decode\_compressed()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate class method}|hyperpage}{40}
+\indexentry{default\_issuer (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_issuer}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{40}
+\indexentry{default\_serial\_number (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_serial\_number}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{41}
+\indexentry{default\_subject (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_subject}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{41}
+\indexentry{default\_validity\_not\_after (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_validity\_not\_after}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{41}
+\indexentry{default\_validity\_not\_before (aliro\_actuator.trust\_framework.certificate.Certificate attribute)@\spxentry{default\_validity\_not\_before}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate attribute}|hyperpage}{41}
+\indexentry{encode() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{encode()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}|hyperpage}{41}
+\indexentry{encode\_compressed() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{encode\_compressed()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}|hyperpage}{41}
+\indexentry{generate() (aliro\_actuator.trust\_framework.certificate.Certificate static method)@\spxentry{generate()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate static method}|hyperpage}{41}
+\indexentry{get\_public\_key() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{get\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}|hyperpage}{41}
+\indexentry{verify() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}|hyperpage}{41}
+\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.errors@\spxentry{aliro\_actuator.trust\_framework.errors}|hyperpage}{41}
+\indexentry{aliro\_actuator.trust\_framework.errors@\spxentry{aliro\_actuator.trust\_framework.errors}!module@\spxentry{module}|hyperpage}{41}
+\indexentry{CertificateDecodingError@\spxentry{CertificateDecodingError}|hyperpage}{41}
+\indexentry{InvalidIdentifierError@\spxentry{InvalidIdentifierError}|hyperpage}{41}
+\indexentry{InvalidKeyError@\spxentry{InvalidKeyError}|hyperpage}{41}
+\indexentry{InvalidKeyFormatError@\spxentry{InvalidKeyFormatError}|hyperpage}{41}
+\indexentry{KeyLookupFailed@\spxentry{KeyLookupFailed}|hyperpage}{41}
+\indexentry{MissingPublicKeyError@\spxentry{MissingPublicKeyError}|hyperpage}{41}
+\indexentry{TrustFrameworkError@\spxentry{TrustFrameworkError}|hyperpage}{41}
+\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.key@\spxentry{aliro\_actuator.trust\_framework.key}|hyperpage}{42}
+\indexentry{aliro\_actuator.trust\_framework.key@\spxentry{aliro\_actuator.trust\_framework.key}!module@\spxentry{module}|hyperpage}{42}
+\indexentry{Key (class in aliro\_actuator.trust\_framework.key)@\spxentry{Key}\spxextra{class in aliro\_actuator.trust\_framework.key}|hyperpage}{42}
+\indexentry{KeyPair (class in aliro\_actuator.trust\_framework.key)@\spxentry{KeyPair}\spxextra{class in aliro\_actuator.trust\_framework.key}|hyperpage}{42}
+\indexentry{get\_private\_key() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{get\_private\_key()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{42}
+\indexentry{get\_public\_key() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{get\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{42}
+\indexentry{get\_public\_key\_as\_bytes() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{get\_public\_key\_as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{42}
+\indexentry{sign() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{42}
+\indexentry{verify() (aliro\_actuator.trust\_framework.key.KeyPair method)@\spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.key.KeyPair method}|hyperpage}{42}
+\indexentry{PrivateKey (class in aliro\_actuator.trust\_framework.key)@\spxentry{PrivateKey}\spxextra{class in aliro\_actuator.trust\_framework.key}|hyperpage}{42}
+\indexentry{as\_bytes() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{42}
+\indexentry{as\_pem() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{as\_pem()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{42}
+\indexentry{compute\_shared\_key() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{compute\_shared\_key()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{42}
+\indexentry{generate\_public\_key() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{generate\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{42}
+\indexentry{sign() (aliro\_actuator.trust\_framework.key.PrivateKey method)@\spxentry{sign()}\spxextra{aliro\_actuator.trust\_framework.key.PrivateKey method}|hyperpage}{42}
+\indexentry{PublicKey (class in aliro\_actuator.trust\_framework.key)@\spxentry{PublicKey}\spxextra{class in aliro\_actuator.trust\_framework.key}|hyperpage}{43}
+\indexentry{as\_bytes() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{43}
+\indexentry{as\_pem() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{as\_pem()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{43}
+\indexentry{get\_x() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{get\_x()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{43}
+\indexentry{get\_y() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{get\_y()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{43}
+\indexentry{verify() (aliro\_actuator.trust\_framework.key.PublicKey method)@\spxentry{verify()}\spxextra{aliro\_actuator.trust\_framework.key.PublicKey method}|hyperpage}{43}
+\indexentry{derive\_key() (in module aliro\_actuator.trust\_framework.key)@\spxentry{derive\_key()}\spxextra{in module aliro\_actuator.trust\_framework.key}|hyperpage}{43}
+\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework.reader\_identifier@\spxentry{aliro\_actuator.trust\_framework.reader\_identifier}|hyperpage}{43}
+\indexentry{aliro\_actuator.trust\_framework.reader\_identifier@\spxentry{aliro\_actuator.trust\_framework.reader\_identifier}!module@\spxentry{module}|hyperpage}{43}
+\indexentry{ReaderIdentifier (class in aliro\_actuator.trust\_framework.reader\_identifier)@\spxentry{ReaderIdentifier}\spxextra{class in aliro\_actuator.trust\_framework.reader\_identifier}|hyperpage}{43}
+\indexentry{as\_bytes() (aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method)@\spxentry{as\_bytes()}\spxextra{aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method}|hyperpage}{43}
+\indexentry{get\_group() (aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method)@\spxentry{get\_group()}\spxextra{aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method}|hyperpage}{43}
+\indexentry{get\_group\_sub() (aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method)@\spxentry{get\_group\_sub()}\spxextra{aliro\_actuator.trust\_framework.reader\_identifier.ReaderIdentifier method}|hyperpage}{43}
+\indexentry{module@\spxentry{module}!aliro\_actuator.trust\_framework@\spxentry{aliro\_actuator.trust\_framework}|hyperpage}{43}
+\indexentry{aliro\_actuator.trust\_framework@\spxentry{aliro\_actuator.trust\_framework}!module@\spxentry{module}|hyperpage}{43}
+\indexentry{module@\spxentry{module}!aliro\_actuator.log@\spxentry{aliro\_actuator.log}|hyperpage}{43}
+\indexentry{aliro\_actuator.log@\spxentry{aliro\_actuator.log}!module@\spxentry{module}|hyperpage}{43}
+\indexentry{InterceptHandler (class in aliro\_actuator.log)@\spxentry{InterceptHandler}\spxextra{class in aliro\_actuator.log}|hyperpage}{43}
+\indexentry{emit() (aliro\_actuator.log.InterceptHandler method)@\spxentry{emit()}\spxextra{aliro\_actuator.log.InterceptHandler method}|hyperpage}{43}
+\indexentry{loglevel\_mapping (aliro\_actuator.log.InterceptHandler attribute)@\spxentry{loglevel\_mapping}\spxextra{aliro\_actuator.log.InterceptHandler attribute}|hyperpage}{44}
+\indexentry{LoggingConfigError@\spxentry{LoggingConfigError}|hyperpage}{44}
+\indexentry{configure\_logging() (in module aliro\_actuator.log)@\spxentry{configure\_logging()}\spxextra{in module aliro\_actuator.log}|hyperpage}{44}
+\indexentry{module@\spxentry{module}!aliro\_actuator@\spxentry{aliro\_actuator}|hyperpage}{44}
+\indexentry{aliro\_actuator@\spxentry{aliro\_actuator}!module@\spxentry{module}|hyperpage}{44}
+\indexentry{Global (class in aliro\_actuator)@\spxentry{Global}\spxextra{class in aliro\_actuator}|hyperpage}{44}
+\indexentry{logger (aliro\_actuator.Global attribute)@\spxentry{logger}\spxextra{aliro\_actuator.Global attribute}|hyperpage}{44}
+\indexentry{set\_logger() (aliro\_actuator.Global class method)@\spxentry{set\_logger()}\spxextra{aliro\_actuator.Global class method}|hyperpage}{44}
