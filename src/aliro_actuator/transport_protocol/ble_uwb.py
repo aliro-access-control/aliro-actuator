@@ -30,7 +30,7 @@ from aliro_actuator.transport_protocol.errors import (
 from aliro_actuator.transport_protocol.message import Message
 
 DEFAULT_PORT = "/dev/ttyUSB0"
-DEFAULT_BAUDRATE = "115200"
+DEFAULT_BAUDRATE = "576000"
 SUPPORTED_VERSIONS = [0x0100]
 CURRENT_VERSION = 0x0100
 
