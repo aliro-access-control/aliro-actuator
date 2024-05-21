@@ -19,6 +19,21 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import (
 
 
 class MurataGATTServerDriver(MurataBaseDriver):
+    async def init_db(self) -> int:
+        Global.logger.info("GATT DB initialization")
+
+        message = Message(
+            OpGroup.GATT_DB,
+            OpCodeGATTDB.DYN_INIT,
+            0
+        )
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GATT_DB)
+        response = await self.wait_for_message(
+            OpGroup.GATT_DB, OpCodeGATTDB.DYN_INIT
+        )
+        return int.from_bytes(response.data, "little")  # handle
+
     async def add_primary_service_declaration(
         self, handle: int, uuid: bytes, uuid_type: UuidType = UuidType.uuid_16_bits
     ) -> int:

@@ -154,6 +154,7 @@ class ReaderMurataDriver(
         self, spsm: bytes, supported_versions: list[int]
     ) -> None:
         Global.logger.info("Creating GATT Database")
+        await self.init_db()
         service_handle = await self.add_primary_service_declaration(
             0x01, ALIRO_SERVICE_UUID
         )
