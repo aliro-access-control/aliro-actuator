@@ -1470,7 +1470,7 @@ class Response(Message):
         status_code: bytes
         read_data: bytes
         """
-        Global.logger.debug("Parsing EXCHANGE response:")
+        Global.logger.info("Parsing EXCHANGE response:")
         self._check_status()
 
         if self.data is None:
@@ -1504,7 +1504,7 @@ class Response(Message):
         """
         Parse this response as a control_flow response.
         """
-        Global.logger.debug("Parsing CONTROL FLOW response:")
+        Global.logger.info("Parsing CONTROL FLOW response:")
         self._check_status()
         Global.logger.info("Done parsing CONTROL FLOW response")
 

@@ -482,6 +482,7 @@ class UserDevice(Device):
                 Global.logger.info(
                     "Kpersistent found: {!r}".format(hexlify(kpersistent))
                 )
+                Global.logger.info("Creating Cryptogram")
                 self.session.derive_key_volatile_fast(
                     self.transport_protocol_type, kpersistent
                 )
