@@ -15,6 +15,8 @@
 from binascii import hexlify
 
 from aliro_actuator import Global
+from aliro_actuator.access_protocol.apdu import AUTHENTICATION_TAG_SIZE
+from aliro_actuator.access_protocol.encryption import EncryptionEngine
 from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
@@ -99,7 +101,9 @@ class BLEUWB(TransportProtocolBase):
             self.spsm = await self.driver.handle_GATT_layer()
         await self.driver.setup_l2cap_connection(self.spsm)
 
-    async def send_message(self, command: bytes, type: MessageType) -> None:
+    async def send_message(
+        self, command: bytes, type: MessageType, encrypt: bool = False
+    ) -> None:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         Global.logger.info("sending command: {!r}".format(hexlify(command)))
@@ -115,13 +119,23 @@ class BLEUWB(TransportProtocolBase):
         else:
             raise NotImplementedError
 
+        if encrypt:
+            encrypted_payload, tag = self.encryption_engine.encrypt(
+                command,
+                protocol_type.to_bytes(1, "little")
+                + id.to_bytes(1, "little")
+                + len(command).to_bytes(2, "little"),
+            )
+            command = encrypted_payload + tag
         message = BleMessage(protocol_type, id, command)
         Global.logger.info("BLE message: {!r}".format(hexlify(message.to_bytes())))
         await self.driver.send_le_cb_data(
             self.driver.connected_devices[0], message.to_bytes()
         )
 
-    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
+    async def get_message(
+        self, expected_type: MessageType = MessageType.ANY, decrypt: bool = False
+    ) -> bytes:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         message_bytes = await self.driver.wait_for_data(
@@ -145,4 +159,18 @@ class BLEUWB(TransportProtocolBase):
                 raise UnexpectedMessageTypeError
         else:
             raise NotImplementedError
-        return message.payload
+
+        if decrypt:
+            payload = self.encryption_engine.decrypt(
+                message.payload[:-AUTHENTICATION_TAG_SIZE],
+                message.payload[-AUTHENTICATION_TAG_SIZE:],
+                message.header.to_bytes(1, "little")
+                + message.id.to_bytes(1, "little")
+                + len(message.payload[:-AUTHENTICATION_TAG_SIZE]).to_bytes(2, "little"),
+            )
+        else:
+            payload = message.payload
+        return payload
+
+    def set_encryption(self, encryption_engine: EncryptionEngine) -> None:
+        self.encryption_engine = encryption_engine
