@@ -70,8 +70,12 @@ sudo make install
 The examples can be found in the examples folder. 
 You can run an example in the poetry shell with:
 ```
-python3 -m examples.nfc.reader
+python3 -m examples.nfc.reader.standard
+python3 -m examples.nfc.reader.fast
 python3 -m examples.nfc.user_device
+python3 -m examples.ble.reader.standard
+python3 -m examples.ble.reader.fast
+python3 -m examples.ble.user_device
 ```
 
 ## Using the Actuator
