@@ -73,6 +73,11 @@ from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
 
+class UserMode(Enum):
+    TEST = 0  # Every error raises an Exception
+    USER = 0  # Strictly follows spec, may ignore errors if so noted in the spec
+
+
 class UserStorage:
     """
     Cross-session storage for Expedited Fast cached data
@@ -135,6 +140,7 @@ class UserDevice(Device):
         access_document_updatable: bool = False,
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         ephemeral_key_list: list[KeyPair] | None = None,
+        mode: UserMode = UserMode.TEST,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -175,6 +181,8 @@ class UserDevice(Device):
         self.group_resolving_key = group_resolving_key
 
         self.ephemeral_key_list = ephemeral_key_list
+
+        self.mode = mode
 
     async def transaction_initiation(self) -> None:
         """
@@ -553,6 +561,9 @@ class UserDevice(Device):
             await self.response_load_cert()
             raise error
         await self.response_load_cert()
+
+        if self.mode == UserMode.TEST and not verified:
+            raise AccessProtocolError("Certificate verification failed")
 
         Global.logger.info("Handling LOAD CERT command done")
 
