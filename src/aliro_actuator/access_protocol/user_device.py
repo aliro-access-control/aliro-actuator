@@ -552,8 +552,6 @@ class UserDevice(Device):
         Global.logger.info("Decompressing and verifying certificate")
         try:
             reader_public_key = self.session.get_reader_public_key()
-            if reader_public_key is None:
-                raise KeyLookupFailed
             verified = self.session.set_cert_and_verify(
                 load_cert_command.reader_cert, reader_public_key
             )
@@ -599,8 +597,6 @@ class UserDevice(Device):
             Global.logger.info("AUTH1 Command contains certificate")
             try:
                 reader_public_key = self.session.get_reader_public_key()
-                if reader_public_key is None:
-                    raise KeyLookupFailed
                 verified = self.session.set_cert_and_verify(
                     auth1_command.certificate_data, reader_public_key
                 )
@@ -1336,7 +1332,11 @@ class UserSession:
                 return reader_public_key
         else:
             Global.logger.warning("No access credential set")
-        raise KeyLookupFailed
+        raise KeyLookupFailed(
+            "Could not find key for reader identifier: {!r}".format(
+                hexlify(self.reader_group_identifier)
+            )
+        )
 
 
 class MailboxSession:
