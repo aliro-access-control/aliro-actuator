@@ -50,9 +50,11 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     async def test_control_flow_command(self, mock_nfc: Mock) -> None:
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_control_flow_response(
-            StatusBytes.SUCCESS
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_control_flow_response(StatusBytes.SUCCESS).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
@@ -62,12 +64,16 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     async def test_select_command(self, mock_nfc: Mock) -> None:
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_select_response(
-            EXPEDITED_PHASE_AID,
-            0x0000,
-            [PROTOCOL_VERSION],
-            status=StatusBytes.SUCCESS,
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_select_response(
+                EXPEDITED_PHASE_AID,
+                0x0000,
+                [PROTOCOL_VERSION],
+                status=StatusBytes.SUCCESS,
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
@@ -77,12 +83,16 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     async def test_select_command_invalid_aid(self, mock_nfc: Mock) -> None:
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_select_response(
-            EXPEDITED_PHASE_AID,
-            0x0000,
-            [PROTOCOL_VERSION],
-            status=StatusBytes.FILE_OR_APP_NOT_FOUND,
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_select_response(
+                EXPEDITED_PHASE_AID,
+                0x0000,
+                [PROTOCOL_VERSION],
+                status=StatusBytes.FILE_OR_APP_NOT_FOUND,
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
@@ -92,28 +102,32 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     async def test_select_command_invalid_aid_from_user(self, mock_nfc: Mock) -> None:
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_select_response(
-            bytes(
-                [
-                    0x00,
-                    0x02,
-                    0x03,
-                    0x04,
-                    0x05,
-                    0x00,
-                    0x43,
-                    0x43,
-                    0x44,
-                    0x4B,
-                    0x41,
-                    0x00,
-                    0x00,
-                ]
-            ),
-            0x0000,
-            [PROTOCOL_VERSION],
-            status=StatusBytes.SUCCESS,
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_select_response(
+                bytes(
+                    [
+                        0x00,
+                        0x02,
+                        0x03,
+                        0x04,
+                        0x05,
+                        0x00,
+                        0x43,
+                        0x43,
+                        0x44,
+                        0x4B,
+                        0x41,
+                        0x00,
+                        0x00,
+                    ]
+                ),
+                0x0000,
+                [PROTOCOL_VERSION],
+                status=StatusBytes.SUCCESS,
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
@@ -123,12 +137,16 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     async def test_select_command_invalid_type(self, mock_nfc: Mock) -> None:
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_select_response(
-            EXPEDITED_PHASE_AID,
-            0x0100,
-            [PROTOCOL_VERSION],
-            status=StatusBytes.SUCCESS,
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_select_response(
+                EXPEDITED_PHASE_AID,
+                0x0100,
+                [PROTOCOL_VERSION],
+                status=StatusBytes.SUCCESS,
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
@@ -138,9 +156,13 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     async def test_select_command_invalid_version(self, mock_nfc: Mock) -> None:
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_select_response(
-            EXPEDITED_PHASE_AID, 0x0000, [0x0000], status=StatusBytes.SUCCESS
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_select_response(
+                EXPEDITED_PHASE_AID, 0x0000, [0x0000], status=StatusBytes.SUCCESS
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
@@ -152,9 +174,13 @@ class Test_reader(unittest.TestCase):
         user_ephemeral = KeyPair()
 
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_auth0_response(
-            user_ephemeral.get_public_key_as_bytes(), StatusBytes.SUCCESS
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_auth0_response(
+                user_ephemeral.get_public_key_as_bytes(), StatusBytes.SUCCESS
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
@@ -171,11 +197,15 @@ class Test_reader(unittest.TestCase):
         user_ephemeral = KeyPair()
 
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_auth0_response(
-            user_ephemeral.get_public_key_as_bytes(),
-            StatusBytes.SUCCESS,
-            cryptogram=b"\x00" * 64,
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_auth0_response(
+                user_ephemeral.get_public_key_as_bytes(),
+                StatusBytes.SUCCESS,
+                cryptogram=b"\x00" * 64,
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
@@ -223,14 +253,18 @@ class Test_reader(unittest.TestCase):
         transaction_id = bytes.fromhex("2701e4fe10d21e15b216c550b0c5ee68")
 
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_auth0_response(
-            user_ephemeral.get_public_key_as_bytes(),
-            StatusBytes.SUCCESS,
-            cryptogram=bytes.fromhex(
-                "e87eac3589c3eeb3a6d7976d3ef29f3f0bb022e750fcda4a88bea8358d1bb63870a39b"
-                "aa89f80950ae305bdc03da9b1d91b6c4dbef2b15133ec7fa2d9c1046b4"
-            ),
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_auth0_response(
+                user_ephemeral.get_public_key_as_bytes(),
+                StatusBytes.SUCCESS,
+                cryptogram=bytes.fromhex(
+                    "e87eac3589c3eeb3a6d7976d3ef29f3f0bb022e750fcda4a88bea8358d1bb63870a39b"
+                    "aa89f80950ae305bdc03da9b1d91b6c4dbef2b15133ec7fa2d9c1046b4"
+                ),
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(
             TransportProtocol.NFC,
@@ -286,9 +320,11 @@ class Test_reader(unittest.TestCase):
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
     async def test_load_cert_command(self, mock_nfc: Mock) -> None:
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_load_cert_response(
-            StatusBytes.SUCCESS
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_load_cert_response(StatusBytes.SUCCESS).to_bytes(),
+            None,
+            None,
+        )
 
         certificate = bytes.fromhex(
             (
@@ -375,14 +411,18 @@ class Test_reader(unittest.TestCase):
         reader_sig = credential_keypair.sign(reader_auth.to_bytes())
 
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_auth1_response(
-            key_slot=None,
-            public_key=credential_keypair.get_public_key_as_bytes(),
-            expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
-            signature=reader_sig,
-            encryption=encryption,
-            status=StatusBytes.SUCCESS,
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_auth1_response(
+                key_slot=None,
+                public_key=credential_keypair.get_public_key_as_bytes(),
+                expected_response=Auth1Response.CREDENTIAL_PUBLIC_KEY,
+                signature=reader_sig,
+                encryption=encryption,
+                status=StatusBytes.SUCCESS,
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(
             TransportProtocol.NFC,
@@ -431,11 +471,15 @@ class Test_reader(unittest.TestCase):
         )
 
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_exchange_response(
-            payload=bytes.fromhex("00020000"),
-            encryption=encryption_user,
-            status=StatusBytes.SUCCESS,
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_exchange_response(
+                payload=bytes.fromhex("00020000"),
+                encryption=encryption_user,
+                status=StatusBytes.SUCCESS,
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(
             TransportProtocol.NFC,
@@ -473,13 +517,17 @@ class Test_reader(unittest.TestCase):
         rand_data = os.urandom(0x20)
 
         apdu = APDU()
-        mock_nfc.get_message.return_value = apdu.create_exchange_response(
-            payload=bytes.fromhex("000212340020")
-            + rand_data
-            + bytes.fromhex("00020000"),
-            encryption=encryption_user,
-            status=StatusBytes.SUCCESS,
-        ).to_bytes()
+        mock_nfc.get_message.return_value = (
+            apdu.create_exchange_response(
+                payload=bytes.fromhex("000212340020")
+                + rand_data
+                + bytes.fromhex("00020000"),
+                encryption=encryption_user,
+                status=StatusBytes.SUCCESS,
+            ).to_bytes(),
+            None,
+            None,
+        )
 
         reader = Reader(
             TransportProtocol.NFC,

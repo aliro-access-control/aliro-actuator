@@ -55,11 +55,17 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseError,
     InvalidStatusError,
     SessionError,
+    UnexpectedBLEMessageError,
     UnexpectedNotificationDataError,
 )
 from aliro_actuator.access_protocol.tlv import TLV, TlvError
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
-from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import (
+    AP_ID,
+    BleAttribute,
+    Notification_ID,
+    ProtocolType,
+)
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
@@ -363,9 +369,18 @@ class Reader(Device):
             raise SessionError("No Session")
 
         Global.logger.info("Waiting for Initiate access protocol notification")
-        response_str = await self.transport_protocol.get_message(
-            MessageType.INITIATE_ACCESS_PROTOCOL
-        )
+        response_str, header, id = await self.transport_protocol.get_message()
+        if (
+            header != ProtocolType.NOTIFICATION
+            or id != Notification_ID.INITIATE_ACCESS_PROTOCOL
+        ):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "initiate_access_protocol message",
+                header,
+                id,
+            )
+
         attribute = BleAttribute.from_bytes(response_str)
         if attribute.id != 0x00:
             raise AccessProtocolError("User send unknown attribute ID")
@@ -899,6 +914,19 @@ class Reader(Device):
 
         return read_data
 
+    def check_ble_message_type_for_response(
+        self, header: int | None, id: int | None
+    ) -> None:
+        if (header is not None and header != ProtocolType.AP) or (
+            id is not None and id != AP_ID.AP_RS
+        ):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP response message",
+                header,
+                id,
+            )
+
     async def command_auth0(
         self,
         transaction: Transaction,
@@ -937,11 +965,12 @@ class Reader(Device):
 
         Global.logger.info("Sending AUTH0 command")
         await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
+            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
         )
 
         Global.logger.info("Waiting for AUTH0 response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.AUTH0)
 
@@ -984,11 +1013,13 @@ class Reader(Device):
 
         Global.logger.info("Sending AUTH1 command")
         await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
+            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
         )
 
         Global.logger.info("Waiting for AUTH1 response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.AUTH1, encryption)
 
@@ -1008,11 +1039,13 @@ class Reader(Device):
 
         Global.logger.info("Sending SELECT command")
         await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
+            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
         )
 
         Global.logger.info("Waiting for SELECT response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.SELECT)
 
@@ -1038,11 +1071,13 @@ class Reader(Device):
 
         Global.logger.info("Sending LOAD CERT command")
         await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
+            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
         )
 
         Global.logger.info("Waiting for LOAD CERT response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.LOAD_CERT)
 
@@ -1067,11 +1102,13 @@ class Reader(Device):
 
         Global.logger.info("Sending EXCHANGE command")
         await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
+            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
         )
 
         Global.logger.info("Waiting for EXCHANGE response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.EXCHANGE, encryption)
 
@@ -1095,11 +1132,13 @@ class Reader(Device):
 
         Global.logger.info("Sending CONTROL FLOW command")
         await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
+            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
         )
 
         Global.logger.info("Waiting for CONTROL FLOW response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
 
