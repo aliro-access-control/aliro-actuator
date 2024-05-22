@@ -187,7 +187,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         data = bytearray()
         data.append(0x01)  # scanning parameters included
         data.append(0x00)  # type (passive)
-        data.extend(0x0010.to_bytes(2, "little"))  # interval (ms)
+        data.extend(0x0100.to_bytes(2, "little"))  # interval (ms)
         data.extend(0x0010.to_bytes(2, "little"))  # window (ms)
         data.append(0x00)  # own address type (public)
         data.append(0x00)  # filter policy (ScanAll)
