@@ -21,13 +21,6 @@ class Mode(Enum):
     USER_DEVICE = 2
 
 
-class MessageType(Enum):
-    ANY = 0
-    REQUEST = 1
-    RESPONSE = 2
-    INITIATE_ACCESS_PROTOCOL = 3
-
-
 class TransportProtocolBase(ABC):
     @abstractmethod
     async def initialization(
@@ -50,9 +43,17 @@ class TransportProtocolBase(ABC):
         pass
 
     @abstractmethod
-    async def send_message(self, command: bytes, type: MessageType) -> None:
+    async def send_message(
+        self,
+        command: bytes,
+        protocol_type: int,
+        id: int,
+        encrypt: bool = False,
+    ) -> None:
         pass
 
     @abstractmethod
-    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
-        return b""
+    async def get_message(
+        self, decrypt: bool = False
+    ) -> tuple[bytes, int | None, int | None]:
+        return b"", None, None

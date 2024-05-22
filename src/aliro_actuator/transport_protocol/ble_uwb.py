@@ -21,7 +21,7 @@ from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
 )
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
     BleMessage,
@@ -30,7 +30,6 @@ from aliro_actuator.transport_protocol.ble_message_format import (
 )
 from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
-    UnexpectedMessageTypeError,
     UnknownVersionRequestedError,
 )
 
@@ -102,22 +101,15 @@ class BLEUWB(TransportProtocolBase):
         await self.driver.setup_l2cap_connection(self.spsm)
 
     async def send_message(
-        self, command: bytes, type: MessageType, encrypt: bool = False
+        self,
+        command: bytes,
+        protocol_type: int,
+        id: int,
+        encrypt: bool = False,
     ) -> None:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         Global.logger.info("sending command: {!r}".format(hexlify(command)))
-        if type == MessageType.REQUEST:
-            protocol_type = ProtocolType.AP
-            id: int = AP_ID.AP_RQ
-        elif type == MessageType.RESPONSE:
-            protocol_type = ProtocolType.AP
-            id = AP_ID.AP_RS
-        elif type == MessageType.INITIATE_ACCESS_PROTOCOL:
-            protocol_type = ProtocolType.NOTIFICATION
-            id = Notification_ID.INITIATE_ACCESS_PROTOCOL
-        else:
-            raise NotImplementedError
 
         if encrypt:
             encrypted_payload, tag = self.encryption_engine.encrypt(
@@ -134,8 +126,8 @@ class BLEUWB(TransportProtocolBase):
         )
 
     async def get_message(
-        self, expected_type: MessageType = MessageType.ANY, decrypt: bool = False
-    ) -> bytes:
+        self, decrypt: bool = False
+    ) -> tuple[bytes, int | None, int | None]:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         message_bytes = await self.driver.wait_for_data(
@@ -143,22 +135,6 @@ class BLEUWB(TransportProtocolBase):
         )
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
-        if expected_type == MessageType.ANY:
-            pass
-        elif expected_type == MessageType.REQUEST:
-            if message.header != ProtocolType.AP or message.id != AP_ID.AP_RQ:
-                raise UnexpectedMessageTypeError
-        elif expected_type == MessageType.RESPONSE:
-            if message.header != ProtocolType.AP or message.id != AP_ID.AP_RS:
-                raise UnexpectedMessageTypeError
-        elif expected_type == MessageType.INITIATE_ACCESS_PROTOCOL:
-            if (
-                message.header != ProtocolType.NOTIFICATION
-                or message.id != Notification_ID.INITIATE_ACCESS_PROTOCOL
-            ):
-                raise UnexpectedMessageTypeError
-        else:
-            raise NotImplementedError
 
         if decrypt:
             payload = self.encryption_engine.decrypt(
@@ -170,7 +146,7 @@ class BLEUWB(TransportProtocolBase):
             )
         else:
             payload = message.payload
-        return payload
+        return payload, message.header, message.id
 
     def set_encryption(self, encryption_engine: EncryptionEngine) -> None:
         self.encryption_engine = encryption_engine

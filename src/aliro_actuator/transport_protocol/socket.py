@@ -16,7 +16,7 @@ import socket
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.errors import (
     InvalidModeError,
     NoDataReceivedError,
@@ -57,9 +57,6 @@ class Socket(TransportProtocolBase):
             self.host.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.host.settimeout(TIMEOUT)
 
-    async def disconnect(self) -> None:
-        pass
-
     async def wait_for_connection(self) -> None:
         if self.mode == Mode.READER:
             self.client.connect((socket.gethostname(), PORT))
@@ -68,31 +65,39 @@ class Socket(TransportProtocolBase):
             self.host.listen(1)
             self.host, address = self.host.accept()
 
-    def disconnect(self) -> None:
+    async def disconnect(self) -> None:
         if self.mode == Mode.READER:
             self.client.close()
         elif self.mode == Mode.USER_DEVICE:
             self.host.close()
 
-    async def send_message(self, command: bytes, type: MessageType) -> None:
+    async def send_message(
+        self,
+        command: bytes,
+        protocol_type: int,
+        id: int,
+        encrypt: bool = False,
+    ) -> None:
         Global.logger.debug("sending message {!r}".format(hexlify(command)))
         if self.mode == Mode.READER:
             self.client.send(command)
         elif self.mode == Mode.USER_DEVICE:
             self.host.send(command)
 
-    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
+    async def get_message(
+        self, decrypt: bool = False
+    ) -> tuple[bytes, int | None, int | None]:
         if self.mode == Mode.READER:
             data = self.client.recv(4096)
             if data == b"":
                 raise NoDataReceivedError
             Global.logger.debug("received message {!r}".format(hexlify(data)))
-            return data
+            return data, None, None
         elif self.mode == Mode.USER_DEVICE:
             data = self.host.recv(4096)
             if data == b"":
                 raise NoDataReceivedError
             Global.logger.debug("received message {!r}".format(hexlify(data)))
-            return data
+            return data, None, None
         else:
             raise InvalidModeError

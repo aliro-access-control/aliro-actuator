@@ -15,7 +15,8 @@
 import subprocess
 import unittest
 
-from aliro_actuator.transport_protocol import MessageType, Mode
+from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.socket import Socket
 
 
@@ -38,6 +39,10 @@ class Test_socket_card(unittest.TestCase):
         card = Socket()
         await card.initialization(Mode.USER_DEVICE)
         await card.wait_for_connection()
-        await card.send_message(bytes([0x12, 0x34, 0x56, 0x78]), MessageType.REQUEST)
-        self.assertEqual(bytes([0x13, 0x35, 0x57, 0x79]), await card.get_message())
+        await card.send_message(
+            bytes([0x12, 0x34, 0x56, 0x78]),
+            ProtocolType.AP,
+            AP_ID.AP_RQ,
+        )
+        self.assertEqual(bytes([0x13, 0x35, 0x57, 0x79]), (await card.get_message())[0])
         card.disconnect()

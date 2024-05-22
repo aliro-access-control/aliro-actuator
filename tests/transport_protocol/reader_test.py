@@ -19,7 +19,8 @@ import sys
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
 
-from aliro_actuator.transport_protocol import MessageType, Mode
+from aliro_actuator.transport_protocol import Mode
+from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.socket import Socket
 
 
@@ -29,11 +30,15 @@ async def main() -> None:
         reader = Socket()
         await reader.initialization(Mode.READER)
         await reader.wait_for_connection()
-        received_message = await reader.get_message()
+        received_message, _, _ = await reader.get_message()
         new_message = bytearray()
         for digit in received_message:
             new_message.append(digit + 1)
-        await reader.send_message(bytes(new_message), MessageType.RESPONSE)
+        await reader.send_message(
+            bytes(new_message),
+            ProtocolType.AP,
+            AP_ID.AP_RS,
+        )
     except ConnectionRefusedError:
         pass
     # reader.disconnect()

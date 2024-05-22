@@ -55,12 +55,18 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCommandError,
     InvalidParameterError,
     SessionError,
+    UnexpectedBLEMessageError,
     UnexpectedCommandError,
     VersionError,
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
-from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import (
+    AP_ID,
+    BleAttribute,
+    Notification_ID,
+    ProtocolType,
+)
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -336,7 +342,7 @@ class UserDevice(Device):
         """
         response = self.apdu.create_error_response(error_code)
         await self.transport_protocol.send_message(
-            response.to_bytes(), MessageType.RESPONSE
+            response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
         )
 
         await self.transaction_termination()
@@ -351,7 +357,9 @@ class UserDevice(Device):
         )
         attribute = BleAttribute(0x00, proprietary.to_bytes())
         await self.transport_protocol.send_message(
-            attribute.to_bytes(), MessageType.INITIATE_ACCESS_PROTOCOL
+            attribute.to_bytes(),
+            ProtocolType.NOTIFICATION,
+            Notification_ID.INITIATE_ACCESS_PROTOCOL,
         )
 
     async def handle_select(self, select_command: Command) -> bytes:
@@ -908,7 +916,17 @@ class UserDevice(Device):
             expected_command = [expected_command]
 
         Global.logger.info("Waiting for command")
-        command_str = await self.transport_protocol.get_message()
+        command_str, header, id = await self.transport_protocol.get_message()
+        if (header is not None and header != ProtocolType.AP) or (
+            id is not None and id != AP_ID.AP_RQ
+        ):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP request message",
+                header,
+                id,
+            )
+
         Global.logger.info("Received command")
         try:
             command = self.apdu.parse_command(command_str, encryption)
@@ -945,7 +963,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending AUTH0 response")
         await self.transport_protocol.send_message(
-            auth0_response.to_bytes(), MessageType.RESPONSE
+            auth0_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
         )
 
     async def response_auth1(
@@ -991,7 +1009,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending AUTH1 response")
         await self.transport_protocol.send_message(
-            auth1_response.to_bytes(), MessageType.RESPONSE
+            auth1_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
         )
 
     async def response_select(
@@ -1025,7 +1043,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending SELECT response")
         await self.transport_protocol.send_message(
-            select_response.to_bytes(), MessageType.RESPONSE
+            select_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
         )
 
     def response_envelope(self) -> None:
@@ -1041,7 +1059,7 @@ class UserDevice(Device):
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
         Global.logger.info("Sending LOAD CERT response")
         await self.transport_protocol.send_message(
-            load_cert_response.to_bytes(), MessageType.RESPONSE
+            load_cert_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
         )
 
     async def response_exchange(
@@ -1061,7 +1079,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending EXCHANGE response")
         await self.transport_protocol.send_message(
-            exchange_response.to_bytes(), MessageType.RESPONSE
+            exchange_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
         )
 
     async def response_control_flow(self) -> None:
@@ -1073,7 +1091,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending CONTROL FLOW response")
         await self.transport_protocol.send_message(
-            control_flow_response.to_bytes(), MessageType.RESPONSE
+            control_flow_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
         )
 
 
