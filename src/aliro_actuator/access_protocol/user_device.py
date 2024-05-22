@@ -63,6 +63,7 @@ from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
+    AccessProtocolCompleted_AttributeID,
     BleAttribute,
     Notification_ID,
     ProtocolType,
@@ -271,7 +272,7 @@ class UserDevice(Device):
                 try:
                     if self.session is None:
                         raise SessionError("starting session failed")
-                    command = await self.wait_for_command(
+                    message = await self.wait_for_message(
                         encryption=self.session.encryption
                     )
                 except (InvalidCommandError, VerificationError):
@@ -281,25 +282,31 @@ class UserDevice(Device):
                     # try to reconnect in outer loop
                     break
                 try:
-                    match command.ins:
-                        case INS.SELECT:
-                            await self.handle_select(command)
-                        case INS.AUTH0:
-                            await self.handle_auth0(command)
-                        case INS.AUTH1:
-                            await self.handle_auth1(command)
-                        case INS.LOAD_CERT:
-                            await self.handle_load_cert(command)
-                        case INS.CONTROL_FLOW:
-                            await self.handle_control_flow(command)
-                            await self.transaction_termination()
-                            break
-                        case INS.EXCHANGE:
-                            await self.handle_exchange(command)
-                        case _:
-                            raise NotImplementedError(
-                                "command: {} not implemented".format(command.ins)
-                            )
+                    if isinstance(message, Command):
+                        match message.ins:
+                            case INS.SELECT:
+                                await self.handle_select(message)
+                            case INS.AUTH0:
+                                await self.handle_auth0(message)
+                            case INS.AUTH1:
+                                await self.handle_auth1(message)
+                            case INS.LOAD_CERT:
+                                await self.handle_load_cert(message)
+                            case INS.CONTROL_FLOW:
+                                await self.handle_control_flow(message)
+                                await self.transaction_termination()
+                                break
+                            case INS.EXCHANGE:
+                                await self.handle_exchange(message)
+                            case _:
+                                raise NotImplementedError(
+                                    "command: {} not implemented".format(message.ins)
+                                )
+                    else:
+                        payload = message[0]
+                        header = message[1]
+                        id = message[2]
+                        self.handle_ble_messages(payload, header, id)
                 except AccessProtocolError as error:
                     Global.logger.error(
                         "restarting session because of error: {}".format(
@@ -312,6 +319,20 @@ class UserDevice(Device):
                 except NoDeviceConnectedError:
                     # try to reconnect in outer loop
                     break
+
+    def handle_ble_messages(self, payload: bytes, header: int, id: int) -> None:
+        Global.logger.info("Handling (non command) ble message")
+        if (
+            header == ProtocolType.NOTIFICATION
+            and id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
+        ):
+            self.handle_reader_status_access_protocol_completed_message(payload)
+        else:
+            raise UnexpectedBLEMessageError(
+                "Received unhandleable ble message",
+                header,
+                id,
+            )
 
     def start_new_session(self) -> None:
         """
@@ -888,6 +909,13 @@ class UserDevice(Device):
 
         Global.logger.info("Handling CONTROL FLOW command done")
 
+    def handle_reader_status_access_protocol_completed_message(
+        self, payload: bytes
+    ) -> None:
+        Global.logger.info("Handling Reader Status Access Protocol Completed message")
+        attribute = BleAttribute.from_bytes(payload)
+        attribute.parse_as_access_protocol_completed_attribute()
+
     async def wait_for_command(
         self,
         expected_command: INS | list[INS] | None = None,
@@ -898,13 +926,53 @@ class UserDevice(Device):
 
         Args:
             expected_command (INS | list[INS] | None, optional): INS or list of INS with
-            expected commands. raises UnexpectedCommandError if another command is received. Defaults to None.
-            encryption (EncryptionEngine | None, optional): Used for decrypting messages.
+            expected commands. raises UnexpectedCommandError if another command is
+            received. Defaults to None.
+            encryption (EncryptionEngine | None, optional): Used for decrypting
+            messages.
             Not required for every command. Defaults to None.
 
         Raises:
             InvalidCLAError: Raised when the received command has an invalid CLA.
-            InvalidParameterError: Raised when the received command has an invalid Paramenter (P1 or P2).
+            InvalidParameterError: Raised when the received command has an invalid
+            Parameter (P1 or P2).
+            InvalidCommandError: Raised when the received command is invalid.
+            VerificationError: Raised when the verification of an AES decryption fails.
+            UnexpectedCommandError: when the command is not in expected_command.
+
+        Returns:
+            Command: the received command.
+        """
+        message = await self.wait_for_message(expected_command, encryption)
+        if not isinstance(message, Command):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP request message",
+                message[1],
+                message[2],
+            )
+        return message
+
+    async def wait_for_message(
+        self,
+        expected_command: INS | list[INS] | None = None,
+        encryption: EncryptionEngine | None = None,
+    ) -> Command | tuple[bytes, int, int]:
+        """
+        Waits until a message is received, and parses it if it is a command.
+
+        Args:
+            expected_command (INS | list[INS] | None, optional): INS or list of INS with
+            expected commands. raises UnexpectedCommandError if another command is
+            received. Defaults to None.
+            encryption (EncryptionEngine | None, optional): Used for decrypting
+            messages.
+            Not required for every command. Defaults to None.
+
+        Raises:
+            InvalidCLAError: Raised when the received command has an invalid CLA.
+            InvalidParameterError: Raised when the received command has an invalid
+            Parameter (P1 or P2).
             InvalidCommandError: Raised when the received command is invalid.
             VerificationError: Raised when the verification of an AES decryption fails.
             UnexpectedCommandError: when the command is not in expected_command.
@@ -917,9 +985,19 @@ class UserDevice(Device):
 
         Global.logger.info("Waiting for command")
         command_str, header, id = await self.transport_protocol.get_message()
-        if (header is not None and header != ProtocolType.AP) or (
-            id is not None and id != AP_ID.AP_RQ
+        if (header is None and id is None) or (
+            header == ProtocolType.AP and id == AP_ID.AP_RQ
         ):
+            Global.logger.info("Received command")
+        elif (
+            header == ProtocolType.NOTIFICATION
+            and id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
+        ):
+            Global.logger.info(
+                "Received Reader status access protocol completed message"
+            )
+            return command_str, header, id
+        else:
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
                 "AP request message",
@@ -927,7 +1005,6 @@ class UserDevice(Device):
                 id,
             )
 
-        Global.logger.info("Received command")
         try:
             command = self.apdu.parse_command(command_str, encryption)
         except InvalidCLAError as error:

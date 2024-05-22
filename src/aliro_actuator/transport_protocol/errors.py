@@ -35,3 +35,11 @@ class NoDeviceConnectedError(TransportProtocolError):
 
 class UnknownVersionRequestedError(TransportProtocolError):
     pass
+
+
+class BLEMessageError(TransportProtocolError):
+    """
+    Raised when a ble message is received and has unexpected data.
+    """
+
+    pass

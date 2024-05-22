@@ -62,6 +62,7 @@ from aliro_actuator.access_protocol.tlv import TLV, TlvError
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
+    AccessProtocolCompleted_AttributeID,
     BleAttribute,
     Notification_ID,
     ProtocolType,
@@ -913,6 +914,31 @@ class Reader(Device):
         Global.logger.info("Handling EXCHANGE response done")
 
         return read_data
+
+    async def reader_status_access_protocol_completed(
+        self, unsolicited_reader_status_reporting: int, reader_status_information: int
+    ) -> None:
+        """
+        Send the BLE message Reader Status Access Protocol Completed.
+        """
+        Global.logger.info(
+            "Sending Reader Status Access Protocol Completed BLE message"
+        )
+
+        attribute_payload = bytearray()
+        attribute_payload.append(unsolicited_reader_status_reporting << 5)
+        attribute_payload.append(reader_status_information)
+        attribute_payload_bytes = bytes(attribute_payload)
+
+        payload = BleAttribute(
+            AccessProtocolCompleted_AttributeID.READER_INFORMATION_ATTRIBUTE_ID,
+            attribute_payload_bytes,
+        )
+        await self.transport_protocol.send_message(
+            payload.to_bytes(),
+            ProtocolType.NOTIFICATION,
+            Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED,
+        )
 
     def check_ble_message_type_for_response(
         self, header: int | None, id: int | None
