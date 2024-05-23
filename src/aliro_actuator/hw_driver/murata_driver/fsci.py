@@ -177,7 +177,7 @@ class Message:
             and self.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
         ):
             address_type = self.data[0]
-            address = self.data[1:7]
+            address = change_endianness(self.data[1:7])
             advertising_address_resolved = self.data[-1]
             return (address_type, address, advertising_address_resolved)
         raise NotImplementedError

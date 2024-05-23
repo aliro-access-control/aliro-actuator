@@ -224,7 +224,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         data.append(0x00)  # filter policy
         data.append(0x00)  # own address type
         data.append(peer_address_type)  # peer address type
-        data.extend(peer_address)  # peer address
+        data.extend(change_endianness(peer_address))  # peer address
         data.extend(int.to_bytes(20, 2, "little"))  # conn interval min
         data.extend(int.to_bytes(20, 2, "little"))  # conn interval max
         data.extend(int.to_bytes(0, 2, "little"))  # conn latency
