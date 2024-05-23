@@ -154,6 +154,17 @@ class BLEUWB(TransportProtocolBase):
             ProtocolType.SUPPLEMENTARY_SERVICE,
             ProtocolType.THIRD_PARTY_APP,
         ]:
+            Global.logger.info("Decrypting BLE message")
+            Global.logger.info(
+                "Encrypted payload: {!r}".format(
+                    hexlify(message.payload[:-AUTHENTICATION_TAG_SIZE])
+                )
+            )
+            Global.logger.info(
+                "Authentication tag: {!r}".format(
+                    hexlify(message.payload[-AUTHENTICATION_TAG_SIZE:])
+                )
+            )
             payload = self.encryption_engine.decrypt(
                 message.payload[:-AUTHENTICATION_TAG_SIZE],
                 message.payload[-AUTHENTICATION_TAG_SIZE:],
