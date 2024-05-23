@@ -51,16 +51,13 @@ class NFC(TransportProtocolBase):
         command: bytes,
         protocol_type: int,
         id: int,
-        encrypt: bool = False,
     ) -> None:
         try:
             await asyncio.to_thread(self.driver.send_message, command)
         except (NoTagError, NoReaderError) as error:
             raise NoDeviceConnectedError from error
 
-    async def get_message(
-        self, decrypt: bool = False
-    ) -> tuple[bytes, int | None, int | None]:
+    async def get_message(self) -> tuple[bytes, int | None, int | None]:
         try:
             return await asyncio.to_thread(self.driver.receive_message), None, None
         except (NoTagError, NoReaderError) as error:

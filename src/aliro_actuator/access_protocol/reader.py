@@ -67,6 +67,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
     ProtocolType,
 )
+from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
@@ -659,6 +660,12 @@ class Reader(Device):
         Global.logger.info("Create shared keys")
         self.session.set_shared_key()
         self.session.derive_key_volatile(self.transport_protocol_type)
+        if self.transport_protocol_type in [
+            TransportProtocol.BLE_UWB,
+            TransportProtocol.SOCKET_BLE,
+        ]:
+            Global.logger.info("Setting up BLE encryption")
+            self.session.set_ble_encryption(self.transport_protocol)
 
         Global.logger.info(
             "Start handling AUTH1 with key type request: {}".format(
@@ -1542,6 +1549,12 @@ class ReaderSession:
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
+
+    def set_ble_encryption(self, transport_protocol: TransportProtocolBase) -> None:
+        if not isinstance(transport_protocol, BLEUWB):
+            raise AccessProtocolError("Trying to set BLE encryption while using NFC")
+
+        transport_protocol.set_encryption(DeviceType.READER, self.ble_SK)
 
     def encrypt_payload(self, payload: bytes) -> tuple[bytes, bytes]:
         return self.encryption.encrypt(payload)

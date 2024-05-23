@@ -48,12 +48,9 @@ class TransportProtocolBase(ABC):
         command: bytes,
         protocol_type: int,
         id: int,
-        encrypt: bool = False,
     ) -> None:
         pass
 
     @abstractmethod
-    async def get_message(
-        self, decrypt: bool = False
-    ) -> tuple[bytes, int | None, int | None]:
+    async def get_message(self) -> tuple[bytes, int | None, int | None]:
         return b"", None, None
