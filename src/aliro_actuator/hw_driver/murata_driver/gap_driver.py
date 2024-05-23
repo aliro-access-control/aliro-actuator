@@ -31,7 +31,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_PUBLIC_ADDRESS_READY
         )
         Global.logger.debug("Read public device address ready")
-        return response.data
+        return change_endianness(response.data)
 
     async def set_advertising_parameters(self) -> None:
         Global.logger.debug("Setting advertising parameters")
@@ -290,22 +290,50 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                             hexlify(address), hexlify(advertising_data)
                         )
                     )
-                    if (
-                        change_endianness(advertising_data[5:7]) == service_uuid
-                        and (
-                            not check_dynamic_tag
-                            or dynamic_tag_generation(
-                                group_resolving_key=group_resolving_key,
-                                expiry_timestamp=advertising_data[19:23],
-                                advertising_address=address,
+                    if len(advertising_data) != 31:
+                        Global.logger.debug("Advertising data has invalid length")
+                    elif change_endianness(advertising_data[5:7]) != service_uuid:
+                        Global.logger.debug(
+                            "No valid service uuid found, expected: {!r}, "
+                            "found: {!r}".format(
+                                hexlify(service_uuid),
+                                hexlify(change_endianness(advertising_data[5:7])),
                             )
-                            == advertising_data[24:31]
                         )
-                        and (
-                            reader_group_id is None
-                            or advertising_data[9:17] in reader_group_id
+                    elif (
+                        check_dynamic_tag
+                        and dynamic_tag_generation(
+                            group_resolving_key=group_resolving_key,
+                            expiry_timestamp=advertising_data[19:23],
+                            advertising_address=address,
                         )
+                        != advertising_data[24:31]
                     ):
+                        Global.logger.debug(
+                            "No valid dynamic tag found, expected: {!r}, "
+                            "found {!r}".format(
+                                hexlify(
+                                    dynamic_tag_generation(
+                                        group_resolving_key=group_resolving_key,
+                                        expiry_timestamp=advertising_data[19:23],
+                                        advertising_address=address,
+                                    )
+                                ),
+                                hexlify(advertising_data[24:31]),
+                            )
+                        )
+                    elif (
+                        reader_group_id is not None
+                        and advertising_data[9:17] not in reader_group_id
+                    ):
+                        Global.logger.debug(
+                            "No valid reader group id found, found {!r}, "
+                            "which is not in list: [{}]".format(
+                                hexlify(advertising_data[9:17]),
+                                ", ".join(str(hexlify(x)) for x in reader_group_id),
+                            )
+                        )
+                    else:
                         Global.logger.info("Device Found!")
                         self.set_normal_timeout()
                         return message.get_address()
