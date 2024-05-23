@@ -649,6 +649,13 @@ class UserDevice(Device):
             Global.logger.info("Creating shared keys")
             self.session.set_shared_key()
             self.session.derive_key_volatile(self.transport_protocol_type)
+            if self.transport_protocol_type in [
+                TransportProtocol.BLE_UWB,
+                TransportProtocol.SOCKET_BLE,
+            ]:
+                Global.logger.info("Setting up BLE encryption")
+                self.session.set_ble_encryption(self.transport_protocol)
+
             Global.logger.info("Creating Kpersistent")
             self.storage.add_kpersistent(
                 kpersistent=self.session.derive_key_persistent(
@@ -1386,6 +1393,12 @@ class UserSession:
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
+
+    def set_ble_encryption(self, transport_protocol: TransportProtocolBase) -> None:
+        if not isinstance(transport_protocol, BLEUWB):
+            raise AccessProtocolError("Trying to set BLE encryption while using NFC")
+
+        transport_protocol.set_encryption(DeviceType.USER, self.ble_SK)
 
     def set_cert_and_verify(
         self, compressed_cert: bytes, public_key: PublicKey

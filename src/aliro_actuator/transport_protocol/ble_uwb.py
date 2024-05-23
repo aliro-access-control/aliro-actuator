@@ -16,7 +16,7 @@ from binascii import hexlify
 
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.apdu import AUTHENTICATION_TAG_SIZE
-from aliro_actuator.access_protocol.encryption import EncryptionEngine
+from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
 from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
@@ -32,9 +32,11 @@ from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
     UnknownVersionRequestedError,
 )
+from aliro_actuator.trust_framework.key import derive_key
 
 DEFAULT_PORT = "/dev/ttyUSB0"
 SUPPORTED_VERSIONS = [0x0100]
+CURRENT_VERSION = 0x0100
 
 
 class BLEUWB(TransportProtocolBase):
@@ -59,11 +61,14 @@ class BLEUWB(TransportProtocolBase):
         self.mode = mode
         self.group_resolving_key = group_resolving_key
         self.spsm = spsm
+        self.encryption_available = False
         if self.mode == Mode.READER:
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port)
             )
-            await self.driver.setup_gatt_database(self.spsm)
+
+            self.supported_versions = SUPPORTED_VERSIONS
+            await self.driver.setup_gatt_database(self.spsm, self.supported_versions)
             await self.driver.setup_connection(
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
@@ -85,19 +90,23 @@ class BLEUWB(TransportProtocolBase):
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()
         if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
-            ble_version = await self.driver.wait_for_write()
+            self.ble_version = await self.driver.wait_for_write()
             Global.logger.info(
                 "Checking ble version requested by User Device: 0x{:4x}".format(
-                    ble_version
+                    self.ble_version
                 )
             )
-            if ble_version not in SUPPORTED_VERSIONS:
+            if self.ble_version not in self.supported_versions:
                 raise UnknownVersionRequestedError
             Global.logger.info("Valid ble version requested by User Device")
         if self.mode == Mode.USER_DEVICE and isinstance(
             self.driver, UserDeviceMurataDriver
         ):
-            self.spsm = await self.driver.handle_GATT_layer()
+            self.ble_version = CURRENT_VERSION
+            (
+                self.spsm,
+                self.supported_versions,
+            ) = await self.driver.handle_GATT_layer(self.ble_version)
         await self.driver.setup_l2cap_connection(self.spsm)
 
     async def send_message(
@@ -105,13 +114,17 @@ class BLEUWB(TransportProtocolBase):
         command: bytes,
         protocol_type: int,
         id: int,
-        encrypt: bool = False,
     ) -> None:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         Global.logger.info("sending command: {!r}".format(hexlify(command)))
 
-        if encrypt:
+        if self.encryption_available and protocol_type in [
+            ProtocolType.NOTIFICATION,
+            ProtocolType.UWB_RANGING_SERVICE,
+            ProtocolType.SUPPLEMENTARY_SERVICE,
+            ProtocolType.THIRD_PARTY_APP,
+        ]:
             encrypted_payload, tag = self.encryption_engine.encrypt(
                 command,
                 protocol_type.to_bytes(1, "little")
@@ -119,15 +132,14 @@ class BLEUWB(TransportProtocolBase):
                 + len(command).to_bytes(2, "little"),
             )
             command = encrypted_payload + tag
+
         message = BleMessage(protocol_type, id, command)
         Global.logger.info("BLE message: {!r}".format(hexlify(message.to_bytes())))
         await self.driver.send_le_cb_data(
             self.driver.connected_devices[0], message.to_bytes()
         )
 
-    async def get_message(
-        self, decrypt: bool = False
-    ) -> tuple[bytes, int | None, int | None]:
+    async def get_message(self) -> tuple[bytes, int | None, int | None]:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         message_bytes = await self.driver.wait_for_data(
@@ -136,7 +148,12 @@ class BLEUWB(TransportProtocolBase):
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
 
-        if decrypt:
+        if self.encryption_available and message.header in [
+            ProtocolType.NOTIFICATION,
+            ProtocolType.UWB_RANGING_SERVICE,
+            ProtocolType.SUPPLEMENTARY_SERVICE,
+            ProtocolType.THIRD_PARTY_APP,
+        ]:
             payload = self.encryption_engine.decrypt(
                 message.payload[:-AUTHENTICATION_TAG_SIZE],
                 message.payload[-AUTHENTICATION_TAG_SIZE:],
@@ -148,5 +165,16 @@ class BLEUWB(TransportProtocolBase):
             payload = message.payload
         return payload, message.header, message.id
 
-    def set_encryption(self, encryption_engine: EncryptionEngine) -> None:
-        self.encryption_engine = encryption_engine
+    def set_encryption(self, device_type: DeviceType, ble_sk: bytes) -> None:
+        supported_versions_bytearray = bytearray()
+        for version in self.supported_versions:
+            supported_versions_bytearray.extend(version.to_bytes(2, "big"))
+        supported_versions_bytes = bytes(supported_versions_bytearray)
+
+        salt = supported_versions_bytes + self.ble_version.to_bytes(2, "big")
+        ble_sk_reader = derive_key(ble_sk, "BleSKReader".encode("utf-8"), 32, salt)
+        ble_sk_device = derive_key(ble_sk, "BleSKDevice".encode("utf-8"), 32, salt)
+        self.encryption_engine = EncryptionEngine(
+            DeviceType.READER, ble_sk_reader, ble_sk_device
+        )
+        self.encryption_available = True

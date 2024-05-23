@@ -76,7 +76,6 @@ class Socket(TransportProtocolBase):
         command: bytes,
         protocol_type: int,
         id: int,
-        encrypt: bool = False,
     ) -> None:
         Global.logger.debug("sending message {!r}".format(hexlify(command)))
         if self.mode == Mode.READER:
@@ -84,9 +83,7 @@ class Socket(TransportProtocolBase):
         elif self.mode == Mode.USER_DEVICE:
             self.host.send(command)
 
-    async def get_message(
-        self, decrypt: bool = False
-    ) -> tuple[bytes, int | None, int | None]:
+    async def get_message(self) -> tuple[bytes, int | None, int | None]:
         if self.mode == Mode.READER:
             data = self.client.recv(4096)
             if data == b"":

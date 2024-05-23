@@ -22,7 +22,6 @@ from aliro_actuator.hw_driver.murata_driver.l2cap_driver import MurataL2CAPDrive
 ALIRO_SERVICE_UUID = bytes.fromhex("FFF2")
 READER_CHARACTERISTIC_UUID = bytes.fromhex("D3B5A1309E234B3A8BE46B1EE5F980A3")
 USER_DEVICE_CHARACTERISTIC_UUID = bytes.fromhex("BD4B95023F5411ECB9190242AC120005")
-CURRENT_VERSION = 0x0100
 
 
 class UserDeviceMurataDriver(
@@ -68,7 +67,7 @@ class UserDeviceMurataDriver(
         await self.stop_scanning()
         await self.connect(address_type, address, advertising_address_resolved)
 
-    async def handle_GATT_layer(self) -> bytes:
+    async def handle_GATT_layer(self, version: int) -> tuple[bytes, list[int]]:
         Global.logger.info("handle GATT layer")
         await self.handle_GATT_layer_setup()
         primary_service = await self.handle_GATT_layer_get_primary_service()
@@ -78,11 +77,11 @@ class UserDeviceMurataDriver(
         Global.logger.debug("Read SPSM from reader: {!r}".format(hexlify(spsm)))
         Global.logger.debug(
             "Read BLE UWB Protocol versions: {}".format(
-                ", ".join(str(hexlify(version)) for version in ble_versions)
+                ", ".join(str(hex(version)) for version in ble_versions)
             )
         )
-        await self.handle_GATT_layer_write_characteristic(primary_service)
-        return spsm
+        await self.handle_GATT_layer_write_characteristic(primary_service, version)
+        return spsm, ble_versions
 
     async def handle_GATT_layer_setup(self) -> None:
         Global.logger.debug("GATT layer setup")
@@ -106,7 +105,7 @@ class UserDeviceMurataDriver(
 
     async def handle_GATT_layer_read_characteristic(
         self, primary_service: Service
-    ) -> tuple[bytes, list[bytes]]:
+    ) -> tuple[bytes, list[int]]:
         Global.logger.debug("GATT read characteristic")
         reader_characteristic = None
         for characteristic in primary_service.characteristics:
@@ -123,11 +122,11 @@ class UserDeviceMurataDriver(
         no_versions = read_value[2] // 2  # every version is 2 byte long
         versions = []
         for index in range(no_versions):
-            versions.append(read_value[3 + index : 5 + index])
+            versions.append(int.from_bytes(read_value[3 + index : 5 + index], "big"))
         return read_value[:2], versions
 
     async def handle_GATT_layer_write_characteristic(
-        self, primary_service: Service
+        self, primary_service: Service, version: int
     ) -> None:
         Global.logger.debug("GATT write characteristic")
         user_device_characteristic = None
@@ -138,14 +137,12 @@ class UserDeviceMurataDriver(
         else:
             raise GATTError("user device characteristic not found")
         Global.logger.info(
-            "Writing BLE UWB protocol version to Reader: 0x{:04x}".format(
-                CURRENT_VERSION
-            )
+            "Writing BLE UWB protocol version to Reader: 0x{:04x}".format(version)
         )
         await self.write_characteristic_value(
             self.connected_devices[0],
             user_device_characteristic,
-            value=CURRENT_VERSION,
+            value=version,
             value_length=0x02,
         )
 
@@ -154,16 +151,24 @@ class ReaderMurataDriver(
     MurataGAPPeripheralDriver, MurataGATTServerDriver, MurataL2CAPDriver
 ):
     async def setup_gatt_database(
-        self,
-        spsm: bytes,
+        self, spsm: bytes, supported_versions: list[int]
     ) -> None:
         Global.logger.info("Creating GATT Database")
         service_handle = await self.add_primary_service_declaration(
             0x01, ALIRO_SERVICE_UUID
         )
+
+        supported_versions_bytearray = bytearray()
+        for version in supported_versions:
+            supported_versions_bytearray.extend(version.to_bytes(2, "big"))
+        supported_versions_bytes = bytes(supported_versions_bytearray)
+
+        supported_version_length = (len(supported_versions_bytes)).to_bytes(1, "big")
+        reader_value = spsm + supported_version_length + supported_versions_bytes
+
         await self.add_characteristic_declaration_and_value(
             READER_CHARACTERISTIC_UUID,
-            spsm + bytes.fromhex("020100"),
+            reader_value,
             uuid_type=UuidType.uuid_128_bits,
             value_length=5,
             properties=Properties.read,
