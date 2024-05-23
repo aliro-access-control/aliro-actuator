@@ -893,6 +893,7 @@ class Reader(Device):
         )
 
         Global.logger.info("Checking read data")
+        read_data = []
         if len(response.read_data) == 0:
             if read_requests is not None and len(read_requests) != 0:
                 raise AccessProtocolError(
@@ -902,7 +903,6 @@ class Reader(Device):
             else:
                 Global.logger.info("No read data found, as expected")
         else:
-            read_data = []
             index = 0
             while index < len(response.read_data):
                 length = int.from_bytes(response.read_data[index : index + 2], "big")

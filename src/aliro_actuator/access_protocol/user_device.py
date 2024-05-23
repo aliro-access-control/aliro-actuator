@@ -68,6 +68,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
     ProtocolType,
 )
+from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -1001,16 +1002,11 @@ class UserDevice(Device):
             and id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
         ):
             Global.logger.info(
-                "Received Reader status access protocol completed message"
+                "Received BLE message with header: 0x{:02x} and id: 0x{:02x}".format(
+                    header, id
+                )
             )
             return command_str, header, id
-        else:
-            raise UnexpectedBLEMessageError(
-                "Received unexpected ble message while waiting for "
-                "AP request message",
-                header,
-                id,
-            )
 
         try:
             command = self.apdu.parse_command(command_str, encryption)
