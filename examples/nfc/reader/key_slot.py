@@ -48,9 +48,6 @@ async def main():
         key_slot_list=[credential_public_key],
     )
     await reader.transaction_initiation()
-    await reader.expedited_transaction_standard(
-        TransactionCode.USER_DEVICE_SECURE_ACTION
-    )
     Global.logger.info("Start Expedited Transaction (standard)")
     await reader.handle_auth0(
         Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
