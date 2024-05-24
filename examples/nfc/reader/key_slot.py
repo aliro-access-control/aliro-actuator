@@ -37,7 +37,7 @@ async def main():
     public_key_pem = open("examples/nfc/reader_public_key.pem", "rt")
     reader_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
 
-    credential_public_key_pem = open("examples/nfc/reader_public_key.pem", "rt")
+    credential_public_key_pem = open("examples/nfc/credential_public_key.pem", "rt")
     credential_public_key = PublicKey(credential_public_key_pem.read())
 
     reader = Reader(
