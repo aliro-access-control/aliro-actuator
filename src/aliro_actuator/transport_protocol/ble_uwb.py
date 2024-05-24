@@ -186,6 +186,6 @@ class BLEUWB(TransportProtocolBase):
         ble_sk_reader = derive_key(ble_sk, "BleSKReader".encode("utf-8"), 32, salt)
         ble_sk_device = derive_key(ble_sk, "BleSKDevice".encode("utf-8"), 32, salt)
         self.encryption_engine = EncryptionEngine(
-            DeviceType.READER, ble_sk_reader, ble_sk_device
+            device_type, ble_sk_reader, ble_sk_device
         )
         self.encryption_available = True
