@@ -751,7 +751,14 @@ class Reader(Device):
         self.session.set_credential_public_key(credential_public_key)
 
     def lookup_credential_public_key(self, key_slot: bytes) -> PublicKey:
-        valid_keys = [item[1] for item in self.key_slot_list if item[0] == 1]
+        Global.logger.info("Looking up Credential public key using key slot")
+        Global.logger.debug("Looking for key slot: {!r}".format(hexlify(key_slot)))
+        Global.logger.debug(
+            "Saved key slots: [{!r}]".format(
+                ", ".join(str(hexlify(x[0])) for x in self.key_slot_list)
+            )
+        )
+        valid_keys = [item[1] for item in self.key_slot_list if item[0] == key_slot]
         if len(valid_keys) > 1:
             raise AccessProtocolError("Multiple keys with the same key slot")
         if len(valid_keys) == 0:
