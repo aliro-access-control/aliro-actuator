@@ -63,6 +63,7 @@ from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
+from aliro_actuator.trust_framework.key_slot import get_key_slot
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
 
@@ -157,6 +158,7 @@ class Reader(Device):
         spsm: bytes = bytes.fromhex("0080"),
         transaction_identifier_list: list[bytes] | None = None,
         ephemeral_key_list: list[KeyPair] | None = None,
+        key_slot_list: list[PublicKey] = [],
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -215,6 +217,17 @@ class Reader(Device):
 
         self.transaction_identifier_list = transaction_identifier_list
         self.ephemeral_key_list = ephemeral_key_list
+
+        Global.logger.debug("Creating key slot list")
+        self.key_slot_list = []
+        for key in key_slot_list:
+            key_slot = get_key_slot(key)
+            self.key_slot_list.append((key_slot, key))
+            Global.logger.debug(
+                "Adding entry: key slot: {!r}, key: {!r}".format(
+                    hexlify(key_slot), hexlify(key.as_bytes())
+                )
+            )
 
         Global.logger.info("Initialized Reader")
 
@@ -731,11 +744,19 @@ class Reader(Device):
                 )
             else:
                 Global.logger.info("no credential public key present, as required")
-            credential_public_key = self.session.lookup_credential_public_key(key_slot)
+            credential_public_key = self.lookup_credential_public_key(key_slot)
             Global.logger.info(
                 "Access credential public key could be found with key slot"
             )
         self.session.set_credential_public_key(credential_public_key)
+
+    def lookup_credential_public_key(self, key_slot: bytes) -> PublicKey:
+        valid_keys = [item[1] for item in self.key_slot_list if item[0] == 1]
+        if len(valid_keys) > 1:
+            raise AccessProtocolError("Multiple keys with the same key slot")
+        if len(valid_keys) == 0:
+            raise AccessProtocolError("No keys with the requested key slot")
+        return valid_keys[0]
 
     async def handle_control_flow(self, success: bool) -> None:
         """
@@ -1307,9 +1328,6 @@ class ReaderSession:
 
     def get_reader_epubkey(self) -> PublicKey:
         return self.reader_ephemeral.get_public_key()
-
-    def lookup_credential_public_key(self, key_slot: bytes) -> PublicKey:
-        raise NotImplementedError
 
     def set_credential_public_key(self, key: PublicKey) -> None:
         self.credential_pubk = key

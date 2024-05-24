@@ -13,9 +13,11 @@
 # limitations under the License.
 
 from binascii import hexlify
+from hashlib import sha1
 
 from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.trust_framework.key_slot import get_key_slot
 
 
 class AccessCredential:
@@ -69,5 +71,4 @@ class AccessCredential:
         return list(map(lambda x: x[0], self.reader_id_key_list))
 
     def get_key_slot(self) -> bytes:
-        # TODO implement
-        return bytes.fromhex("ABADCAFEBAADF00D")
+        return get_key_slot(self.user_device_key_pair.get_public_key())
