@@ -1823,11 +1823,6 @@ class APDU:
             auth1_payload_tlv.to_bytes(),
         )
 
-        Global.logger.debug(
-            "encrypted payload: {!r}".format(hexlify(encrypted_payload))
-        )
-        Global.logger.debug("authentication tag: {!r}".format(hexlify(tag)))
-
         payload = bytes([*encrypted_payload, *tag])
         return Response.create_from_parameters(payload, status)
 
