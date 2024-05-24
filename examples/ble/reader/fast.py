@@ -42,11 +42,11 @@ async def main():
         TransactionCode.USER_DEVICE_SECURE_ACTION
     )
     await reader.handle_exchange(False, None, None, None)
-    await reader.handle_control_flow(True)
+    await reader.reader_status_access_protocol_completed(0, 0)
     await reader.transaction_termination()
     await reader.transaction_initiation()
     await reader.expedited_transaction_fast(TransactionCode.USER_DEVICE_SECURE_ACTION)
-    await reader.handle_control_flow(True)
+    await reader.reader_status_access_protocol_completed(0, 0)
     await reader.transaction_initiation()
 
 
