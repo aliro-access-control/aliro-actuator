@@ -129,7 +129,7 @@ class BleAttribute:
         Global.logger.debug(
             "unsolicited reader status reporting has a valid value: "
             "0x{!r} ({!r})".format(
-                self.unsolicited_reader_status_reporting,
+                self.unsolicited_reader_status_reporting.value,
                 self.unsolicited_reader_status_reporting.name,
             )
         )
@@ -147,7 +147,7 @@ class BleAttribute:
         Global.logger.debug(
             "reader status information has a valid value: "
             "0x{!r} ({!r})".format(
-                self.reader_status_information,
+                self.reader_status_information.value,
                 self.reader_status_information.name,
             )
         )
