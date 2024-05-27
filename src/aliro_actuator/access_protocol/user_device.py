@@ -65,6 +65,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
     AccessProtocolCompleted_AttributeID,
     BleAttribute,
+    BleMessage,
     Notification_ID,
     ProtocolType,
 )
@@ -363,9 +364,7 @@ class UserDevice(Device):
         Destroys all session bound keys and data.
         """
         response = self.apdu.create_error_response(error_code)
-        await self.transport_protocol.send_message(
-            response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
-        )
+        await self.transport_protocol.send_message(response)
 
         await self.transaction_termination()
 
@@ -378,11 +377,12 @@ class UserDevice(Device):
             self.supported_versions,
         )
         attribute = BleAttribute(0x00, proprietary.to_bytes())
-        await self.transport_protocol.send_message(
-            attribute.to_bytes(),
+        message = BleMessage(
             ProtocolType.NOTIFICATION,
             Notification_ID.INITIATE_ACCESS_PROTOCOL,
+            attribute.to_bytes(),
         )
+        await self.transport_protocol.send_message(message)
 
     async def handle_select(self, select_command: Command) -> bytes:
         """
@@ -1042,9 +1042,7 @@ class UserDevice(Device):
             credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
         Global.logger.info("Sending AUTH0 response")
-        await self.transport_protocol.send_message(
-            auth0_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
-        )
+        await self.transport_protocol.send_message(auth0_response)
 
     async def response_auth1(
         self,
@@ -1088,9 +1086,7 @@ class UserDevice(Device):
             revocation_signed_timestamp,
         )
         Global.logger.info("Sending AUTH1 response")
-        await self.transport_protocol.send_message(
-            auth1_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
-        )
+        await self.transport_protocol.send_message(auth1_response)
 
     async def response_select(
         self,
@@ -1122,9 +1118,7 @@ class UserDevice(Device):
             vendor_specific_tlv=vendor_specific_tlv,
         )
         Global.logger.info("Sending SELECT response")
-        await self.transport_protocol.send_message(
-            select_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
-        )
+        await self.transport_protocol.send_message(select_response)
 
     def response_envelope(self) -> None:
         raise NotImplementedError
@@ -1138,9 +1132,7 @@ class UserDevice(Device):
         """
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
         Global.logger.info("Sending LOAD CERT response")
-        await self.transport_protocol.send_message(
-            load_cert_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
-        )
+        await self.transport_protocol.send_message(load_cert_response)
 
     async def response_exchange(
         self,
@@ -1158,9 +1150,7 @@ class UserDevice(Device):
             payload, encryption, StatusBytes.SUCCESS
         )
         Global.logger.info("Sending EXCHANGE response")
-        await self.transport_protocol.send_message(
-            exchange_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
-        )
+        await self.transport_protocol.send_message(exchange_response)
 
     async def response_control_flow(self) -> None:
         """
@@ -1170,9 +1160,7 @@ class UserDevice(Device):
             StatusBytes.SUCCESS
         )
         Global.logger.info("Sending CONTROL FLOW response")
-        await self.transport_protocol.send_message(
-            control_flow_response.to_bytes(), ProtocolType.AP, AP_ID.AP_RS
-        )
+        await self.transport_protocol.send_message(control_flow_response)
 
 
 class UserSessionState(Enum):
