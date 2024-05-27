@@ -15,28 +15,17 @@
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.apdu import (
-    AUTHENTICATION_TAG_SIZE,
-    Command,
-    Message,
-    Response,
-)
-from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
+from aliro_actuator.access_protocol.apdu import Command, Message, Response
 from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
 )
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
-from aliro_actuator.transport_protocol.ble_message_format import (
-    AP_ID,
-    BleMessage,
-    ProtocolType,
-)
+from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
     UnknownVersionRequestedError,
 )
-from aliro_actuator.trust_framework.key import derive_key
 
 DEFAULT_PORT = "/dev/ttyUSB0"
 SUPPORTED_VERSIONS = [0x0100]
@@ -65,7 +54,6 @@ class BLEUWB(TransportProtocolBase):
         self.mode = mode
         self.group_resolving_key = group_resolving_key
         self.spsm = spsm
-        self.encryption_available = False
         if self.mode == Mode.READER:
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port)
@@ -120,20 +108,6 @@ class BLEUWB(TransportProtocolBase):
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
 
-        # if self.encryption_available and protocol_type in [
-        #     ProtocolType.NOTIFICATION,
-        #     ProtocolType.UWB_RANGING_SERVICE,
-        #     ProtocolType.SUPPLEMENTARY_SERVICE,
-        #     ProtocolType.THIRD_PARTY_APP,
-        # ]:
-        #     encrypted_payload, tag = self.encryption_engine.encrypt(
-        #         command,
-        #         protocol_type.to_bytes(1, "little")
-        #         + id.to_bytes(1, "little")
-        #         + len(command).to_bytes(2, "little"),
-        #     )
-        #     command = encrypted_payload + tag
-
         if isinstance(message, Command):
             command_bytes = message.to_bytes()
             Global.logger.info(
@@ -174,44 +148,7 @@ class BLEUWB(TransportProtocolBase):
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
 
-        if self.encryption_available and message.header in [
-            ProtocolType.NOTIFICATION,
-            ProtocolType.UWB_RANGING_SERVICE,
-            ProtocolType.SUPPLEMENTARY_SERVICE,
-            ProtocolType.THIRD_PARTY_APP,
-        ]:
-            Global.logger.info("Decrypting BLE message")
-            Global.logger.info(
-                "Encrypted payload: {!r}".format(
-                    hexlify(message.payload[:-AUTHENTICATION_TAG_SIZE])
-                )
-            )
-            Global.logger.info(
-                "Authentication tag: {!r}".format(
-                    hexlify(message.payload[-AUTHENTICATION_TAG_SIZE:])
-                )
-            )
-            payload = self.encryption_engine.decrypt(
-                message.payload[:-AUTHENTICATION_TAG_SIZE],
-                message.payload[-AUTHENTICATION_TAG_SIZE:],
-                message.header.to_bytes(1, "little")
-                + message.id.to_bytes(1, "little")
-                + len(message.payload[:-AUTHENTICATION_TAG_SIZE]).to_bytes(2, "little"),
-            )
-        else:
-            payload = message.payload
-        return payload, message.header, message.id
+        return message.payload, message.header, message.id
 
-    def set_encryption(self, device_type: DeviceType, ble_sk: bytes) -> None:
-        supported_versions_bytearray = bytearray()
-        for version in self.supported_versions:
-            supported_versions_bytearray.extend(version.to_bytes(2, "big"))
-        supported_versions_bytes = bytes(supported_versions_bytearray)
-
-        salt = supported_versions_bytes + self.ble_version.to_bytes(2, "big")
-        ble_sk_reader = derive_key(ble_sk, "BleSKReader".encode("utf-8"), 32, salt)
-        ble_sk_device = derive_key(ble_sk, "BleSKDevice".encode("utf-8"), 32, salt)
-        self.encryption_engine = EncryptionEngine(
-            device_type, ble_sk_reader, ble_sk_device
-        )
-        self.encryption_available = True
+    def get_ble_versions(self) -> tuple[int, list[int]]:
+        return self.ble_version, self.supported_versions

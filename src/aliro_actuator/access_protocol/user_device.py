@@ -63,11 +63,11 @@ from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
-    AccessProtocolCompleted_AttributeID,
     BleAttribute,
     BleMessage,
     Notification_ID,
     ProtocolType,
+    set_ble_encryption,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
@@ -1375,7 +1375,10 @@ class UserSession:
         if not isinstance(transport_protocol, BLEUWB):
             raise AccessProtocolError("Trying to set BLE encryption while using NFC")
 
-        transport_protocol.set_encryption(DeviceType.USER, self.ble_SK)
+        selected_version, available_versions = transport_protocol.get_ble_versions()
+        set_ble_encryption(
+            DeviceType.USER, self.ble_SK, selected_version, available_versions
+        )
 
     def set_cert_and_verify(
         self, compressed_cert: bytes, public_key: PublicKey
