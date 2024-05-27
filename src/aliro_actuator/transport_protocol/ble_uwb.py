@@ -147,8 +147,16 @@ class BLEUWB(TransportProtocolBase):
         )
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
+        message._decrypt()
 
         return message.payload, message.header, message.id
 
     def get_ble_versions(self) -> tuple[int, list[int]]:
+        """
+        Returns info on the selected and available ble/uwb protocol versions
+
+        Returns:
+            tuple[int, list[int]]: the selected ble/uwb versions, and a list of
+            available versions
+        """
         return self.ble_version, self.supported_versions
