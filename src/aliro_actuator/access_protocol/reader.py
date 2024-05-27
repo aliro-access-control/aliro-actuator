@@ -64,6 +64,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
     AccessProtocolCompleted_AttributeID,
     BleAttribute,
+    BleMessage,
     Notification_ID,
     ProtocolType,
 )
@@ -941,11 +942,12 @@ class Reader(Device):
             AccessProtocolCompleted_AttributeID.READER_INFORMATION_ATTRIBUTE_ID,
             attribute_payload_bytes,
         )
-        await self.transport_protocol.send_message(
-            payload.to_bytes(),
+        message = BleMessage(
             ProtocolType.NOTIFICATION,
             Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED,
+            payload.to_bytes(),
         )
+        await self.transport_protocol.send_message(message)
 
     def check_ble_message_type_for_response(
         self, header: int | None, id: int | None
@@ -997,9 +999,7 @@ class Reader(Device):
         )
 
         Global.logger.info("Sending AUTH0 command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for AUTH0 response")
         response_str, header, id = await self.transport_protocol.get_message()
@@ -1045,9 +1045,7 @@ class Reader(Device):
         command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
         Global.logger.info("Sending AUTH1 command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for AUTH1 response")
         response_str, header, id = await self.transport_protocol.get_message()
@@ -1071,9 +1069,7 @@ class Reader(Device):
         command = self.apdu.create_select_command(aid)
 
         Global.logger.info("Sending SELECT command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for SELECT response")
         response_str, header, id = await self.transport_protocol.get_message()
@@ -1103,9 +1099,7 @@ class Reader(Device):
         command = self.apdu.create_load_cert_command(compressed_cert)
 
         Global.logger.info("Sending LOAD CERT command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for LOAD CERT response")
         response_str, header, id = await self.transport_protocol.get_message()
@@ -1134,9 +1128,7 @@ class Reader(Device):
         command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
 
         Global.logger.info("Sending EXCHANGE command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for EXCHANGE response")
         response_str, header, id = await self.transport_protocol.get_message()
@@ -1164,9 +1156,7 @@ class Reader(Device):
         command = self.apdu.create_control_flow_command(s1, s2, domain_specific_data)
 
         Global.logger.info("Sending CONTROL FLOW command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), ProtocolType.AP, AP_ID.AP_RQ
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for CONTROL FLOW response")
         response_str, header, id = await self.transport_protocol.get_message()

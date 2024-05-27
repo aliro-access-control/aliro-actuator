@@ -48,17 +48,17 @@ class Test_Testvectors(unittest.TestCase):
         await reader.initialization(Mode.READER)
         await reader.wait_for_connection()
 
-        await reader.send_message(SELECT_COMMAND, ProtocolType.AP, AP_ID.AP_RQ)
+        await reader.send_message(SELECT_COMMAND)
         message_1, _, _ = await reader.get_message()
         self.assertEqual(message_1[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_1, SELECT_RESPONSE)
 
-        await reader.send_message(AUTH0_COMMAND, ProtocolType.AP, AP_ID.AP_RQ)
+        await reader.send_message(AUTH0_COMMAND)
         message_2, _, _ = await reader.get_message()
         self.assertEqual(message_2[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_2, AUTH0_RESPONSE)
 
-        await reader.send_message(AUTH1_COMMAND, ProtocolType.AP, AP_ID.AP_RQ)
+        await reader.send_message(AUTH1_COMMAND)
         message_3, _, _ = await reader.get_message()
         self.assertEqual(message_3[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         # message contains signature which is generated with RNG, and might differ.
@@ -92,11 +92,11 @@ class Test_Testvectors(unittest.TestCase):
 
         message_1, _, _ = await user.get_message()
         self.assertEqual(message_1, SELECT_COMMAND)
-        await user.send_message(SELECT_RESPONSE, ProtocolType.AP, AP_ID.AP_RS)
+        await user.send_message(SELECT_RESPONSE)
 
         message_2, _, _ = await user.get_message()
         self.assertEqual(message_2, AUTH0_COMMAND)
-        await user.send_message(AUTH0_RESPONSE, ProtocolType.AP, AP_ID.AP_RS)
+        await user.send_message(AUTH0_RESPONSE)
 
         message_3, _, _ = await user.get_message()
         # reader signature is generated using a random number, so cannot be checked

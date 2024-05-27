@@ -32,11 +32,7 @@ async def main() -> None:
     new_message = bytearray()
     for digit in received_message:
         new_message.append(digit + 1)
-    await card.send_message(
-        bytes(new_message),
-        ProtocolType.AP,
-        AP_ID.AP_RQ,
-    )
+    await card.send_message(bytes(new_message))
     # card.disconnect()
 
 
