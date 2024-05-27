@@ -53,6 +53,58 @@ class BleMessage:
         output.extend(self.payload)
         return bytes(change_endianness(output))
 
+    @staticmethod
+    def create_access_protocol_completed(
+        unsolicited_reader_status_reporting: int, reader_status_information: int
+    ) -> BleMessage:
+        attribute_payload = bytearray()
+        attribute_payload.append(unsolicited_reader_status_reporting << 5)
+        attribute_payload.append(reader_status_information)
+        attribute_payload_bytes = bytes(attribute_payload)
+
+        payload = BleAttribute(
+            AccessProtocolCompleted_AttributeID.READER_INFORMATION,
+            attribute_payload_bytes,
+        )
+        return BleMessage(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED,
+            payload.to_bytes(),
+        )
+
+    @staticmethod
+    def create_initiate_access_protocol(proprietary_info: bytes) -> BleMessage:
+        attribute = BleAttribute(
+            InitiateAccessProtocol_AttributeID.PROPRIETARY_INFO, proprietary_info
+        )
+        return BleMessage(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.INITIATE_ACCESS_PROTOCOL,
+            attribute.to_bytes(),
+        )
+
+    @staticmethod
+    def create_error_event_message(errorcode: int) -> BleMessage:
+        data = errorcode.to_bytes(1, "big")
+        attribute = BleAttribute(Event_AttributeID.GENERAL_ERROR, data)
+        return BleMessage(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.EVENT,
+            attribute.to_bytes(),
+        )
+
+    @staticmethod
+    def create_ap_command_message(command: bytes) -> BleMessage:
+        return BleMessage(ProtocolType.AP, AP_ID.AP_RQ, command)
+
+    @staticmethod
+    def create_ap_response_message(response: bytes) -> BleMessage:
+        return BleMessage(ProtocolType.AP, AP_ID.AP_RS, response)
+
+
+class InitiateAccessProtocol_AttributeID(IntEnum):
+    PROPRIETARY_INFO = 0x00
+
 
 class Event_AttributeID(IntEnum):
     BUSY = 0x00
@@ -60,7 +112,7 @@ class Event_AttributeID(IntEnum):
 
 
 class AccessProtocolCompleted_AttributeID(IntEnum):
-    READER_INFORMATION_ATTRIBUTE_ID = 0x00
+    READER_INFORMATION = 0x00
 
 
 class GeneralError_Values(IntEnum):
@@ -103,10 +155,7 @@ class BleAttribute:
 
     def parse_as_access_protocol_completed_attribute(self) -> None:
         Global.logger.info("Parsing Reader Status Access Protocol Completed attribute")
-        if (
-            self.id
-            != AccessProtocolCompleted_AttributeID.READER_INFORMATION_ATTRIBUTE_ID
-        ):
+        if self.id != AccessProtocolCompleted_AttributeID.READER_INFORMATION:
             raise BLEMessageError(
                 "Invalid attribute in ble message: 0x{:02x}".format(self.id)
             )
