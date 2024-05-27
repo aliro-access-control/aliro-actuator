@@ -14,10 +14,15 @@
 
 import asyncio
 
+from aliro_actuator.access_protocol.apdu import Message
 from aliro_actuator.hw_driver.pn7160_driver import Driver
 from aliro_actuator.hw_driver.pn7160_driver.errors import NoReaderError, NoTagError
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
-from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
+from aliro_actuator.transport_protocol.ble_message_format import BleMessage
+from aliro_actuator.transport_protocol.errors import (
+    NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
+)
 
 
 class NFC(TransportProtocolBase):
@@ -48,12 +53,19 @@ class NFC(TransportProtocolBase):
 
     async def send_message(
         self,
-        command: bytes,
-        protocol_type: int,
-        id: int,
+        message: bytes | BleMessage | Message,
     ) -> None:
+        if isinstance(message, BleMessage):
+            raise UnexpectedMessageTypeError(
+                "It is not possible to send BLE messages using NFC"
+            )
+        if isinstance(message, Message):
+            message_bytes = message.to_bytes()
+        else:
+            message_bytes = message
+
         try:
-            await asyncio.to_thread(self.driver.send_message, command)
+            await asyncio.to_thread(self.driver.send_message, message_bytes)
         except (NoTagError, NoReaderError) as error:
             raise NoDeviceConnectedError from error
 

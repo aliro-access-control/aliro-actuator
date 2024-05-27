@@ -16,7 +16,9 @@ import socket
 from binascii import hexlify
 
 from aliro_actuator import Global
+from aliro_actuator.access_protocol.apdu import Message
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
     InvalidModeError,
     NoDataReceivedError,
@@ -73,15 +75,16 @@ class Socket(TransportProtocolBase):
 
     async def send_message(
         self,
-        command: bytes,
-        protocol_type: int,
-        id: int,
+        message: bytes | BleMessage | Message,
     ) -> None:
-        Global.logger.debug("sending message {!r}".format(hexlify(command)))
+        if not isinstance(message, bytes):
+            message = message.to_bytes()
+
+        Global.logger.debug("sending message {!r}".format(hexlify(message)))
         if self.mode == Mode.READER:
-            self.client.send(command)
+            self.client.send(message)
         elif self.mode == Mode.USER_DEVICE:
-            self.host.send(command)
+            self.host.send(message)
 
     async def get_message(self) -> tuple[bytes, int | None, int | None]:
         if self.mode == Mode.READER:

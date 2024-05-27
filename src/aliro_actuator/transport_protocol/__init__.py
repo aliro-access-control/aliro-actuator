@@ -15,6 +15,9 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 
+from aliro_actuator.access_protocol.apdu import Message
+from aliro_actuator.transport_protocol.ble_message_format import BleMessage
+
 
 class Mode(Enum):
     READER = 1
@@ -45,9 +48,7 @@ class TransportProtocolBase(ABC):
     @abstractmethod
     async def send_message(
         self,
-        command: bytes,
-        protocol_type: int,
-        id: int,
+        message: bytes | BleMessage | Message,
     ) -> None:
         pass
 
