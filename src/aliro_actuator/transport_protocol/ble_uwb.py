@@ -15,7 +15,12 @@
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.apdu import AUTHENTICATION_TAG_SIZE
+from aliro_actuator.access_protocol.apdu import (
+    AUTHENTICATION_TAG_SIZE,
+    Command,
+    Message,
+    Response,
+)
 from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
 from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
@@ -25,7 +30,6 @@ from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
     BleMessage,
-    Notification_ID,
     ProtocolType,
 )
 from aliro_actuator.transport_protocol.errors import (
@@ -111,32 +115,54 @@ class BLEUWB(TransportProtocolBase):
 
     async def send_message(
         self,
-        command: bytes,
-        protocol_type: int,
-        id: int,
+        message: bytes | BleMessage | Message,
     ) -> None:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
-        Global.logger.info("sending command: {!r}".format(hexlify(command)))
 
-        if self.encryption_available and protocol_type in [
-            ProtocolType.NOTIFICATION,
-            ProtocolType.UWB_RANGING_SERVICE,
-            ProtocolType.SUPPLEMENTARY_SERVICE,
-            ProtocolType.THIRD_PARTY_APP,
-        ]:
-            encrypted_payload, tag = self.encryption_engine.encrypt(
-                command,
-                protocol_type.to_bytes(1, "little")
-                + id.to_bytes(1, "little")
-                + len(command).to_bytes(2, "little"),
+        # if self.encryption_available and protocol_type in [
+        #     ProtocolType.NOTIFICATION,
+        #     ProtocolType.UWB_RANGING_SERVICE,
+        #     ProtocolType.SUPPLEMENTARY_SERVICE,
+        #     ProtocolType.THIRD_PARTY_APP,
+        # ]:
+        #     encrypted_payload, tag = self.encryption_engine.encrypt(
+        #         command,
+        #         protocol_type.to_bytes(1, "little")
+        #         + id.to_bytes(1, "little")
+        #         + len(command).to_bytes(2, "little"),
+        #     )
+        #     command = encrypted_payload + tag
+
+        if isinstance(message, Command):
+            command_bytes = message.to_bytes()
+            Global.logger.info(
+                "Sending AP command: {!r}".format(hexlify(command_bytes))
             )
-            command = encrypted_payload + tag
+            message_bytes = BleMessage(
+                ProtocolType.AP, AP_ID.AP_RQ, message.to_bytes()
+            ).to_bytes()
+        elif isinstance(message, Response):
+            Global.logger.info(
+                "Sending AP response: {!r}".format(hexlify(command_bytes))
+            )
+            message_bytes = BleMessage(
+                ProtocolType.AP, AP_ID.AP_RS, message.to_bytes()
+            ).to_bytes()
+        elif isinstance(message, BleMessage):
+            message_bytes = message.to_bytes()
+            Global.logger.info(
+                "Sending BLE message: {!r}".format(hexlify(message_bytes))
+            )
+        elif isinstance(message, bytes):
+            Global.logger.info("Sending message: {!r}".format(hexlify(message)))
+            message_bytes = message
 
-        message = BleMessage(protocol_type, id, command)
-        Global.logger.info("BLE message: {!r}".format(hexlify(message.to_bytes())))
+        Global.logger.debug(
+            "Sending data using BLE: {!r}".format(hexlify(message_bytes))
+        )
         await self.driver.send_le_cb_data(
-            self.driver.connected_devices[0], message.to_bytes()
+            self.driver.connected_devices[0], message_bytes
         )
 
     async def get_message(self) -> tuple[bytes, int | None, int | None]:
