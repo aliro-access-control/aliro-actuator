@@ -934,19 +934,8 @@ class Reader(Device):
             "Sending Reader Status Access Protocol Completed BLE message"
         )
 
-        attribute_payload = bytearray()
-        attribute_payload.append(unsolicited_reader_status_reporting << 5)
-        attribute_payload.append(reader_status_information)
-        attribute_payload_bytes = bytes(attribute_payload)
-
-        payload = BleAttribute(
-            AccessProtocolCompleted_AttributeID.READER_INFORMATION_ATTRIBUTE_ID,
-            attribute_payload_bytes,
-        )
-        message = BleMessage(
-            ProtocolType.NOTIFICATION,
-            Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED,
-            payload.to_bytes(),
+        message = BleMessage.create_access_protocol_completed(
+            unsolicited_reader_status_reporting, reader_status_information
         )
         await self.transport_protocol.send_message(message)
 

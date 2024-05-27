@@ -374,12 +374,7 @@ class UserDevice(Device):
             CSA_APPLICATION_TYPE,
             self.supported_versions,
         )
-        attribute = BleAttribute(0x00, proprietary.to_bytes())
-        message = BleMessage(
-            ProtocolType.NOTIFICATION,
-            Notification_ID.INITIATE_ACCESS_PROTOCOL,
-            attribute.to_bytes(),
-        )
+        message = BleMessage.create_initiate_access_protocol(proprietary.to_bytes())
         await self.transport_protocol.send_message(message)
 
     async def handle_select(self, select_command: Command) -> bytes:
