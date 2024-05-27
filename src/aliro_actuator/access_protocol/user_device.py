@@ -19,7 +19,6 @@ from os import urandom
 from aliro_actuator import Global
 from aliro_actuator.access_document.access_credential import AccessDocument
 from aliro_actuator.access_document.revocation_document import RevocationDocument
-from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
     INS,
     TLV,
@@ -40,6 +39,7 @@ from aliro_actuator.access_protocol.defines import (
     Auth0,
     TransportProtocol,
 )
+from aliro_actuator.access_protocol.device import Device
 from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
@@ -311,9 +311,7 @@ class UserDevice(Device):
                         self.handle_ble_messages(payload, header, id)
                 except AccessProtocolError as error:
                     Global.logger.error(
-                        "restarting session because of error: {}".format(
-                            error.__class__.__name__
-                        )
+                        "restarting session because of error: {}".format(repr(error))
                     )
                     # main loop should continue even when commands are not valid
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)

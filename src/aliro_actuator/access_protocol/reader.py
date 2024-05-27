@@ -17,7 +17,6 @@ import os
 from binascii import hexlify
 
 from aliro_actuator import READER_GROUP_ID_LENGTH, READER_GROUP_SUB_ID_LENGTH, Global
-from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
     AUTHENTICATION_TAG_SIZE,
     INS,
@@ -42,6 +41,7 @@ from aliro_actuator.access_protocol.defines import (
     Select,
     TransportProtocol,
 )
+from aliro_actuator.access_protocol.device import Device
 from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
@@ -609,6 +609,7 @@ class Reader(Device):
                     "decrypted cryptogram: {!r}".format(hexlify(decrypted_cryptogram))
                 )
                 self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
+                self.session.set_credential_public_key(entry.access_credential)
                 return
             except VerificationError:
                 Global.logger.info("decryption failed, trying next key in storage")

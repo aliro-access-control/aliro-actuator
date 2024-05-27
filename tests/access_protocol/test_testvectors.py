@@ -37,7 +37,7 @@ from tests.access_protocol.testvectors import (
 )
 
 
-class Test_Testvectors(unittest.TestCase):
+class Test_Testvectors(unittest.IsolatedAsyncioTestCase):
     async def test_user(self) -> None:
         user = subprocess.Popen(
             ["python3", "tests/access_protocol/user_test_testvectors.py"]
@@ -76,7 +76,7 @@ class Test_Testvectors(unittest.TestCase):
         # outdated auth1 response, signaling_bitmap is now 2 bytes
         # self.assertEqual(decrypted_data[133:], AUTH1_RESPONSE_PAYLOAD[133:])
 
-        await reader.send_message(CONTROL_FLOW_COMMAND, ProtocolType.AP, AP_ID.AP_RQ)
+        await reader.send_message(CONTROL_FLOW_COMMAND)
         message_4, _, _ = await reader.get_message()
         self.assertEqual(message_4[-2:], bytes.fromhex("9000"), "Errorstatus returned")
         self.assertEqual(message_4, CONTROL_FLOW_RESPONSE)

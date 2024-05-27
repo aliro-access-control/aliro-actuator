@@ -17,11 +17,10 @@ import unittest
 from time import sleep
 
 from aliro_actuator.transport_protocol import Mode
-from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.socket import Socket
 
 
-class Test_socket_reader(unittest.TestCase):
+class Test_socket_reader(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         print("test")
         self.other = subprocess.Popen(
@@ -36,7 +35,7 @@ class Test_socket_reader(unittest.TestCase):
         reader = Socket()
         await reader.initialization(Mode.READER)
         await reader.wait_for_connection()
-        reader.disconnect()
+        await reader.disconnect()
 
     async def test_send(self) -> None:
         reader = Socket()
@@ -46,4 +45,4 @@ class Test_socket_reader(unittest.TestCase):
         self.assertEqual(
             bytes([0x13, 0x35, 0x57, 0x79]), (await reader.get_message())[0]
         )
-        reader.disconnect()
+        await reader.disconnect()
