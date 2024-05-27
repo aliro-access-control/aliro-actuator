@@ -18,11 +18,17 @@ import sys
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
 
+import asyncio
+
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.user_device import UserDevice
 
-if __name__ == "__main__":
+
+async def main() -> None:
     card = UserDevice(TransportProtocol.SOCKET_NFC)
-    card.transaction_initiation()
-    card.main_loop()
+    await card.main_loop()
     # card.disconnect()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

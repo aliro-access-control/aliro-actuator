@@ -15,7 +15,7 @@
 import os
 import unittest
 from binascii import hexlify
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, patch
 
 from aliro_actuator.access_protocol.apdu import (
     APDU,
@@ -40,15 +40,16 @@ from aliro_actuator.access_protocol.encryption import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     CryptogramNotFound,
+    InvalidStatusError,
 )
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 
 
-class Test_reader(unittest.TestCase):
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_control_flow_command(self, mock_nfc: Mock) -> None:
+class Test_reader(unittest.IsolatedAsyncioTestCase):
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_control_flow_command(self, mock_nfc: AsyncMock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
             apdu.create_control_flow_response(StatusBytes.SUCCESS).to_bytes(),
@@ -61,8 +62,8 @@ class Test_reader(unittest.TestCase):
         await reader.handle_control_flow(True)
         self.assertIsNone(reader.session)
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_select_command(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_select_command(self, mock_nfc: AsyncMock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
             apdu.create_select_response(
@@ -80,8 +81,8 @@ class Test_reader(unittest.TestCase):
         await reader.handle_select(EXPEDITED_PHASE_AID)
         self.assertIsNotNone(reader.session)
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_select_command_invalid_aid(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_select_command_invalid_aid(self, mock_nfc: AsyncMock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
             apdu.create_select_response(
@@ -95,12 +96,16 @@ class Test_reader(unittest.TestCase):
         )
 
         reader = Reader(TransportProtocol.NFC, mock_nfc)
+        reader.failure_process = AsyncMock()
         reader.start_new_session()
-        with self.assertRaises(AccessProtocolError):
+        with self.assertRaises(InvalidStatusError):
             await reader.handle_select(EXPEDITED_PHASE_AID)
+        reader.failure_process.assert_called_once()
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_select_command_invalid_aid_from_user(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_select_command_invalid_aid_from_user(
+        self, mock_nfc: AsyncMock
+    ) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
             apdu.create_select_response(
@@ -134,8 +139,8 @@ class Test_reader(unittest.TestCase):
         with self.assertRaises(AccessProtocolError):
             await reader.handle_select(EXPEDITED_PHASE_AID)
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_select_command_invalid_type(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_select_command_invalid_type(self, mock_nfc: AsyncMock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
             apdu.create_select_response(
@@ -153,8 +158,8 @@ class Test_reader(unittest.TestCase):
         with self.assertRaises(AccessProtocolError):
             await reader.handle_select(EXPEDITED_PHASE_AID)
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_select_command_invalid_version(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_select_command_invalid_version(self, mock_nfc: AsyncMock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
             apdu.create_select_response(
@@ -169,8 +174,8 @@ class Test_reader(unittest.TestCase):
         with self.assertRaises(AccessProtocolError):
             await reader.handle_select(EXPEDITED_PHASE_AID)
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_auth0_command_standard(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_auth0_command_standard(self, mock_nfc: AsyncMock) -> None:
         user_ephemeral = KeyPair()
 
         apdu = APDU()
@@ -192,8 +197,8 @@ class Test_reader(unittest.TestCase):
             user_ephemeral.get_public_key_as_bytes(),
         )
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_auth0_command_fast_not_present(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_auth0_command_fast_not_present(self, mock_nfc: AsyncMock) -> None:
         user_ephemeral = KeyPair()
 
         apdu = APDU()
@@ -214,8 +219,8 @@ class Test_reader(unittest.TestCase):
                 Transaction.FAST, TransactionCode.USER_DEVICE_SECURE_ACTION
             )
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_auth0_command_fast(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_auth0_command_fast(self, mock_nfc: AsyncMock) -> None:
         user_credential = PublicKey(
             bytes.fromhex(
                 "04ed1c8b8eb7e44c2842db98730717c75cc94c96ab9ae60f079879e756980b4003b38f"
@@ -317,8 +322,8 @@ class Test_reader(unittest.TestCase):
             ),
         )
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_load_cert_command(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_load_cert_command(self, mock_nfc: AsyncMock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
             apdu.create_load_cert_response(StatusBytes.SUCCESS).to_bytes(),
@@ -345,8 +350,8 @@ class Test_reader(unittest.TestCase):
         reader.start_new_session()
         await reader.handle_load_cert()
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_auth1_command(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_auth1_command(self, mock_nfc: AsyncMock) -> None:
         reader_ephemeral_keypair = KeyPair()
         credential_ephemeral_keypair = KeyPair()
         reader_keypair = KeyPair()
@@ -454,8 +459,8 @@ class Test_reader(unittest.TestCase):
             credential_keypair.get_public_key_as_bytes(),
         )
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_exchange_command(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_exchange_command(self, mock_nfc: AsyncMock) -> None:
         reader_keypair = KeyPair()
         reader_group_identifier = os.urandom(0x10)
         reader_group_sub_identifier = os.urandom(0x10)
@@ -498,8 +503,8 @@ class Test_reader(unittest.TestCase):
             set_requests=None,
         )
 
-    @patch("aliro_actuator.transport_protocol.nfc.NFC")
-    async def test_exchange_command_read(self, mock_nfc: Mock) -> None:
+    @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
+    async def test_exchange_command_read(self, mock_nfc: AsyncMock) -> None:
         reader_keypair = KeyPair()
         reader_group_identifier = os.urandom(0x10)
         reader_group_sub_identifier = os.urandom(0x10)

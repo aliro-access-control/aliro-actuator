@@ -20,6 +20,8 @@ sys.path.append(PROJECT_PATH)
 PROJECT_PATH = os.path.join(os.getcwd(), "tests/")
 sys.path.append(PROJECT_PATH)
 
+import asyncio
+
 from access_protocol.testvectors import AID, READER_IDENTIFIER, TRANSACTION_IDENTIFIER
 
 from aliro_actuator.access_protocol.apdu import Transaction, TransactionCode
@@ -27,7 +29,8 @@ from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
 
-if __name__ == "__main__":
+
+async def main() -> None:
     f = open("tests/access_protocol/testvector_lock_private.pem", "rt")
     reader_key = KeyPair(f.read())
     f = open("tests/access_protocol/testvector_lock_ephemeral_private.pem", "rt")
@@ -41,8 +44,12 @@ if __name__ == "__main__":
         transaction_identifier_list=[TRANSACTION_IDENTIFIER],
         ephemeral_key_list=[reader_ephemeral_key],
     )
-    reader.transaction_initiation()
+    await reader.transaction_initiation()
 
-    reader.handle_auth0(Transaction.STANDARD, TransactionCode.USER_DEVICE)
-    reader.handle_auth1()
-    reader.handle_control_flow(True)
+    await reader.handle_auth0(Transaction.STANDARD, TransactionCode.USER_DEVICE)
+    await reader.handle_auth1()
+    await reader.handle_control_flow(True)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

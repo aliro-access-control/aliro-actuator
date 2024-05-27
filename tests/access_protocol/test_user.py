@@ -25,7 +25,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.user_device import UserDevice
 
 
-class Test_user(unittest.TestCase):
+class Test_user(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.other = subprocess.Popen(
             ["python3", "tests/access_protocol/user_test_1.py"]
@@ -34,16 +34,16 @@ class Test_user(unittest.TestCase):
     def tearDown(self) -> None:
         self.other.communicate()
 
-    def test_initiation(self) -> None:
+    async def test_initiation(self) -> None:
         user = UserDevice(TransportProtocol.SOCKET_NFC)
-        user.transaction_initiation()
+        await user.transaction_initiation()
 
-    def test_select(self) -> None:
+    async def test_select(self) -> None:
         user = UserDevice(TransportProtocol.SOCKET_NFC)
-        user.transaction_initiation()
+        await user.transaction_initiation()
 
-    def test_auth0(self) -> None:
+    async def test_auth0(self) -> None:
         user = UserDevice(TransportProtocol.SOCKET_NFC)
-        user.transaction_initiation()
-        response = user.wait_for_command(INS.AUTH0)
-        user.handle_auth0(response)
+        await user.transaction_initiation()
+        response = await user.wait_for_command(INS.AUTH0)
+        await user.handle_auth0(response)
