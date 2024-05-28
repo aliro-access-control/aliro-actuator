@@ -37,7 +37,6 @@ from aliro_actuator.access_protocol.defines import (
     STEPUP_PHASE_AID,
     Auth1,
     Exchange,
-    Select,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.device import Device
@@ -55,14 +54,13 @@ from aliro_actuator.access_protocol.errors import (
     InvalidStatusError,
     SessionError,
     UnexpectedBLEMessageError,
-    UnexpectedNotificationDataError,
 )
-from aliro_actuator.access_protocol.tlv import TLV, TlvError
+from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
-    BleAttribute,
     BleMessage,
+    GeneralError_Values,
     Notification_ID,
     ProtocolType,
     set_ble_encryption,
@@ -361,7 +359,7 @@ class Reader(Device):
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
         ):
-            # TODO: implement failure event message
+            await self.handle_error_event_ble_message(GeneralError_Values.UNKNOWN_ERROR)
             pass
 
         await self.transaction_termination()
@@ -413,6 +411,10 @@ class Reader(Device):
             )
 
         Global.logger.info("Initiate access protocol notification handling done")
+
+    async def handle_error_event_ble_message(self, error_code: int) -> None:
+        message = BleMessage.create_error_event_message(error_code)
+        await self.transport_protocol.send_message(message)
 
     async def handle_select(self, aid: bytes) -> None:
         """
