@@ -16,13 +16,14 @@ import socket
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.apdu import Message
+from aliro_actuator.access_protocol.apdu import APDUMessage
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
     InvalidModeError,
     NoDataReceivedError,
 )
+from aliro_actuator.transport_protocol.message import Message
 
 PORT = 5000
 TIMEOUT = 20  # seconds
@@ -75,7 +76,7 @@ class Socket(TransportProtocolBase):
 
     async def send_message(
         self,
-        message: bytes | BleMessage | Message,
+        message: bytes | Message,
     ) -> None:
         if not isinstance(message, bytes):
             message = message.to_bytes()

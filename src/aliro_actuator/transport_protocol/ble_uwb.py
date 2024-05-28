@@ -15,7 +15,7 @@
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.apdu import Command, Message, Response
+from aliro_actuator.access_protocol.apdu import Command, Response
 from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
@@ -24,8 +24,10 @@ from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
     UnknownVersionRequestedError,
 )
+from aliro_actuator.transport_protocol.message import Message
 
 DEFAULT_PORT = "/dev/ttyUSB0"
 SUPPORTED_VERSIONS = [0x0100]
@@ -103,7 +105,7 @@ class BLEUWB(TransportProtocolBase):
 
     async def send_message(
         self,
-        message: bytes | BleMessage | Message,
+        message: bytes | Message,
     ) -> None:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
@@ -131,6 +133,8 @@ class BLEUWB(TransportProtocolBase):
         elif isinstance(message, bytes):
             Global.logger.info("Sending message: {!r}".format(hexlify(message)))
             message_bytes = message
+        else:
+            raise UnexpectedMessageTypeError("Unknown message type")
 
         Global.logger.debug(
             "Sending data using BLE: {!r}".format(hexlify(message_bytes))
