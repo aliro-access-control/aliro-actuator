@@ -21,7 +21,6 @@ from aliro_actuator.access_protocol.apdu import (
     AUTHENTICATION_TAG_SIZE,
     INS,
     Auth1Response,
-    Message,
     Response,
     StatusBytes,
     Transaction,
