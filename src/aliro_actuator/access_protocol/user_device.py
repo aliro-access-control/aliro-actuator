@@ -61,6 +61,7 @@ from aliro_actuator.access_protocol.errors import (
 from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
+from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import (
@@ -260,6 +261,9 @@ class UserDevice(Device):
                 except (InvalidCommandError, VerificationError):
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                     break
+                except NoDeviceConnectedError:
+                    # try to reconnect in outer loop
+                    break
                 try:
                     match command.ins:
                         case INS.SELECT:
@@ -288,6 +292,9 @@ class UserDevice(Device):
                     )
                     # main loop should continue even when commands are not valid
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
+                except NoDeviceConnectedError:
+                    # try to reconnect in outer loop
                     break
 
     def start_new_session(self) -> None:
