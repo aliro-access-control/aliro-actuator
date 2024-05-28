@@ -39,7 +39,12 @@ class UnknownVersionRequestedError(TransportProtocolError):
 
 class BLEMessageError(TransportProtocolError):
     """
-    Raised when a ble message is received and has unexpected data.
+    Raised when a ble message is received and has unexpected format.
     """
 
-    pass
+    def __init__(self, ble_message: bytes, message: str | None = None) -> None:
+        if message is not None:
+            message += ", command: {!r}".format(ble_message)
+        else:
+            message = "command: {!r}".format(ble_message)
+        TransportProtocolError.__init__(self, message)

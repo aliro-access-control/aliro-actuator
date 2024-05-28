@@ -384,10 +384,10 @@ class Reader(Device):
                 id,
             )
 
-        attribute = BleAttribute.from_bytes(response_str)
-        if attribute.id != 0x00:
-            raise AccessProtocolError("User send unknown attribute ID")
-        self.session.set_initiate_access_protocol_info(attribute.value)
+        message = BleMessage(header, id, response_str)
+        message.parse_payload()
+
+        self.session.set_initiate_access_protocol_info(message)
 
         if self.session.application_type != CSA_APPLICATION_TYPE:
             raise AccessProtocolError("User send unknown application type")
@@ -1201,111 +1201,15 @@ class ReaderSession:
         self.proprietary_tlv = select_response.proprietary_tlv
 
     def set_initiate_access_protocol_info(
-        self, initiate_access_protocol_notification: bytes
+        self, initiate_ap_notification: BleMessage
     ) -> None:
-        Global.logger.debug(
-            "Initiate access protocol TLV: {!r}".format(
-                hexlify(initiate_access_protocol_notification)
-            )
+        self.application_type = initiate_ap_notification.application_type
+        self.expedited_phase_supported_protocol_versions = (
+            initiate_ap_notification.expedited_phase_supported_protocol_versions
         )
-        try:
-            self.proprietary_tlv = TLV.from_bytes(initiate_access_protocol_notification)
-        except TlvError as error:
-            raise UnexpectedNotificationDataError(
-                initiate_access_protocol_notification,
-                "Proprietary information is not a valid TLV",
-            ) from error
-
-        try:
-            type_bytes = self.proprietary_tlv.get_bytes(Select.TYPE_TAG)
-            if len(type_bytes) != Select.TYPE_LEN:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification, "Type has invalid length"
-                )
-            self.application_type = int.from_bytes(type_bytes, byteorder="big")
-            Global.logger.debug("type: {}".format(self.application_type))
-        except IndexError as error:
-            raise UnexpectedNotificationDataError(
-                initiate_access_protocol_notification,
-                "missing Type, tag: {:#x}".format(error.args[0]),
-            ) from error
-
-        try:
-            etspv_bytes = self.proprietary_tlv.get_bytes(Select.ETSPV_TAG)
-            if (len(etspv_bytes) % 2) == 1:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification,
-                    "expedited_phase_supported_protocol_versions has invalid length",
-                )
-            self.expedited_phase_supported_protocol_versions = (
-                Message._data_to_2byte_list(etspv_bytes)
-            )
-            Global.logger.debug(
-                "expedited transaction supported protocol versions: {}".format(
-                    self.expedited_phase_supported_protocol_versions
-                )
-            )
-        except IndexError as error:
-            raise UnexpectedNotificationDataError(
-                initiate_access_protocol_notification,
-                "missing expedited_phase_supported_protocol_versions, tag: {:#x}".format(
-                    error.args[0]
-                ),
-            ) from error
-
-        self.maximum_command_apdu = None
-        self.maximum_response_apdu = None
-        try:
-            extended_length = self.proprietary_tlv.get_tlv(Select.EXTENDED_INFO_TAG)
-            if len(extended_length.to_bytes()) != Select.EXTENDED_INFO_LEN:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification,
-                    "Extended Length Information has invalid length",
-                )
-            try:
-                self.maximum_command_apdu = int.from_bytes(
-                    extended_length.get_bytes(Select.MAX_COMMAND_TAG, index=0), "big"
-                )
-            except IndexError as error:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification,
-                    "missing Maximum Command APDU, tag: {:#x}".format(error.args[0]),
-                ) from error
-            try:
-                self.maximum_response_apdu = int.from_bytes(
-                    extended_length.get_bytes(Select.MAX_RESPONSE_TAG, index=1), "big"
-                )
-            except IndexError as error:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification,
-                    "missing Maximum response, tag: {:#x}".format(error.args[0]),
-                ) from error
-        except IndexError:
-            pass
-        Global.logger.debug(
-            "maximum command apdu: {}".format(self.maximum_command_apdu)
-        )
-        Global.logger.debug(
-            "maximum response apdu: {}".format(self.maximum_response_apdu)
-        )
-
-        self.vendor_specific_extensions = None
-        try:
-            self.vendor_specific_extensions = self.proprietary_tlv.get_tlv(
-                Select.VENDOR_SPECIFIC_TAG
-            )
-            Global.logger.debug(
-                "vendor specific extensions: {!r}".format(
-                    hexlify(self.vendor_specific_extensions.to_bytes())
-                )
-            )
-        except IndexError:
-            pass
-        except TlvError as error:
-            raise UnexpectedNotificationDataError(
-                initiate_access_protocol_notification,
-                "Vendor specific extensions is not a valid TLV",
-            ) from error
+        self.maximum_command_apdu = initiate_ap_notification.maximum_command_apdu
+        self.maximum_response_apdu = initiate_ap_notification.maximum_response_apdu
+        self.proprietary_tlv = initiate_ap_notification.proprietary_tlv
 
     @property
     def transaction_identifier(self) -> bytes:

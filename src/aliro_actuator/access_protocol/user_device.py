@@ -22,6 +22,7 @@ from aliro_actuator.access_document.revocation_document import RevocationDocumen
 from aliro_actuator.access_protocol.apdu import (
     INS,
     TLV,
+    APDUMessage,
     Auth1Response,
     Command,
     StatusBytes,
@@ -305,10 +306,7 @@ class UserDevice(Device):
                                     "command: {} not implemented".format(message.ins)
                                 )
                     else:
-                        payload = message[0]
-                        header = message[1]
-                        id = message[2]
-                        self.handle_ble_messages(payload, header, id)
+                        self.handle_ble_messages(message)
                 except AccessProtocolError as error:
                     Global.logger.error(
                         "restarting session because of error: {}".format(repr(error))
@@ -320,18 +318,18 @@ class UserDevice(Device):
                     # try to reconnect in outer loop
                     break
 
-    def handle_ble_messages(self, payload: bytes, header: int, id: int) -> None:
+    def handle_ble_messages(self, message: BleMessage) -> None:
         Global.logger.info("Handling (non command) ble message")
         if (
-            header == ProtocolType.NOTIFICATION
-            and id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
+            message.header == ProtocolType.NOTIFICATION
+            and message.id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
         ):
-            self.handle_reader_status_access_protocol_completed_message(payload)
+            self.handle_reader_status_access_protocol_completed_message(message)
         else:
             raise UnexpectedBLEMessageError(
                 "Received unhandleable ble message",
-                header,
-                id,
+                message.header,
+                message.id,
             )
 
     def start_new_session(self) -> None:
@@ -911,11 +909,10 @@ class UserDevice(Device):
         Global.logger.info("Handling CONTROL FLOW command done")
 
     def handle_reader_status_access_protocol_completed_message(
-        self, payload: bytes
+        self, message: BleMessage
     ) -> None:
         Global.logger.info("Handling Reader Status Access Protocol Completed message")
-        attribute = BleAttribute.from_bytes(payload)
-        attribute.parse_as_access_protocol_completed_attribute()
+        message.parse_payload()
 
     async def wait_for_command(
         self,
@@ -945,12 +942,12 @@ class UserDevice(Device):
             Command: the received command.
         """
         message = await self.wait_for_message(expected_command, encryption)
-        if not isinstance(message, Command):
+        if not isinstance(message, APDUMessage):
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
                 "AP request message",
-                message[1],
-                message[2],
+                message.header,
+                message.id,
             )
         return message
 
@@ -958,7 +955,7 @@ class UserDevice(Device):
         self,
         expected_command: INS | list[INS] | None = None,
         encryption: EncryptionEngine | None = None,
-    ) -> Command | tuple[bytes, int, int]:
+    ) -> Command | BleMessage:
         """
         Waits until a message is received, and parses it if it is a command.
 
@@ -990,16 +987,15 @@ class UserDevice(Device):
             header == ProtocolType.AP and id == AP_ID.AP_RQ
         ):
             Global.logger.info("Received command")
-        elif (
-            header == ProtocolType.NOTIFICATION
-            and id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
-        ):
+        elif header is not None and id is not None:
             Global.logger.info(
                 "Received BLE message with header: 0x{:02x} and id: 0x{:02x}".format(
                     header, id
                 )
             )
-            return command_str, header, id
+            return BleMessage(header, id, command_str)
+        else:
+            raise AccessProtocolError("Message invalid (missing header or id)")
 
         try:
             command = self.apdu.parse_command(command_str, encryption)

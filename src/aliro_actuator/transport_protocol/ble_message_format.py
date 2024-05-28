@@ -5,9 +5,12 @@ from enum import IntEnum
 
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.apdu import AUTHENTICATION_TAG_SIZE
+from aliro_actuator.access_protocol.defines import Select
 from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
+from aliro_actuator.access_protocol.tlv import TLV, TlvError
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.transport_protocol.errors import BLEMessageError
+from aliro_actuator.transport_protocol.message import Message
 from aliro_actuator.trust_framework.key import derive_key
 
 ble_encryption_engine: EncryptionEngine | None = None
@@ -60,11 +63,12 @@ def reset_ble_encryption() -> None:
     ble_encryption_engine = None
 
 
-class BleMessage:
+class BleMessage(Message):
     def __init__(self, header: int, id: int, payload: bytes) -> None:
         self.header = header
         self.id = id
         self.payload = payload
+        self.invalid_data_error = BLEMessageError
 
     @classmethod
     def from_bytes(cls, input: bytes) -> BleMessage:
@@ -82,6 +86,127 @@ class BleMessage:
         output.extend(len(self.payload).to_bytes(2, "big"))
         output.extend(self.payload)
         return bytes(change_endianness(output))
+
+    def parse_payload(self) -> None:
+        match self.header:
+            case ProtocolType.AP:
+                raise NotImplementedError
+            case ProtocolType.NOTIFICATION:
+                self._parse_notification_payload()
+            case ProtocolType.UWB_RANGING_SERVICE:
+                raise NotImplementedError
+            case ProtocolType.SUPPLEMENTARY_SERVICE:
+                raise NotImplementedError
+            case ProtocolType.THIRD_PARTY_APP:
+                raise NotImplementedError
+
+    def _parse_notification_payload(self) -> None:
+        match self.id:
+            case Notification_ID.EVENT:
+                raise NotImplementedError
+            case Notification_ID.RANGING:
+                raise NotImplementedError
+            case Notification_ID.READER_STATUS_CHANGED:
+                raise NotImplementedError
+            case Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED:
+                self._parse_access_protocol_completed_payload()
+            case Notification_ID.RKE_REQUEST:
+                raise NotImplementedError
+            case Notification_ID.INITIATE_ACCESS_PROTOCOL:
+                raise NotImplementedError
+            case Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE:
+                raise NotImplementedError
+
+    def _parse_access_protocol_completed_payload(self) -> None:
+        Global.logger.info("Parsing Reader Status Access Protocol Completed")
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != AccessProtocolCompleted_AttributeID.READER_INFORMATION:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+
+        Global.logger.info("Parsing attribute: Reader information")
+        self.unsolicited_reader_status_reporting = self._get_bits_and_enumerate(
+            "unsolicited reader status reporting",
+            self.attribute.value[0],
+            0xE0,
+            UnsolicitedReaderStatusReporting_Values,
+        )
+
+        self.reader_status_information = self._enumerate(
+            "reader status information",
+            self.attribute.value[1],
+            ReaderStatusInformation_Values,
+        )
+        Global.logger.info("Parsing Reader Status Access Protocol Completed done")
+
+    def _parse_initiate_access_protocol(self) -> None:
+        Global.logger.info("Parsing Initiate Access Protocol")
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != 0x00:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+
+        try:
+            self.proprietary_tlv = TLV.from_bytes(self.attribute.value)
+        except TlvError as error:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Proprietary information is not a valid TLV",
+            ) from error
+
+        self.application_type = self._get_int_from_TLV(
+            "Type", Select.TYPE_TAG, Select.TYPE_LEN, tlv_data=self.proprietary_tlv
+        )
+
+        etspv_bytes = self._get_bytes_from_TLV(
+            "expedited_phase_supported_protocol_versions",
+            Select.ETSPV_TAG,
+            tlv_data=self.proprietary_tlv,
+        )
+        if (len(etspv_bytes) % 2) == 1:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "expedited_phase_supported_protocol_versions has invalid length",
+            )
+        self.expedited_phase_supported_protocol_versions = Message._data_to_2byte_list(
+            etspv_bytes
+        )
+
+        extended_length = self._get_optional_TLV_from_TLV(
+            "Extended Length Information",
+            Select.EXTENDED_INFO_TAG,
+            Select.EXTENDED_INFO_LEN,
+            tlv_data=self.proprietary_tlv,
+        )
+        if extended_length is None:
+            self.maximum_command_apdu = None
+            self.maximum_response_apdu = None
+        else:
+            self.maximum_command_apdu = self._get_int_from_TLV(
+                "Maximum Command APDU",
+                Select.MAX_COMMAND_TAG,
+                Select.MAX_COMMAND_LEN,
+                tlv_data=extended_length,
+                index=0,
+            )
+            self.maximum_response_apdu = self._get_int_from_TLV(
+                "Maximum Command APDU",
+                Select.MAX_COMMAND_TAG,
+                Select.MAX_COMMAND_LEN,
+                tlv_data=extended_length,
+                index=1,
+            )
+
+        self.vendor_specific_extensions = self._get_optional_TLV_from_TLV(
+            "Vendor specific extensions",
+            Select.VENDOR_SPECIFIC_TAG,
+            tlv_data=self.proprietary_tlv,
+        )
+        Global.logger.info("Parsing Initiate Access Protocol done")
 
     def _encrypt(self) -> None:
         """
@@ -236,51 +361,3 @@ class BleAttribute:
         output.append(len(self.value))
         output.extend(self.value)
         return bytes(output)
-
-    def parse_as_access_protocol_completed_attribute(self) -> None:
-        Global.logger.info("Parsing Reader Status Access Protocol Completed attribute")
-        if self.id != AccessProtocolCompleted_AttributeID.READER_INFORMATION:
-            raise BLEMessageError(
-                "Invalid attribute in ble message: 0x{:02x}".format(self.id)
-            )
-
-        Global.logger.info("Parsing attribute: Reader information")
-        unsolicited_reader_status_reporting_int = self.value[0] >> 5
-        reader_status_information_int = self.value[1]
-        try:
-            self.unsolicited_reader_status_reporting = (
-                UnsolicitedReaderStatusReporting_Values(
-                    unsolicited_reader_status_reporting_int
-                )
-            )
-        except ValueError as error:
-            raise BLEMessageError(
-                "unsolicited reader status reporting has invalid value: 0x{:02x}".format(
-                    unsolicited_reader_status_reporting_int
-                )
-            ) from error
-        Global.logger.debug(
-            "unsolicited reader status reporting has a valid value: "
-            "0x{!r} ({!r})".format(
-                self.unsolicited_reader_status_reporting.value,
-                self.unsolicited_reader_status_reporting.name,
-            )
-        )
-
-        try:
-            self.reader_status_information = ReaderStatusInformation_Values(
-                reader_status_information_int
-            )
-        except ValueError as error:
-            raise BLEMessageError(
-                "reader status information has invalid value: 0x{:02x}".format(
-                    reader_status_information_int
-                )
-            ) from error
-        Global.logger.debug(
-            "reader status information has a valid value: "
-            "0x{!r} ({!r})".format(
-                self.reader_status_information.value,
-                self.reader_status_information.name,
-            )
-        )
