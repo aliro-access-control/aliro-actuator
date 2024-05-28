@@ -917,10 +917,15 @@ class UserDevice(Device):
         self, message: BleMessage
     ) -> None:
         Global.logger.info("Handling Reader Status Access Protocol Completed message")
+        message.check_header_and_id(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED,
+        )
         message.parse_payload()
 
     def handle_event_message(self, message: BleMessage) -> None:
         Global.logger.info("Handling Event message")
+        message.check_header_and_id(ProtocolType.NOTIFICATION, Notification_ID.EVENT)
         message.parse_payload()
         if message.attribute.id == Event_AttributeID.GENERAL_ERROR:
             Global.logger.warning(
@@ -930,6 +935,41 @@ class UserDevice(Device):
             )
         else:
             raise NotImplementedError
+
+    async def wait_for_ble_message(
+        self,
+        expected_command: INS | list[INS] | None = None,
+        encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        """
+        Waits until a ble message is received.
+
+        Args:
+            expected_command (INS | list[INS] | None, optional): INS or list of INS with
+            expected commands. raises UnexpectedCommandError if another command is
+            received. Defaults to None.
+            encryption (EncryptionEngine | None, optional): Used for decrypting
+            messages.
+            Not required for every command. Defaults to None.
+
+        Raises:
+            InvalidCLAError: Raised when the received command has an invalid CLA.
+            InvalidParameterError: Raised when the received command has an invalid
+            Parameter (P1 or P2).
+            InvalidCommandError: Raised when the received command is invalid.
+            VerificationError: Raised when the verification of an AES decryption fails.
+            UnexpectedCommandError: when the command is not in expected_command.
+
+        Returns:
+            BleMessage: the received ble message.
+        """
+        message = await self.wait_for_message(expected_command, encryption)
+        if not isinstance(message, BleMessage):
+            raise AccessProtocolError(
+                "Received unexpected command while waiting for BLE message : "
+                "{!r}".format(hexlify(message.to_bytes()))
+            )
+        return message
 
     async def wait_for_command(
         self,

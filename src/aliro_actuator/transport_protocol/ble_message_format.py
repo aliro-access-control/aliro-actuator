@@ -87,6 +87,22 @@ class BleMessage(Message):
         output.extend(self.payload)
         return bytes(change_endianness(output))
 
+    def check_header_and_id(self, header: int, id: int) -> None:
+        if self.header != header:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Header is not as expected: 0x{:02x} (expected 0x{:02x})".format(
+                    self.header, header
+                ),
+            )
+        if self.id != id:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "ID is not as expected: 0x{:02x} (expected 0x{:02x})".format(
+                    self.id, id
+                ),
+            )
+
     def parse_payload(self) -> None:
         match self.header:
             case ProtocolType.AP:
