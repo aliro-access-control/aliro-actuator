@@ -64,8 +64,8 @@ from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
-    BleAttribute,
     BleMessage,
+    Event_AttributeID,
     Notification_ID,
     ProtocolType,
     set_ble_encryption,
@@ -325,6 +325,11 @@ class UserDevice(Device):
             and message.id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
         ):
             self.handle_reader_status_access_protocol_completed_message(message)
+        elif (
+            message.header == ProtocolType.NOTIFICATION
+            and message.id == Notification_ID.EVENT
+        ):
+            self.handle_event_message(message)
         else:
             raise UnexpectedBLEMessageError(
                 "Received unhandleable ble message",
@@ -913,6 +918,18 @@ class UserDevice(Device):
     ) -> None:
         Global.logger.info("Handling Reader Status Access Protocol Completed message")
         message.parse_payload()
+
+    def handle_event_message(self, message: BleMessage) -> None:
+        Global.logger.info("Handling Event message")
+        message.parse_payload()
+        if message.attribute.id == Event_AttributeID.GENERAL_ERROR:
+            Global.logger.warning(
+                "Received General Error, with reason: {}".format(
+                    message.reason_code.name
+                )
+            )
+        else:
+            raise NotImplementedError
 
     async def wait_for_command(
         self,

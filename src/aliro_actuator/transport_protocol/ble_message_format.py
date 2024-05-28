@@ -103,7 +103,7 @@ class BleMessage(Message):
     def _parse_notification_payload(self) -> None:
         match self.id:
             case Notification_ID.EVENT:
-                raise NotImplementedError
+                self._parse_event_payload()
             case Notification_ID.RANGING:
                 raise NotImplementedError
             case Notification_ID.READER_STATUS_CHANGED:
@@ -113,9 +113,40 @@ class BleMessage(Message):
             case Notification_ID.RKE_REQUEST:
                 raise NotImplementedError
             case Notification_ID.INITIATE_ACCESS_PROTOCOL:
-                raise NotImplementedError
+                self._parse_initiate_access_protocol()
             case Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE:
                 raise NotImplementedError
+
+    def _parse_event_payload(self) -> None:
+        Global.logger.info("Parsing Event")
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id not in [
+            Event_AttributeID.BUSY,
+            Event_AttributeID.GENERAL_ERROR,
+        ]:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+
+        if self.attribute.id == Event_AttributeID.BUSY:
+            if len(self.attribute.value) != 0:
+                raise BLEMessageError(
+                    self.to_bytes(),
+                    "Busy attribute contains data: {!r}".format(
+                        hexlify(self.attribute.value)
+                    ),
+                )
+            else:
+                Global.logger.info("No data in Busy attribute, as expected")
+
+        elif self.attribute.id == Event_AttributeID.GENERAL_ERROR:
+            self.reason_code = self._enumerate(
+                "reason code",
+                int.from_bytes(self.attribute.value, "big"),
+                GeneralError_Values,
+            )
+        Global.logger.info("Parsing Event done")
 
     def _parse_access_protocol_completed_payload(self) -> None:
         Global.logger.info("Parsing Reader Status Access Protocol Completed")
