@@ -54,7 +54,7 @@ sync_code_index = [
 ]
 
 
-class MurataUWBDriver(MurataBaseDrive):
+class MurataUWBDriver(MurataBaseDriver):
     def uci_initialize(
         self,
         session_id: int,
@@ -72,7 +72,7 @@ class MurataUWBDriver(MurataBaseDrive):
 
         uci.device_creation(
             self.dh,
-            fw=r"/app/third_party/murata_fw/aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin",
+            fw=r"third_party/murata_fw/aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin",
             skip_fw_download=False,
         )
         uci.device_init(self.dh)
