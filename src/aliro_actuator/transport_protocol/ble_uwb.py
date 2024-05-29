@@ -116,14 +116,15 @@ class BLEUWB(TransportProtocolBase):
                 "Sending AP command: {!r}".format(hexlify(command_bytes))
             )
             message_bytes = BleMessage.create_ap_command_message(
-                message.to_bytes()
+                command_bytes
             ).to_bytes()
         elif isinstance(message, Response):
+            command_bytes = message.to_bytes()
             Global.logger.info(
                 "Sending AP response: {!r}".format(hexlify(command_bytes))
             )
             message_bytes = BleMessage.create_ap_response_message(
-                message.to_bytes()
+                command_bytes
             ).to_bytes()
         elif isinstance(message, BleMessage):
             message_bytes = message.to_bytes()
