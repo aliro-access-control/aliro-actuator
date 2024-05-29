@@ -70,6 +70,9 @@ class MurataUWBDriver(MurataBaseDriver):
             port=self.com_port, id="master", ser_props={"baudrate": self.baudrate}
         )
 
+        self.dh.disable_ntf_prints()
+        self.dh.disable_uci_prints()
+
         uci.device_creation(
             self.dh,
             fw=r"third_party/murata_fw/aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin",
