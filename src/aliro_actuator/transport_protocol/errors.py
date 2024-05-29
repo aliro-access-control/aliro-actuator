@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from binascii import hexlify
+
 
 class TransportProtocolError(Exception):
     pass
@@ -44,7 +46,7 @@ class BLEMessageError(TransportProtocolError):
 
     def __init__(self, ble_message: bytes, message: str | None = None) -> None:
         if message is not None:
-            message += ", command: {!r}".format(ble_message)
+            message += ", command: {!r}".format(hexlify(ble_message))
         else:
-            message = "command: {!r}".format(ble_message)
+            message = "command: {!r}".format(hexlify(ble_message))
         TransportProtocolError.__init__(self, message)
