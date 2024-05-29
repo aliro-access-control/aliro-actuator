@@ -152,7 +152,6 @@ class BLEUWB(TransportProtocolBase):
         )
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
-        message._decrypt()
 
         return message.payload, message.header, message.id
 
