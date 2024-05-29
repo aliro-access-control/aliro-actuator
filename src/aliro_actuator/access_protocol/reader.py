@@ -57,13 +57,13 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_encryption import get_ble_encryption
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
     BleMessage,
     GeneralError_Values,
     Notification_ID,
     ProtocolType,
-    set_ble_encryption,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -382,7 +382,7 @@ class Reader(Device):
             )
 
         message = BleMessage(header, id, response_str)
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
 
         self.session.set_initiate_access_protocol_info(message)
 
@@ -1174,6 +1174,7 @@ class ReaderSession:
         self.reader_identifier = reader_identifier
         self.command_vendor_extension = vendor_extension
         self.response_vendor_extension: bytes | None = None
+        self.ble_encryption_engine: EncryptionEngine | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -1440,9 +1441,12 @@ class ReaderSession:
             raise AccessProtocolError("Trying to set BLE encryption while using NFC")
 
         selected_version, available_versions = transport_protocol.get_ble_versions()
-        set_ble_encryption(
+        self.ble_encryption_engine = get_ble_encryption(
             DeviceType.READER, self.ble_SK, selected_version, available_versions
         )
+
+    def get_ble_encryption(self) -> EncryptionEngine | None:
+        return self.ble_encryption_engine
 
     def encrypt_payload(self, payload: bytes) -> tuple[bytes, bytes]:
         return self.encryption.encrypt(payload)

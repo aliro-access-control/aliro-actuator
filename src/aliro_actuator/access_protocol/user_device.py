@@ -62,13 +62,13 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_encryption import get_ble_encryption
 from aliro_actuator.transport_protocol.ble_message_format import (
     AP_ID,
     BleMessage,
     Event_AttributeID,
     Notification_ID,
     ProtocolType,
-    set_ble_encryption,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
@@ -921,12 +921,12 @@ class UserDevice(Device):
             ProtocolType.NOTIFICATION,
             Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED,
         )
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
 
     def handle_event_message(self, message: BleMessage) -> None:
         Global.logger.info("Handling Event message")
         message.check_header_and_id(ProtocolType.NOTIFICATION, Notification_ID.EVENT)
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
         if message.attribute.id == Event_AttributeID.GENERAL_ERROR:
             Global.logger.warning(
                 "Received General Error, with reason: {}".format(
@@ -1234,6 +1234,7 @@ class UserSession:
         self.encryption: EncryptionEngine | None = None
         self.command_vendor_extension: bytes | None = None
         self.response_vendor_extension = vendor_extension
+        self.ble_encryption_engine: EncryptionEngine | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -1429,9 +1430,12 @@ class UserSession:
             raise AccessProtocolError("Trying to set BLE encryption while using NFC")
 
         selected_version, available_versions = transport_protocol.get_ble_versions()
-        set_ble_encryption(
+        self.ble_encryption = get_ble_encryption(
             DeviceType.USER, self.ble_SK, selected_version, available_versions
         )
+
+    def get_ble_encryption(self) -> EncryptionEngine | None:
+        return self.ble_encryption_engine
 
     def set_cert_and_verify(
         self, compressed_cert: bytes, public_key: PublicKey
