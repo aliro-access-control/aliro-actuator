@@ -1,11 +1,10 @@
-import asyncio
 from binascii import hexlify
+from enum import IntEnum
 
-from ucitool.base_uci.helpers.uci_helper import *
+import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
-from aliro_actuator.hw_driver.murata_driver.encryption import dynamic_tag_generation
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.errors import (
     DeviceDisconnectedError,
@@ -13,57 +12,117 @@ from aliro_actuator.hw_driver.murata_driver.errors import (
 )
 
 
+class PulseShapeCombo(IntEnum):
+    SYMMETRICAL_ROOT_RAISED_COSINE = 0x00
+    PRECURSOR_FREE = 0x01
+    PRECURSOR_FREE_SPECIAL = 0x02
+
+
+sync_code_index = [
+    0x01,
+    0x02,
+    0x04,
+    0x08,
+    0x10,
+    0x20,
+    0x40,
+    0x80,
+    0x100,
+    0x200,
+    0x400,
+    0x800,
+    0x1000,
+    0x2000,
+    0x4000,
+    0x8000,
+    0x10000,
+    0x20000,
+    0x40000,
+    0x80000,
+    0x100000,
+    0x200000,
+    0x400000,
+    0x800000,
+    0x1000000,
+    0x2000000,
+    0x4000000,
+    0x8000000,
+    0x10000000,
+    0x20000000,
+    0x40000000,
+    0x80000000,
+]
+
+
 class MurataUWBDriver(MurataBaseDrive):
-    def uci_initialize(self, uwb_config_id: int, session_id: int) -> None:
+    def uci_initialize(
+        self,
+        session_id: int,
+        dev_role: uci.APP_CFG.DEVICE_ROLE,
+        dev_type: uci.APP_CFG.DEVICE_TYPE,
+    ) -> None:
         Global.logger.info("Initialize UCI device")
-        self.uwb_config_id = uwb_config_id
         self.session_id = session_id
-        self.dh = UciHost(
+        self.device_role = dev_role
+        self.device_type = dev_type
+
+        self.dh = uci.UciHost(
             port=self.com_port, id="master", ser_props={"baudrate": self.baudrate}
         )
 
-        device_creation(
+        uci.device_creation(
             self.dh,
             fw=r"/app/third_party/murata_fw/aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin",
             skip_fw_download=False,
         )
-        device_init(self.dh)
+        uci.device_init(self.dh)
 
         # fmt: off
-        set_device_config(
+        uci.set_device_config(
             self.dh,
-            config=DEVICE_CFG.ANTENNA_RX_IDX_DEFINE,
+            config=uci.DEVICE_CFG.ANTENNA_RX_IDX_DEFINE,
             value=[
                 0x03, 0x01, 0x01, 0x02, 0x00, 0x02, 0x00, 0x02, 0x01, 0x02, 0x00,
                 0x00, 0x00, 0x03, 0x02, 0x01, 0x00, 0x01, 0x00,
             ],
         )
 
-        set_device_config(
+        uci.set_device_config(
             self.dh,
-            config=DEVICE_CFG.ANTENNA_TX_IDX_DEFINE,
+            config=uci.DEVICE_CFG.ANTENNA_TX_IDX_DEFINE,
             value=[0x01, 0x01, 0x01, 0x00, 0x00, 0x00],
         )
-        set_device_config(
+        uci.set_device_config(
             self.dh,
-            config=DEVICE_CFG.ANTENNAS_RX_PAIR_DEFINE,
+            config=uci.DEVICE_CFG.ANTENNAS_RX_PAIR_DEFINE,
             value=[
                 0x02, 0x01, 0x01, 0x03, 0x00, 0x00, 0x00,
                 0x02, 0x01, 0x03, 0x00, 0x00, 0x00,
             ],
         )
 
-    def set_calibration(self):
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.UWB_CONFIG_ID,
+            value=uwb_config_id,
+            session_id=self.session_handle_dh
+        )
+
+        self.set_calibration()
+        self.get_capabilities()
+
+    def set_calibration(self) -> None:
         # fmt: off
-        set_calibration(
-            self.dh, 
-            APP_CFG.CHANNEL_ID.CH_9, 
-            CALIB_TYPE.RX_ANT_DELAY_CALIB, 
+        uci.set_calibration(
+            self.dh,
+            uci.APP_CFG.CHANNEL_ID.CH_9, 
+            uci.CALIB_TYPE.RX_ANT_DELAY_CALIB, 
             [0x03, 0x01, 0xBC, 0x3A, 0x02, 0xBC, 0x3A, 0x03, 0xBC, 0x3A]
         )
-        set_calibration(self.dh, 
-            APP_CFG.CHANNEL_ID.CH_9, 
-            CALIB_TYPE.AOA_ANTENNAS_PDOA_CALIB,
+        uci.set_calibration(
+            self.dh,
+            uci.APP_CFG.CHANNEL_ID.CH_9,
+            uci.CALIB_TYPE.AOA_ANTENNAS_PDOA_CALIB,
             [
                 0x01, 0x01, 0xEF, 0xB7, 0x41, 0xC0, 0x67, 0xCD, 0xD3, 0xDD, 0x50, 0xF0,
                 0x5F, 0x00, 0x00, 0x0B, 0xBA, 0x15, 0x5F, 0x27, 0x80, 0x37, 0x9E, 0x41, 
@@ -86,12 +145,12 @@ class MurataUWBDriver(MurataBaseDrive):
                 0x89, 0x29, 0x35, 0x38, 0x11, 0x48, 0x63, 0xBC, 0x54, 0xBE, 0x98, 0xC3, 
                 0x81, 0xD6, 0x24, 0xEC, 0xA7, 0xFD, 0xEB, 0x0F, 0x44, 0x1C, 0x3D, 0x28, 
                 0x97, 0x39, 0x6C, 0x47
-                ]
-            )
-        set_calibration(
-            self.dh, 
-            APP_CFG.CHANNEL_ID.CH_9, 
-            CALIB_TYPE.AOA_ANTENNAS_PDOA_CALIB, 
+            ]
+        )
+        uci.set_calibration(
+            self.dh,
+            uci.APP_CFG.CHANNEL_ID.CH_9,
+            uci.CALIB_TYPE.AOA_ANTENNAS_PDOA_CALIB,
             [
                 0x01, 0x02, 0x7A, 0xD3, 0x8D, 0xD8, 0x12, 0xE0, 0xD7, 0xE9, 0x6F, 0xF4, 
                 0x80, 0xFE, 0x26, 0x08, 0x10, 0x10, 0x74, 0x16, 0xC1, 0x1D, 0xE0, 0x20, 
@@ -115,39 +174,160 @@ class MurataUWBDriver(MurataBaseDrive):
                 0xA2, 0xEC, 0x9D, 0xF4, 0x7B, 0xFF, 0x00, 0x0D, 0x6D, 0x17, 0x2B, 0x1B, 
                 0x56, 0x26, 0xFB, 0x2A
             ]
-            )
+        )
         # fmt: on
-        set_calibration(
+        uci.set_calibration(
             self.dh,
-            APP_CFG.CHANNEL_ID.CH_9,
-            CALIB_TYPE.PDOA_OFFSET_CALIB,
+            uci.APP_CFG.CHANNEL_ID.CH_9,
+            uci.CALIB_TYPE.PDOA_OFFSET_CALIB,
             [0x02, 0x01, 0xE7, 0xD8, 0x02, 0x4E, 0x48],
         )
-        set_calibration(
+        uci.set_calibration(
             self.dh,
-            APP_CFG.CHANNEL_ID.CH_9,
-            CALIB_TYPE.AOA_THRESHOLD_PDOA,
+            uci.APP_CFG.CHANNEL_ID.CH_9,
+            uci.CALIB_TYPE.AOA_THRESHOLD_PDOA,
             [0x02, 0x01, 0xE6, 0x32, 0x02, 0x4F, 0xEE],
         )
 
-        session_init_rsp = session_init(
-            self.dh, session_id=self.session_id, session_type=SESSION_TYPE.SESSION_CCC
+        session_init_rsp = uci.session_init(
+            self.dh,
+            session_id=self.session_id,
+            session_type=uci.SESSION_TYPE.SESSION_CCC,
         )
         self.session_handle_dh = session_init_rsp.fields["SESSION_HANDLE"].val
 
-    def set_app_config(self, mode, type, src_addr, dst_addr):
-        set_app_config(
+    def get_capabilities(self) -> None:
+        data = uci.get_caps(self.dh)
+
+        self.slot_bitmask = data.fields["SLOT_BITMASK"].val
+        self.sync_code_index_bitmask = data.fields["SYNC_CODE_INDEX_BITMASK"].val
+        self.hopping_config_bitmask = data.fields["HOPPING_CONFIG_BITMASK"].val
+        self.channel_bitmask = data.fields["CHANNEL_BITMASK"].val
+        self.protocol_versions = data.fields["SUPPORTED_PROTOCOL_VERSION"].val
+        self.uwb_config_id = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
+        self.pulseshape_combo = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
+
+    def get_pulse_shape_combination(self) -> int:
+        return self.pulseshape_combo
+
+    def set_pulse_shape_combination(self, pulse_shape_combo: PulseShapeCombo) -> None:
+        uci.set_config(
             self.dh,
+            config=uci.APP_CFG.PULSESHAPE_COMBO,
+            value=pulse_shape_combo,
             session_id=self.session_handle_dh,
-            device_role=mode,
-            device_type=type,
-            src_addr=[0x22, 0x22],
-            dst_addr=[0x11, 0x11],
-            channel=APP_CFG.CHANNEL_ID.CH_9,
         )
 
-    def set_pulse_shape_combination(self, value):
-        set_config(self.dh, config=APP_CFG.PULSESHAPE_COMBO, value, self.session_handle_dh)
+    def get_channel_bitmask(self) -> int:
+        return self.channel_bitmask
 
-    def set_channel_bitmask(self, ch_bitmask):
-        pass
+    def set_uwb_configuration_id(self, uwb_config_id: int) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.UWB_CONFIG_ID,
+            value=uwb_config_id,
+            session_id=self.session_handle_dh,
+        )
+
+    def set_ran_multiplier(self, ran_multiplier: int) -> None:
+        # Range = 1 to 255
+        # T_Block_S = Session_RAN_Multiplier × 96 ms
+        # Time Range = 96ms to 24480 ms
+        val = ran_multiplier * 96
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.RANGING_DURATION,
+            value=val,
+            session_id=self.session_handle_dh,
+        )
+
+    def get_ran_multiplier(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.RANGING_DURATION,
+            session_id=self.session_handle_dh,
+        )
+        val = data.fields["RANGING_DURATION"].val / 96
+        return val
+
+    def set_app_config(self, channel: uci.APP_CFG.CHANNEL_ID) -> None:
+        uci.set_app_config(
+            self.dh,
+            session_id=self.session_handle_dh,
+            device_role=self.device_role,
+            device_type=self.dev_type,
+            channel=self.channel,
+        )
+
+    def get_slot_bitmask(self) -> int:
+        return self.slot_bitmask
+
+    def set_slot_duration(self, duration: int) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.SLOT_DURATION,
+            value=duration,
+            session_id=self.session_handle_dh,
+        )
+
+    def get_sync_code_bitmask(self) -> int:
+        return self.sync_code_index_bitmask
+
+    def get_hopping_config_bitmask(self) -> int:
+        return self.hopping_config_bitmask
+
+    def set_hopping_mode(self, hopping_mode: int) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.HOPPING_MODE,
+            value=hopping_mode,
+            session_id=self.session_handle_dh,
+        )
+
+    def get_number_responders(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["NUMBER_OF_CONTROLEES"].val
+
+    def get_slots_per_round(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.SLOTS_PER_RR,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["SLOTS_PER_RR"].val
+
+    def get_sts_index0(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.STS_INDEX,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["STS_INDEX"].val
+
+    def get_uwb_time0(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.UWB_INITIATION_TIME,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["UWB_INITIATION_TIME"].val
+
+    def get_hop_mode_key(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.HOP_MODE_KEY,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["HOP_MODE_KEY"].val
+
+    def get_mac_mode(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.CSA_MAC_MODE,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["CSA_MAC_MODE"].val
