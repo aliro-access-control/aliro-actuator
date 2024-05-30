@@ -104,13 +104,6 @@ class MurataUWBDriver(MurataBaseDriver):
             ],
         )
 
-        uci.set_config(
-            self.dh,
-            config=uci.APP_CFG.UWB_CONFIG_ID,
-            value=uwb_config_id,
-            session_id=self.session_handle_dh
-        )
-
         self.set_calibration()
         self.get_capabilities()
 
