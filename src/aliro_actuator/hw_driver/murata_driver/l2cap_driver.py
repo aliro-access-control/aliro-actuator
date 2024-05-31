@@ -152,24 +152,10 @@ class MurataL2CAPDriver(MurataBaseDriver):
     async def wait_for_data(self, device_id_requested: int) -> bytes:
         Global.logger.debug("Wait for data")
         while True:
-            try:
-                message = await self.read()
-                if (
-                    message.op_group == OpGroup.L2CAP
-                    and message.op_code == OpCodeL2CAP.LE_CB_DATA
-                ):
-                    device_id = message.get_device_id()
-                    Global.logger.debug(
-                        "Received data from device id: {:x}".format(device_id)
-                    )
-                    if device_id == device_id_requested:
-                        data = message.get_packet()
-                        Global.logger.debug("Received data: {!r}".format(hexlify(data)))
-                        return data
-                else:
-                    Global.logger.debug("Unexpected message received:")
-                    message.print()
-            except NoResponseError:
-                # sleep so other processes can run
-                await asyncio.sleep(0.1)
-                pass
+            message = await self.wait_for_message(OpGroup.L2CAP, OpCodeL2CAP.LE_CB_DATA)
+            device_id = message.get_device_id()
+            Global.logger.debug("Received data from device id: {:x}".format(device_id))
+            if device_id == device_id_requested:
+                data = message.get_packet()
+                Global.logger.debug("Received data: {!r}".format(hexlify(data)))
+                return data
