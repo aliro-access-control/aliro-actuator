@@ -94,6 +94,11 @@ class MurataBaseDriver:
                         channel = response.get_channel_id()
                         id = response.get_device_id()
                         self.channel_ids[id] = channel
+                        Global.logger.debug(
+                            "Received Le PSM connection complete message, using channel: 0x{:02x}".format(
+                                channel
+                            )
+                        )
                     except ErrorReturnedError:
                         pass  # just ignore message
                 if (
@@ -108,6 +113,10 @@ class MurataBaseDriver:
                         if id in self.channel_ids.keys():
                             del self.channel_ids[id]
                         self.connected_devices.remove(id)
+                        Global.logger.debug(
+                            "Received connection event disconnected message, "
+                            "disconnected id: 0x{:02x}".format(id)
+                        )
                     except ErrorReturnedError:
                         pass  # just ignore message
                     raise DeviceDisconnectedError
