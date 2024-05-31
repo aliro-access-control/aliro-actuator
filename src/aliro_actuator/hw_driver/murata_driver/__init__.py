@@ -35,6 +35,7 @@ class UserDeviceMurataDriver(
         Global.logger.info("setup ble connection")
         self.group_resolving_key = group_resolving_key
         self.reader_group_identifier_list = reader_group_identifier_list
+        await self.stop_scanning(False)
         await self.start_scanning()
 
     async def wait_for_connection(self) -> None:

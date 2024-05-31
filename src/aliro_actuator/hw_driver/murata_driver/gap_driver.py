@@ -188,12 +188,15 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
         Global.logger.debug("Scanning Started")
 
-    async def stop_scanning(self) -> None:
+    async def stop_scanning(self, state_change: bool = True) -> None:
         Global.logger.info("Stop Scanning")
         message = Message(OpGroup.GAP, OpCodeGAP.STOP_SCANNING)
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
-        await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        if state_change:
+            await self.wait_for_message(
+                OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED
+            )
         Global.logger.debug("Scanning Stopped")
 
     async def connect(
