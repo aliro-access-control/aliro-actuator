@@ -8,7 +8,7 @@ from aliro_actuator.hw_driver.murata_driver.errors import (
     ErrorReturnedError,
     NoResponseError,
 )
-from aliro_actuator.hw_driver.murata_driver.fsci import Message
+from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeL2CAP, OpGroup
 
 
@@ -26,7 +26,10 @@ class MurataL2CAPDriver(MurataBaseDriver):
             OpCodeL2CAP.REGISTER_LE_CB_CALLBACKS,
         )
         self.write(message)
-        await self.wait_for_confirm(OpGroup.L2CAP)
+        await self.wait_for_confirm(
+            OpGroup.L2CAP,
+            [ConfirmStatus.SUCCESS, ConfirmStatus.CALLBACK_ALREADY_INSTALLED],
+        )
 
     async def register_le_psm(self, psm: bytes, psm_mtu: int = 0xFF) -> None:
         Global.logger.debug("Register Le PSM")

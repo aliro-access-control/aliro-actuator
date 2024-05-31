@@ -33,6 +33,7 @@ class ConfirmStatus(IntEnum):
     OS_ERROR = 0x07
     UNEXPECTED_ERROR = 0x08
     INVALID_STATE = 0x09
+    CALLBACK_ALREADY_INSTALLED = 0x03F3
 
 
 class Message:
