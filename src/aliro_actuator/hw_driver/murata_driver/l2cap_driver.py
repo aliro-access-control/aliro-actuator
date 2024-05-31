@@ -1,4 +1,5 @@
 import asyncio
+import random
 from binascii import hexlify
 
 from aliro_actuator import Global
@@ -105,6 +106,11 @@ class MurataL2CAPDriver(MurataBaseDriver):
                         "other side is not yet ready for l2cap, try again later"
                     )
                     await asyncio.sleep(0.1)
+                    continue
+                if error.error_code == 0x0B:
+                    Global.logger.debug("Timer error, try again after random interval")
+                    wait_time = random.uniform(0.05, 0.3)
+                    await asyncio.sleep(wait_time)
                     continue
                 else:
                     raise error
