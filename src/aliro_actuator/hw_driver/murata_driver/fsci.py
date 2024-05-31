@@ -34,6 +34,7 @@ class ConfirmStatus(IntEnum):
     UNEXPECTED_ERROR = 0x08
     INVALID_STATE = 0x09
     CALLBACK_ALREADY_INSTALLED = 0x03F3
+    LE_PSM_ALREADY_REGISTERED = 0x3F5
 
 
 class Message:

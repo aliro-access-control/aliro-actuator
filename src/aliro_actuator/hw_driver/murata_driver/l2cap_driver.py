@@ -44,6 +44,23 @@ class MurataL2CAPDriver(MurataBaseDriver):
             data,
         )
         self.write(message)
+        await self.wait_for_confirm(
+            OpGroup.L2CAP,
+            [ConfirmStatus.SUCCESS, ConfirmStatus.LE_PSM_ALREADY_REGISTERED],
+        )
+
+    async def deregister_le_psm(self, psm: bytes) -> None:
+        Global.logger.debug("Deregister Le PSM")
+        data = bytearray()
+        data.extend(change_endianness(psm[:2]))
+
+        message = Message(
+            OpGroup.L2CAP,
+            OpCodeL2CAP.DEREGISTER_LE_PSM,
+            len(data),
+            data,
+        )
+        self.write(message)
         await self.wait_for_confirm(OpGroup.L2CAP)
 
     async def connect_le_psm(
