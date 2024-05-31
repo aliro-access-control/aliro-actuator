@@ -15,10 +15,17 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeL2CAP, OpGroup
 
 
 class MurataL2CAPDriver(MurataBaseDriver):
-    async def setup_l2cap_connection(self, psm: bytes) -> None:
+    async def setup_l2cap_connection_user(self, psm: bytes) -> None:
         Global.logger.debug("Setup l2cap connection")
         await self.register_le_cb_callback()
         await self.register_le_psm(psm)
+        await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
+
+    async def setup_l2cap_connection_reader(self, psm: bytes) -> None:
+        Global.logger.debug("Setup l2cap connection")
+        await self.register_le_cb_callback()
+        await self.register_le_psm(psm)
+        await self.wait_for_l2cap_request(self.connected_devices[0])
         await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
 
     async def register_le_cb_callback(self) -> None:
@@ -84,19 +91,10 @@ class MurataL2CAPDriver(MurataBaseDriver):
         while device_id not in self.channel_ids.keys():
             self.write(message)
             await self.wait_for_confirm(OpGroup.L2CAP)
-            if device_id in self.channel_ids.keys():
-                break  # received connection complete while waiting for confirm
             response = await self.wait_for_message(
                 OpGroup.L2CAP,
                 OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE,
-                [OpCodeL2CAP.LE_PSM_CONNECTION_REQUEST],
             )
-            if (
-                response.get_op_group() == OpGroup.L2CAP
-                and response.get_op_code() == OpCodeL2CAP.LE_PSM_CONNECTION_REQUEST
-            ):
-                Global.logger.debug("Got connection request, try to connect again")
-                continue
             try:
                 response.check_for_error()
                 break
@@ -107,15 +105,21 @@ class MurataL2CAPDriver(MurataBaseDriver):
                     )
                     await asyncio.sleep(0.1)
                     continue
-                if error.error_code == 0x0B:
-                    Global.logger.debug("Timer error, try again after random interval")
-                    wait_time = random.uniform(0.05, 0.3)
-                    await asyncio.sleep(wait_time)
-                    continue
                 else:
                     raise error
         Global.logger.debug("LE PSM connection Complete")
         return self.channel_ids[device_id]
+
+    async def wait_for_l2cap_request(self, device_id: int) -> None:
+        Global.logger.debug("Wait for L2CAP request")
+        while True:
+            response = await self.wait_for_message(
+                OpGroup.L2CAP,
+                OpCodeL2CAP.LE_PSM_CONNECTION_REQUEST,
+            )
+            if response.get_device_id() == device_id:
+                Global.logger.debug("Wait for L2CAP request done")
+                return
 
     async def send_le_credit(self, device_id: int, no_credits: int) -> bytes:
         Global.logger.debug("Send Le Credit")

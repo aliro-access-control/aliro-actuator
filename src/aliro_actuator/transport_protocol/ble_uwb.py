@@ -105,7 +105,11 @@ class BLEUWB(TransportProtocolBase):
                 self.spsm,
                 self.supported_versions,
             ) = await self.driver.handle_GATT_layer(self.ble_version)
-        await self.driver.setup_l2cap_connection(self.spsm)
+
+        if self.mode == Mode.USER_DEVICE:
+            await self.driver.setup_l2cap_connection_user(self.spsm)
+        if self.mode == Mode.READER:
+            await self.driver.setup_l2cap_connection_reader(self.spsm)
 
     async def send_message(
         self,
