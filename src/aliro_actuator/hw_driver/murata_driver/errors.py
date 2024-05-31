@@ -86,3 +86,11 @@ class DeviceDisconnectedError(MurataError):
     """
 
     pass
+
+
+class DeviceNotFoundError(MurataError):
+    """
+    Raised when a device is disconnected.
+    """
+
+    pass

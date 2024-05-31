@@ -20,6 +20,10 @@ from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
 )
+from aliro_actuator.hw_driver.murata_driver.errors import (
+    DeviceDisconnectedError,
+    DeviceNotFoundError,
+)
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
@@ -140,16 +144,22 @@ class BLEUWB(TransportProtocolBase):
         Global.logger.debug(
             "Sending data using BLE: {!r}".format(hexlify(message_bytes))
         )
-        await self.driver.send_le_cb_data(
-            self.driver.connected_devices[0], message_bytes
-        )
+        try:
+            await self.driver.send_le_cb_data(
+                self.driver.connected_devices[0], message_bytes
+            )
+        except (DeviceDisconnectedError, DeviceNotFoundError) as error:
+            raise NoDeviceConnectedError from error
 
     async def get_message(self) -> tuple[bytes, int | None, int | None]:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
-        message_bytes = await self.driver.wait_for_data(
-            self.driver.connected_devices[0]
-        )
+        try:
+            message_bytes = await self.driver.wait_for_data(
+                self.driver.connected_devices[0]
+            )
+        except (DeviceDisconnectedError, DeviceNotFoundError) as error:
+            raise NoDeviceConnectedError from error
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
 

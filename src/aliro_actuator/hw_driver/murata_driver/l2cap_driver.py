@@ -5,6 +5,7 @@ from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.errors import (
+    DeviceNotFoundError,
     ErrorReturnedError,
     NoResponseError,
 )
@@ -134,6 +135,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
 
     async def send_le_cb_data(self, device_id: int, data_to_send: bytes) -> None:
         Global.logger.debug("Send le cb data")
+        if device_id not in self.connected_devices:
+            raise DeviceNotFoundError
+
         data = bytearray()
         data.append(device_id)
         data.extend(self.channel_ids[device_id].to_bytes(2, "little"))
@@ -151,6 +155,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
 
     async def wait_for_data(self, device_id_requested: int) -> bytes:
         Global.logger.debug("Wait for data")
+        if device_id_requested not in self.connected_devices:
+            raise DeviceNotFoundError
+
         while True:
             message = await self.wait_for_message(OpGroup.L2CAP, OpCodeL2CAP.LE_CB_DATA)
             device_id = message.get_device_id()
