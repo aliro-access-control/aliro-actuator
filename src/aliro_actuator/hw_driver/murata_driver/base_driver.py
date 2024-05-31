@@ -35,8 +35,10 @@ class MurataBaseDriver:
     def open(self) -> None:
         self.serial = serial.Serial(self.com_port, 115200, timeout=0.1)
 
-        Global.logger.debug("cleaning serial buffer (if this takes too long, make sure "
-                            "the murata has been reset by pressing switch SW1)")
+        Global.logger.debug(
+            "cleaning serial buffer (if this takes too long, make sure "
+            "the murata has been reset by pressing switch SW1)"
+        )
         while True:
             data = self.serial.read(1)
             if len(data) == 0:
@@ -72,7 +74,12 @@ class MurataBaseDriver:
         )
         self.serial.write(message.to_bytes())
 
-    async def wait_for_message(self, op_group: OpGroup, opcode: int) -> Message:
+    async def wait_for_message(
+        self,
+        op_group: OpGroup,
+        opcode: int,
+        return_opcode_list: list[int] | None = None,
+    ) -> Message:
         self.set_low_timeout()
         while True:
             try:
@@ -108,6 +115,16 @@ class MurataBaseDriver:
                     response.get_op_group() != op_group
                     or response.get_op_code() != opcode
                 ):
+                    if (
+                        response.get_op_group() == op_group
+                        and return_opcode_list is not None
+                        and response.get_op_code() in return_opcode_list
+                    ):
+                        Global.logger.debug(
+                            "Received message with opcode: 0x{:02x}, returning message "
+                            "for further handling".format(response.get_op_code())
+                        )
+                        return response
                     Global.logger.debug("Unexpected Command received:")
                     response.print()
                     continue
