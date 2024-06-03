@@ -111,7 +111,6 @@ class S1(IntEnum):
     """
 
     FINISHED_WITH_FAILURE = 0x00
-    FINISHED_WITH_SUCCESS = 0x01
 
 
 class S2(IntEnum):

@@ -338,7 +338,7 @@ class Test_apdu(unittest.TestCase):
         )
 
         message = self.apdu.create_control_flow_command(
-            S1.FINISHED_WITH_SUCCESS, S2.NONE
+            S1.FINISHED_WITH_FAILURE, S2.NONE
         )
         self.assertEqual(
             message.to_bytes(),
@@ -351,7 +351,7 @@ class Test_apdu(unittest.TestCase):
                     0x06,
                     0x41,
                     0x01,
-                    S1.FINISHED_WITH_SUCCESS,
+                    S1.FINISHED_WITH_FAILURE,
                     0x42,
                     0x01,
                     S2.NONE,
