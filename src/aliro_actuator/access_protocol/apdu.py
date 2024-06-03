@@ -124,6 +124,31 @@ class S2(IntEnum):
     PROTOCOL_VERSION_NOT_SUPPORTED = 0x27
 
 
+class ReaderStatus(IntEnum):
+    """
+    Indicating the reader status in an EXCHANGE command
+    Send with tag 0x97.
+    """
+
+    PUBLIC_KEY_NOT_FOUND = 0x0001
+    PUBLIC_KEY_EXPIRED = 0x0002
+    PUBLIC_KEY_NOT_TRUSTED = 0x0003
+    INVALID_SIGNATURE = 0x0004
+    INVALID_DATA_FORMAT = 0x0006
+    INVALID_DATA_CONTENT = 0x0007
+    STATUS_WORD_ERROR = 0x0020
+    NO_KEY_SLOT_IN_RESPONSE = 0x0021
+    NO_PUBLIC_KEY_IN_RESPONSE = 0x0022
+    NO_SIGNATURE_PRESENT = 0x0023
+    INVALID_ACCESS_RIGHTS = 0x0025
+    HARDWARE_ISSUE = 0x0026
+    READER_STATE_SECURED = 0x0100
+    READER_STATE_UNSECURED = 0x0101
+    READER_STATE_JAMMED = 0x0102
+    READER_STARTED_SECURE = 0x0180
+    READER_STARTED_UNSECURE = 0x0181
+
+
 class StatusBytes(IntEnum):
     """
     Indicating (some) known values of the status bytes returned in a response.

@@ -787,6 +787,7 @@ class Reader(Device):
         notify: TLV | None = None,
         ursk: bytes | None = None,
         update_doc: bytes | None = None,
+        reader_status: int | None = None,
     ) -> list[bytes]:
         """
         Create and send a exchange command.
@@ -849,6 +850,11 @@ class Reader(Device):
             payload.append((Exchange.URSK_TAG, ursk))
         if update_doc is not None:
             payload.append((Exchange.UPDATE_DOC_TAG, update_doc))
+
+        if reader_status is not None:
+            payload.append(
+                (Exchange.READER_STATUS_TAG, reader_status.to_bytes(2, "big"))
+            )
 
         payload_tlv = TLV(payload)
 

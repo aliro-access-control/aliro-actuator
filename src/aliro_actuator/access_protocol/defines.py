@@ -119,6 +119,7 @@ class Exchange:
     WRITE_TAG = 0x8A
     SET_TAG = 0x95
     NOTIFY_TAG = 0xAE
+    READER_STATUS_TAG = 0x97
     URSK_TAG = 0x98
     UPDATE_DOC_TAG = 0x81
 
