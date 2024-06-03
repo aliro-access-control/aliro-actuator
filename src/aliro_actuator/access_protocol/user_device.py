@@ -141,6 +141,8 @@ class UserDevice(Device):
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         ephemeral_key_list: list[KeyPair] | None = None,
         mode: UserMode = UserMode.TEST,
+        support_step_up_notify: bool = True,
+        support_step_up_update_doc: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -183,6 +185,9 @@ class UserDevice(Device):
         self.ephemeral_key_list = ephemeral_key_list
 
         self.mode = mode
+
+        self.support_step_up_notify = support_step_up_notify
+        self.support_step_up_update_doc = support_step_up_update_doc
 
     async def transaction_initiation(self) -> None:
         """
@@ -247,6 +252,12 @@ class UserDevice(Device):
             out |= 1 << 7
         if self.access_document is not None and self.access_document_updatable:
             out |= 1 << 9
+        if self.mailbox is not None and self.mailbox.step_up_permission:
+            out |= 1 << 10
+        if self.support_step_up_notify:
+            out |= 1 << 11
+        if self.support_step_up_update_doc:
+            out |= 1 << 12
         return out.to_bytes(2, "big")
 
     async def main_loop(self) -> None:
