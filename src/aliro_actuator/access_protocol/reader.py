@@ -593,6 +593,7 @@ class Reader(Device):
                     "decrypted cryptogram: {!r}".format(hexlify(decrypted_cryptogram))
                 )
                 self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
+                self.session.set_credential_public_key(entry.access_credential)
                 return
             except VerificationError:
                 Global.logger.info("decryption failed, trying next key in storage")
