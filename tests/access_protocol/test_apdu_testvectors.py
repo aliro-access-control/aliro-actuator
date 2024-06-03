@@ -6,9 +6,9 @@ from aliro_actuator.access_protocol.apdu import (
     APDU,
     INS,
     Auth1Response,
+    AuthenticationPolicy,
     StatusBytes,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.authentication import (
     create_reader_authentication,
@@ -81,7 +81,7 @@ class Test_apdu_testvectors(unittest.TestCase):
 
         command = self.apdu.create_auth0_command(
             transaction_type=Transaction.STANDARD,
-            transaction_code=TransactionCode.USER_DEVICE,
+            authentication_policy=AuthenticationPolicy.USER_DEVICE,
             protocol_version=0x0100,
             reader_epubk=reader_epub_key.as_bytes(),
             transaction_identifier=TRANSACTION_IDENTIFIER,
@@ -95,7 +95,9 @@ class Test_apdu_testvectors(unittest.TestCase):
 
         command = self.apdu.parse_command(AUTH0_COMMAND)
         self.assertEqual(command.command_parameters, Transaction.STANDARD)
-        self.assertEqual(command.transaction_code, TransactionCode.USER_DEVICE)
+        self.assertEqual(
+            command.authentication_policy, AuthenticationPolicy.USER_DEVICE
+        )
         self.assertEqual(command.expedited_phase_protocol_version, 0x0100)
         self.assertEqual(command.reader_epubk, reader_epub_key.as_bytes())
         self.assertEqual(command.transaction_identifier, TRANSACTION_IDENTIFIER)
@@ -247,7 +249,7 @@ class Test_apdu_testvectors(unittest.TestCase):
             reader_identifier=READER_IDENTIFIER,
             protocol_version=PROTOCOL_VERSION,
             transaction_identifier=TRANSACTION_IDENTIFIER,
-            flag=bytes([Transaction.STANDARD, TransactionCode.USER_DEVICE]),
+            flag=bytes([Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE]),
             proprietary_information=proprietary_information,
         )
         self.assertEqual(hexlify(salt_bytes), hexlify(SALT))

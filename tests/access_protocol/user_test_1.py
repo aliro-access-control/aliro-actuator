@@ -18,12 +18,14 @@ import sys
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
 
-from aliro_actuator.access_protocol.apdu import INS, TransactionCode
+from aliro_actuator.access_protocol.apdu import INS, AuthenticationPolicy
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.reader import Reader
 
 if __name__ == "__main__":
     reader = Reader(TransportProtocol.SOCKET_NFC)
     reader.transaction_initiation()
-    reader.expedited_transaction_standard(TransactionCode.USER_DEVICE_SECURE_ACTION)
+    reader.expedited_transaction_standard(
+        AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
+    )
     # card.disconnect()

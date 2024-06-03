@@ -17,7 +17,7 @@ import subprocess
 import unittest
 from time import sleep
 
-from aliro_actuator.access_protocol.apdu import Transaction, TransactionCode
+from aliro_actuator.access_protocol.apdu import AuthenticationPolicy, Transaction
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
@@ -62,5 +62,5 @@ class Test_reader(unittest.TestCase):
 
         await reader.handle_auth0(
             Transaction.STANDARD,
-            TransactionCode.USER_DEVICE,
+            AuthenticationPolicy.USER_DEVICE,
         )

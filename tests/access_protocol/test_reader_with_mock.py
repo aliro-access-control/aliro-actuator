@@ -21,9 +21,9 @@ from aliro_actuator.access_protocol.apdu import (
     APDU,
     INS,
     Auth1Response,
+    AuthenticationPolicy,
     StatusBytes,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
@@ -159,7 +159,7 @@ class Test_reader(unittest.TestCase):
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
         await reader.handle_auth0(
-            Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+            Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
         )
         self.assertEqual(
             reader.session.get_credential_ephemeral_key(),
@@ -181,7 +181,7 @@ class Test_reader(unittest.TestCase):
         reader.start_new_session()
         with self.assertRaises(CryptogramNotFound):
             await reader.handle_auth0(
-                Transaction.FAST, TransactionCode.USER_DEVICE_SECURE_ACTION
+                Transaction.FAST, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
@@ -259,7 +259,7 @@ class Test_reader(unittest.TestCase):
             ),
         )
 
-        await reader.handle_auth0(Transaction.FAST, TransactionCode.USER_DEVICE)
+        await reader.handle_auth0(Transaction.FAST, AuthenticationPolicy.USER_DEVICE)
 
         self.assertEqual(
             user_credential.as_bytes(), reader.session.credential_pubk.as_bytes()
@@ -341,7 +341,7 @@ class Test_reader(unittest.TestCase):
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
             transaction_identifier=transaction_identifier,
             flag=bytes(
-                [Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION]
+                [Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION]
             ),
             proprietary_information=proprietary_information.to_bytes(),
         )
@@ -405,7 +405,7 @@ class Test_reader(unittest.TestCase):
         reader.session.vendor_specific_extension = None
         reader.session.proprietary_tlv = proprietary_information
         reader.session.set_flag(
-            Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+            Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
         )
         await reader.handle_auth1()
 

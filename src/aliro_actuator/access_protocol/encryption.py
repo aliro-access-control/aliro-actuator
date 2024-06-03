@@ -166,7 +166,7 @@ def create_salt(
         reader_identifier (bytes).
         protocol_version (bytes).
         transaction_identifier (bytes).
-        flag (bytes): command_parameters || transaction_code.
+        flag (bytes): command_parameters || authentication_policy.
         proprietary_information (bytes): proprietary information.
         credential_ephemeral_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
 

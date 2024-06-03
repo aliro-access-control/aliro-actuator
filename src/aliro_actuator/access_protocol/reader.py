@@ -22,11 +22,11 @@ from aliro_actuator.access_protocol.apdu import (
     AUTHENTICATION_TAG_SIZE,
     INS,
     Auth1Response,
+    AuthenticationPolicy,
     Message,
     Response,
     StatusBytes,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.authentication import (
     create_reader_authentication,
@@ -276,25 +276,25 @@ class Reader(Device):
         Global.logger.info("Connection established")
 
     async def expedited_transaction_fast(
-        self, transaction_code: TransactionCode
+        self, authentication_policy: AuthenticationPolicy
     ) -> None:
         Global.logger.info("Start Expedited Transaction (fast)")
-        await self.handle_auth0(Transaction.FAST, transaction_code)
+        await self.handle_auth0(Transaction.FAST, authentication_policy)
         Global.logger.info("Expedited Transaction (fast) Done")
 
     async def expedited_transaction_standard(
-        self, transaction_code: TransactionCode, load_cert: bool = False
+        self, authentication_policy: AuthenticationPolicy, load_cert: bool = False
     ) -> None:
         """
         Runs the Expedited Standard Phase.
 
         Args:
-            transaction_code (TransactionCode): Passed during AUTH0.
+            authentication_policy (AuthenticationPolicy): Passed during AUTH0.
             load_cert (bool, optional): Runs the load_cert command if True.
             Defaults to False.
         """
         Global.logger.info("Start Expedited Transaction (standard)")
-        await self.handle_auth0(Transaction.STANDARD, transaction_code)
+        await self.handle_auth0(Transaction.STANDARD, authentication_policy)
         if load_cert:
             await self.handle_load_cert()
         await self.handle_auth1()
@@ -469,7 +469,7 @@ class Reader(Device):
         Global.logger.info("Handling SELECT response done")
 
     async def handle_auth0(
-        self, transaction_type: Transaction, transaction_code: TransactionCode
+        self, transaction_type: Transaction, authentication_policy: AuthenticationPolicy
     ) -> None:
         """
         Create and send a AUTH0 command.
@@ -478,7 +478,7 @@ class Reader(Device):
 
         Args:
             transaction_type (Transaction): fast or standard
-            transaction_code (TransactionCode): code with instruction (ex. Lock/Unlock)
+            authentication_policy (AuthenticationPolicy): code with instruction (ex. Lock/Unlock)
 
         Raises:
             SessionError: Raised if no session is found.
@@ -495,12 +495,14 @@ class Reader(Device):
 
         Global.logger.info(
             "Start handling AUTH0 with transaction type: {} and "
-            "transaction code: {}".format(transaction_type.name, transaction_code.name)
+            "Authentication policy: {}".format(
+                transaction_type.name, authentication_policy.name
+            )
         )
         try:
             auth0_response = await self.command_auth0(
                 transaction=transaction_type,
-                transaction_code=transaction_code,
+                authentication_policy=authentication_policy,
                 protocol_version=PROTOCOL_VERSION,
                 reader_epubk=self.session.get_reader_epubkey().as_bytes(),
                 transaction_identifier=self.session.transaction_identifier,
@@ -524,7 +526,7 @@ class Reader(Device):
         Global.logger.info("Credential ephemeral public key is a valid key")
 
         Global.logger.info("Saving Auth0 response data to session")
-        self.session.set_flag(transaction_type, transaction_code)
+        self.session.set_flag(transaction_type, authentication_policy)
         self.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
         self.session.set_response_vendor_extension(
             auth0_response.vendor_specific_extensions
@@ -902,7 +904,7 @@ class Reader(Device):
     async def command_auth0(
         self,
         transaction: Transaction,
-        transaction_code: TransactionCode,
+        authentication_policy: AuthenticationPolicy,
         protocol_version: int,
         reader_epubk: bytes,
         transaction_identifier: bytes,
@@ -914,7 +916,7 @@ class Reader(Device):
 
         Args:
             transaction (Transaction): fast or standard
-            transaction_code (TransactionCode): code with instruction (ex. Lock/Unlock)
+            authentication_policy (AuthenticationPolicy): code with instruction (ex. Lock/Unlock)
             protocol_version (int):
             reader_epubk (bytes): Reader Ephemeral Key as bytes
             transaction_identifier (bytes):
@@ -927,7 +929,7 @@ class Reader(Device):
         """
         command = self.apdu.create_auth0_command(
             transaction,
-            transaction_code,
+            authentication_policy,
             protocol_version,
             reader_epubk,
             transaction_identifier,
@@ -1272,9 +1274,9 @@ class ReaderSession:
             raise SessionError("Cannot set transaction identifier twice")
 
     def set_flag(
-        self, transaction: Transaction, transaction_code: TransactionCode
+        self, transaction: Transaction, authentication_policy: AuthenticationPolicy
     ) -> None:
-        self.flag = bytes([transaction, transaction_code])
+        self.flag = bytes([transaction, authentication_policy])
 
     def set_response_vendor_extension(self, vendor_extension: TLV | None) -> None:
         self.response_vendor_extension = vendor_extension

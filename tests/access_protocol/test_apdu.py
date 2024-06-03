@@ -23,9 +23,9 @@ from aliro_actuator.access_protocol.apdu import (
     S1,
     S2,
     Auth1Response,
+    AuthenticationPolicy,
     Command,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
 from aliro_actuator.access_protocol.errors import (
@@ -158,7 +158,7 @@ class Test_apdu(unittest.TestCase):
 
         message = self.apdu.create_auth0_command(
             Transaction.STANDARD,
-            TransactionCode.USER_DEVICE_SECURE_ACTION,
+            AuthenticationPolicy.USER_DEVICE_SECURE_ACTION,
             protocol_version=0x0100,
             reader_epubk=reader_epubk,
             transaction_identifier=transaction_identifier,
@@ -181,7 +181,7 @@ class Test_apdu(unittest.TestCase):
                     Transaction.STANDARD,
                     0x42,
                     0x01,
-                    TransactionCode.USER_DEVICE_SECURE_ACTION,
+                    AuthenticationPolicy.USER_DEVICE_SECURE_ACTION,
                     0x5C,
                     0x02,
                     *protocol_version,

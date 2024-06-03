@@ -1134,7 +1134,7 @@ class UserSession:
         auth0_command: Command,
     ) -> None:
         self.command_parameters = auth0_command.command_parameters
-        self.transaction_code = auth0_command.transaction_code
+        self.authentication_policy = auth0_command.authentication_policy
         self.expedited_phase_protocol_version = (
             auth0_command.expedited_phase_protocol_version
         )
@@ -1193,7 +1193,7 @@ class UserSession:
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
-            flag=bytes([self.command_parameters, self.transaction_code]),
+            flag=bytes([self.command_parameters, self.authentication_policy]),
             proprietary_information=proprietary_information,
         )
         derived_key = derive_key(self.shared_key, bytes(info), 160, salt)
@@ -1242,7 +1242,7 @@ class UserSession:
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
-            flag=bytes([self.command_parameters, self.transaction_code]),
+            flag=bytes([self.command_parameters, self.authentication_policy]),
             proprietary_information=proprietary_information,
             credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
         )
@@ -1286,7 +1286,7 @@ class UserSession:
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
-            flag=bytes([self.command_parameters, self.transaction_code]),
+            flag=bytes([self.command_parameters, self.authentication_policy]),
             proprietary_information=proprietary_information,
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)

@@ -22,7 +22,7 @@ sys.path.append(PROJECT_PATH)
 
 from access_protocol.testvectors import AID, READER_IDENTIFIER, TRANSACTION_IDENTIFIER
 
-from aliro_actuator.access_protocol.apdu import Transaction, TransactionCode
+from aliro_actuator.access_protocol.apdu import AuthenticationPolicy, Transaction
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -43,6 +43,6 @@ if __name__ == "__main__":
     )
     reader.transaction_initiation()
 
-    reader.handle_auth0(Transaction.STANDARD, TransactionCode.USER_DEVICE)
+    reader.handle_auth0(Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE)
     reader.handle_auth1()
     reader.handle_control_flow(True)

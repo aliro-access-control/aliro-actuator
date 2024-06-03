@@ -19,7 +19,7 @@ import sys
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
 
-from aliro_actuator.access_protocol.apdu import TransactionCode
+from aliro_actuator.access_protocol.apdu import AuthenticationPolicy
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -39,7 +39,7 @@ async def main():
     )
     await reader.transaction_initiation()
     await reader.expedited_transaction_standard(
-        TransactionCode.USER_DEVICE_SECURE_ACTION
+        AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
     await reader.handle_exchange(False, None, None, None)
     await reader.handle_control_flow(True)

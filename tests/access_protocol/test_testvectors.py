@@ -3,7 +3,7 @@ import unittest
 from binascii import hexlify
 from time import sleep
 
-from aliro_actuator.access_protocol.apdu import Response, Transaction, TransactionCode
+from aliro_actuator.access_protocol.apdu import Response, Transaction
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,

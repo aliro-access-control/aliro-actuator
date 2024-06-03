@@ -81,9 +81,9 @@ class Transaction(IntEnum):
     FAST = 0x1
 
 
-class TransactionCode(IntEnum):
+class AuthenticationPolicy(IntEnum):
     """
-    Indicating the transaction code in a auth0 command.
+    Indicating the authentication policy in a auth0 command.
     See table 8-1 and 8-3 of the Aliro spec.
     """
 
@@ -889,7 +889,7 @@ class Command(Message):
         Checks the fields and raises errors for invalid fields.
         creates the following attributes:
         command_parameters: int
-        transaction_code: int
+        authentication_policy: int
         expedited_phase_protocol_version: int
         reader_epubk: bytes
         transaction_identifier: bytes
@@ -918,11 +918,13 @@ class Command(Message):
             Transaction,
         )
 
-        transaction_code_int = self._get_int_from_TLV(
-            "Transaction code", Auth0.TRANSACTION_CODE_TAG, Auth0.TRANSACTION_CODE_LEN
+        authentication_policy_int = self._get_int_from_TLV(
+            "Authentication policy",
+            Auth0.AUTHENTICATION_POLICY_TAG,
+            Auth0.AUTHENTICATION_POLICY_LEN,
         )
-        self.transaction_code = self._enumerate(
-            "Transaction code", transaction_code_int, TransactionCode
+        self.authentication_policy = self._enumerate(
+            "Authentication policy", authentication_policy_int, AuthenticationPolicy
         )
 
         self.expedited_phase_protocol_version = self._get_int_from_TLV(
@@ -1635,7 +1637,7 @@ class APDU:
     def create_auth0_command(
         self,
         transaction_type: Transaction,
-        transaction_code: TransactionCode,
+        authentication_policy: AuthenticationPolicy,
         protocol_version: int,
         reader_epubk: bytes,
         transaction_identifier: bytes,
@@ -1645,7 +1647,7 @@ class APDU:
         Global.logger.info("Creating AUTH0 command")
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.COMMAND_TAG, transaction_type.to_bytes(1, "big")),
-            (Auth0.TRANSACTION_CODE_TAG, transaction_code.to_bytes(1, "big")),
+            (Auth0.AUTHENTICATION_POLICY_TAG, authentication_policy.to_bytes(1, "big")),
             (Auth0.ETPV_TAG, protocol_version.to_bytes(2, "big")),
             (Auth0.READER_EPUBK_TAG, reader_epubk),
             (Auth0.TRANSACTION_ID_TAG, transaction_identifier),
