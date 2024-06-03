@@ -840,10 +840,15 @@ class Command(Message):
         self._check_ins(INS.SELECT)
         self._check_parameters(0x04, 0x00)
 
-        if self.lc > Select.AID_LEN:
-            raise InvalidCommandDataError(self.as_bytes, "AID too long")
         if self.data is None:
             raise InvalidCommandDataError(self.as_bytes, "No AID found")
+        if self.lc != Select.AID_LEN or len(self.data) != Select.AID_LEN:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "AID has invalid length: expected {}, but has a length of {}".format(
+                    Select.AID_LEN, len(self.data)
+                ),
+            )
 
         self.aid = self.data
         Global.logger.info("Valid Lc found: 0x{:02x}".format(self.lc))
@@ -1307,6 +1312,7 @@ class Response(Message):
         self.vendor_specific_extensions = self._get_optional_TLV_from_TLV(
             "Vendor specific extensions",
             Select.VENDOR_SPECIFIC_TAG,
+            max_length=Select.MAX_VENDOR_SPECIFIC_LEN,
             tlv_data=self.proprietary_tlv,
         )
         Global.logger.info("Done parsing SELECT response")

@@ -44,6 +44,7 @@ class Select:
     EXTENDED_INFO_LEN = 8
     MAX_COMMAND_LEN = 2
     MAX_RESPONSE_LEN = 2
+    MAX_VENDOR_SPECIFIC_LEN = 127
 
 
 # Auth0 defines
