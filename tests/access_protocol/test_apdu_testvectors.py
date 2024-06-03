@@ -35,8 +35,8 @@ from tests.access_protocol.testvectors import (
     AUTH1_RESPONSE_PAYLOAD,
     CONTROL_FLOW_COMMAND,
     CONTROL_FLOW_RESPONSE,
-    EXCHANGE_SK_DEVICE,
-    EXCHANGE_SK_READER,
+    EXPEDITED_SK_DEVICE,
+    EXPEDITED_SK_READER,
     PROTOCOL_VERSION,
     READER_AUTHENTICATION_DATA,
     READER_IDENTIFIER,
@@ -253,16 +253,16 @@ class Test_apdu_testvectors(unittest.TestCase):
         self.assertEqual(hexlify(salt_bytes), hexlify(SALT))
 
         derived_key = derive_key(shared_key, bytes(info), 160, salt_bytes)
-        exchange_SK_reader = derived_key[0:32]
-        exchange_SK_device = derived_key[32:64]
+        expedited_SK_reader = derived_key[0:32]
+        expedited_SK_device = derived_key[32:64]
         step_up_SK = derived_key[64:96]
         ble_SK = derived_key[96:128]
         UR_SK = derived_key[128:160]
 
-        self.assertEqual(hexlify(EXCHANGE_SK_READER), hexlify(exchange_SK_reader))
-        self.assertEqual(hexlify(EXCHANGE_SK_DEVICE), hexlify(exchange_SK_device))
+        self.assertEqual(hexlify(EXPEDITED_SK_READER), hexlify(expedited_SK_reader))
+        self.assertEqual(hexlify(EXPEDITED_SK_DEVICE), hexlify(expedited_SK_device))
 
-        return EncryptionEngine(device_type, exchange_SK_reader, exchange_SK_device)
+        return EncryptionEngine(device_type, expedited_SK_reader, expedited_SK_device)
 
     def test_reader_control_flow_command(self) -> None:
         command = self.apdu.create_control_flow_command(0x01, 0x00)

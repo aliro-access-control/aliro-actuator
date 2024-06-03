@@ -22,8 +22,8 @@ from tests.access_protocol.testvectors import (
     AUTH1_RESPONSE_PAYLOAD,
     CONTROL_FLOW_COMMAND,
     CONTROL_FLOW_RESPONSE,
-    EXCHANGE_SK_DEVICE,
-    EXCHANGE_SK_READER,
+    EXPEDITED_SK_DEVICE,
+    EXPEDITED_SK_READER,
     PROTOCOL_VERSION,
     READER_AUTHENTICATION_DATA,
     READER_IDENTIFIER,
@@ -66,7 +66,7 @@ class Test_Testvectors(unittest.TestCase):
         response = Response.create_from_bytestring(message_3)
         response.parse_as_auth1()
         decryption = EncryptionEngine(
-            DeviceType.READER, EXCHANGE_SK_READER, EXCHANGE_SK_DEVICE
+            DeviceType.READER, EXPEDITED_SK_READER, EXPEDITED_SK_DEVICE
         )
         decrypted_data = decryption.decrypt(
             response.encrypted_payload, response.authentication_tag

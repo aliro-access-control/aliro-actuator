@@ -265,13 +265,13 @@ class Test_reader(unittest.TestCase):
             user_credential.as_bytes(), reader.session.credential_pubk.as_bytes()
         )
         self.assertEqual(
-            reader.session.exchange_SK_reader,
+            reader.session.expedited_SK_reader,
             bytes.fromhex(
                 "30953d4ea9e3ea2fde1e7adebe9c619cc70a7c46af0ce2fc29598a8a19332915"
             ),
         )
         self.assertEqual(
-            reader.session.exchange_SK_device,
+            reader.session.expedited_SK_device,
             bytes.fromhex(
                 "475d26c582dbdce602e7d27c33fbcfdc4cca15ed84602faa58c934b9bd754351"
             ),
@@ -347,10 +347,10 @@ class Test_reader(unittest.TestCase):
         )
 
         derived_key = derive_key(shared_key, bytes(info), 160, salt)
-        exchange_SK_reader = derived_key[0:32]
-        exchange_SK_device = derived_key[32:64]
+        expedited_SK_reader = derived_key[0:32]
+        expedited_SK_device = derived_key[32:64]
         encryption = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
 
         reader_auth = TLV(
@@ -421,13 +421,13 @@ class Test_reader(unittest.TestCase):
         reader_group_sub_identifier = os.urandom(0x10)
         transaction_identifier = os.urandom(0x10)
 
-        exchange_SK_reader = os.urandom(32)
-        exchange_SK_device = os.urandom(32)
+        expedited_SK_reader = os.urandom(32)
+        expedited_SK_device = os.urandom(32)
         encryption_user = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
         encryption_reader = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
 
         apdu = APDU()
@@ -461,13 +461,13 @@ class Test_reader(unittest.TestCase):
         reader_group_sub_identifier = os.urandom(0x10)
         transaction_identifier = os.urandom(0x10)
 
-        exchange_SK_reader = os.urandom(32)
-        exchange_SK_device = os.urandom(32)
+        expedited_SK_reader = os.urandom(32)
+        expedited_SK_device = os.urandom(32)
         encryption_user = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
         encryption_reader = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
 
         rand_data = os.urandom(0x20)

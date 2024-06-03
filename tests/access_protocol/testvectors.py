@@ -23,10 +23,10 @@ SALT = bytes.fromhex(
 SHARED_KEY = bytes.fromhex(
     "cd227f01f917ad1dd5252db51c5ad3da1c3028be750a0f4e69c6a5624fca271c"
 )
-EXCHANGE_SK_READER = bytes.fromhex(
+EXPEDITED_SK_READER = bytes.fromhex(
     "f06ab1499102ca96f75cfa6d2e42c7920382d05a22e959325a91eb3aa4d71ce8"
 )
-EXCHANGE_SK_DEVICE = bytes.fromhex(
+EXPEDITED_SK_DEVICE = bytes.fromhex(
     "de82f4f94575da8369febd52dea94ec3dadad6d4406a9efe76098d6a22a8fd5d"
 )
 USER_SIGNATURE = bytes.fromhex(

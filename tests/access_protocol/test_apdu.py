@@ -360,14 +360,14 @@ class Test_apdu(unittest.TestCase):
         )
 
     def test_exchange(self) -> None:
-        exchange_SK_reader = os.urandom(0x20)
-        exchange_SK_device = os.urandom(0x20)
+        expedited_SK_reader = os.urandom(0x20)
+        expedited_SK_device = os.urandom(0x20)
 
         encryption_1 = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
         encryption_2 = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
         payload = TLV([(0x87, os.urandom(4)), (0x95, os.urandom(5))])
         message = self.apdu.create_exchange_command(False, payload, encryption_1)

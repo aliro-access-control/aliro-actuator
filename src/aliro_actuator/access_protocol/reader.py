@@ -1393,23 +1393,23 @@ class ReaderSession:
         )
 
         derived_key = derive_key(self.shared_key, bytes(info), 160, salt)
-        self.exchange_SK_reader = derived_key[0:32]
-        self.exchange_SK_device = derived_key[32:64]
+        self.expedited_SK_reader = derived_key[0:32]
+        self.expedited_SK_device = derived_key[32:64]
         self.step_up_SK = derived_key[64:96]
         self.ble_SK = derived_key[96:128]
         self.UR_SK = derived_key[128:160]
         Global.logger.debug(
-            "exchange SK reader: {!r}".format(hexlify(self.exchange_SK_reader))
+            "expedited SK reader: {!r}".format(hexlify(self.expedited_SK_reader))
         )
         Global.logger.debug(
-            "exchange SK device: {!r}".format(hexlify(self.exchange_SK_device))
+            "expedited SK device: {!r}".format(hexlify(self.expedited_SK_device))
         )
         Global.logger.debug("step up SK: {!r}".format(hexlify(self.step_up_SK)))
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
 
         self.encryption = EncryptionEngine(
-            DeviceType.READER, self.exchange_SK_reader, self.exchange_SK_device
+            DeviceType.READER, self.expedited_SK_reader, self.expedited_SK_device
         )
 
     def derive_key_volatile_fast(
@@ -1439,17 +1439,17 @@ class ReaderSession:
         )
         derived_key = derive_key(k_persistent, bytes(info), 160, salt)
         self.cryptogram_SK = derived_key[0:32]
-        self.exchange_SK_reader = derived_key[32:64]
-        self.exchange_SK_device = derived_key[64:96]
+        self.expedited_SK_reader = derived_key[32:64]
+        self.expedited_SK_device = derived_key[64:96]
         self.ble_SK = derived_key[96:128]
         self.UR_SK = derived_key[128:160]
 
         Global.logger.debug("cryptogram SK: {!r}".format(hexlify(self.cryptogram_SK)))
         Global.logger.debug(
-            "exchange SK reader: {!r}".format(hexlify(self.exchange_SK_reader))
+            "expedited SK reader: {!r}".format(hexlify(self.expedited_SK_reader))
         )
         Global.logger.debug(
-            "exchange SK device: {!r}".format(hexlify(self.exchange_SK_device))
+            "expedited SK device: {!r}".format(hexlify(self.expedited_SK_device))
         )
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
