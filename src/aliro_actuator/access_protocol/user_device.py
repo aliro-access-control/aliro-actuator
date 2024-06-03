@@ -555,9 +555,11 @@ class UserDevice(Device):
         Global.logger.info("Handling LOAD CERT Command")
         Global.logger.info("Decompressing and verifying certificate")
         try:
-            reader_public_key = self.session.get_reader_public_key()
+            reader_issuer_public_key = (
+                self.session.get_reader_issuer_certificate_public_key()
+            )
             verified = self.session.set_cert_and_verify(
-                load_cert_command.reader_cert, reader_public_key
+                load_cert_command.reader_cert, reader_issuer_public_key
             )
         except CertificateDecodingError as error:
             await self.response_load_cert()
@@ -600,9 +602,11 @@ class UserDevice(Device):
         if auth1_command.certificate_data is not None:
             Global.logger.info("AUTH1 Command contains certificate")
             try:
-                reader_public_key = self.session.get_reader_public_key()
+                reader_issuer_public_key = (
+                    self.session.get_reader_issuer_certificate_public_key()
+                )
                 verified = self.session.set_cert_and_verify(
-                    auth1_command.certificate_data, reader_public_key
+                    auth1_command.certificate_data, reader_issuer_public_key
                 )
                 if not verified:
                     await self.failure_process(
@@ -1341,6 +1345,12 @@ class UserSession:
                 hexlify(self.reader_group_identifier)
             )
         )
+
+    def get_reader_issuer_certificate_public_key(self) -> PublicKey:
+        if hasattr(self, "access_credential"):
+            return self.access_credential.get_issuer_public_key()
+        else:
+            raise AccessProtocolError("No access credential set")
 
 
 class MailboxSession:
