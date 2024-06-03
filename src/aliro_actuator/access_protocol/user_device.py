@@ -693,7 +693,7 @@ class UserDevice(Device):
             reader_authentication.to_bytes(), reader_signature
         )
         if not verified:
-            await self.failure_process(StatusBytes.GENERIC_ERROR)
+            await self.failure_process(StatusBytes.SECURITY_STATUS_NOT_SATISFIED)
             raise AccessProtocolError("reader authentication data verification failed")
         Global.logger.info("reader authentication data verified successfully")
 
