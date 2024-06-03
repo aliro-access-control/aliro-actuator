@@ -26,15 +26,21 @@ class AccessCredential:
         AccessCredential has a matching reader group identifier
         reader_id_key_list (list[tuple[bytes, PublicKey]]): a list with tuples
         containing reader_group_identifier and reader_public_key pairs
+        reader_system_issuer_ca_certificate_public_key (PublicKey): Public key of the
+        Reader System Issuer CA certificate, used for certificate verification
     """
 
     def __init__(
         self,
         access_credential_key_pair: KeyPair,
         reader_id_key_list: list[tuple[bytes, PublicKey]],
+        reader_system_issuer_ca_certificate_public_key: PublicKey,
     ):
         self.access_credential_key_pair = access_credential_key_pair
         self.reader_id_key_list = reader_id_key_list
+        self.issuer_ca_certificate_public_key = (
+            reader_system_issuer_ca_certificate_public_key
+        )
 
     def has_identifier(self, group_identifier: bytes) -> bool:
         """
@@ -64,6 +70,9 @@ class AccessCredential:
 
     def get_access_credential_public_key(self) -> PublicKey:
         return self.access_credential_key_pair.get_public_key()
+
+    def get_issuer_public_key(self) -> PublicKey:
+        return self.issuer_ca_certificate_public_key
 
     def get_all_reader_id(self) -> list[bytes]:
         return list(map(lambda x: x[0], self.reader_id_key_list))

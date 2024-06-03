@@ -249,6 +249,7 @@ class Test_user(unittest.TestCase):
                     reader_id_key_list=[
                         (reader_identifier[:16], reader_key),
                     ],
+                    reader_system_issuer_ca_certificate_public_key=reader_key,
                 )
             ],
             access_document=AccessDocument(),
@@ -324,6 +325,7 @@ class Test_user(unittest.TestCase):
                         reader_key,
                     ),
                 ],
+                reader_system_issuer_ca_certificate_public_key=reader_key,
             )
         ]
         user = UserDevice(TransportProtocol.NFC, mock_nfc, access_credentials)
@@ -384,6 +386,7 @@ class Test_user(unittest.TestCase):
             AccessCredential(
                 credential_keypair,
                 [(reader_identifier[:16], reader_keypair.get_public_key())],
+                reader_keypair.get_public_key(),
             )
         ]
         user = UserDevice(

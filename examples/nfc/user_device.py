@@ -36,7 +36,9 @@ async def main():
     private_key_pem = open("examples/nfc/credential_private_key.pem", "rt")
     public_key_pem = open("examples/nfc/credential_public_key.pem", "rt")
     credential_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
-    access_credentials = [AccessCredential(credential_keypair, reader_identifier_list)]
+    access_credentials = [
+        AccessCredential(credential_keypair, reader_identifier_list, reader_public_key)
+    ]
 
     reader = UserDevice(
         transport_protocol=TransportProtocol.NFC,
