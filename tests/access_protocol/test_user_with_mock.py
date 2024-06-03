@@ -245,7 +245,7 @@ class Test_user(unittest.TestCase):
             mock_nfc,
             access_credentials=[
                 AccessCredential(
-                    user_device_key_pair=user_credential,
+                    access_credential_key_pair=user_credential,
                     reader_id_key_list=[
                         (reader_identifier[:16], reader_key),
                     ],

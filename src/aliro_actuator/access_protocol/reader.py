@@ -514,16 +514,16 @@ class Reader(Device):
             raise error
 
         Global.logger.info("Handling AUTH0 response")
-        Global.logger.info("Checking credential ephemeral public key")
+        Global.logger.info("Checking access credential ephemeral public key")
         try:
             credential_ephemeral_public_key = PublicKey(auth0_response.credential_epubk)
         except InvalidKeyError as error:
             raise AccessProtocolError(
-                "invalid credential ephemeral public key received: {!r}".format(
+                "invalid access credential ephemeral public key received: {!r}".format(
                     hexlify(auth0_response.credential_epubk)
                 )
             ) from error
-        Global.logger.info("Credential ephemeral public key is a valid key")
+        Global.logger.info("Access credential ephemeral public key is a valid key")
 
         Global.logger.info("Saving Auth0 response data to session")
         self.session.set_flag(transaction_type, authentication_policy)
@@ -1284,7 +1284,7 @@ class ReaderSession:
     def set_credential_ephemeral_key(self, key: PublicKey) -> None:
         self.credential_ephemeral_key = key
         Global.logger.debug(
-            "set credential ephemeral key: {!r}".format(hexlify(key.as_bytes()))
+            "set access credential ephemeral key: {!r}".format(hexlify(key.as_bytes()))
         )
 
     def get_credential_ephemeral_key(self) -> bytes:

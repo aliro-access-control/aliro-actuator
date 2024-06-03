@@ -655,7 +655,7 @@ class UserDevice(Device):
 
         await self.response_auth1(
             self.session.access_credential.get_key_slot(),
-            self.session.access_credential.get_credential_public_key().as_bytes(),
+            self.session.access_credential.get_access_credential_public_key().as_bytes(),
             auth1_command.expected_response,
             signature,
             self.session.encryption,
@@ -936,7 +936,7 @@ class UserDevice(Device):
         Create and send an auth0 response.
 
         Args:
-            credential_epubk (bytes): Credential Ephemeral public key.
+            credential_epubk (bytes): Access credential ephemeral public key.
             cryptogram (bytes | None, optional): authentication cryptogram.
             Defaults to None.
         """
@@ -1244,7 +1244,7 @@ class UserSession:
             transaction_identifier=self.transaction_identifier,
             flag=bytes([self.command_parameters, self.authentication_policy]),
             proprietary_information=proprietary_information,
-            credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
+            credential_ephemeral_public_key=self.access_credential.get_access_credential_public_key(),
         )
         derived_key = derive_key(k_persistent, bytes(info), 160, salt)
         self.cryptogram_SK = derived_key[0:32]

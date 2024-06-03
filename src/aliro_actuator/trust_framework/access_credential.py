@@ -22,7 +22,7 @@ class AccessCredential:
     """_summary_
 
     Args:
-        user_device_key_pair (KeyPair): keypair used by the User Device when this
+        access_credential_key_pair (KeyPair): keypair used by the User Device when this
         AccessCredential has a matching reader group identifier
         reader_id_key_list (list[tuple[bytes, PublicKey]]): a list with tuples
         containing reader_group_identifier and reader_public_key pairs
@@ -30,10 +30,10 @@ class AccessCredential:
 
     def __init__(
         self,
-        user_device_key_pair: KeyPair,
+        access_credential_key_pair: KeyPair,
         reader_id_key_list: list[tuple[bytes, PublicKey]],
     ):
-        self.user_device_key_pair = user_device_key_pair
+        self.access_credential_key_pair = access_credential_key_pair
         self.reader_id_key_list = reader_id_key_list
 
     def has_identifier(self, group_identifier: bytes) -> bool:
@@ -52,7 +52,7 @@ class AccessCredential:
         return False
 
     def sign(self, data: bytes) -> bytes:
-        return self.user_device_key_pair.sign(data)
+        return self.access_credential_key_pair.sign(data)
 
     def get_reader_public_key(self, identifier: bytes) -> PublicKey:
         for id_key_pair in self.reader_id_key_list:
@@ -62,8 +62,8 @@ class AccessCredential:
             "Could not find key for reader identifier: {!r}".format(hexlify(identifier))
         )
 
-    def get_credential_public_key(self) -> PublicKey:
-        return self.user_device_key_pair.get_public_key()
+    def get_access_credential_public_key(self) -> PublicKey:
+        return self.access_credential_key_pair.get_public_key()
 
     def get_all_reader_id(self) -> list[bytes]:
         return list(map(lambda x: x[0], self.reader_id_key_list))
