@@ -21,6 +21,8 @@ from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
     AUTHENTICATION_TAG_SIZE,
     INS,
+    S1,
+    S2,
     Auth1Response,
     AuthenticationPolicy,
     Message,
@@ -348,7 +350,10 @@ class Reader(Device):
             self.transport_protocol_type == TransportProtocol.NFC
             or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
         ):
-            await self.handle_control_flow(False)
+            if self.session is None or self.session.encryption is None:
+                await self.handle_control_flow(S2.NONE)
+            else:
+                await self.handle_exchange(False)
         if (
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
@@ -740,7 +745,7 @@ class Reader(Device):
             )
         self.session.set_credential_public_key(credential_public_key)
 
-    async def handle_control_flow(self, success: bool) -> None:
+    async def handle_control_flow(self, s2: S2) -> None:
         """
         Create and send a control_flow command.
         Required data from is retrieved from the Reader (self) and the session.
@@ -755,11 +760,8 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        if success:
-            s1 = 0x01
-        else:
-            s1 = 0x00
-        s2 = 0x00
+        s1 = S1.FINISHED_WITH_FAILURE
+        s2 = s2
 
         Global.logger.info(
             "Start handling CONTROL FLOW with s1: 0x{:02x} and s2: 0x{:02x}".format(
@@ -1124,6 +1126,7 @@ class ReaderSession:
         self.reader_identifier = reader_identifier
         self.command_vendor_extension = vendor_extension
         self.response_vendor_extension: bytes | None = None
+        self.encryption: EncryptionEngine | None = None
 
     @property
     def reader_identifier(self) -> bytes:
