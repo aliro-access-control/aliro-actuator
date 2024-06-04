@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from binascii import hexlify
+
 from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 
@@ -56,7 +58,9 @@ class AccessCredential:
         for id_key_pair in self.reader_id_key_list:
             if id_key_pair[0] == identifier:
                 return id_key_pair[1]
-        raise KeyLookupFailed
+        raise KeyLookupFailed(
+            "Could not find key for reader identifier: {!r}".format(hexlify(identifier))
+        )
 
     def get_credential_public_key(self) -> PublicKey:
         return self.user_device_key_pair.get_public_key()

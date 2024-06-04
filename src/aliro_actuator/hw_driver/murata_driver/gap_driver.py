@@ -15,7 +15,7 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
 
 class MurataGAPPeripheralDriver(MurataBaseDriver):
     async def host_initialize(self) -> None:
-        Global.logger.info("Initializing host")
+        Global.logger.debug("Initializing host")
         message = Message(OpGroup.GAP, OpCodeGAP.HOST_INITIALIZE)
         self.write(message)
         await self.wait_for_confirm(
@@ -23,17 +23,18 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         )
 
     async def read_public_device_address(self) -> bytes:
-        Global.logger.info("Read public device address")
+        Global.logger.debug("Read public device address")
         message = Message(OpGroup.GAP, OpCodeGAP.READ_PUBLIC_DEVICE_ADDRESS)
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
         response = await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_PUBLIC_ADDRESS_READY
         )
+        Global.logger.debug("Read public device address ready")
         return response.data
 
     async def set_advertising_parameters(self) -> None:
-        Global.logger.info("Setting advertising parameters")
+        Global.logger.debug("Setting advertising parameters")
 
         data = bytearray()
         data.extend(int.to_bytes(320, 2, "little"))  # MinInterval
@@ -53,6 +54,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_ADVERTISING_PARAMETERS_SETUP_COMPLETE
         )
+        Global.logger.debug("Advertising parameters setup complete")
 
     async def set_advertising_data(
         self,
@@ -65,7 +67,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         dynamic_tag_timestamp: bytes,
         dynamic_tag: bytes,
     ) -> None:
-        Global.logger.info("Setting advertising data")
+        Global.logger.debug("Setting advertising data")
 
         data = bytearray()
         data.append(0x01)  # advertising data included
@@ -96,9 +98,10 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_ADVERTISING_DATA_SETUP_COMPLETE
         )
+        Global.logger.debug("Advertising data setup complete")
 
     async def set_tx_power_level(self, power_level: int, channel: int) -> None:
-        Global.logger.info("Set tx power level")
+        Global.logger.debug("Set tx power level")
         data = bytearray()
         data.append(power_level)
         data.append(channel)
@@ -108,6 +111,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_TX_POWER_LEVEL_SET_COMPLETE
         )
+        Global.logger.debug("tx power level set complete")
 
     async def start_advertising(self) -> None:
         Global.logger.info("Start Advertising")
@@ -117,6 +121,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED
         )
+        Global.logger.debug("Advertising started")
 
     async def stop_advertising(self) -> None:
         Global.logger.info("Stop Advertising")
@@ -126,13 +131,13 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED
         )
+        Global.logger.debug("Advertising stopped")
 
     async def wait_for_connection_event(self) -> None:
         self.set_low_timeout()
         while True:
             try:
                 message = await self.read()
-                message.print()
                 if (
                     message.op_group == OpGroup.GAP
                     and message.op_code == OpCodeGAP.CONNECTION_EVENT_CONNECTED
@@ -144,13 +149,16 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                     self.set_normal_timeout()
                     self.connected_devices.append(device_id)
                     return
+                else:
+                    Global.logger.debug("Unexpected message received:")
+                    message.print()
             except NoResponseError:
                 # sleep so other processes can run
                 await asyncio.sleep(0.1)
                 pass
 
     async def disconnect(self, device_id: int) -> None:
-        Global.logger.info("Disconnect")
+        Global.logger.debug("Disconnect")
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
 
@@ -162,6 +170,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                 await self.wait_for_message(
                     OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
                 )
+                Global.logger.debug("Device disconnected")
             Global.logger.info(
                 "disconnected from device with device id: {}".format(device_id)
             )
@@ -192,6 +201,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
         await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        Global.logger.debug("Scanning Started")
 
     async def stop_scanning(self) -> None:
         Global.logger.info("Stop Scanning")
@@ -199,6 +209,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
         await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        Global.logger.debug("Scanning Stopped")
 
     async def connect(
         self,
@@ -206,7 +217,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         peer_address: bytes,
         use_peer_identity_address: int,
     ) -> None:
-        Global.logger.info("Connect")
+        Global.logger.debug("Connect")
         data = bytearray()
         data.extend(int.to_bytes(36, 2, "little"))  # scan interval
         data.extend(int.to_bytes(18, 2, "little"))  # scan window
@@ -235,7 +246,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         )
 
     async def disconnect(self, device_id: int) -> None:
-        Global.logger.info("Disconnect")
+        Global.logger.debug("Disconnect")
         data = bytearray()
         data.extend(int.to_bytes(device_id, 1, "little"))
 
@@ -247,6 +258,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                 await self.wait_for_message(
                     OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
                 )
+                Global.logger.debug("Device disconnected")
             Global.logger.info(
                 "disconnected from device with device id: {}".format(device_id)
             )
@@ -267,14 +279,13 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         while True:
             try:
                 message = await self.read()
-                message.print()
                 if (
                     message.op_group == OpGroup.GAP
                     and message.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
                 ):
                     advertising_data = message.get_advertising_data()
                     _, address, _ = message.get_address()
-                    Global.logger.info(
+                    Global.logger.debug(
                         "Scanned device with address: {!r} and data: {!r}".format(
                             hexlify(address), hexlify(advertising_data)
                         )
@@ -295,9 +306,12 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                             or advertising_data[9:17] in reader_group_id
                         )
                     ):
-                        Global.logger.info("Device Found!\n")
+                        Global.logger.info("Device Found!")
                         self.set_normal_timeout()
                         return message.get_address()
+                else:
+                    Global.logger.debug("Unexpected message received:")
+                    message.print()
             except NoResponseError:
                 # sleep so other processes can run
                 await asyncio.sleep(0.1)

@@ -67,7 +67,7 @@ class MurataBaseDriver:
         return message
 
     def write(self, message: Message) -> None:
-        Global.logger.info(
+        Global.logger.debug(
             "writing to Murata: {!r}".format(hexlify(message.to_bytes()))
         )
         self.serial.write(message.to_bytes())
@@ -77,7 +77,6 @@ class MurataBaseDriver:
         while True:
             try:
                 response = await self.read()
-                response.print()
                 if (
                     response.get_op_group() == OpGroup.L2CAP
                     and response.get_op_code() == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
@@ -109,12 +108,9 @@ class MurataBaseDriver:
                     response.get_op_group() != op_group
                     or response.get_op_code() != opcode
                 ):
+                    Global.logger.debug("Unexpected Command received:")
+                    response.print()
                     continue
-                Global.logger.info(
-                    "Received message with opGroup: {} and opCode: 0x{:x}".format(
-                        OpGroup(op_group).name, opcode
-                    )
-                )
                 self.set_normal_timeout()
                 return response
             except NoResponseError:
@@ -130,4 +126,4 @@ class MurataBaseDriver:
             raise ErrorReturnedError(
                 int.from_bytes(response.get_data(), "little"), accepted
             )
-        Global.logger.info("confirm received")
+        Global.logger.debug("confirm received")

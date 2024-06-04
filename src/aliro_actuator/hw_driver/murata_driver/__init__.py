@@ -22,6 +22,7 @@ from aliro_actuator.hw_driver.murata_driver.l2cap_driver import MurataL2CAPDrive
 ALIRO_SERVICE_UUID = bytes.fromhex("FFF2")
 READER_CHARACTERISTIC_UUID = bytes.fromhex("D3B5A1309E234B3A8BE46B1EE5F980A3")
 USER_DEVICE_CHARACTERISTIC_UUID = bytes.fromhex("BD4B95023F5411ECB9190242AC120005")
+CURRENT_VERSION = 0x0100
 
 
 class UserDeviceMurataDriver(
@@ -39,17 +40,17 @@ class UserDeviceMurataDriver(
 
     async def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
-        Global.logger.info(
+        Global.logger.debug(
             "Looking for devices with aliro service uuid: {!r}".format(
                 hexlify(ALIRO_SERVICE_UUID)
             )
         )
-        Global.logger.info(
+        Global.logger.debug(
             "Looking for devices with dynamic tag, generated using group resolving key: {!r}".format(
                 hexlify(self.group_resolving_key)
             )
         )
-        Global.logger.info(
+        Global.logger.debug(
             "Looking for devices with reader group id in list: {}".format(
                 ", ".join(str(hexlify(x)) for x in self.reader_group_identifier_list)
             )
@@ -68,20 +69,28 @@ class UserDeviceMurataDriver(
         await self.connect(address_type, address, advertising_address_resolved)
 
     async def handle_GATT_layer(self) -> bytes:
-        Global.logger.info("GATT layer")
+        Global.logger.info("handle GATT layer")
         await self.handle_GATT_layer_setup()
         primary_service = await self.handle_GATT_layer_get_primary_service()
-        spsm, _ = await self.handle_GATT_layer_read_characteristic(primary_service)
+        spsm, ble_versions = await self.handle_GATT_layer_read_characteristic(
+            primary_service
+        )
+        Global.logger.debug("Read SPSM from reader: {!r}".format(hexlify(spsm)))
+        Global.logger.debug(
+            "Read BLE UWB Protocol versions: {}".format(
+                ", ".join(str(hexlify(version)) for version in ble_versions)
+            )
+        )
         await self.handle_GATT_layer_write_characteristic(primary_service)
         return spsm
 
     async def handle_GATT_layer_setup(self) -> None:
-        Global.logger.info("GATT layer setup")
+        Global.logger.debug("GATT layer setup")
         await self.register_notification_callback()
         await self.register_procedure_callback()
 
     async def handle_GATT_layer_get_primary_service(self) -> Service:
-        Global.logger.info("GATT get primary service")
+        Global.logger.debug("GATT get primary service")
         services = await self.discover_all_primary_services(self.connected_devices[0])
         primary_service = None
         for service in services:
@@ -98,7 +107,7 @@ class UserDeviceMurataDriver(
     async def handle_GATT_layer_read_characteristic(
         self, primary_service: Service
     ) -> tuple[bytes, list[bytes]]:
-        Global.logger.info("GATT read characteristic")
+        Global.logger.debug("GATT read characteristic")
         reader_characteristic = None
         for characteristic in primary_service.characteristics:
             if characteristic.get_value_uuid() == READER_CHARACTERISTIC_UUID:
@@ -110,7 +119,7 @@ class UserDeviceMurataDriver(
             self.connected_devices[0], reader_characteristic
         )
         read_value = value.get_value()
-        Global.logger.info("read values: {!r}".format(read_value))
+        Global.logger.debug("read values: {!r}".format(hexlify(read_value)))
         no_versions = read_value[2] // 2  # every version is 2 byte long
         versions = []
         for index in range(no_versions):
@@ -120,7 +129,7 @@ class UserDeviceMurataDriver(
     async def handle_GATT_layer_write_characteristic(
         self, primary_service: Service
     ) -> None:
-        Global.logger.info("GATT write characteristic")
+        Global.logger.debug("GATT write characteristic")
         user_device_characteristic = None
         for characteristic in primary_service.characteristics:
             if characteristic.get_value_uuid() == USER_DEVICE_CHARACTERISTIC_UUID:
@@ -128,10 +137,15 @@ class UserDeviceMurataDriver(
                 break
         else:
             raise GATTError("user device characteristic not found")
+        Global.logger.info(
+            "Writing BLE UWB protocol version to Reader: 0x{:04x}".format(
+                CURRENT_VERSION
+            )
+        )
         await self.write_characteristic_value(
             self.connected_devices[0],
             user_device_characteristic,
-            value=0x0100,
+            value=CURRENT_VERSION,
             value_length=0x02,
         )
 

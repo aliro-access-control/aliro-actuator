@@ -36,6 +36,7 @@ from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
+    STEPUP_PHASE_AID,
     Auth1,
     Exchange,
     Select,
@@ -257,6 +258,7 @@ class Reader(Device):
         Global.logger.info("Terminating transaction")
         self.end_session()
         await self.transport_protocol.disconnect()
+        Global.logger.info("Transaction Termination Done")
 
     async def setup_connection(self) -> None:
         """
@@ -371,6 +373,11 @@ class Reader(Device):
 
         if self.session.application_type != CSA_APPLICATION_TYPE:
             raise AccessProtocolError("User send unknown application type")
+        else:
+            Global.logger.info(
+                "Application type valid: 0x{:04x}".format(self.session.application_type)
+            )
+
         if (
             PROTOCOL_VERSION
             not in self.session.expedited_phase_supported_protocol_versions
@@ -378,6 +385,17 @@ class Reader(Device):
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
             )
+        else:
+            Global.logger.info(
+                "Protocol versions contains valid version: {}".format(
+                    ", ".join(
+                        str(hex(x))
+                        for x in self.session.expedited_phase_supported_protocol_versions
+                    )
+                )
+            )
+
+        Global.logger.info("Initiate access protocol notification handling done")
 
     async def handle_select(self, aid: bytes) -> None:
         """
@@ -397,7 +415,7 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("SELECT Command")
+        Global.logger.info("Start handling SELECT with AID: {!r}".format(hexlify(aid)))
         try:
             response = await self.command_select(aid)
         except InvalidStatusError as error:
@@ -409,16 +427,46 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
-        if response.compl_aid != EXPEDITED_PHASE_AID:
+        Global.logger.info("Handling SELECT response")
+        if response.compl_aid == EXPEDITED_PHASE_AID:
+            Global.logger.info(
+                "AID valid for expedited phase: {!r}".format(
+                    hexlify(response.compl_aid)
+                )
+            )
+        elif response.compl_aid == STEPUP_PHASE_AID:
+            Global.logger.info(
+                "AID valid for step-up phase: {!r}".format(hexlify(response.compl_aid))
+            )
+        else:
             raise AccessProtocolError("User send unknown AID")
+
         if response.type != CSA_APPLICATION_TYPE:
             raise AccessProtocolError("User send unknown application type")
+        else:
+            Global.logger.info(
+                "Application type valid (CSA application): 0x{:04x}".format(
+                    response.type
+                )
+            )
+
         if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
             )
+        else:
+            Global.logger.info(
+                "Protocol versions ({}) contains valid version: 0x{:04x}".format(
+                    ", ".join(
+                        str(hex(x))
+                        for x in response.expedited_phase_supported_protocol_versions
+                    ),
+                    PROTOCOL_VERSION,
+                )
+            )
 
         self.session.set_select_info(response)
+        Global.logger.info("Handling SELECT response done")
 
     async def handle_auth0(
         self, transaction_type: Transaction, transaction_code: TransactionCode
@@ -445,7 +493,10 @@ class Reader(Device):
         ):
             raise AccessProtocolError("Requested fast transaction but does not support")
 
-        Global.logger.info("AUTH0 Command")
+        Global.logger.info(
+            "Start handling AUTH0 with transaction type: {} and "
+            "transaction code: {}".format(transaction_type.name, transaction_code.name)
+        )
         try:
             auth0_response = await self.command_auth0(
                 transaction=transaction_type,
@@ -460,7 +511,8 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
-        Global.logger.info("checking Auth0 response fields")
+        Global.logger.info("Handling AUTH0 response")
+        Global.logger.info("Checking credential ephemeral public key")
         try:
             credential_ephemeral_public_key = PublicKey(auth0_response.credential_epubk)
         except InvalidKeyError as error:
@@ -469,8 +521,9 @@ class Reader(Device):
                     hexlify(auth0_response.credential_epubk)
                 )
             ) from error
+        Global.logger.info("Credential ephemeral public key is a valid key")
 
-        Global.logger.info("saving Auth0 response data")
+        Global.logger.info("Saving Auth0 response data to session")
         self.session.set_flag(transaction_type, transaction_code)
         self.session.set_credential_ephemeral_key(credential_ephemeral_public_key)
         self.session.set_response_vendor_extension(
@@ -483,59 +536,67 @@ class Reader(Device):
                 raise AccessProtocolError(
                     "User send cryptogram during a standard transaction"
                 )
+            else:
+                Global.logger.info(
+                    "No cryptogram send during a standard transaction (as expected)"
+                )
         else:
-            if auth0_response.cryptogram is None:
-                await self.failure_process()
-                raise AccessProtocolError(
-                    "User did not send cryptogram during a fast transaction"
-                )
+            await self.decrypt_cryptogram(auth0_response.cryptogram)
 
-            Global.logger.info(
-                "Trying to decrypt cryptogram received: {!r}".format(
-                    hexlify(auth0_response.cryptogram[:-AUTHENTICATION_TAG_SIZE])
-                )
+        Global.logger.info("Handling AUTH0 command done")
+
+    async def decrypt_cryptogram(self, cryptogram: bytes | None) -> None:
+        if self.session is None:
+            raise SessionError("No Session")
+
+        if cryptogram is None:
+            await self.failure_process()
+            raise AccessProtocolError(
+                "User did not send cryptogram during a fast transaction"
+            )
+
+        Global.logger.info(
+            "Trying to decrypt cryptogram received: {!r}".format(
+                hexlify(cryptogram[:-AUTHENTICATION_TAG_SIZE])
+            )
+        )
+        Global.logger.info(
+            "With authentication tag: {!r}".format(
+                hexlify(cryptogram[-AUTHENTICATION_TAG_SIZE:])
+            )
+        )
+        for entry in self.storage.get_kpersistent_list():
+            self.session.derive_key_volatile_fast(
+                self.transport_protocol_type,
+                entry.access_credential,
+                entry.kpersistent,
             )
             Global.logger.info(
-                "With authentication tag: {!r}".format(
-                    hexlify(auth0_response.cryptogram[-AUTHENTICATION_TAG_SIZE:])
+                "trying cryptogram secret key: {!r}".format(
+                    hexlify(self.session.cryptogram_SK)
                 )
             )
-            for entry in self.storage.get_kpersistent_list():
-                self.session.derive_key_volatile_fast(
-                    self.transport_protocol_type,
-                    entry.access_credential,
-                    entry.kpersistent,
+            try:
+                decrypted_cryptogram = decrypt_cryptogram(
+                    self.session.cryptogram_SK,
+                    cryptogram[:-AUTHENTICATION_TAG_SIZE],
+                    cryptogram[-AUTHENTICATION_TAG_SIZE:],
                 )
                 Global.logger.info(
-                    "trying cryptogram secret key: {!r}".format(
+                    "decryption successful with: {!r}".format(
                         hexlify(self.session.cryptogram_SK)
                     )
                 )
-                try:
-                    decrypted_cryptogram = decrypt_cryptogram(
-                        self.session.cryptogram_SK,
-                        auth0_response.cryptogram[:-AUTHENTICATION_TAG_SIZE],
-                        auth0_response.cryptogram[-AUTHENTICATION_TAG_SIZE:],
-                    )
-                    Global.logger.info(
-                        "decryption successful with: {!r}".format(
-                            hexlify(self.session.cryptogram_SK)
-                        )
-                    )
-                    Global.logger.info(
-                        "decrypted cryptogram: {!r}".format(
-                            hexlify(decrypted_cryptogram)
-                        )
-                    )
-                    self.session.set_cryptogram_info(
-                        TLV.from_bytes(decrypted_cryptogram)
-                    )
-                    return
-                except VerificationError:
-                    Global.logger.info("decryption failed, trying next key in storage")
-                    pass
+                Global.logger.info(
+                    "decrypted cryptogram: {!r}".format(hexlify(decrypted_cryptogram))
+                )
+                self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
+                return
+            except VerificationError:
+                Global.logger.info("decryption failed, trying next key in storage")
+                pass
 
-            raise CryptogramNotFound("Matching Cryptogram not found")
+        raise CryptogramNotFound("Matching Cryptogram not found")
 
     async def handle_load_cert(self) -> None:
         """
@@ -551,15 +612,18 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("LOAD CERT Command")
         if self.reader_cert is None:
             raise AccessProtocolError("No reader cert available")
 
+        Global.logger.info("Start handling LOAD CERT")
         try:
             await self.command_load_cert(self.reader_cert.encode_compressed())
         except InvalidResponseError as error:
             await self.failure_process()
             raise error
+
+        Global.logger.info("Handling LOAD CERT response")
+        Global.logger.info("Handling LOAD CERT response done")
 
     async def handle_auth1(
         self,
@@ -580,7 +644,11 @@ class Reader(Device):
         self.session.set_shared_key()
         self.session.derive_key_volatile(self.transport_protocol_type)
 
-        Global.logger.info("AUTH1 Command")
+        Global.logger.info(
+            "Start handling AUTH1 with key type request: {}".format(
+                expected_response.name
+            )
+        )
         try:
             auth1_response = await self.command_auth1(
                 expected_response=expected_response,
@@ -594,42 +662,80 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
-        Global.logger.info("Checking Auth1 response fields")
-        if expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
-            if auth1_response.credential_public_key is None:
-                await self.failure_process()
-                raise AccessProtocolError(
-                    "Requested credential public key, but none was received"
-                )
-            credential_public_key = PublicKey(auth1_response.credential_public_key)
-        elif expected_response == Auth1Response.KEY_SLOT:
-            if auth1_response.key_slot is None:
-                await self.failure_process()
-                raise AccessProtocolError("Requested keyslot, but none was received")
-            credential_public_key = self.session.lookup_credential_public_key(
-                auth1_response.key_slot
-            )
+        Global.logger.info("Handling AUTH1 response")
+        Global.logger.info("Checking AUTH1 response fields")
+        await self.handle_auth1_credential_public_key(
+            expected_response,
+            auth1_response.credential_public_key,
+            auth1_response.key_slot,
+        )
 
-        Global.logger.info("Checking credential authentication data")
-        self.session.set_credential_public_key(credential_public_key)
         if not self.session.check_user_device_authentication(
             auth1_response.user_device_signature
         ):
             await self.failure_process()
             raise AccessProtocolError("User device signature authentication failed")
+        else:
+            Global.logger.info("User device signature authentication succeeded")
 
         if self.fast_transaction_implemented:
+            Global.logger.info("Adding Kpersistent")
             fast_cache_entry = self.storage.add_kpersistent(
-                credential_public_key,
+                self.session.credential_pubk,
                 self.session.derive_key_persistent(
-                    self.transport_protocol_type, credential_public_key
+                    self.transport_protocol_type, self.session.credential_pubk
                 ),
             )
             Global.logger.info("added fast cache entry:")
             fast_cache_entry.print_to_log()
 
-        Global.logger.info("Save AUTH1 response")
+        Global.logger.info("Save AUTH1 response data to session")
         self.session.set_auth1_info(auth1_response)
+
+        Global.logger.info("Handling AUTH1 response done")
+
+    async def handle_auth1_credential_public_key(
+        self,
+        expected_response: int,
+        credential_public_key_bytes: bytes | None,
+        key_slot: bytes | None,
+    ) -> None:
+        if self.session is None:
+            raise SessionError("No Session")
+
+        if expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
+            Global.logger.info("Key type request is access credential public key")
+            if credential_public_key_bytes is None:
+                await self.failure_process()
+                raise AccessProtocolError(
+                    "Requested credential public key, but none was received"
+                )
+            if key_slot is not None:
+                await self.failure_process()
+                raise AccessProtocolError(
+                    "Requested credential public key, but key slot was received"
+                )
+            else:
+                Global.logger.info("no key slot present, as required")
+            credential_public_key = PublicKey(credential_public_key_bytes)
+            Global.logger.info("Access credential public key is a valid key")
+        elif expected_response == Auth1Response.KEY_SLOT:
+            Global.logger.info("Key type request is key slot")
+            if key_slot is None:
+                await self.failure_process()
+                raise AccessProtocolError("Requested keyslot, but none was received")
+            if credential_public_key_bytes is not None:
+                await self.failure_process()
+                raise AccessProtocolError(
+                    "Requested keyslot, but credential public key was received"
+                )
+            else:
+                Global.logger.info("no credential public key present, as required")
+            credential_public_key = self.session.lookup_credential_public_key(key_slot)
+            Global.logger.info(
+                "Access credential public key could be found with key slot"
+            )
+        self.session.set_credential_public_key(credential_public_key)
 
     async def handle_control_flow(self, success: bool) -> None:
         """
@@ -646,16 +752,26 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("CONTROL FLOW Command")
-
         if success:
             s1 = 0x01
         else:
             s1 = 0x00
+        s2 = 0x00
 
-        await self.command_control_flow(s1, 0x00)
+        Global.logger.info(
+            "Start handling CONTROL FLOW with s1: 0x{:02x} and s2: 0x{:02x}".format(
+                s1, s2
+            )
+        )
+        try:
+            await self.command_control_flow(s1, s2)
+        except (InvalidResponseError, VerificationError) as error:
+            await self.failure_process()
+            raise error
 
+        Global.logger.info("Handling AUTH1 response")
         self.session = None
+        Global.logger.info("Handling AUTH1 response done")
 
     async def handle_exchange(
         self,
@@ -690,7 +806,9 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("EXCHANGE Command")
+        Global.logger.info(
+            "Start handling EXCHANGE with atomic session: {}".format(atomic_session)
+        )
 
         payload: list[tuple[int, bytes | list]] = []
         if read_requests is not None:
@@ -737,22 +855,47 @@ class Reader(Device):
             await self.failure_process()
             raise error
 
+        Global.logger.info("Handling EXCHANGE response")
         if response.status_code != bytes.fromhex("00020000"):
             await self.failure_process()
-            Global.logger.error(
-                "exchange returned error status: {!r}".format(response.status_code)
+            raise AccessProtocolError(
+                "EXCHANGE returned error status at end of payload: {!r}".format(
+                    response.status_code
+                )
             )
-            return []
+        Global.logger.info(
+            "All requests handled successfully, status: {!r}".format(
+                response.status_code
+            )
+        )
 
-        read_data = []
+        Global.logger.info("Checking read data")
+        if len(response.read_data) == 0:
+            if read_requests is not None and len(read_requests) != 0:
+                raise AccessProtocolError(
+                    "Send EXCHANGE command with read requests, but no read data found "
+                    "in response"
+                )
+            else:
+                Global.logger.info("No read data found, as expected")
+        else:
+            read_data = []
+            index = 0
+            while index < len(response.read_data):
+                length = int.from_bytes(response.read_data[index : index + 2], "big")
+                data = response.read_data[index + 2 : index + 2 + length]
+                read_data.append(data)
+                index = index + 2 + length
+                Global.logger.info("Read data found: {!r}".format(hexlify(data)))
+            if read_requests is None or len(read_requests) != len(read_data):
+                raise AccessProtocolError(
+                    "Number of read requests in EXCHANGE command ({}) differs from "
+                    "number of read data in response ({})".format(
+                        len(read_requests), len(read_data)
+                    )
+                )
 
-        index = 0
-        while index < len(response.read_data):
-            length = int.from_bytes(response.read_data[index : index + 2], "big")
-            data = response.read_data[index + 2 : index + 2 + length]
-            read_data.append(data)
-            index = index + 2 + length
-            Global.logger.info("read data: {!r}".format(hexlify(data)))
+        Global.logger.info("Handling EXCHANGE response done")
 
         return read_data
 
@@ -767,7 +910,7 @@ class Reader(Device):
         vendor_extension: bytes | None = None,
     ) -> Response:
         """
-        Create and send a auth0 command.
+        Create and send a auth0 command, and wait for a response.
 
         Args:
             transaction (Transaction): fast or standard
@@ -792,13 +935,15 @@ class Reader(Device):
             vendor_extension,
         )
 
-        Global.logger.info("Sending AUTH0")
+        Global.logger.info("Sending AUTH0 command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for AUTH0 response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.AUTH0)
-        Global.logger.info("Parsed AUTH0 Response")
 
         return response
 
@@ -812,7 +957,7 @@ class Reader(Device):
         encryption: EncryptionEngine | None = None,
     ) -> Response:
         """
-        Create and send a auth1 command.
+        Create and send a auth1 command, and wait for a response.
 
         Args:
             expected_response (Auth1Response): key slot or credential public key
@@ -827,6 +972,7 @@ class Reader(Device):
         Returns:
             Response: Response containing the received data.
         """
+        Global.logger.info("Creating reader authentication data signature")
         data = create_reader_authentication(
             reader_identifier, credential_epubk, reader_epubk, transaction_identifier
         )
@@ -834,22 +980,23 @@ class Reader(Device):
         Global.logger.debug(
             "reader authentication data signature: {!r}".format(hexlify(reader_sig))
         )
-
         command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
-        Global.logger.info("Sending AUTH1")
+        Global.logger.info("Sending AUTH1 command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for AUTH1 response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.AUTH1, encryption)
-        Global.logger.info("Parsed AUTH1 Response")
 
         return response
 
     async def command_select(self, aid: bytes) -> Response:
         """
-        Create and send a select command.
+        Create and send a select command, and wait for a response.
 
         Args:
             aid (bytes): AID to be send.
@@ -859,14 +1006,15 @@ class Reader(Device):
         """
         command = self.apdu.create_select_command(aid)
 
-        Global.logger.info("Sending Select")
-        Global.logger.debug("using AID: {!r}".format(hexlify(aid)))
+        Global.logger.info("Sending SELECT command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for SELECT response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.SELECT)
-        Global.logger.info("Parsed Select Response")
 
         return response
 
@@ -878,7 +1026,7 @@ class Reader(Device):
 
     async def command_load_cert(self, compressed_cert: bytes) -> Response:
         """
-        Create and send a load_cert command.
+        Create and send a load_cert command, and wait for a response.
 
         Args:
             compressed_cert (bytes): compressed certificate to send.
@@ -888,13 +1036,15 @@ class Reader(Device):
         """
         command = self.apdu.create_load_cert_command(compressed_cert)
 
-        Global.logger.info("Sending load cert")
+        Global.logger.info("Sending LOAD CERT command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for LOAD CERT response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.LOAD_CERT)
-        Global.logger.info("Parsed load cert Response")
 
         return response
 
@@ -902,7 +1052,7 @@ class Reader(Device):
         self, atomic_session: bool, payload: TLV, encryption: EncryptionEngine
     ) -> Response:
         """
-        Create and send a exchange command.
+        Create and send a exchange command, and wait for a response.
 
         Args:
             atomic_session (bool): if True, this is part of an atomic session
@@ -915,13 +1065,15 @@ class Reader(Device):
         """
         command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
 
-        Global.logger.info("Sending exchange")
+        Global.logger.info("Sending EXCHANGE command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for EXCHANGE response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.EXCHANGE, encryption)
-        Global.logger.info("Parsed exchange Response")
 
         return response
 
@@ -929,7 +1081,7 @@ class Reader(Device):
         self, s1: int, s2: int, domain_specific_data: bytes | None = None
     ) -> Response:
         """
-        Create and send a exchange command.
+        Create and send a exchange command, and wait for a response.
 
         Args:
             s1 (int):
@@ -941,13 +1093,15 @@ class Reader(Device):
         """
         command = self.apdu.create_control_flow_command(s1, s2, domain_specific_data)
 
-        Global.logger.info("Sending control flow")
+        Global.logger.info("Sending CONTROL FLOW command")
         await self.transport_protocol.send_message(
             command.to_bytes(), MessageType.REQUEST
         )
+
+        Global.logger.info("Waiting for CONTROL FLOW response")
         response_str = await self.transport_protocol.get_message()
+        Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
-        Global.logger.info("Parsed control flow Response")
 
         return response
 
@@ -993,13 +1147,6 @@ class ReaderSession:
         self.maximum_command_apdu = select_response.maximum_command_apdu
         self.maximum_response_apdu = select_response.maximum_response_apdu
         self.proprietary_tlv = select_response.proprietary_tlv
-        Global.logger.debug("Complete AID: {!r}".format(hexlify(self.compl_aid)))
-        Global.logger.debug("application type: {}".format(self.application_type))
-        Global.logger.debug(
-            "Expedited Transaction Supported Versions: {!r}".format(
-                self.expedited_phase_supported_protocol_versions
-            )
-        )
 
     def set_initiate_access_protocol_info(
         self, initiate_access_protocol_notification: bytes
@@ -1129,7 +1276,7 @@ class ReaderSession:
     ) -> None:
         self.flag = bytes([transaction, transaction_code])
 
-    def set_response_vendor_extension(self, vendor_extension: bytes | None) -> None:
+    def set_response_vendor_extension(self, vendor_extension: TLV | None) -> None:
         self.response_vendor_extension = vendor_extension
 
     def set_credential_ephemeral_key(self, key: PublicKey) -> None:
@@ -1191,11 +1338,22 @@ class ReaderSession:
         self.revocation_signed_timestamp = auth1_response.revocation_signed_timestamp
 
     def check_user_device_authentication(self, user_device_signature: bytes) -> bool:
+        Global.logger.info("Checking credential authentication data")
         data = create_user_device_authentication(
             self.reader_identifier,
             self.credential_ephemeral_key,
             self.reader_ephemeral.get_public_key(),
             self.transaction_identifier,
+        )
+        Global.logger.debug(
+            "verifying user data with key: {!r}".format(
+                hexlify(self.credential_pubk.as_bytes())
+            )
+        )
+        Global.logger.debug(
+            "verifying user data with signature: {!r}".format(
+                hexlify(user_device_signature)
+            )
         )
         return self.credential_pubk.verify(data.to_bytes(), user_device_signature)
 
@@ -1214,6 +1372,8 @@ class ReaderSession:
         )
 
     def derive_key_volatile(self, transport_protocol: TransportProtocol) -> None:
+        Global.logger.debug("Deriving key (volatile)")
+
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
             info.extend(self.command_vendor_extension)
@@ -1231,12 +1391,22 @@ class ReaderSession:
             flag=self.flag,
             proprietary_information=self.proprietary_tlv.to_bytes(),
         )
+
         derived_key = derive_key(self.shared_key, bytes(info), 160, salt)
         self.exchange_SK_reader = derived_key[0:32]
         self.exchange_SK_device = derived_key[32:64]
         self.step_up_SK = derived_key[64:96]
         self.ble_SK = derived_key[96:128]
         self.UR_SK = derived_key[128:160]
+        Global.logger.debug(
+            "exchange SK reader: {!r}".format(hexlify(self.exchange_SK_reader))
+        )
+        Global.logger.debug(
+            "exchange SK device: {!r}".format(hexlify(self.exchange_SK_device))
+        )
+        Global.logger.debug("step up SK: {!r}".format(hexlify(self.step_up_SK)))
+        Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
+        Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
 
         self.encryption = EncryptionEngine(
             DeviceType.READER, self.exchange_SK_reader, self.exchange_SK_device
@@ -1248,6 +1418,7 @@ class ReaderSession:
         credential: PublicKey,
         k_persistent: bytes,
     ) -> None:
+        Global.logger.debug("Deriving key (volatile fast)")
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
             info.extend(self.command_vendor_extension)
@@ -1273,9 +1444,20 @@ class ReaderSession:
         self.ble_SK = derived_key[96:128]
         self.UR_SK = derived_key[128:160]
 
+        Global.logger.debug("cryptogram SK: {!r}".format(hexlify(self.cryptogram_SK)))
+        Global.logger.debug(
+            "exchange SK reader: {!r}".format(hexlify(self.exchange_SK_reader))
+        )
+        Global.logger.debug(
+            "exchange SK device: {!r}".format(hexlify(self.exchange_SK_device))
+        )
+        Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
+        Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
+
     def derive_key_persistent(
         self, transport_protocol: TransportProtocol, credential: PublicKey
     ) -> bytes:
+        Global.logger.debug("Deriving key (persistent)")
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
             info.extend(self.command_vendor_extension)

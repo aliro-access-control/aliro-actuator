@@ -42,6 +42,8 @@ class Select:
     AID_LEN = 9
     TYPE_LEN = 2
     EXTENDED_INFO_LEN = 8
+    MAX_COMMAND_LEN = 2
+    MAX_RESPONSE_LEN = 2
 
 
 # Auth0 defines
@@ -106,6 +108,9 @@ class ControlFlow:
     S2_TAG = 0x42
     DOMAIN_SPECIFIC_TAG = 0x43
 
+    S1_LEN = 1
+    S2_LEN = 1
+
 
 class Exchange:
     # command
@@ -115,6 +120,9 @@ class Exchange:
     NOTIFY_TAG = 0xAE
     URSK_TAG = 0x98
     UPDATE_DOC_TAG = 0x81
+
+    READ_LEN = 4
+    SET_LEN = 5
 
 
 class ReaderAuth:

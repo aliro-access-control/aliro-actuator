@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import asyncio
 import os
 import sys
 
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
+
+import asyncio
 
 from aliro_actuator.access_protocol.apdu import TransactionCode
 from aliro_actuator.access_protocol.defines import TransportProtocol
@@ -27,12 +28,12 @@ from examples.nfc.common import READER_GROUP_IDENTIFIER, READER_SUB_GROUP_IDENTI
 
 
 async def main():
-    private_key_pem = open("examples/nfc/reader_private_key.pem", "rt")
-    public_key_pem = open("examples/nfc/reader_public_key.pem", "rt")
+    private_key_pem = open("examples/nfc/fail_private_key.pem", "rt")
+    public_key_pem = open("examples/nfc/fail_public_key.pem", "rt")
     reader_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
 
     reader = Reader(
-        transport_protocol=TransportProtocol.BLE_UWB,
+        transport_protocol=TransportProtocol.NFC,
         reader_group_identifier=READER_GROUP_IDENTIFIER,
         reader_group_sub_identifier=READER_SUB_GROUP_IDENTIFIER,
         reader_key=reader_keypair,
@@ -41,7 +42,6 @@ async def main():
     await reader.expedited_transaction_standard(
         TransactionCode.USER_DEVICE_SECURE_ACTION
     )
-    await reader.handle_exchange(False, None, None, None)
     await reader.handle_control_flow(True)
     await reader.transaction_termination()
 

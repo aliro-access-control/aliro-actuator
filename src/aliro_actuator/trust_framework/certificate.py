@@ -24,6 +24,7 @@ from cryptography.hazmat.primitives.asymmetric import utils
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from OpenSSL.crypto import FILETYPE_ASN1, load_certificate
 
+from aliro_actuator import Global
 from aliro_actuator.trust_framework.errors import CertificateDecodingError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 
@@ -282,6 +283,10 @@ class Certificate:
 
     def verify(self, key: PublicKey) -> bool:
         decompressed_bytes = self.encode(key)
+        Global.logger.debug(
+            "decompressed certificate: {!r}".format(hexlify(decompressed_bytes))
+        )
+        Global.logger.debug("verifying using key: {!r}".format(hexlify(key.as_bytes())))
         decompressed = x509.load_der_x509_certificate(decompressed_bytes)
         r, s = utils.decode_dss_signature(self.signature[1:])
         sig_out = r.to_bytes(32, "big") + s.to_bytes(32, "big")

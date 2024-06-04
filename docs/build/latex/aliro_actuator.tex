@@ -64,7 +64,7 @@
 
 
 \title{Aliro\_Actuator}
-\date{Feb 08, 2024}
+\date{May 21, 2024}
 \release{}
 \author{Mike Jongen}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -297,6 +297,15 @@ Bases: {\hyperref[\detokenize{aliro_actuator.access_document:aliro_actuator.acce
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: \sphinxcode{\sphinxupquote{object}}
+\index{get\_timestamp() (aliro\_actuator.access\_document.Document method)@\spxentry{get\_timestamp()}\spxextra{aliro\_actuator.access\_document.Document method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_document:aliro_actuator.access_document.Document.get_timestamp}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_timestamp}}}{}{{ $\rightarrow$ bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{retrieve() (aliro\_actuator.access\_document.Document method)@\spxentry{retrieve()}\spxextra{aliro\_actuator.access\_document.Document method}}
 
 \begin{fulllineitems}
@@ -384,7 +393,7 @@ support\_extended\_length\_apdu: bool (set to true to support extended length AP
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.APDU.create_auth1_response}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{create\_auth1\_response}}}{\sphinxparam{\DUrole{n}{key\_slot}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{public\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signature}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{status}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{StatusBytes.SUCCESS}}\sphinxparamcomma \sphinxparam{\DUrole{n}{private\_mailbox\_data}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{access\_doc\_retrieve}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{revocation\_doc\_retrieve}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{step\_up\_aid\_required}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{data\_in\_mailbox}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{read\_mailbox}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{write\_mailbox}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{send\_issuer\_backend}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{send\_bound\_app}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{update\_doc}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{revocation\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{create\_auth1\_response}}}{\sphinxparam{\DUrole{n}{key\_slot}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{public\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signature}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{status}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{StatusBytes.SUCCESS}}\sphinxparamcomma \sphinxparam{\DUrole{n}{private\_mailbox\_data}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signaling\_bitmap}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{revocation\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -932,7 +941,7 @@ Create a Response from a bytestring.
 \pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{classmethod\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{create\_from\_parameters}}}{\sphinxparam{\DUrole{n}{data}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{status}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{StatusBytes.SUCCESS}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
-Create a Command from its fields.
+Create a Response from its fields.
 
 \end{fulllineitems}
 
@@ -1827,12 +1836,30 @@ Bases: \sphinxcode{\sphinxupquote{object}}
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{S1\_LEN (aliro\_actuator.access\_protocol.defines.ControlFlow attribute)@\spxentry{S1\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.ControlFlow.S1_LEN}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{S1\_LEN}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }1}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{S1\_TAG (aliro\_actuator.access\_protocol.defines.ControlFlow attribute)@\spxentry{S1\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.ControlFlow.S1_TAG}}
 \pysigstartsignatures
 \pysigline{\sphinxbfcode{\sphinxupquote{S1\_TAG}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }65}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{S2\_LEN (aliro\_actuator.access\_protocol.defines.ControlFlow attribute)@\spxentry{S2\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.ControlFlow attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.ControlFlow.S2_LEN}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{S2\_LEN}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }1}}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -1866,12 +1893,30 @@ Bases: \sphinxcode{\sphinxupquote{object}}
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{READ\_LEN (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{READ\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.Exchange.READ_LEN}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{READ\_LEN}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }4}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{READ\_TAG (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{READ\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.Exchange.READ_TAG}}
 \pysigstartsignatures
 \pysigline{\sphinxbfcode{\sphinxupquote{READ\_TAG}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }135}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{SET\_LEN (aliro\_actuator.access\_protocol.defines.Exchange attribute)@\spxentry{SET\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Exchange attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.Exchange.SET_LEN}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{SET\_LEN}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }5}}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -2043,12 +2088,30 @@ Bases: \sphinxcode{\sphinxupquote{object}}
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{MAX\_COMMAND\_LEN (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{MAX\_COMMAND\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.Select.MAX_COMMAND_LEN}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{MAX\_COMMAND\_LEN}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }2}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{MAX\_COMMAND\_TAG (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{MAX\_COMMAND\_TAG}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.Select.MAX_COMMAND_TAG}}
 \pysigstartsignatures
 \pysigline{\sphinxbfcode{\sphinxupquote{MAX\_COMMAND\_TAG}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }2}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{MAX\_RESPONSE\_LEN (aliro\_actuator.access\_protocol.defines.Select attribute)@\spxentry{MAX\_RESPONSE\_LEN}\spxextra{aliro\_actuator.access\_protocol.defines.Select attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.Select.MAX_RESPONSE_LEN}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{MAX\_RESPONSE\_LEN}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }2}}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -2371,6 +2434,15 @@ Raised when the verification of an AES decryption fails.
 
 \end{fulllineitems}
 
+\index{compute\_cryptogram() (in module aliro\_actuator.access\_protocol.encryption)@\spxentry{compute\_cryptogram()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.compute_cryptogram}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.encryption.}}\sphinxbfcode{\sphinxupquote{compute\_cryptogram}}}{\sphinxparam{\DUrole{n}{cryptogram\_sk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signaling\_bitmap}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{revocation\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ bytes}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{create\_proprietary\_information() (in module aliro\_actuator.access\_protocol.encryption)@\spxentry{create\_proprietary\_information()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}}
 
 \begin{fulllineitems}
@@ -2430,6 +2502,15 @@ bytes: the salt as bytes
 
 \end{fulllineitems}
 
+\index{decrypt\_cryptogram() (in module aliro\_actuator.access\_protocol.encryption)@\spxentry{decrypt\_cryptogram()}\spxextra{in module aliro\_actuator.access\_protocol.encryption}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.decrypt_cryptogram}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.encryption.}}\sphinxbfcode{\sphinxupquote{decrypt\_cryptogram}}}{\sphinxparam{\DUrole{n}{cryptogram\_sk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{cryptogram}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{authentication\_tag}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ bytes}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 
 \sphinxstepscope
 
@@ -2468,6 +2549,18 @@ Bases: {\hyperref[\detokenize{aliro_actuator.access_protocol.errors:aliro_actuat
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.errors:aliro_actuator.access_protocol.errors.CreateResponseError}}
 \pysigstartsignatures
 \pysigline{\sphinxbfcode{\sphinxupquote{exception\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.errors.}}\sphinxbfcode{\sphinxupquote{CreateResponseError}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: {\hyperref[\detokenize{aliro_actuator.access_protocol.errors:aliro_actuator.access_protocol.errors.AccessProtocolError}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{AccessProtocolError}}}}}
+
+\end{fulllineitems}
+
+\index{CryptogramNotFound@\spxentry{CryptogramNotFound}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.errors:aliro_actuator.access_protocol.errors.CryptogramNotFound}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{exception\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.errors.}}\sphinxbfcode{\sphinxupquote{CryptogramNotFound}}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: {\hyperref[\detokenize{aliro_actuator.access_protocol.errors:aliro_actuator.access_protocol.errors.AccessProtocolError}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{AccessProtocolError}}}}}
@@ -2679,6 +2772,18 @@ Bases: {\hyperref[\detokenize{aliro_actuator.access_protocol.errors:aliro_actuat
 
 \sphinxAtStartPar
 Raised when a different command is received than expected.
+
+\end{fulllineitems}
+
+\index{UnexpectedNotificationDataError@\spxentry{UnexpectedNotificationDataError}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.errors:aliro_actuator.access_protocol.errors.UnexpectedNotificationDataError}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{exception\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.errors.}}\sphinxbfcode{\sphinxupquote{UnexpectedNotificationDataError}}}{\sphinxparam{\DUrole{n}{response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{other\_info}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{str}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{\textquotesingle{}\textquotesingle{}}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: {\hyperref[\detokenize{aliro_actuator.access_protocol.errors:aliro_actuator.access_protocol.errors.AccessProtocolError}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{AccessProtocolError}}}}}
 
 \end{fulllineitems}
 
@@ -2965,7 +3070,7 @@ Raised when trying to read/write the mailbox without correct permissions.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.reader.}}\sphinxbfcode{\sphinxupquote{Reader}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transport\_override}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase}]{\sphinxcrossref{TransportProtocolBase}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_sub\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_cert}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.KeyPair}]{\sphinxcrossref{KeyPair}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{vendor\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.reader.}}\sphinxbfcode{\sphinxupquote{Reader}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transport\_override}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase}]{\sphinxcrossref{TransportProtocolBase}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_sub\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_cert}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.KeyPair}]{\sphinxcrossref{KeyPair}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{vendor\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{fast\_transaction\_implemented}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_storage}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderStorage}]{\sphinxcrossref{ReaderStorage}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{group\_resolving\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{spsm}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x80\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_identifier\_list}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}bytes\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ephemeral\_key\_list}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.KeyPair}]{\sphinxcrossref{KeyPair}}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{}
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: {\hyperref[\detokenize{aliro_actuator.access_protocol:aliro_actuator.access_protocol.Device}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{Device}}}}}
@@ -2978,10 +3083,26 @@ Simulates a reader device.
 transport\_protocol (TransportProtocol): Transport protocol to use.
 transport\_override (TransportProtocolBase | None, optional): Override the
 transport protocol. Mainly used for testing. Defaults to None.
-reader\_group\_identifier (bytes | None, optional): Part of the reader\_identifier. Defaults to None.
-reader\_group\_sub\_identifier (bytes | None, optional): Part of the reader\_identifier. Defaults to None.
+reader\_group\_identifier (bytes | None, optional): Part of the reader\_identifier.
+Defaults to None.
+reader\_group\_sub\_identifier (bytes | None, optional): Part of the
 reader\_cert (bytes | None, optional): Reader certificate. Defaults to None.
 reader\_key (KeyPair | None, optional): Reader Key. Defaults to None.
+vendor\_extension (bytes | None, optional): Defaults to None.
+fast\_transaction\_implemented (bool): Indicates if this reader implements the
+fast transaction. Defaults to True.
+reader\_storage (ReaderStorage | None, optional): Defaults to None.
+group\_resolving\_key (bytes, optional): Defaults to
+0x00000000000000000000000000000000.
+spsm (bytes, optional): Defaults to 0x0080.
+transaction\_identifier\_list (list{[}bytes{]} | None, optional): list of transaction
+identifiers to be used by the reader. first transaction uses index 0, second
+transaction uses index 1, etc. transaction identifiers are randomly generated if
+this is set to None. Defaults to None.
+ephemeral\_key\_list (list{[}KeyPair{]} | None, optional): list of ephemeral keys
+to be used by the reader. first transaction uses index 0, second
+transaction uses index 1, etc. Ephemeral keys are randomly generated if
+this is set to None. Defaults to None.
 
 \sphinxlineitem{Raises:}
 \sphinxAtStartPar
@@ -2993,10 +3114,10 @@ AccessProtocolError: Raised when arguments have invalid format.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.command_auth0}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{command\_auth0}}}{\sphinxparam{\DUrole{n}{transaction}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Transaction}]{\sphinxcrossref{Transaction}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.TransactionCode}]{\sphinxcrossref{TransactionCode}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{protocol\_version}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_epubk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{vendor\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{command\_auth0}}}{\sphinxparam{\DUrole{n}{transaction}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Transaction}]{\sphinxcrossref{Transaction}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.TransactionCode}]{\sphinxcrossref{TransactionCode}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{protocol\_version}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_epubk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{vendor\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
-Create and send a auth0 command.
+Create and send a auth0 command, and wait for a response.
 \begin{description}
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
@@ -3022,10 +3143,10 @@ Response: Response containing the received data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.command_auth1}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{command\_auth1}}}{\sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_epubk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_epubk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{command\_auth1}}}{\sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_epubk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_epubk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
-Create and send a auth1 command.
+Create and send a auth1 command, and wait for a response.
 \begin{description}
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
@@ -3034,7 +3155,8 @@ reader\_identifier (bytes):
 credential\_epubk (PublicKey):
 reader\_epubk (PublicKey):
 transaction\_identifier (bytes):
-encryption (EncryptionEngine | None, optional): Encryption engine to decrypt the response.
+encryption (EncryptionEngine | None, optional): Encryption engine to
+decrypt the response.
 Response will not be decrypted if this is None. Defaults to None.
 
 \sphinxlineitem{Returns:}
@@ -3050,10 +3172,10 @@ Response: Response containing the received data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.command_control_flow}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{command\_control\_flow}}}{\sphinxparam{\DUrole{n}{s1}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{s2}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{domain\_specific\_data}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{command\_control\_flow}}}{\sphinxparam{\DUrole{n}{s1}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{s2}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{domain\_specific\_data}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
-Create and send a exchange command.
+Create and send a exchange command, and wait for a response.
 \begin{description}
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
@@ -3083,16 +3205,17 @@ Response: Response containing the received data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.command_exchange}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{command\_exchange}}}{\sphinxparam{\DUrole{n}{atomic\_session}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}}\sphinxparamcomma \sphinxparam{\DUrole{n}{payload}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{command\_exchange}}}{\sphinxparam{\DUrole{n}{atomic\_session}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}}\sphinxparamcomma \sphinxparam{\DUrole{n}{payload}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
-Create and send a exchange command.
+Create and send a exchange command, and wait for a response.
 \begin{description}
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
 atomic\_session (bool): if True, this is part of an atomic session
 payload (TLV): The payload to send.
-encryption (EncryptionEngine): Encryption engine to encrypt the message and decode the response.
+encryption (EncryptionEngine): Encryption engine to encrypt the message
+and decode the response.
 
 \sphinxlineitem{Returns:}
 \sphinxAtStartPar
@@ -3116,10 +3239,10 @@ Response: Response containing the received data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.command_load_cert}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{command\_load\_cert}}}{\sphinxparam{\DUrole{n}{compressed\_cert}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{command\_load\_cert}}}{\sphinxparam{\DUrole{n}{compressed\_cert}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
-Create and send a load\_cert command.
+Create and send a load\_cert command, and wait for a response.
 \begin{description}
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
@@ -3138,10 +3261,10 @@ Response: Response containing the received data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.command_select}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{command\_select}}}{\sphinxparam{\DUrole{n}{aid}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{command\_select}}}{\sphinxparam{\DUrole{n}{aid}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Response}]{\sphinxcrossref{Response}}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
-Create and send a select command.
+Create and send a select command, and wait for a response.
 \begin{description}
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
@@ -3155,12 +3278,33 @@ Response: Response containing the received data.
 
 \end{fulllineitems}
 
+\index{decrypt\_cryptogram() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{decrypt\_cryptogram()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.decrypt_cryptogram}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{decrypt\_cryptogram}}}{\sphinxparam{\DUrole{n}{cryptogram}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{end\_session() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{end\_session()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.end_session}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{end\_session}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\sphinxAtStartPar
+End the current reader session.
+
+\end{fulllineitems}
+
 \index{expedited\_transaction\_fast() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{expedited\_transaction\_fast()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.expedited_transaction_fast}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{expedited\_transaction\_fast}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{expedited\_transaction\_fast}}}{\sphinxparam{\DUrole{n}{transaction\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.TransactionCode}]{\sphinxcrossref{TransactionCode}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -3169,7 +3313,7 @@ Response: Response containing the received data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.expedited_transaction_standard}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{expedited\_transaction\_standard}}}{\sphinxparam{\DUrole{n}{transaction\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.TransactionCode}]{\sphinxcrossref{TransactionCode}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{load\_cert}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{expedited\_transaction\_standard}}}{\sphinxparam{\DUrole{n}{transaction\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.TransactionCode}]{\sphinxcrossref{TransactionCode}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{load\_cert}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Runs the Expedited Standard Phase.
@@ -3177,7 +3321,8 @@ Runs the Expedited Standard Phase.
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
 transaction\_code (TransactionCode): Passed during AUTH0.
-load\_cert (bool, optional): Runs the load\_cert command if True. Defaults to False.
+load\_cert (bool, optional): Runs the load\_cert command if True.
+Defaults to False.
 
 \end{description}
 
@@ -3188,7 +3333,7 @@ load\_cert (bool, optional): Runs the load\_cert command if True. Defaults to Fa
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.failure_process}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{failure\_process}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{failure\_process}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Should be called when a failure state has occurred.
@@ -3203,7 +3348,7 @@ If transport protocol is BLE, a failure event message is send.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.handle_auth0}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_auth0}}}{\sphinxparam{\DUrole{n}{transaction\_type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Transaction}]{\sphinxcrossref{Transaction}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.TransactionCode}]{\sphinxcrossref{TransactionCode}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_auth0}}}{\sphinxparam{\DUrole{n}{transaction\_type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Transaction}]{\sphinxcrossref{Transaction}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transaction\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.TransactionCode}]{\sphinxcrossref{TransactionCode}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a AUTH0 command.
@@ -3229,7 +3374,7 @@ AccessProtocolError: Raised if the response has invalid data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.handle_auth1}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_auth1}}}{\sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{Auth1Response.CREDENTIAL\_PUBLIC\_KEY}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_auth1}}}{\sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{Auth1Response.CREDENTIAL\_PUBLIC\_KEY}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a AUTH1 command.
@@ -3244,12 +3389,21 @@ SessionError: Raised if no session is found.
 
 \end{fulllineitems}
 
+\index{handle\_auth1\_credential\_public\_key() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_auth1\_credential\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.handle_auth1_credential_public_key}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_auth1\_credential\_public\_key}}}{\sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_public\_key\_bytes}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{key\_slot}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{handle\_control\_flow() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{handle\_control\_flow()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.handle_control_flow}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_control\_flow}}}{\sphinxparam{\DUrole{n}{success}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_control\_flow}}}{\sphinxparam{\DUrole{n}{success}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a control\_flow command.
@@ -3273,7 +3427,7 @@ SessionError: Raised if no session is found.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.handle_exchange}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_exchange}}}{\sphinxparam{\DUrole{n}{atomic\_session}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}}\sphinxparamcomma \sphinxparam{\DUrole{n}{read\_requests}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}tuple\DUrole{p}{{[}}int\DUrole{p}{,}\DUrole{w}{ }int\DUrole{p}{{]}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{write\_requests}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}tuple\DUrole{p}{{[}}int\DUrole{p}{,}\DUrole{w}{ }bytes\DUrole{p}{{]}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_requests}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}tuple\DUrole{p}{{[}}int\DUrole{p}{,}\DUrole{w}{ }int\DUrole{p}{,}\DUrole{w}{ }int\DUrole{p}{{]}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{notify}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ursk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{update\_doc}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ list\DUrole{p}{{[}}bytes\DUrole{p}{{]}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_exchange}}}{\sphinxparam{\DUrole{n}{atomic\_session}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}}\sphinxparamcomma \sphinxparam{\DUrole{n}{read\_requests}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}tuple\DUrole{p}{{[}}int\DUrole{p}{,}\DUrole{w}{ }int\DUrole{p}{{]}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{write\_requests}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}tuple\DUrole{p}{{[}}int\DUrole{p}{,}\DUrole{w}{ }bytes\DUrole{p}{{]}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{set\_requests}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}tuple\DUrole{p}{{[}}int\DUrole{p}{,}\DUrole{w}{ }int\DUrole{p}{,}\DUrole{w}{ }int\DUrole{p}{{]}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{notify}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ursk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{update\_doc}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ list\DUrole{p}{{[}}bytes\DUrole{p}{{]}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a exchange command.
@@ -3307,7 +3461,7 @@ list{[}bytes{]}: list of read data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.handle_load_cert}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_load\_cert}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_load\_cert}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a load\_cert command.
@@ -3328,7 +3482,7 @@ AccessProtocolError: Raised if the response has invalid data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.handle_select}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_select}}}{\sphinxparam{\DUrole{n}{aid}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_select}}}{\sphinxparam{\DUrole{n}{aid}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 create and send a select command.
@@ -3343,7 +3497,8 @@ aid (bytes): AID to be send.
 \sphinxAtStartPar
 SessionError: Raised if no session is found.
 AccessProtocolError: Raised if the response has invalid data.
-UnexpectedResponseError: Raised if the response has status/data that cannot be handled
+UnexpectedResponseError: Raised if the response has status/data that
+cannot be handled
 
 \end{description}
 
@@ -3376,26 +3531,29 @@ UnexpectedResponseError: Raised if the response has status/data that cannot be h
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{setup\_connection() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{setup\_connection()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.setup_connection}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{setup\_connection}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Setup up the connection to the User device.
+
+\end{fulllineitems}
+
 \index{start\_new\_session() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{start\_new\_session()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.start_new_session}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{start\_new\_session}}}{\sphinxparam{\DUrole{n}{transaction\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ephemeral\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.KeyPair}]{\sphinxcrossref{KeyPair}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{start\_new\_session}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Start a new reader session. Must be done before using handle commands.
 This sessions stores all information received from commands.
 Start a new session to delete all received info and start over.
-\begin{description}
-\sphinxlineitem{Args:}
-\sphinxAtStartPar
-transaction\_identifier (bytes | None, optional): Transaction identifier used
-for this session. Randomly generated if None. Defaults to None.
-ephemeral\_key (KeyPair | None, optional): ephemeral reader key used for the
-session. Randomly generated if None. Defaults to None.
-
-\end{description}
 
 \end{fulllineitems}
 
@@ -3413,11 +3571,53 @@ session. Randomly generated if None. Defaults to None.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.transaction_initiation}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{transaction\_initiation}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{transaction\_initiation}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Initializes the hardware and sets up a connection to the card.
 
+\end{fulllineitems}
+
+\index{transaction\_termination() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{transaction\_termination()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.transaction_termination}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{transaction\_termination}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Terminates the connection to the user device.
+
+\end{fulllineitems}
+
+\index{wait\_for\_initiate\_access\_protocol\_notification() (aliro\_actuator.access\_protocol.reader.Reader method)@\spxentry{wait\_for\_initiate\_access\_protocol\_notification()}\spxextra{aliro\_actuator.access\_protocol.reader.Reader method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.Reader.wait_for_initiate_access_protocol_notification}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{wait\_for\_initiate\_access\_protocol\_notification}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+\index{ReaderFastCacheEntry (class in aliro\_actuator.access\_protocol.reader)@\spxentry{ReaderFastCacheEntry}\spxextra{class in aliro\_actuator.access\_protocol.reader}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderFastCacheEntry}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.reader.}}\sphinxbfcode{\sphinxupquote{ReaderFastCacheEntry}}}{\sphinxparam{\DUrole{n}{access\_credential}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{kpersistent}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{object}}
+\index{print\_to\_log() (aliro\_actuator.access\_protocol.reader.ReaderFastCacheEntry method)@\spxentry{print\_to\_log()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderFastCacheEntry method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderFastCacheEntry.print_to_log}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{print\_to\_log}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
 \end{fulllineitems}
 
 
@@ -3471,12 +3671,30 @@ Contains info from a single session (with one User Device)
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{derive\_key\_persistent() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{derive\_key\_persistent()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderSession.derive_key_persistent}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{derive\_key\_persistent}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}}{{ $\rightarrow$ bytes}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{derive\_key\_volatile() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{derive\_key\_volatile()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderSession.derive_key_volatile}}
 \pysigstartsignatures
 \pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{derive\_key\_volatile}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{derive\_key\_volatile\_fast() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{derive\_key\_volatile\_fast()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderSession.derive_key_volatile_fast}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{derive\_key\_volatile\_fast}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{k\_persistent}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -3579,6 +3797,15 @@ Contains info from a single session (with one User Device)
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{set\_cryptogram\_info() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_cryptogram\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderSession.set_cryptogram_info}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{set\_cryptogram\_info}}}{\sphinxparam{\DUrole{n}{decrypted\_cryptogram}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}}}}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{set\_flag() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_flag()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}}
 
 \begin{fulllineitems}
@@ -3588,12 +3815,21 @@ Contains info from a single session (with one User Device)
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{set\_initiate\_access\_protocol\_info() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_initiate\_access\_protocol\_info()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderSession.set_initiate_access_protocol_info}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{set\_initiate\_access\_protocol\_info}}}{\sphinxparam{\DUrole{n}{initiate\_access\_protocol\_notification}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{set\_response\_vendor\_extension() (aliro\_actuator.access\_protocol.reader.ReaderSession method)@\spxentry{set\_response\_vendor\_extension()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderSession method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderSession.set_response_vendor_extension}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{set\_response\_vendor\_extension}}}{\sphinxparam{\DUrole{n}{vendor\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{set\_response\_vendor\_extension}}}{\sphinxparam{\DUrole{n}{vendor\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -3630,6 +3866,57 @@ Contains info from a single session (with one User Device)
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderSession.transaction_identifier}}
 \pysigstartsignatures
 \pysigline{\sphinxbfcode{\sphinxupquote{property\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{transaction\_identifier}}\sphinxbfcode{\sphinxupquote{\DUrole{p}{:}\DUrole{w}{ }bytes}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+\index{ReaderStorage (class in aliro\_actuator.access\_protocol.reader)@\spxentry{ReaderStorage}\spxextra{class in aliro\_actuator.access\_protocol.reader}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderStorage}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.reader.}}\sphinxbfcode{\sphinxupquote{ReaderStorage}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{object}}
+
+\sphinxAtStartPar
+Cross\sphinxhyphen{}session storage for Expedited Fast cached data
+\index{add\_kpersistent() (aliro\_actuator.access\_protocol.reader.ReaderStorage method)@\spxentry{add\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderStorage method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderStorage.add_kpersistent}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{add\_kpersistent}}}{\sphinxparam{\DUrole{n}{access\_credential}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{kpersistent}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderFastCacheEntry}]{\sphinxcrossref{ReaderFastCacheEntry}}}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{clear\_kpersistent() (aliro\_actuator.access\_protocol.reader.ReaderStorage method)@\spxentry{clear\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderStorage method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderStorage.clear_kpersistent}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{clear\_kpersistent}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{get\_kpersistent\_list() (aliro\_actuator.access\_protocol.reader.ReaderStorage method)@\spxentry{get\_kpersistent\_list()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderStorage method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderStorage.get_kpersistent_list}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_kpersistent\_list}}}{}{{ $\rightarrow$ list\DUrole{p}{{[}}{\hyperref[\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderFastCacheEntry}]{\sphinxcrossref{ReaderFastCacheEntry}}}\DUrole{p}{{]}}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{remove\_kpersistent() (aliro\_actuator.access\_protocol.reader.ReaderStorage method)@\spxentry{remove\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.reader.ReaderStorage method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.reader:aliro_actuator.access_protocol.reader.ReaderStorage.remove_kpersistent}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{remove\_kpersistent}}}{\sphinxparam{\DUrole{n}{access\_credential}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -3746,6 +4033,33 @@ tag (int): tag number
 \sphinxAtStartPar
 list{[}bytes | TLV{]}: list with all values with given tag.
 Can be empty if tag was not found.
+
+\end{description}
+
+\end{fulllineitems}
+
+\index{get\_all\_tlv\_of\_tag() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{get\_all\_tlv\_of\_tag()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV.get_all_tlv_of_tag}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_all\_tlv\_of\_tag}}}{\sphinxparam{\DUrole{n}{tag}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}}{{ $\rightarrow$ list\DUrole{p}{{[}}{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}\DUrole{p}{{]}}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Similar to get\_all\_of\_tag, but the list only contains tlv objects.
+Raises an error when a no byte object is found.
+\begin{description}
+\sphinxlineitem{Args:}
+\sphinxAtStartPar
+tag (int): tag number
+
+\sphinxlineitem{Raises:}
+\sphinxAtStartPar
+TlvError: Raised when value is not of type bytes.
+
+\sphinxlineitem{Returns:}
+\sphinxAtStartPar
+list{[}bytes{]}: list with all values with given tag
 
 \end{description}
 
@@ -3868,6 +4182,24 @@ TlvError: error during construction of the bytestring
 \pysigstopsignatures
 \sphinxAtStartPar
 returns the tlv as a list of tuples
+
+\end{fulllineitems}
+
+\index{to\_print() (aliro\_actuator.access\_protocol.tlv.TLV method)@\spxentry{to\_print()}\spxextra{aliro\_actuator.access\_protocol.tlv.TLV method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV.to_print}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{to\_print}}}{}{{ $\rightarrow$ str}}
+\pysigstopsignatures
+\sphinxAtStartPar
+returns a printable string.
+\begin{description}
+\sphinxlineitem{Returns:}
+\sphinxAtStartPar
+str: printable string with tags, values and lengths of this TLV
+
+\end{description}
 
 \end{fulllineitems}
 
@@ -3998,7 +4330,7 @@ An enumeration.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.user\_device.}}\sphinxbfcode{\sphinxupquote{UserDevice}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transport\_override}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase}]{\sphinxcrossref{TransportProtocolBase}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{access\_credentials}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}{\hyperref[\detokenize{aliro_actuator.trust_framework.access_credential:aliro_actuator.trust_framework.access_credential.AccessCredential}]{\sphinxcrossref{AccessCredential}}}\DUrole{p}{{]}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{{[}{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{supported\_versions}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}int\DUrole{p}{{]}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{{[}256{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{mailbox}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }list\DUrole{p}{{[}}tuple\DUrole{p}{{[}}bytes\DUrole{p}{,}\DUrole{w}{ }int\DUrole{p}{,}\DUrole{w}{ }bytes\DUrole{p}{{]}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{mailbox\_read}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{mailbox\_write}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{vendor\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{fast\_transaction\_implemented}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{True}}}{}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.user\_device.}}\sphinxbfcode{\sphinxupquote{UserDevice}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{transport\_override}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase}]{\sphinxcrossref{TransportProtocolBase}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{access\_credentials}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}{\hyperref[\detokenize{aliro_actuator.trust_framework.access_credential:aliro_actuator.trust_framework.access_credential.AccessCredential}]{\sphinxcrossref{AccessCredential}}}\DUrole{p}{{]}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{{[}{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{supported\_versions}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}int\DUrole{p}{{]}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{{[}256{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{access\_document}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_document.access_credential:aliro_actuator.access_document.access_credential.AccessDocument}]{\sphinxcrossref{AccessDocument}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{revocation\_document}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_document.revocation_document:aliro_actuator.access_document.revocation_document.RevocationDocument}]{\sphinxcrossref{RevocationDocument}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{mailbox}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }list\DUrole{p}{{[}}tuple\DUrole{p}{{[}}bytes\DUrole{p}{,}\DUrole{w}{ }int\DUrole{p}{,}\DUrole{w}{ }bytes\DUrole{p}{{]}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{mailbox\_read}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{mailbox\_write}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{vendor\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{fast\_transaction\_implemented}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{True}}\sphinxparamcomma \sphinxparam{\DUrole{n}{user\_device\_storage}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserStorage}]{\sphinxcrossref{UserStorage}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{step\_up\_aid\_required}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{access\_document\_updatable}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{group\_resolving\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{ephemeral\_key\_list}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.KeyPair}]{\sphinxcrossref{KeyPair}}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserMode}]{\sphinxcrossref{UserMode}}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{UserMode.TEST}}}{}
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: {\hyperref[\detokenize{aliro_actuator.access_protocol:aliro_actuator.access_protocol.Device}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{Device}}}}}
@@ -4018,12 +4350,33 @@ mailbox. If int, use mailbox with this size in bytes. If list, use mailbox
 with this initial data. List should consist of OUI, type, data tuples.
 
 \end{description}
+\index{check\_reader\_authentication\_data() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{check\_reader\_authentication\_data()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.check_reader_authentication_data}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{check\_reader\_authentication\_data}}}{\sphinxparam{\DUrole{n}{reader\_signature}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{end\_session() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{end\_session()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.end_session}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{end\_session}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\sphinxAtStartPar
+End the current reader session.
+
+\end{fulllineitems}
+
 \index{failure\_process() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{failure\_process()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.failure_process}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{failure\_process}}}{\sphinxparam{\DUrole{n}{error\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{failure\_process}}}{\sphinxparam{\DUrole{n}{error\_code}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Should be called when a failure state has occurred.
@@ -4032,12 +4385,21 @@ Destroys all session bound keys and data.
 
 \end{fulllineitems}
 
+\index{get\_signaling\_bitmap() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{get\_signaling\_bitmap()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.get_signaling_bitmap}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_signaling\_bitmap}}}{}{{ $\rightarrow$ bytes}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{handle\_auth0() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{handle\_auth0()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.handle_auth0}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_auth0}}}{\sphinxparam{\DUrole{n}{auth0\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_auth0}}}{\sphinxparam{\DUrole{n}{auth0\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Parse a auth0 command and send the appropriate response.
@@ -4061,7 +4423,7 @@ NotImplementedError:
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.handle_auth1}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_auth1}}}{\sphinxparam{\DUrole{n}{auth1\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_auth1}}}{\sphinxparam{\DUrole{n}{auth1\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Parse a auth1 command and send the appropriate response.
@@ -4085,7 +4447,7 @@ AccessProtocolError: Raised if the response has invalid data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.handle_control_flow}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_control\_flow}}}{\sphinxparam{\DUrole{n}{control\_flow\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_control\_flow}}}{\sphinxparam{\DUrole{n}{control\_flow\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Parse an control flow command and send the appropriate response.
@@ -4107,7 +4469,7 @@ SessionError: Raised when the session is missing or in an invalid state.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.handle_exchange}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_exchange}}}{\sphinxparam{\DUrole{n}{exchange\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_exchange}}}{\sphinxparam{\DUrole{n}{exchange\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Parse an exchange command and send the appropriate response.
@@ -4130,7 +4492,7 @@ AccessProtocolError: Raised if the response has invalid data.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.handle_load_cert}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_load\_cert}}}{\sphinxparam{\DUrole{n}{load\_cert\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_load\_cert}}}{\sphinxparam{\DUrole{n}{load\_cert\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Parse a load cert command and send the appropriate response.
@@ -4153,7 +4515,7 @@ KeyLookupFailed: When the reader public key cannot be found.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.handle_select}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{handle\_select}}}{\sphinxparam{\DUrole{n}{select\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ bytes}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{handle\_select}}}{\sphinxparam{\DUrole{n}{select\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}}{{ $\rightarrow$ bytes}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Parse a select command and send the appropriate response.
@@ -4176,7 +4538,7 @@ InvalidAIDError: Raised when the AID is invalid.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.main_loop}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{main\_loop}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{main\_loop}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Starts a loop, where every command received is replied with an appropriate response.
@@ -4196,7 +4558,7 @@ NotImplementedError: When a command which is not implemented is received.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.response_auth0}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{response\_auth0}}}{\sphinxparam{\DUrole{n}{credential\_epubk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{cryptogram}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{response\_auth0}}}{\sphinxparam{\DUrole{n}{credential\_epubk}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{cryptogram}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send an auth0 response.
@@ -4204,7 +4566,8 @@ Create and send an auth0 response.
 \sphinxlineitem{Args:}
 \sphinxAtStartPar
 credential\_epubk (bytes): Credential Ephemeral public key.
-cryptogram (bytes | None, optional): authentication cryptogram. Defaults to None.
+cryptogram (bytes | None, optional): authentication cryptogram.
+Defaults to None.
 
 \end{description}
 
@@ -4215,7 +4578,7 @@ cryptogram (bytes | None, optional): authentication cryptogram. Defaults to None
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.response_auth1}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{response\_auth1}}}{\sphinxparam{\DUrole{n}{key\_slot}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_public\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signature}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{status}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{StatusBytes.SUCCESS}}\sphinxparamcomma \sphinxparam{\DUrole{n}{private\_mailbox\_data}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{access\_doc\_retrieve}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{revocation\_doc\_retrieve}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{step\_up\_aid\_required}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{data\_in\_mailbox}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{read\_mailbox}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{write\_mailbox}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{send\_issuer\_backend}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{send\_bound\_app}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{update\_doc}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bool}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{False}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{revocation\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{response\_auth1}}}{\sphinxparam{\DUrole{n}{key\_slot}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_public\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{expected\_response}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Auth1Response}]{\sphinxcrossref{Auth1Response}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signature}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{status}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{StatusBytes.SUCCESS}}\sphinxparamcomma \sphinxparam{\DUrole{n}{private\_mailbox\_data}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signaling\_bitmap}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{credential\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{revocation\_signed\_timestamp}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send an auth1 response.
@@ -4224,20 +4587,13 @@ Create and send an auth1 response.
 \sphinxAtStartPar
 key\_slot (bytes | None): First 8 byes of the keyIdentifier.
 credential\_public\_key (bytes | None): Credential long term public key.
-expected\_response (Auth1Response): expected response (keyslot or credential public key)
+expected\_response (Auth1Response): expected response (keyslot or
+credential public key)
 signature (bytes): User device authentication signature.
 encryption (EncryptionEngine): Encryption engine to encrypt the response.
 status (int, optional): response status. Defaults to StatusBytes.SUCCESS.
 private\_mailbox\_data (bytes | None, optional): Defaults to None.
-access\_doc\_retrieve (bool, optional): Part of signaling bitmap. Defaults to False.
-revocation\_doc\_retrieve (bool, optional): Part of signaling bitmap. Defaults to False.
-step\_up\_aid\_required (bool, optional): Part of signaling bitmap. Defaults to False.
-data\_in\_mailbox (bool, optional): Part of signaling bitmap. Defaults to False.
-read\_mailbox (bool, optional): Part of signaling bitmap. Defaults to False.
-write\_mailbox (bool, optional): Part of signaling bitmap. Defaults to False.
-send\_issuer\_backend (bool, optional): Part of signaling bitmap. Defaults to False.
-send\_bound\_app (bool, optional): Part of signaling bitmap. Defaults to False.
-update\_doc (bool, optional): Part of signaling bitmap. Defaults to False.
+signaling\_bitmap (bytes | None, optional): Defaults to None.
 credential\_signed\_timestamp (bytes | None, optional): Defaults to None.
 revocation\_signed\_timestamp (bytes | None, optional): Defaults to None.
 
@@ -4250,7 +4606,7 @@ revocation\_signed\_timestamp (bytes | None, optional): Defaults to None.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.response_control_flow}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{response\_control\_flow}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{response\_control\_flow}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a control flow response.
@@ -4271,7 +4627,7 @@ Create and send a control flow response.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.response_exchange}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{response\_exchange}}}{\sphinxparam{\DUrole{n}{payload}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{response\_exchange}}}{\sphinxparam{\DUrole{n}{payload}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a exchange response.
@@ -4299,7 +4655,7 @@ encryption (EncryptionEngine): encryption engine to encrypt the payload.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.response_load_cert}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{response\_load\_cert}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{response\_load\_cert}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a load cert response.
@@ -4311,7 +4667,7 @@ Create and send a load cert response.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.response_select}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{response\_select}}}{\sphinxparam{\DUrole{n}{aid}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{protocol\_versions}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}int\DUrole{p}{{]}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{maximum\_command\_apdu}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{maximum\_response\_apdu}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{vendor\_specific\_tlv}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{response\_select}}}{\sphinxparam{\DUrole{n}{aid}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int}}\sphinxparamcomma \sphinxparam{\DUrole{n}{protocol\_versions}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list\DUrole{p}{{[}}int\DUrole{p}{{]}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{maximum\_command\_apdu}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{maximum\_response\_apdu}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{int\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{vendor\_specific\_tlv}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.tlv:aliro_actuator.access_protocol.tlv.TLV}]{\sphinxcrossref{TLV}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Create and send a select response.
@@ -4334,7 +4690,7 @@ vendor\_specific\_tlv (TLV | None, optional): Defaults to None.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.return_exchange_error_and_close_channel}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{return\_exchange\_error\_and\_close\_channel}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{return\_exchange\_error\_and\_close\_channel}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Return an exchange error and close the channel.
@@ -4349,24 +4705,41 @@ AccessProtocolError: Raised if no encryption engine is found.
 
 \end{fulllineitems}
 
+\index{send\_initiate\_access\_protocol\_notification() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{send\_initiate\_access\_protocol\_notification()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.send_initiate_access_protocol_notification}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{send\_initiate\_access\_protocol\_notification}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Used by BLE, after a connection is established.
+
+\end{fulllineitems}
+
+\index{setup\_connection() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{setup\_connection()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.setup_connection}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{setup\_connection}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Setup up the connection to the reader device.
+
+\end{fulllineitems}
+
 \index{start\_new\_session() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{start\_new\_session()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.start_new_session}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{start\_new\_session}}}{\sphinxparam{\DUrole{n}{ephemeral\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.KeyPair}]{\sphinxcrossref{KeyPair}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{start\_new\_session}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Start a new user session. Must be done before using handle commands.
 This sessions stores all information received from commands.
 Start a new session to delete all received info and start over.
-\begin{description}
-\sphinxlineitem{Args:}
-\sphinxAtStartPar
-ephemeral\_key (KeyPair | None, optional): ephemeral reader key used for the
-session. Randomly generated if None. Defaults to None.
-
-\end{description}
 
 \end{fulllineitems}
 
@@ -4375,10 +4748,22 @@ session. Randomly generated if None. Defaults to None.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.transaction_initiation}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{transaction\_initiation}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{transaction\_initiation}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Initializes the hardware and sets up a connection to the reader.
+
+\end{fulllineitems}
+
+\index{transaction\_termination() (aliro\_actuator.access\_protocol.user\_device.UserDevice method)@\spxentry{transaction\_termination()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserDevice method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.transaction_termination}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{transaction\_termination}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\sphinxAtStartPar
+terminates the connection to the reader.
 
 \end{fulllineitems}
 
@@ -4387,7 +4772,7 @@ Initializes the hardware and sets up a connection to the reader.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserDevice.wait_for_command}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{wait\_for\_command}}}{\sphinxparam{\DUrole{n}{expected\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.INS}]{\sphinxcrossref{INS}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }list\DUrole{p}{{[}}{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.INS}]{\sphinxcrossref{INS}}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{wait\_for\_command}}}{\sphinxparam{\DUrole{n}{expected\_command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.INS}]{\sphinxcrossref{INS}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }list\DUrole{p}{{[}}{\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.INS}]{\sphinxcrossref{INS}}}\DUrole{p}{{]}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{encryption}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.encryption:aliro_actuator.access_protocol.encryption.EncryptionEngine}]{\sphinxcrossref{EncryptionEngine}}}\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.access_protocol.apdu:aliro_actuator.access_protocol.apdu.Command}]{\sphinxcrossref{Command}}}}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Waits until a command is received, and parses the command.
@@ -4418,6 +4803,39 @@ Command: the received command.
 
 \end{fulllineitems}
 
+\index{UserMode (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserMode}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserMode}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.user\_device.}}\sphinxbfcode{\sphinxupquote{UserMode}}}{\sphinxparam{\DUrole{n}{value}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Enum}}
+
+\sphinxAtStartPar
+An enumeration.
+\index{TEST (aliro\_actuator.access\_protocol.user\_device.UserMode attribute)@\spxentry{TEST}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserMode attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserMode.TEST}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{TEST}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }0}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{USER (aliro\_actuator.access\_protocol.user\_device.UserMode attribute)@\spxentry{USER}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserMode attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserMode.USER}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{USER}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }0}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
 \index{UserSession (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserSession}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}}
 
 \begin{fulllineitems}
@@ -4435,7 +4853,7 @@ Contains info from a single session (with one Reader Device)
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserSession.derive_key_persistent}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{derive\_key\_persistent}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{derive\_key\_persistent}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}}{{ $\rightarrow$ bytes}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -4445,6 +4863,15 @@ Contains info from a single session (with one Reader Device)
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserSession.derive_key_volatile}}
 \pysigstartsignatures
 \pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{derive\_key\_volatile}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{derive\_key\_volatile\_fast() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{derive\_key\_volatile\_fast()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserSession.derive_key_volatile_fast}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{derive\_key\_volatile\_fast}}}{\sphinxparam{\DUrole{n}{transport\_protocol}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.access_protocol.defines:aliro_actuator.access_protocol.defines.TransportProtocol}]{\sphinxcrossref{TransportProtocol}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{k\_persistent}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -4463,6 +4890,15 @@ Contains info from a single session (with one Reader Device)
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserSession.get_credential_epubkey}}
 \pysigstartsignatures
 \pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_credential\_epubkey}}}{}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{get\_intermediate\_reader\_public\_key() (aliro\_actuator.access\_protocol.user\_device.UserSession method)@\spxentry{get\_intermediate\_reader\_public\_key()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSession method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserSession.get_intermediate_reader_public_key}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_intermediate\_reader\_public\_key}}}{}{{ $\rightarrow$ {\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -4625,12 +5061,72 @@ An enumeration.
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{SELECT\_STEP\_UP\_DONE (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{SELECT\_STEP\_UP\_DONE}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserSessionState.SELECT_STEP_UP_DONE}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{SELECT\_STEP\_UP\_DONE}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }7}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{SESSION\_START (aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute)@\spxentry{SESSION\_START}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserSessionState attribute}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserSessionState.SESSION_START}}
 \pysigstartsignatures
 \pysigline{\sphinxbfcode{\sphinxupquote{SESSION\_START}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }1}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+\index{UserStorage (class in aliro\_actuator.access\_protocol.user\_device)@\spxentry{UserStorage}\spxextra{class in aliro\_actuator.access\_protocol.user\_device}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserStorage}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.access\_protocol.user\_device.}}\sphinxbfcode{\sphinxupquote{UserStorage}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{object}}
+
+\sphinxAtStartPar
+Cross\sphinxhyphen{}session storage for Expedited Fast cached data
+\index{add\_kpersistent() (aliro\_actuator.access\_protocol.user\_device.UserStorage method)@\spxentry{add\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserStorage method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserStorage.add_kpersistent}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{add\_kpersistent}}}{\sphinxparam{\DUrole{n}{kpersistent}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_sub\_id}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{clear\_kpersistent() (aliro\_actuator.access\_protocol.user\_device.UserStorage method)@\spxentry{clear\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserStorage method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserStorage.clear_kpersistent}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{clear\_kpersistent}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{find\_kpersistent() (aliro\_actuator.access\_protocol.user\_device.UserStorage method)@\spxentry{find\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserStorage method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserStorage.find_kpersistent}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{find\_kpersistent}}}{\sphinxparam{\DUrole{n}{reader\_group\_sub\_id}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ bytes\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{remove\_kpersistent() (aliro\_actuator.access\_protocol.user\_device.UserStorage method)@\spxentry{remove\_kpersistent()}\spxextra{aliro\_actuator.access\_protocol.user\_device.UserStorage method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.access_protocol.user_device:aliro_actuator.access_protocol.user_device.UserStorage.remove_kpersistent}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{remove\_kpersistent}}}{\sphinxparam{\DUrole{n}{reader\_group\_sub\_id}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5038,6 +5534,15 @@ Bases: \sphinxcode{\sphinxupquote{Exception}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: \sphinxcode{\sphinxupquote{object}}
+\index{disconnect() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.hw_driver.pn7160_driver:aliro_actuator.hw_driver.pn7160_driver.Driver.disconnect}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{disconnect}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{initialize() (aliro\_actuator.hw\_driver.pn7160\_driver.Driver method)@\spxentry{initialize()}\spxextra{aliro\_actuator.hw\_driver.pn7160\_driver.Driver method}}
 
 \begin{fulllineitems}
@@ -5107,16 +5612,25 @@ Bases: \sphinxcode{\sphinxupquote{object}}
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.ble_uwb:aliro_actuator.transport_protocol.ble_uwb.BLEUWB}}
 \pysigstartsignatures
-\pysigline{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.transport\_protocol.ble\_uwb.}}\sphinxbfcode{\sphinxupquote{BLEUWB}}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.transport\_protocol.ble\_uwb.}}\sphinxbfcode{\sphinxupquote{BLEUWB}}}{\sphinxparam{\DUrole{n}{port}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{str\DUrole{w}{ }\DUrole{p}{|}\DUrole{w}{ }None}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{None}}}{}
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{TransportProtocolBase}}}}}
+\index{disconnect() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol.ble_uwb:aliro_actuator.transport_protocol.ble_uwb.BLEUWB.disconnect}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{disconnect}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{get\_message() (aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.ble\_uwb.BLEUWB method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.ble_uwb:aliro_actuator.transport_protocol.ble_uwb.BLEUWB.get_message}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_message}}}{}{{ $\rightarrow$ bytes}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{get\_message}}}{\sphinxparam{\DUrole{n}{expected\_type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}]{\sphinxcrossref{MessageType}}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{MessageType.ANY}}}{{ $\rightarrow$ bytes}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5125,7 +5639,7 @@ Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.t
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.ble_uwb:aliro_actuator.transport_protocol.ble_uwb.BLEUWB.initialization}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{initialization}}}{\sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}]{\sphinxcrossref{Mode}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{initialization}}}{\sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}]{\sphinxcrossref{Mode}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_sub\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{group\_resolving\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier\_list}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{{[}{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{spsm}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x80\textquotesingle{}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5134,7 +5648,7 @@ Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.t
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.ble_uwb:aliro_actuator.transport_protocol.ble_uwb.BLEUWB.send_message}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{send\_message}}}{\sphinxparam{\DUrole{n}{command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{send\_message}}}{\sphinxparam{\DUrole{n}{command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}]{\sphinxcrossref{MessageType}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5143,7 +5657,7 @@ Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.t
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.ble_uwb:aliro_actuator.transport_protocol.ble_uwb.BLEUWB.wait_for_connection}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{wait\_for\_connection}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{wait\_for\_connection}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5179,6 +5693,18 @@ Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol.errors:aliro_act
 
 \end{fulllineitems}
 
+\index{NoDeviceConnectedError@\spxentry{NoDeviceConnectedError}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol.errors:aliro_actuator.transport_protocol.errors.NoDeviceConnectedError}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{exception\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.transport\_protocol.errors.}}\sphinxbfcode{\sphinxupquote{NoDeviceConnectedError}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol.errors:aliro_actuator.transport_protocol.errors.TransportProtocolError}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{TransportProtocolError}}}}}
+
+\end{fulllineitems}
+
 \index{TransportProtocolError@\spxentry{TransportProtocolError}}
 
 \begin{fulllineitems}
@@ -5188,6 +5714,30 @@ Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol.errors:aliro_act
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: \sphinxcode{\sphinxupquote{Exception}}
+
+\end{fulllineitems}
+
+\index{UnexpectedMessageTypeError@\spxentry{UnexpectedMessageTypeError}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol.errors:aliro_actuator.transport_protocol.errors.UnexpectedMessageTypeError}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{exception\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.transport\_protocol.errors.}}\sphinxbfcode{\sphinxupquote{UnexpectedMessageTypeError}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol.errors:aliro_actuator.transport_protocol.errors.TransportProtocolError}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{TransportProtocolError}}}}}
+
+\end{fulllineitems}
+
+\index{UnknownVersionRequestedError@\spxentry{UnknownVersionRequestedError}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol.errors:aliro_actuator.transport_protocol.errors.UnknownVersionRequestedError}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{exception\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.transport\_protocol.errors.}}\sphinxbfcode{\sphinxupquote{UnknownVersionRequestedError}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol.errors:aliro_actuator.transport_protocol.errors.TransportProtocolError}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{TransportProtocolError}}}}}
 
 \end{fulllineitems}
 
@@ -5205,12 +5755,21 @@ Bases: \sphinxcode{\sphinxupquote{Exception}}
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase}]{\sphinxcrossref{\sphinxcode{\sphinxupquote{TransportProtocolBase}}}}}
+\index{disconnect() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol.nfc:aliro_actuator.transport_protocol.nfc.NFC.disconnect}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{disconnect}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{get\_message() (aliro\_actuator.transport\_protocol.nfc.NFC method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.nfc.NFC method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.nfc:aliro_actuator.transport_protocol.nfc.NFC.get_message}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_message}}}{}{{ $\rightarrow$ bytes}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{get\_message}}}{\sphinxparam{\DUrole{n}{expected\_type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}]{\sphinxcrossref{MessageType}}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{MessageType.ANY}}}{{ $\rightarrow$ bytes}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5219,7 +5778,7 @@ Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.t
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.nfc:aliro_actuator.transport_protocol.nfc.NFC.initialization}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{initialization}}}{\sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}]{\sphinxcrossref{Mode}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{initialization}}}{\sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}]{\sphinxcrossref{Mode}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_sub\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{group\_resolving\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier\_list}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{{[}{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{spsm}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x80\textquotesingle{}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5228,7 +5787,7 @@ Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.t
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.nfc:aliro_actuator.transport_protocol.nfc.NFC.send_message}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{send\_message}}}{\sphinxparam{\DUrole{n}{command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{send\_message}}}{\sphinxparam{\DUrole{n}{command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}]{\sphinxcrossref{MessageType}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5237,7 +5796,7 @@ Bases: {\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.t
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.nfc:aliro_actuator.transport_protocol.nfc.NFC.wait_for_connection}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{wait\_for\_connection}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{wait\_for\_connection}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5276,7 +5835,7 @@ Mainly used for testing purposes.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.socket:aliro_actuator.transport_protocol.socket.Socket.get_message}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_message}}}{}{{ $\rightarrow$ bytes}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{get\_message}}}{\sphinxparam{\DUrole{n}{expected\_type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}]{\sphinxcrossref{MessageType}}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{MessageType.ANY}}}{{ $\rightarrow$ bytes}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5285,7 +5844,7 @@ Mainly used for testing purposes.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.socket:aliro_actuator.transport_protocol.socket.Socket.initialization}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{initialization}}}{\sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}]{\sphinxcrossref{Mode}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{initialization}}}{\sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}]{\sphinxcrossref{Mode}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_sub\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{group\_resolving\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier\_list}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{{[}{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{spsm}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x80\textquotesingle{}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5294,7 +5853,7 @@ Mainly used for testing purposes.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.socket:aliro_actuator.transport_protocol.socket.Socket.send_message}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{send\_message}}}{\sphinxparam{\DUrole{n}{command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{send\_message}}}{\sphinxparam{\DUrole{n}{command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}]{\sphinxcrossref{MessageType}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5303,7 +5862,7 @@ Mainly used for testing purposes.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol.socket:aliro_actuator.transport_protocol.socket.Socket.wait_for_connection}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{wait\_for\_connection}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{wait\_for\_connection}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5313,7 +5872,58 @@ Mainly used for testing purposes.
 
 
 \subparagraph{Module contents}
-\label{\detokenize{aliro_actuator.transport_protocol:module-aliro_actuator.transport_protocol}}\label{\detokenize{aliro_actuator.transport_protocol:module-contents}}\index{module@\spxentry{module}!aliro\_actuator.transport\_protocol@\spxentry{aliro\_actuator.transport\_protocol}}\index{aliro\_actuator.transport\_protocol@\spxentry{aliro\_actuator.transport\_protocol}!module@\spxentry{module}}\index{Mode (class in aliro\_actuator.transport\_protocol)@\spxentry{Mode}\spxextra{class in aliro\_actuator.transport\_protocol}}
+\label{\detokenize{aliro_actuator.transport_protocol:module-aliro_actuator.transport_protocol}}\label{\detokenize{aliro_actuator.transport_protocol:module-contents}}\index{module@\spxentry{module}!aliro\_actuator.transport\_protocol@\spxentry{aliro\_actuator.transport\_protocol}}\index{aliro\_actuator.transport\_protocol@\spxentry{aliro\_actuator.transport\_protocol}!module@\spxentry{module}}\index{MessageType (class in aliro\_actuator.transport\_protocol)@\spxentry{MessageType}\spxextra{class in aliro\_actuator.transport\_protocol}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.transport\_protocol.}}\sphinxbfcode{\sphinxupquote{MessageType}}}{\sphinxparam{\DUrole{n}{value}}}{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Enum}}
+
+\sphinxAtStartPar
+An enumeration.
+\index{ANY (aliro\_actuator.transport\_protocol.MessageType attribute)@\spxentry{ANY}\spxextra{aliro\_actuator.transport\_protocol.MessageType attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType.ANY}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{ANY}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }0}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{INITIATE\_ACCESS\_PROTOCOL (aliro\_actuator.transport\_protocol.MessageType attribute)@\spxentry{INITIATE\_ACCESS\_PROTOCOL}\spxextra{aliro\_actuator.transport\_protocol.MessageType attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType.INITIATE_ACCESS_PROTOCOL}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{INITIATE\_ACCESS\_PROTOCOL}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }3}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{REQUEST (aliro\_actuator.transport\_protocol.MessageType attribute)@\spxentry{REQUEST}\spxextra{aliro\_actuator.transport\_protocol.MessageType attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType.REQUEST}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{REQUEST}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }1}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{RESPONSE (aliro\_actuator.transport\_protocol.MessageType attribute)@\spxentry{RESPONSE}\spxextra{aliro\_actuator.transport\_protocol.MessageType attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType.RESPONSE}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{RESPONSE}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }2}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+\index{Mode (class in aliro\_actuator.transport\_protocol)@\spxentry{Mode}\spxextra{class in aliro\_actuator.transport\_protocol}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}}
@@ -5325,21 +5935,21 @@ Bases: \sphinxcode{\sphinxupquote{Enum}}
 
 \sphinxAtStartPar
 An enumeration.
-\index{CARD\_EMULATION (aliro\_actuator.transport\_protocol.Mode attribute)@\spxentry{CARD\_EMULATION}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode.CARD_EMULATION}}
-\pysigstartsignatures
-\pysigline{\sphinxbfcode{\sphinxupquote{CARD\_EMULATION}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }2}}}
-\pysigstopsignatures
-\end{fulllineitems}
-
 \index{READER (aliro\_actuator.transport\_protocol.Mode attribute)@\spxentry{READER}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode.READER}}
 \pysigstartsignatures
 \pysigline{\sphinxbfcode{\sphinxupquote{READER}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }1}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{USER\_DEVICE (aliro\_actuator.transport\_protocol.Mode attribute)@\spxentry{USER\_DEVICE}\spxextra{aliro\_actuator.transport\_protocol.Mode attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode.USER_DEVICE}}
+\pysigstartsignatures
+\pysigline{\sphinxbfcode{\sphinxupquote{USER\_DEVICE}}\sphinxbfcode{\sphinxupquote{\DUrole{w}{ }\DUrole{p}{=}\DUrole{w}{ }2}}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5355,12 +5965,21 @@ An enumeration.
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: \sphinxcode{\sphinxupquote{ABC}}
+\index{disconnect() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{disconnect()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase.disconnect}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{disconnect}}}{}{{ $\rightarrow$ None}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{get\_message() (aliro\_actuator.transport\_protocol.TransportProtocolBase method)@\spxentry{get\_message()}\spxextra{aliro\_actuator.transport\_protocol.TransportProtocolBase method}}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase.get_message}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{get\_message}}}{}{{ $\rightarrow$ bytes}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{get\_message}}}{\sphinxparam{\DUrole{n}{expected\_type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}]{\sphinxcrossref{MessageType}}}}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{MessageType.ANY}}}{{ $\rightarrow$ bytes}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5369,7 +5988,7 @@ Bases: \sphinxcode{\sphinxupquote{ABC}}
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase.initialization}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{initialization}}}{\sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}]{\sphinxcrossref{Mode}}}}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{initialization}}}{\sphinxparam{\DUrole{n}{mode}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.Mode}]{\sphinxcrossref{Mode}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_sub\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{group\_resolving\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textbackslash{}x00\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{reader\_group\_identifier\_list}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{list}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{{[}{]}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{spsm}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x00\textbackslash{}x80\textquotesingle{}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5378,7 +5997,7 @@ Bases: \sphinxcode{\sphinxupquote{ABC}}
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase.send_message}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{send\_message}}}{\sphinxparam{\DUrole{n}{command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{send\_message}}}{\sphinxparam{\DUrole{n}{command}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{type}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.MessageType}]{\sphinxcrossref{MessageType}}}}}}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5387,7 +6006,7 @@ Bases: \sphinxcode{\sphinxupquote{ABC}}
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.transport_protocol:aliro_actuator.transport_protocol.TransportProtocolBase.wait_for_connection}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{wait\_for\_connection}}}{}{{ $\rightarrow$ None}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{abstract\DUrole{w}{ }async\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{wait\_for\_connection}}}{}{{ $\rightarrow$ None}}
 \pysigstopsignatures
 \end{fulllineitems}
 
@@ -5428,6 +6047,15 @@ reader\_id\_key\_list (list{[}tuple{[}bytes, PublicKey{]}{]}): a list with tuple
 containing reader\_group\_identifier and reader\_public\_key pairs
 
 \end{description}
+\index{get\_all\_reader\_id() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_all\_reader\_id()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.trust_framework.access_credential:aliro_actuator.trust_framework.access_credential.AccessCredential.get_all_reader_id}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{get\_all\_reader\_id}}}{}{{ $\rightarrow$ list\DUrole{p}{{[}}bytes\DUrole{p}{{]}}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{get\_credential\_public\_key() (aliro\_actuator.trust\_framework.access\_credential.AccessCredential method)@\spxentry{get\_credential\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.access\_credential.AccessCredential method}}
 
 \begin{fulllineitems}
@@ -5500,7 +6128,7 @@ bool: True if this access\_credential has the given reader group identifier.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.trust_framework.certificate:aliro_actuator.trust_framework.certificate.Certificate}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.trust\_framework.certificate.}}\sphinxbfcode{\sphinxupquote{Certificate}}}{\sphinxparam{\DUrole{n}{version}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{serial\_number}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signature}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{issuer}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{validity\_not\_before}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{validity\_not\_after}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{subject}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{key\_info\_algorithm}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{key\_info\_parameters}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{key\_info\_subject\_public\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{authority\_key\_identifier}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{key\_usage\_extension}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signature\_algorithm}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signature\_value}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textquotesingle{}}}}{}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{aliro\_actuator.trust\_framework.certificate.}}\sphinxbfcode{\sphinxupquote{Certificate}}}{\sphinxparam{\DUrole{n}{key\_info\_subject\_public\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{signature}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{serial\_number}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x01\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{issuer}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}issuer\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{validity\_not\_before}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}200101000000Z\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{validity\_not\_after}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}490101000000Z\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{subject}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}subject\textquotesingle{}}}}{}
 \pysigstopsignatures
 \sphinxAtStartPar
 Bases: \sphinxcode{\sphinxupquote{object}}
@@ -5567,6 +6195,15 @@ Bases: \sphinxcode{\sphinxupquote{object}}
 \pysigstopsignatures
 \end{fulllineitems}
 
+\index{encode() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{encode()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.trust_framework.certificate:aliro_actuator.trust_framework.certificate.Certificate.encode}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{encode}}}{\sphinxparam{\DUrole{n}{issuer\_public\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}}{{ $\rightarrow$ bytes}}
+\pysigstopsignatures
+\end{fulllineitems}
+
 \index{encode\_compressed() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{encode\_compressed()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}}
 
 \begin{fulllineitems}
@@ -5574,6 +6211,18 @@ Bases: \sphinxcode{\sphinxupquote{object}}
 \pysigstartsignatures
 \pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{encode\_compressed}}}{}{{ $\rightarrow$ bytes}}
 \pysigstopsignatures
+\end{fulllineitems}
+
+\index{generate() (aliro\_actuator.trust\_framework.certificate.Certificate static method)@\spxentry{generate()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate static method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{aliro_actuator.trust_framework.certificate:aliro_actuator.trust_framework.certificate.Certificate.generate}}
+\pysigstartsignatures
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{static\DUrole{w}{ }}}\sphinxbfcode{\sphinxupquote{generate}}}{\sphinxparam{\DUrole{n}{key\_info\_subject\_public\_key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}\sphinxparamcomma \sphinxparam{\DUrole{n}{issuer\_keypair}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.KeyPair}]{\sphinxcrossref{KeyPair}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{serial\_number}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}\textbackslash{}x01\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{issuer}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}issuer\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{validity\_not\_before}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}200101000000Z\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{validity\_not\_after}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}490101000000Z\textquotesingle{}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{subject}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}\DUrole{w}{ }\DUrole{o}{=}\DUrole{w}{ }\DUrole{default_value}{b\textquotesingle{}subject\textquotesingle{}}}}{{ $\rightarrow$ bytes}}
+\pysigstopsignatures
+\sphinxAtStartPar
+Generate a new X509 DER certificate signed by the provided issuer keypair
+
 \end{fulllineitems}
 
 \index{get\_public\_key() (aliro\_actuator.trust\_framework.certificate.Certificate method)@\spxentry{get\_public\_key()}\spxextra{aliro\_actuator.trust\_framework.certificate.Certificate method}}
@@ -5590,7 +6239,7 @@ Bases: \sphinxcode{\sphinxupquote{object}}
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{aliro_actuator.trust_framework.certificate:aliro_actuator.trust_framework.certificate.Certificate.verify}}
 \pysigstartsignatures
-\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{verify}}}{\sphinxparam{\DUrole{n}{key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}\sphinxparamcomma \sphinxparam{\DUrole{n}{data}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{bytes}}}{{ $\rightarrow$ bool}}
+\pysiglinewithargsret{\sphinxbfcode{\sphinxupquote{verify}}}{\sphinxparam{\DUrole{n}{key}\DUrole{p}{:}\DUrole{w}{ }\DUrole{n}{{\hyperref[\detokenize{aliro_actuator.trust_framework.key:aliro_actuator.trust_framework.key.PublicKey}]{\sphinxcrossref{PublicKey}}}}}}{{ $\rightarrow$ bool}}
 \pysigstopsignatures
 \end{fulllineitems}
 

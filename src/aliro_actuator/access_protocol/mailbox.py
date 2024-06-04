@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from binascii import hexlify
 
+from aliro_actuator import Global
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 from aliro_actuator.access_protocol.tlv import TLV
 
@@ -107,7 +109,11 @@ class Mailbox:
         if not self.write_permission:
             raise MailboxPermissionError
 
+        Global.logger.debug(
+            "Setting data to mailbox with offset: 0x{:04x}".format(offset)
+        )
         new_data = value.to_bytes(1, "big") * length
+        Global.logger.debug("Setting data to mailbox: {!r}".format(hexlify(new_data)))
         self.data[offset : offset + length] = new_data
         self.data_set = True
 
@@ -128,7 +134,15 @@ class Mailbox:
         if not self.read_permission:
             raise MailboxPermissionError
 
-        return self.data[offset : length + offset]
+        Global.logger.debug(
+            "Reading from mailbox with offset: 0x{:04x} and length: 0x{:04x}".format(
+                offset, length
+            )
+        )
+        data = self.data[offset : length + offset]
+        Global.logger.debug("Read data: {!r}".format(hexlify(data)))
+
+        return data
 
     def write(self, offset: int, data: bytes) -> None:
         """
@@ -144,6 +158,8 @@ class Mailbox:
         if not self.write_permission:
             raise MailboxPermissionError
 
+        Global.logger.debug("Writing to mailbox with offset: 0x{:04x}".format(offset))
+        Global.logger.debug("Writing data to mailbox: {!r}".format(hexlify(data)))
         self.data[offset : offset + len(data)] = data
         self.data_set = True
 
