@@ -402,7 +402,7 @@ class UserDevice(Device):
 
         # Some values have been set to a default value
         data_event_count = 0xFFFFFFFFFFFFFFFF
-        uwb_dev_time = self.transport_protocol.driver.get_uwb_time0()
+        uwb_dev_time = await self.transport_protocol.driver.get_uwb_time0()
         uwb_dev_time_uncertainty = 0
         uwb_clk_skew_measurement_available = 0
         dev_ppm = 0
@@ -433,9 +433,19 @@ class UserDevice(Device):
         if self.transport_protocol_type != TransportProtocol.BLE_UWB:
             raise InvalidCommandError
 
-        uwb_configuration_id = self.transport_protocol.driver.
+        uwb_configuration_id = self.transport_protocol.driver.get_uwb_config_id()
+        pulse_shape_combination = self.transport_protocol.driver.get_pulseshape_combo()
+        channel_bitmask = self.transport_protocol.driver.get_channel_bitmask()
+        uwb_session_id = self.transport_protocol.driver.get_uwb_config_id()
+        vendore_specific = 0xFF
 
-        message = BleMessage.create_ranging_session_setup_m2()
+        message = BleMessage.create_ranging_session_setup_m2(
+            uwb_configuration_id,
+            pulse_shape_combination,
+            channel_bitmask,
+            uwb_session_id,
+            vendore_specific,
+        )
         await self.transport_protocol.send_message(message)
 
     async def handle_select(self, select_command: Command) -> bytes:

@@ -417,8 +417,45 @@ class BleMessage(Message):
             ProtocolType.NOTIFICATION, Notification_ID.RANGING, attribute.to_bytes()
         )
 
+    @staticmethod
+    def create_ranging_session_setup_m2(
+        uwb_configuration_id: int,
+        pulse_shape_combination: int,
+        channel_bitmask: int,
+        uwb_session_id: int,
+        vendor_specific: int,
+    ) -> BleMessage:
+        data = uwb_configuration_id.to_bytes(2, "big")
+        uwb_configuration_id_attr = BleAttribute(
+            UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
+        )
+        data = pulse_shape_combination.to_bytes(1, "big")
+        pulse_shape_combination_attr = BleAttribute(
+            UWB_AttributeID.PULSE_SHAPE_COMBO, data
+        )
+        data = uwb_session_id.to_bytes(4, "big")
+        uwb_session_id_attr = BleAttribute(UWB_AttributeID.UWB_SESSION_IDENTIFIER, data)
+        data = channel_bitmask.to_bytes(1, "big")
+        channel_bitmask_attr = BleAttribute(UWB_AttributeID.CHANNEL_BITMASK, data)
 
-aclass InitiateAccessProtocol_AttributeID(IntEnum):
+        # vendor specific information
+        data = vendor_specific.to_bytes(3, "big")
+        vendor_specific_attr = BleAttribute(UWB_AttributeID.VENDOR_SPECIFIC, data)
+        payload = bytearray()
+        payload.extend(uwb_configuration_id_attr.to_bytes())
+        payload.extend(pulse_shape_combination_attr.to_bytes())
+        payload.extend(channel_bitmask_attr.to_bytes())
+        payload.extend(uwb_session_id_attr.to_bytes())
+        payload.extend(vendor_specific_attr.to_bytes())
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_SETUP_M1,
+            payload,
+        )
+        return message
+
+
+class InitiateAccessProtocol_AttributeID(IntEnum):
     PROPRIETARY_INFO = 0x00
 
 
@@ -432,24 +469,24 @@ class AccessProtocolCompleted_AttributeID(IntEnum):
 
 
 class UWB_AttributeID(IntEnum):
-    UWB_CONFIGURATION_IDENTIFIER = 0x01
-    PULSE_SHAPE_COMBO = 0x02
-    UWB_SESSION_IDENTIFIER = 0x03
-    CHANNEL_BITMASK = 0x04
-    RAN_MULTIPLIER = 0x05
-    SLOT_BITMASK = 0x06
-    SYNC_CODE_INDEX_BITMASK = 0x07
-    SYNC_CODE_INDEX = 0x08
-    HOPPING_CONFIGURATION_BITMASK = 0x09
-    NUMBER_CHAPS_PER_SLOT = 0x0A
-    NUMBER_RESPONDERS_NODES = 0x0B
-    NUMBER_SLOTS_PER_ROUND = 0x0C
-    STS_INDEX0 = 0x0D
-    UWB_TIME0 = 0x0E
-    HOP_MODE_KEY = 0x0F
-    MAC_MODE = 0x10
-    VENDOR_SPECIFIC = 0x11
-    STATUS = 0x12
+    UWB_CONFIGURATION_IDENTIFIER = 0x00
+    PULSE_SHAPE_COMBO = 0x01
+    UWB_SESSION_IDENTIFIER = 0x02
+    CHANNEL_BITMASK = 0x03
+    RAN_MULTIPLIER = 0x04
+    SLOT_BITMASK = 0x05
+    SYNC_CODE_INDEX_BITMASK = 0x06
+    SYNC_CODE_INDEX = 0x07
+    HOPPING_CONFIGURATION_BITMASK = 0x08
+    NUMBER_CHAPS_PER_SLOT = 0x09
+    NUMBER_RESPONDERS_NODES = 0x0A
+    NUMBER_SLOTS_PER_ROUND = 0x0B
+    STS_INDEX0 = 0x0C
+    UWB_TIME0 = 0x0D
+    HOP_MODE_KEY = 0x0E
+    MAC_MODE = 0x0F
+    VENDOR_SPECIFIC = 0x10
+    STATUS = 0x11
 
 
 class RangingMessage_AttributeID(IntEnum):
