@@ -125,6 +125,7 @@ class Exchange:
 
     READ_LEN = 4
     SET_LEN = 5
+    READER_STATUS_LEN = 2
 
 
 class ReaderAuth:

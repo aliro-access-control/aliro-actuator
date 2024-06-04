@@ -1123,6 +1123,21 @@ class Command(Message):
                 tlv_data=self.payload_tlv,
             )
 
+            reader_status_bytes = self._get_optional_bytes_from_TLV(
+                "Reader Status",
+                Exchange.READER_STATUS_TAG,
+                Exchange.READER_STATUS_LEN,
+                tlv_data=self.payload_tlv,
+            )
+            if reader_status_bytes is not None:
+                self.reader_status: int | None = self._enumerate(
+                    "Reader Status",
+                    int.from_bytes(reader_status_bytes, "big"),
+                    ReaderStatus,
+                )
+            else:
+                self.reader_status = None
+
             self.notify = self._get_multiple_optional_bytes_from_TLV(
                 "Notify", Exchange.NOTIFY_TAG, tlv_data=self.payload_tlv
             )

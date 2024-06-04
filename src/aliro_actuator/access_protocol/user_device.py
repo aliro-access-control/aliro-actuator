@@ -751,6 +751,16 @@ class UserDevice(Device):
 
         self.session.update_state(UserSessionState.EXCHANGE_DONE)
 
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ) and exchange_command.reader_status is not None:
+            raise AccessProtocolError(
+                "EXCHANGE command has reader status tag while using BLE"
+            )
+        elif exchange_command.reader_status is not None:
+            self.session.update_state(UserSessionState.TRANSACTION_COMPLETE)
+
         if exchange_command.ursk is not None:
             self.session.set_ursk(exchange_command.ursk)
 
@@ -1132,6 +1142,7 @@ class UserSessionState(Enum):
     EXCHANGE_DONE = 6
     SELECT_STEP_UP_DONE = 7
     GET_RESPONSE_DONE = 8
+    TRANSACTION_COMPLETE = 9
 
 
 class UserSession:
