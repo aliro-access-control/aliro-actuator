@@ -26,6 +26,7 @@ from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
     AuthenticationPolicy,
     Message,
+    ReaderStatus,
     Response,
     StatusBytes,
     Transaction,
@@ -339,7 +340,7 @@ class Reader(Device):
         Global.logger.info("Ending session")
         self.session = None
 
-    async def failure_process(self) -> None:
+    async def failure_process(self, error_code: int = 0x00) -> None:
         """
         Should be called when a failure state has occurred.
         Destroys all session bound keys and data.
@@ -351,9 +352,10 @@ class Reader(Device):
             or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
         ):
             if self.session is None or self.session.encryption is None:
-                await self.handle_control_flow(S2.NONE)
+                s2 = S2(error_code)
+                await self.handle_control_flow(s2)
             else:
-                await self.handle_exchange(False)
+                await self.handle_exchange(False, reader_status=error_code)
         if (
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
@@ -426,10 +428,10 @@ class Reader(Device):
         except InvalidStatusError as error:
             if error.status == StatusBytes.FILE_OR_APP_NOT_FOUND:
                 Global.logger.error("User does not recognize AID")
-            await self.failure_process()
+            await self.failure_process(S2.NONE)
             raise error
         except InvalidResponseError as error:
-            await self.failure_process()
+            await self.failure_process(S2.NONE)
             raise error
 
         Global.logger.info("Handling SELECT response")
@@ -444,9 +446,11 @@ class Reader(Device):
                 "AID valid for step-up phase: {!r}".format(hexlify(response.compl_aid))
             )
         else:
+            await self.failure_process(S2.NONE)
             raise AccessProtocolError("User send unknown AID")
 
         if response.type != CSA_APPLICATION_TYPE:
+            await self.failure_process(S2.NONE)
             raise AccessProtocolError("User send unknown application type")
         else:
             Global.logger.info(
@@ -456,6 +460,7 @@ class Reader(Device):
             )
 
         if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
+            await self.failure_process(S2.PROTOCOL_VERSION_NOT_SUPPORTED)
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
             )
@@ -515,7 +520,7 @@ class Reader(Device):
                 vendor_extension=self.vendor_extension,
             )
         except InvalidResponseError as error:
-            await self.failure_process()
+            await self.failure_process(S2.NONE)
             raise error
 
         Global.logger.info("Handling AUTH0 response")
@@ -523,6 +528,7 @@ class Reader(Device):
         try:
             credential_ephemeral_public_key = PublicKey(auth0_response.credential_epubk)
         except InvalidKeyError as error:
+            await self.failure_process(S2.NONE)
             raise AccessProtocolError(
                 "invalid access credential ephemeral public key received: {!r}".format(
                     hexlify(auth0_response.credential_epubk)
@@ -539,7 +545,7 @@ class Reader(Device):
 
         if transaction_type == Transaction.STANDARD:
             if auth0_response.cryptogram is not None:
-                await self.failure_process()
+                await self.failure_process(S2.NONE)
                 raise AccessProtocolError(
                     "User send cryptogram during a standard transaction"
                 )
@@ -557,7 +563,7 @@ class Reader(Device):
             raise SessionError("No Session")
 
         if cryptogram is None:
-            await self.failure_process()
+            await self.failure_process(S2.NONE)
             raise AccessProtocolError(
                 "User did not send cryptogram during a fast transaction"
             )
@@ -604,6 +610,7 @@ class Reader(Device):
                 Global.logger.info("decryption failed, trying next key in storage")
                 pass
 
+        await self.failure_process(S2.NONE)
         raise CryptogramNotFound("Matching Cryptogram not found")
 
     async def handle_load_cert(self) -> None:
@@ -627,7 +634,7 @@ class Reader(Device):
         try:
             await self.command_load_cert(self.reader_cert.encode_compressed())
         except InvalidResponseError as error:
-            await self.failure_process()
+            await self.failure_process(S2.NONE)
             raise error
 
         Global.logger.info("Handling LOAD CERT response")
@@ -667,7 +674,7 @@ class Reader(Device):
                 encryption=self.session.encryption,
             )
         except (InvalidResponseError, VerificationError) as error:
-            await self.failure_process()
+            await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
 
         Global.logger.info("Handling AUTH1 response")
@@ -681,7 +688,7 @@ class Reader(Device):
         if not self.session.check_user_device_authentication(
             auth1_response.user_device_signature
         ):
-            await self.failure_process()
+            await self.failure_process(ReaderStatus.INVALID_SIGNATURE)
             raise AccessProtocolError("User device signature authentication failed")
         else:
             Global.logger.info("User device signature authentication succeeded")
@@ -714,12 +721,12 @@ class Reader(Device):
         if expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
             Global.logger.info("Key type request is access credential public key")
             if credential_public_key_bytes is None:
-                await self.failure_process()
+                await self.failure_process(ReaderStatus.NO_PUBLIC_KEY_IN_RESPONSE)
                 raise AccessProtocolError(
                     "Requested credential public key, but none was received"
                 )
             if key_slot is not None:
-                await self.failure_process()
+                await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
                 raise AccessProtocolError(
                     "Requested credential public key, but key slot was received"
                 )
@@ -730,10 +737,10 @@ class Reader(Device):
         elif expected_response == Auth1Response.KEY_SLOT:
             Global.logger.info("Key type request is key slot")
             if key_slot is None:
-                await self.failure_process()
+                await self.failure_process(ReaderStatus.NO_KEY_SLOT_IN_RESPONSE)
                 raise AccessProtocolError("Requested keyslot, but none was received")
             if credential_public_key_bytes is not None:
-                await self.failure_process()
+                await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
                 raise AccessProtocolError(
                     "Requested keyslot, but credential public key was received"
                 )
@@ -771,7 +778,7 @@ class Reader(Device):
         try:
             await self.command_control_flow(s1, s2)
         except (InvalidResponseError, VerificationError) as error:
-            await self.failure_process()
+            await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
 
         Global.logger.info("Handling AUTH1 response")
@@ -863,12 +870,12 @@ class Reader(Device):
                 atomic_session, payload_tlv, self.session.encryption
             )
         except (InvalidResponseError, VerificationError) as error:
-            await self.failure_process()
+            await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
 
         Global.logger.info("Handling EXCHANGE response")
         if response.status_code != bytes.fromhex("00020000"):
-            await self.failure_process()
+            await self.failure_process(ReaderStatus.STATUS_WORD_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE returned error status at end of payload: {!r}".format(
                     response.status_code
