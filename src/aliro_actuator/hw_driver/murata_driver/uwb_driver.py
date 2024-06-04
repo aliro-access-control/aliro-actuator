@@ -214,10 +214,10 @@ class MurataUWBDriver(MurataBaseDriver):
         self.uwb_config_id = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
         self.pulseshape_combo = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
 
-    async def get_uwb_config_id(self) -> int:
+    def get_uwb_config_id(self) -> int:
         return self.uwb_config_id
 
-    async def get_pulse_shape_combination(self) -> int:
+    def get_pulse_shape_combination(self) -> int:
         return self.pulseshape_combo
 
     async def set_pulse_shape_combination(
@@ -230,7 +230,7 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
 
-    async def get_channel_bitmask(self) -> int:
+    def get_channel_bitmask(self) -> int:
         return self.channel_bitmask
 
     async def set_uwb_configuration_id(self, uwb_config_id: int) -> None:
@@ -271,7 +271,7 @@ class MurataUWBDriver(MurataBaseDriver):
             channel=channel,
         )
 
-    async def get_slot_bitmask(self) -> int:
+    def get_slot_bitmask(self) -> int:
         return self.slot_bitmask
 
     async def set_slot_duration(self, duration: int) -> None:
@@ -282,10 +282,10 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
 
-    async def get_sync_code_bitmask(self) -> int:
+    def get_sync_code_bitmask(self) -> int:
         return self.sync_code_index_bitmask
 
-    async def get_hopping_config_bitmask(self) -> int:
+    def get_hopping_config_bitmask(self) -> int:
         return self.hopping_config_bitmask
 
     async def set_hopping_mode(self, hopping_mode: int) -> None:
