@@ -734,6 +734,7 @@ class UserDevice(Device):
                 UserSessionState.AUTH0_FAST_DONE,
                 UserSessionState.AUTH1_DONE,
                 UserSessionState.EXCHANGE_DONE,
+                UserSessionState.GET_RESPONSE_DONE,
             ]
         ):
             state = self.session.state
@@ -1100,6 +1101,7 @@ class UserSessionState(Enum):
     AUTH1_DONE = 5
     EXCHANGE_DONE = 6
     SELECT_STEP_UP_DONE = 7
+    GET_RESPONSE_DONE = 8
 
 
 class UserSession:
