@@ -69,6 +69,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     Event_AttributeID,
     Notification_ID,
     ProtocolType,
+    UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
@@ -330,6 +331,16 @@ class UserDevice(Device):
             and message.id == Notification_ID.EVENT
         ):
             self.handle_event_message(message)
+        elif (
+            message.header == ProtocolType.UWB_RANGING_SERVICE
+            and message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M1
+        ):
+            self.handle_ranging_setup_m1(message)
+        elif (
+            message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M1
+            and message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M3
+        ):
+            self.handle_ranging.setup_m3(message)
         else:
             raise UnexpectedBLEMessageError(
                 "Received unhandleable ble message",
@@ -378,6 +389,53 @@ class UserDevice(Device):
             self.supported_versions,
         )
         message = BleMessage.create_initiate_access_protocol(proprietary.to_bytes())
+        await self.transport_protocol.send_message(message)
+
+    async def send_timesync(self) -> None:
+        """
+        This message is used by device to provide Bluetooth LE Timesync payload which
+        includes, the 13 DeviceEventCount, the UWB Device Time timestamp and the UWB
+        Device Time uncertainty.
+        """
+        if self.transport_protocol_type != TransportProtocol.BLE_UWB:
+            raise InvalidCommandError
+
+        # Some values have been set to a default value
+        data_event_count = 0xFFFFFFFFFFFFFFFF
+        uwb_dev_time = self.transport_protocol.driver.get_uwb_time0()
+        uwb_dev_time_uncertainty = 0
+        uwb_clk_skew_measurement_available = 0
+        dev_ppm = 0
+        success = 0
+        retry_delay = 500
+        message = BleMessage.create_time_sync(
+            data_event_count,
+            uwb_dev_time,
+            uwb_dev_time_uncertainty,
+            uwb_clk_skew_measurement_available,
+            dev_ppm,
+            success,
+            retry_delay,
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_initiate_ranging(self) -> None:
+        """
+        Used to trigger the Reader to initiate a new UWB ranging session
+        """
+        if self.transport_protocol_type != TransportProtocol.BLE_UWB:
+            raise InvalidCommandError
+
+        message = BleMessage.create_initiate_ranging_session()
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_setup_m2(self) -> None:
+        if self.transport_protocol_type != TransportProtocol.BLE_UWB:
+            raise InvalidCommandError
+
+        uwb_configuration_id = self.transport_protocol.driver.
+
+        message = BleMessage.create_ranging_session_setup_m2()
         await self.transport_protocol.send_message(message)
 
     async def handle_select(self, select_command: Command) -> bytes:

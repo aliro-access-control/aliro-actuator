@@ -18,6 +18,7 @@ from aliro_actuator.hw_driver.murata_driver.gatt_driver import (
     MurataGATTServerDriver,
 )
 from aliro_actuator.hw_driver.murata_driver.l2cap_driver import MurataL2CAPDriver
+from aliro_actuator.hw_driver.murata_driver.uwb_driver import MurataUWBDriver
 
 ALIRO_SERVICE_UUID = bytes.fromhex("FFF2")
 READER_CHARACTERISTIC_UUID = bytes.fromhex("D3B5A1309E234B3A8BE46B1EE5F980A3")
@@ -25,7 +26,7 @@ USER_DEVICE_CHARACTERISTIC_UUID = bytes.fromhex("BD4B95023F5411ECB9190242AC12000
 
 
 class UserDeviceMurataDriver(
-    MurataGAPCentralDriver, MurataGATTClientDriver, MurataL2CAPDriver
+    MurataGAPCentralDriver, MurataGATTClientDriver, MurataL2CAPDriver, MurataUWBDriver
 ):
     async def setup_connection(
         self,
@@ -148,7 +149,10 @@ class UserDeviceMurataDriver(
 
 
 class ReaderMurataDriver(
-    MurataGAPPeripheralDriver, MurataGATTServerDriver, MurataL2CAPDriver
+    MurataGAPPeripheralDriver,
+    MurataGATTServerDriver,
+    MurataL2CAPDriver,
+    MurataUWBDriver,
 ):
     async def setup_gatt_database(
         self, spsm: bytes, supported_versions: list[int]
