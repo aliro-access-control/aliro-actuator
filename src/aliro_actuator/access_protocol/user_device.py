@@ -751,6 +751,9 @@ class UserDevice(Device):
 
         self.session.update_state(UserSessionState.EXCHANGE_DONE)
 
+        if exchange_command.ursk is not None:
+            self.session.set_ursk(exchange_command.ursk)
+
         if (
             len(exchange_command.read_requests)
             + len(exchange_command.write_requests)
@@ -1146,6 +1149,7 @@ class UserSession:
         self.encryption: EncryptionEngine | None = None
         self.command_vendor_extension: bytes | None = None
         self.response_vendor_extension = vendor_extension
+        self.ursk_arbitrary_data: bytes | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -1391,6 +1395,12 @@ class UserSession:
             return self.access_credential.get_issuer_public_key()
         else:
             raise AccessProtocolError("No access credential set")
+
+    def set_ursk(self, ursk_arbitrary_data: bytes) -> None:
+        if self.ursk_arbitrary_data is not None:
+            raise AccessProtocolError("URSK arbitrary data can only be set once")
+        else:
+            self.ursk_arbitrary_data = ursk_arbitrary_data
 
 
 class MailboxSession:
