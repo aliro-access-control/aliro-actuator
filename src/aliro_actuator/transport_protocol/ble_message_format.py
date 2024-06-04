@@ -26,6 +26,19 @@ class AP_ID(IntEnum):
     AP_RS = 0x01
 
 
+class UWB_RangingService_ID(IntEnum):
+    RANGING_SESSION_SETUP_M1 = 0x01
+    RANGING_SESSION_SETUP_M2 = 0x02
+    RANGING_SESSION_SETUP_M3 = 0x03
+    RANGING_SESSION_SETUP_M4 = 0x04
+    RANGING_SESSION_SUSPEND_REQUEST = 0x05
+    RANGING_SESSION_RESUME_REQUEST = 0x06
+    RANGING_SESSION_RESUME_RESPONSE = 0x07
+
+class Supplementary_Service_ID(IntEnum):
+    TIME_SYNC = 0
+
+
 class Notification_ID(IntEnum):
     EVENT = 0x00
     RANGING = 0x01
@@ -352,8 +365,68 @@ class BleMessage(Message):
     def create_ap_response_message(response: bytes) -> BleMessage:
         return BleMessage(ProtocolType.AP, AP_ID.AP_RS, response)
 
+    @staticmethod
+    def create_time_sync(
+        data_event_count: int,
+        uwb_dev_time: int,
+        uwb_dev_time_uncertainty: int,
+        uwb_clk_skew_measurement_available: int,
+        dev_max_ppm: int,
+        success: int,
+        retry_delay: int,
+    ) -> BleMessage:
+        data = data_event_count.to_bytes(8, "big")
+        device_event_count_attr = BleAttribute(
+            SupplementaryService_AttributeID.DEVICE_EVENT_COUNT, data
+        )
+        data = uwb_dev_time.to_bytes(8, "big")
+        uwb_dev_time_attr = BleAttribute(
+            SupplementaryService_AttributeID.UWB_DEVICE_TIME, data
+        )
+        data = uwb_dev_time_uncertainty.to_bytes(1, "big")
+        uwb_dev_time_uncertainty_attr = BleAttribute(
+            SupplementaryService_AttributeID.UWB_DEVICE_TIME_UNCERTAINTY, data
+        )
+        data = uwb_clk_skew_measurement_available.to_bytes(1, "big")
+        uwb_clk_skew_measurement_available_attr = BleAttribute(
+            SupplementaryService_AttributeID.UWB_CLOCK_SKEW_MEASUREMENT_AVAILABLE, data
+        )
+        data = dev_max_ppm.to_bytes(2, "big")
+        dev_max_ppm_attr = BleAttribute(
+            SupplementaryService_AttributeID.DEVICE_MAX_PPM, data
+        )
+        data = success.to_bytes(1, "big")
+        success_attr = BleAttribute(SupplementaryService_AttributeID.SUCCESS, data)
+        data = retry_delay.to_bytes(2, "big")
+        retry_delay_attr = BleAttribute(
+            SupplementaryService_AttributeID.RETRY_DELAY, data
+        )
+        payload = bytearray()
+        payload.extend(device_event_count_attr.to_bytes())
+        payload.extend(uwb_dev_time_attr.to_bytes())
+        payload.extend(uwb_dev_time_uncertainty_attr.to_bytes())
+        payload.extend(uwb_clk_skew_measurement_available_attr.to_bytes())
+        payload.extend(dev_max_ppm_attr.to_bytes())
+        payload.extend(success_attr.to_bytes())
+        payload.extend(retry_delay_attr.to_bytes())
+        message = BleMessage(
+            ProtocolType.SUPPLEMENTARY_SERVICE,
+            Supplementary_Service_ID.TIME_SYNC,
+            payload,
+        )
+        return message
 
-class InitiateAccessProtocol_AttributeID(IntEnum):
+    @staticmethod
+    def create_initiate_ranging_session(self) -> BleMessage:
+        attribute = BleAttribute(
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION, None
+        )
+        return BleMessage(
+            ProtocolType.NOTIFICATION, Notification_ID.RANGING, attribute.to_bytes()
+        )
+
+
+aclass InitiateAccessProtocol_AttributeID(IntEnum):
     PROPRIETARY_INFO = 0x00
 
 
@@ -364,6 +437,36 @@ class Event_AttributeID(IntEnum):
 
 class AccessProtocolCompleted_AttributeID(IntEnum):
     READER_INFORMATION = 0x00
+
+
+class UWB_AttributeID(IntEnum):
+    UWB_CONFIGURATION_IDENTIFIER = 0x01
+    PULSE_SHAPE_COMBO = 0x02
+    UWB_SESSION_IDENTIFIER = 0x03
+    CHANNEL_BITMASK = 0x04
+    RAN_MULTIPLIER = 0x05
+    SLOT_BITMASK = 0x06
+    SYNC_CODE_INDEX_BITMASK = 0x07
+    SYNC_CODE_INDEX = 0x08
+    HOPPING_CONFIGURATION_BITMASK = 0x09
+    NUMBER_CHAPS_PER_SLOT = 0x0A
+    NUMBER_RESPONDERS_NODES = 0x0B
+    NUMBER_SLOTS_PER_ROUND = 0x0C
+    STS_INDEX0 = 0x0D
+    UWB_TIME0 = 0x0E
+    HOP_MODE_KEY = 0x0F
+    MAC_MODE = 0x10
+    VENDOR_SPECIFIC = 0x11
+    STATUS = 0x12
+
+
+class RangingMessage_AttributeID(IntEnum):
+    INITIATE_RANGING_SESSION = 0x0
+    INITIATE_RANGING_SESSION_RESUME = 0x1
+    INITIATE_RANGING_SESSION_SETUP_LATER = 0x2
+    INITIATE_RANGING_SESSION_RESUME_LATER = 0x3
+    SECURE_RANGING_OVER_UWB_RADIO_FAILED = 0x4
+    RANGING_SESSION_SUSPENDED = 0x5
 
 
 class GeneralError_Values(IntEnum):
@@ -383,6 +486,16 @@ class ReaderStatusInformation_Values(IntEnum):
     SECURED = 0
     UNSECURED = 1
     JAMMED = 2
+
+
+class SupplementaryService_AttributeID(IntEnum):
+    DEVICE_EVENT_COUNT = 0
+    UWB_DEVICE_TIME = 1
+    UWB_DEVICE_TIME_UNCERTAINTY = 2
+    UWB_CLOCK_SKEW_MEASUREMENT_AVAILABLE = 3
+    DEVICE_MAX_PPM = 4
+    SUCCESS = 5
+    RETRY_DELAY = 6
 
 
 class BleAttribute:

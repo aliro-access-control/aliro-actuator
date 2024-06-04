@@ -214,6 +214,9 @@ class MurataUWBDriver(MurataBaseDriver):
         self.uwb_config_id = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
         self.pulseshape_combo = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
 
+    async def get_uwb_config_id(self) -> int:
+        return self.uwb_config_id
+
     async def get_pulse_shape_combination(self) -> int:
         return self.pulseshape_combo
 
