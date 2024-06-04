@@ -757,6 +757,11 @@ class UserDevice(Device):
                 "EXCHANGE command has reader status tag while using BLE"
             )
         elif exchange_command.reader_status is not None:
+            Global.logger.info(
+                "Received reader status: 0x{:04x}, transaction is completed".format(
+                    exchange_command.reader_status.value
+                )
+            )
             self.session.update_state(UserSessionState.TRANSACTION_COMPLETE)
 
         if exchange_command.ursk is not None:
