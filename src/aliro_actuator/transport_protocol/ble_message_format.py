@@ -454,6 +454,31 @@ class BleMessage(Message):
         )
         return message
 
+    @staticmethod
+    def create_ranging_session_setup_m4(
+        sts_index0: int, uwb_time0: int, hop_mode_key: int, sync_code_index: int
+    ) -> BleMessage:
+        data = sts_index0.to_bytes(2, "big")
+        sts_index0_attr = BleAttribute(UWB_AttributeID.STS_INDEX0, data)
+        data = uwb_time0.to_bytes(1, "big")
+        uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, data)
+        data = hop_mode_key.to_bytes(4, "big")
+        hop_mode_key_attr = BleAttribute(UWB_AttributeID.HOP_MODE_KEY, data)
+        data = sync_code_index.to_bytes(4, "big")
+        sync_code_index_attr = BleAttribute(UWB_AttributeID.SYNC_CODE_INDEX, data)
+
+        payload = bytearray()
+        payload.extend(sts_index0_attr.to_bytes())
+        payload.extend(uwb_time0_attr.to_bytes())
+        payload.extend(hop_mode_key_attr.to_bytes())
+        payload.extend(sync_code_index_attr.to_bytes())
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_SETUP_M4,
+            payload,
+        )
+        return message
+
 
 class InitiateAccessProtocol_AttributeID(IntEnum):
     PROPRIETARY_INFO = 0x00

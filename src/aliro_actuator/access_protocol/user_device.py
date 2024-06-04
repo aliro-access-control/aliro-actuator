@@ -400,6 +400,8 @@ class UserDevice(Device):
         if self.transport_protocol_type != TransportProtocol.BLE_UWB:
             raise InvalidCommandError
 
+        Global.logger.info("Sending time sync ble message")
+
         # Some values have been set to a default value
         data_event_count = 0xFFFFFFFFFFFFFFFF
         uwb_dev_time = await self.transport_protocol.driver.get_uwb_time0()
@@ -426,12 +428,16 @@ class UserDevice(Device):
         if self.transport_protocol_type != TransportProtocol.BLE_UWB:
             raise InvalidCommandError
 
+        Global.logger.info("Sending initiate ranging ble message")
+
         message = BleMessage.create_initiate_ranging_session()
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_setup_m2(self) -> None:
         if self.transport_protocol_type != TransportProtocol.BLE_UWB:
             raise InvalidCommandError
+
+        Global.logger.info("Sending ranging session setup M2 ble message")
 
         uwb_configuration_id = self.transport_protocol.driver.get_uwb_config_id()
         pulse_shape_combination = self.transport_protocol.driver.get_pulseshape_combo()
@@ -445,6 +451,21 @@ class UserDevice(Device):
             channel_bitmask,
             uwb_session_id,
             vendore_specific,
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_setup_m4(self) -> None:
+        if self.transport_protocol_type != TransportProtocol.BLE_UWB:
+            raise InvalidCommandError
+
+        Global.logger.info("Sending ranging session setup M4 ble message")
+        sts_index0 = await self.transport_protocol.driver.get_sts_index0()
+        uwb_time0 = await self.transport_protocol.driver.get_uwb_time0()
+        hop_mode_key = await self.transport_protocol.driver.get_hop_mode_key()
+        sync_code_index = self.transport_protocol.driver.get_sync_code_bitmask()
+
+        message = BleMessage.create_ranging_session_setup_m4(
+            sts_index0, uwb_time0, hop_mode_key, sync_code_index
         )
         await self.transport_protocol.send_message(message)
 
