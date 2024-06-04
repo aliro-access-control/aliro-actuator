@@ -244,7 +244,7 @@ class UserDevice(Device):
             out |= 1 << 3
         if self.mailbox is not None and self.mailbox.read_permission:
             out |= 1 << 4
-        if self.mailbox is not None and self.mailbox.read_permission:
+        if self.mailbox is not None and self.mailbox.write_permission:
             out |= 1 << 5
         if self.has_issuer_backend:
             out |= 1 << 6
@@ -761,6 +761,33 @@ class UserDevice(Device):
                 await self.return_exchange_error_and_close_channel()
                 raise AccessProtocolError(
                     "Read, write or set request received, but no mailbox is present"
+                )
+
+            if (
+                self.session.state_valid(UserSessionState.GET_RESPONSE_DONE)
+                and not self.mailbox.step_up_permission
+            ):
+                raise AccessProtocolError(
+                    "Read, write or set request received, but mailbox does not give "
+                    "read/write permission for step up phase"
+                )
+
+            if (
+                len(exchange_command.read_requests) > 0
+                and not self.mailbox.read_permission
+            ):
+                raise AccessProtocolError(
+                    "Read request received, but mailbox does not give read permission"
+                )
+
+            if (
+                len(exchange_command.write_requests)
+                + len(exchange_command.set_requests)
+                > 0
+            ) and not self.mailbox.write_permission:
+                raise AccessProtocolError(
+                    "Write and/or set request received, but mailbox does not give "
+                    "write permission"
                 )
 
             Global.logger.info("Checking boundaries of read, write and set commands")
