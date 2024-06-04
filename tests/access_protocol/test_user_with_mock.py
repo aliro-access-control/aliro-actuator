@@ -438,7 +438,7 @@ class Test_user(unittest.TestCase):
         user.session.encryption = EncryptionEngine(
             DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
-        command = await user.wait_for_command(encryption=user.session.encryption)
+        command = await user.wait_for_command()
         await user.handle_exchange(command)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC")
@@ -467,7 +467,7 @@ class Test_user(unittest.TestCase):
         user.session.encryption = EncryptionEngine(
             DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
-        command = await user.wait_for_command(encryption=user.session.encryption)
+        command = await user.wait_for_command()
         await user.handle_exchange(command)
 
         self.assertEqual(user.mailbox.read(0, 5), bytes.fromhex("FFFFFFFFFF"))

@@ -276,9 +276,7 @@ class UserDevice(Device):
                 try:
                     if self.session is None:
                         raise SessionError("starting session failed")
-                    command = await self.wait_for_command(
-                        encryption=self.session.encryption
-                    )
+                    command = await self.wait_for_command()
                 except (InvalidCommandError, VerificationError):
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                     break
@@ -939,7 +937,6 @@ class UserDevice(Device):
     async def wait_for_command(
         self,
         expected_command: INS | list[INS] | None = None,
-        encryption: EncryptionEngine | None = None,
     ) -> Command:
         """
         Waits until a command is received, and parses the command.
@@ -947,8 +944,6 @@ class UserDevice(Device):
         Args:
             expected_command (INS | list[INS] | None, optional): INS or list of INS with
             expected commands. raises UnexpectedCommandError if another command is received. Defaults to None.
-            encryption (EncryptionEngine | None, optional): Used for decrypting messages.
-            Not required for every command. Defaults to None.
 
         Raises:
             InvalidCLAError: Raised when the received command has an invalid CLA.
@@ -960,6 +955,9 @@ class UserDevice(Device):
         Returns:
             Command: the received command.
         """
+        if self.session is None:
+            raise SessionError("No Session")
+
         if isinstance(expected_command, INS):
             expected_command = [expected_command]
 
@@ -967,7 +965,7 @@ class UserDevice(Device):
         command_str = await self.transport_protocol.get_message()
         Global.logger.info("Received command")
         try:
-            command = self.apdu.parse_command(command_str, encryption)
+            command = self.apdu.parse_command(command_str, self.session.encryption)
         except InvalidCLAError as error:
             await self.failure_process(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
             raise error
