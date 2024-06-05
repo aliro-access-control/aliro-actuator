@@ -605,6 +605,7 @@ class Reader(Device):
                 )
                 self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
                 self.session.set_credential_public_key(entry.access_credential)
+                self.session.create_encryption_engine()
                 return
             except VerificationError:
                 Global.logger.info("decryption failed, trying next key in storage")
@@ -655,9 +656,7 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("Create shared keys")
-        self.session.set_shared_key()
-        self.session.derive_key_volatile(self.transport_protocol_type)
+        self.create_shared_keys()
 
         Global.logger.info(
             "Start handling AUTH1 with key type request: {}".format(
@@ -708,6 +707,14 @@ class Reader(Device):
         self.session.set_auth1_info(auth1_response)
 
         Global.logger.info("Handling AUTH1 response done")
+
+    def create_shared_keys(self) -> None:
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Create shared keys")
+        self.session.set_shared_key()
+        self.session.derive_key_volatile(self.transport_protocol_type)
 
     async def handle_auth1_credential_public_key(
         self,
@@ -1427,9 +1434,7 @@ class ReaderSession:
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
 
-        self.encryption = EncryptionEngine(
-            DeviceType.READER, self.expedited_SK_reader, self.expedited_SK_device
-        )
+        self.create_encryption_engine()
 
     def derive_key_volatile_fast(
         self,
@@ -1496,6 +1501,11 @@ class ReaderSession:
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
+
+    def create_encryption_engine(self) -> None:
+        self.encryption = EncryptionEngine(
+            DeviceType.READER, self.expedited_SK_reader, self.expedited_SK_device
+        )
 
     def encrypt_payload(self, payload: bytes) -> tuple[bytes, bytes]:
         return self.encryption.encrypt(payload)

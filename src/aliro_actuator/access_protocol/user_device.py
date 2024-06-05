@@ -507,6 +507,7 @@ class UserDevice(Device):
                 self.session.derive_key_volatile_fast(
                     self.transport_protocol_type, kpersistent
                 )
+                self.session.create_encryption_engine()
 
                 doc_timestamp = None
                 revoke_timestamp = None
@@ -1275,9 +1276,7 @@ class UserSession:
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
 
-        self.encryption = EncryptionEngine(
-            DeviceType.USER, self.expedited_SK_reader, self.expedited_SK_device
-        )
+        self.create_encryption_engine()
 
     def derive_key_volatile_fast(
         self, transport_protocol: TransportProtocol, k_persistent: bytes
@@ -1353,6 +1352,11 @@ class UserSession:
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
+
+    def create_encryption_engine(self) -> None:
+        self.encryption = EncryptionEngine(
+            DeviceType.USER, self.expedited_SK_reader, self.expedited_SK_device
+        )
 
     def set_cert_and_verify(
         self, compressed_cert: bytes, public_key: PublicKey
