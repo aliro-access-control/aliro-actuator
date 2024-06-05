@@ -507,7 +507,7 @@ class UserDevice(Device):
                 self.session.derive_key_volatile_fast(
                     self.transport_protocol_type, kpersistent
                 )
-                self.session.create_encryption_engine()
+                self.session.create_encryption_engine_expedited()
 
                 doc_timestamp = None
                 revoke_timestamp = None
@@ -662,7 +662,7 @@ class UserDevice(Device):
             )
         )
 
-        if self.session.encryption is None:
+        if self.session.encryption_expedited is None:
             raise AccessProtocolError("no encryption engine found")
 
         self.session.update_state(UserSessionState.AUTH1_DONE)
@@ -672,7 +672,7 @@ class UserDevice(Device):
             self.session.access_credential.get_access_credential_public_key().as_bytes(),
             auth1_command.expected_response,
             signature,
-            self.session.encryption,
+            self.session.encryption_expedited,
             StatusBytes.SUCCESS,
             signaling_bitmap=self.get_signaling_bitmap(),
         )
@@ -726,7 +726,7 @@ class UserDevice(Device):
 
         if self.session is None:
             raise SessionError("No Session")
-        if self.session.encryption is None:
+        if self.session.encryption_expedited is None:
             raise SessionError("No encryption engine")
         if not self.session.state_valid(
             [
@@ -743,7 +743,7 @@ class UserDevice(Device):
             )
 
         Global.logger.info("Handling EXCHANGE Command")
-        if not self.session.encryption.check_counters_valid():
+        if not self.session.encryption_expedited.check_counters_valid():
             # End current session
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             return
@@ -887,7 +887,9 @@ class UserDevice(Device):
             exchange_payload.extend(read_command[1])
         exchange_payload.extend(bytes([0x00, 0x02, 0x00, 0x00]))
 
-        await self.response_exchange(exchange_payload, self.session.encryption)
+        await self.response_exchange(
+            exchange_payload, self.session.encryption_expedited
+        )
 
         Global.logger.info("Handling EXCHANGE command done")
 
@@ -902,12 +904,14 @@ class UserDevice(Device):
         """
         if self.session is None:
             raise SessionError("No Session")
-        if self.session.encryption is None:
+        if self.session.encryption_expedited is None:
             raise AccessProtocolError("no encryption engine found")
 
         Global.logger.info("Generating response payload with error")
         exchange_payload = bytes.fromhex("0002FFFF")
-        await self.response_exchange(exchange_payload, self.session.encryption)
+        await self.response_exchange(
+            exchange_payload, self.session.encryption_expedited
+        )
 
     async def handle_control_flow(self, control_flow_command: Command) -> None:
         """
@@ -971,7 +975,9 @@ class UserDevice(Device):
         command_str = await self.transport_protocol.get_message()
         Global.logger.info("Received command")
         try:
-            command = self.apdu.parse_command(command_str, self.session.encryption)
+            command = self.apdu.parse_command(
+                command_str, self.session.encryption_expedited
+            )
         except InvalidCLAError as error:
             await self.failure_process(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
             raise error
@@ -1161,7 +1167,8 @@ class UserSession:
     ) -> None:
         self.state = UserSessionState.SESSION_START
         self.supported_versions = supported_version
-        self.encryption: EncryptionEngine | None = None
+        self.encryption_expedited: EncryptionEngine | None = None
+        self.encryption_stepup: EncryptionEngine | None = None
         self.command_vendor_extension: bytes | None = None
         self.response_vendor_extension = vendor_extension
         self.ursk_arbitrary_data: bytes | None = None
@@ -1276,7 +1283,8 @@ class UserSession:
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
 
-        self.create_encryption_engine()
+        self.create_encryption_engine_expedited()
+        self.create_encryption_engine_stepup()
 
     def derive_key_volatile_fast(
         self, transport_protocol: TransportProtocol, k_persistent: bytes
@@ -1353,9 +1361,24 @@ class UserSession:
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
 
-    def create_encryption_engine(self) -> None:
-        self.encryption = EncryptionEngine(
+    def create_encryption_engine_expedited(self) -> None:
+        Global.logger.debug("Creating encryption engine for expedited phase")
+        self.encryption_expedited = EncryptionEngine(
             DeviceType.USER, self.expedited_SK_reader, self.expedited_SK_device
+        )
+
+    def create_encryption_engine_stepup(self) -> None:
+        Global.logger.debug("Creating encryption engine for step-up phase")
+        Global.logger.debug("deriving stepupSKReader:")
+        stepup_SK_reader = derive_key(
+            self.step_up_SK, "SKReader".encode("utf-8"), 32, b""
+        )
+        Global.logger.debug("deriving stepupSKDevice:")
+        stepup_SK_device = derive_key(
+            self.step_up_SK, "SKDevice".encode("utf-8"), 32, b""
+        )
+        self.encryption_stepup = EncryptionEngine(
+            DeviceType.USER, stepup_SK_reader, stepup_SK_device
         )
 
     def set_cert_and_verify(

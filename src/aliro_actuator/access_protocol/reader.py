@@ -351,7 +351,7 @@ class Reader(Device):
             self.transport_protocol_type == TransportProtocol.NFC
             or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
         ):
-            if self.session is None or self.session.encryption is None:
+            if self.session is None or self.session.encryption_expedited is None:
                 s2 = S2(error_code)
                 await self.handle_control_flow(s2)
             else:
@@ -605,7 +605,7 @@ class Reader(Device):
                 )
                 self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
                 self.session.set_credential_public_key(entry.access_credential)
-                self.session.create_encryption_engine()
+                self.session.create_encryption_engine_expedited()
                 return
             except VerificationError:
                 Global.logger.info("decryption failed, trying next key in storage")
@@ -670,7 +670,7 @@ class Reader(Device):
                 credential_epubk=self.session.credential_ephemeral_key,
                 reader_epubk=self.session.get_reader_epubkey(),
                 transaction_identifier=self.session.transaction_identifier,
-                encryption=self.session.encryption,
+                encryption=self.session.encryption_expedited,
             )
         except (InvalidResponseError, VerificationError) as error:
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -874,7 +874,7 @@ class Reader(Device):
 
         try:
             response = await self.command_exchange(
-                atomic_session, payload_tlv, self.session.encryption
+                atomic_session, payload_tlv, self.session.encryption_expedited
             )
         except (InvalidResponseError, VerificationError) as error:
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -1146,7 +1146,8 @@ class ReaderSession:
         self.reader_identifier = reader_identifier
         self.command_vendor_extension = vendor_extension
         self.response_vendor_extension: bytes | None = None
-        self.encryption: EncryptionEngine | None = None
+        self.encryption_expedited: EncryptionEngine | None = None
+        self.encryption_stepup: EncryptionEngine | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -1434,7 +1435,8 @@ class ReaderSession:
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
 
-        self.create_encryption_engine()
+        self.create_encryption_engine_expedited()
+        self.create_encryption_engine_stepup()
 
     def derive_key_volatile_fast(
         self,
@@ -1502,18 +1504,25 @@ class ReaderSession:
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
 
-    def create_encryption_engine(self) -> None:
-        self.encryption = EncryptionEngine(
+    def create_encryption_engine_expedited(self) -> None:
+        Global.logger.debug("Creating encryption engine for expedited phase")
+        self.encryption_expedited = EncryptionEngine(
             DeviceType.READER, self.expedited_SK_reader, self.expedited_SK_device
         )
 
-    def encrypt_payload(self, payload: bytes) -> tuple[bytes, bytes]:
-        return self.encryption.encrypt(payload)
-
-    def decrypt_payload(
-        self, encrypted_payload: bytes, authentication_tag: bytes
-    ) -> bytes:
-        return self.encryption.decrypt(encrypted_payload, authentication_tag)
+    def create_encryption_engine_stepup(self) -> None:
+        Global.logger.debug("Creating encryption engine for step-up phase")
+        Global.logger.debug("deriving stepupSKReader:")
+        stepup_SK_reader = derive_key(
+            self.step_up_SK, "SKReader".encode("utf-8"), 32, b""
+        )
+        Global.logger.debug("deriving stepupSKDevice:")
+        stepup_SK_device = derive_key(
+            self.step_up_SK, "SKDevice".encode("utf-8"), 32, b""
+        )
+        self.encryption_stepup = EncryptionEngine(
+            DeviceType.READER, stepup_SK_reader, stepup_SK_device
+        )
 
 
 class ReaderFastCacheEntry:
