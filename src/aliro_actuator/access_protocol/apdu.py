@@ -1914,7 +1914,11 @@ class APDU:
         self, atomic_session: bool, payload_tlv: TLV, encryption: EncryptionEngine
     ) -> Command:
         Global.logger.info("Creating EXCHANGE command")
+        Global.logger.debug(
+            "Command contains TLV structure: {}".format(payload_tlv.to_print())
+        )
         payload = atomic_session.to_bytes(1, "big") + payload_tlv.to_bytes()
+        Global.logger.debug("Payload: {!r}".format(hexlify(payload)))
 
         Global.logger.info("encrypting EXCHANGE command payload")
         encrypted_payload, tag = encryption.encrypt(

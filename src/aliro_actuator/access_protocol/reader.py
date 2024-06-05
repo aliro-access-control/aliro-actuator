@@ -837,8 +837,10 @@ class Reader(Device):
             "Start handling EXCHANGE with atomic session: {}".format(atomic_session)
         )
 
+        Global.logger.debug("Creating payload")
         payload: list[tuple[int, bytes | list]] = []
         if read_requests is not None:
+            Global.logger.debug("Adding read requests")
             for read_request in read_requests:
                 payload.append(
                     (
@@ -856,6 +858,7 @@ class Reader(Device):
                     )
                 )
         if set_requests is not None:
+            Global.logger.debug("Adding set requests")
             for set_request in set_requests:
                 payload.append(
                     (
@@ -866,13 +869,17 @@ class Reader(Device):
                     )
                 )
         if notify is not None:
+            Global.logger.debug("Adding notify")
             payload.append((Exchange.NOTIFY_TAG, notify.to_bytes()))
         if ursk is not None:
+            Global.logger.debug("Adding URSK")
             payload.append((Exchange.URSK_TAG, ursk))
         if update_doc is not None:
+            Global.logger.debug("Adding update doc")
             payload.append((Exchange.UPDATE_DOC_TAG, update_doc))
 
         if reader_status is not None:
+            Global.logger.debug("Adding reader status: 0x{:04x}".format(reader_status))
             payload.append(
                 (Exchange.READER_STATUS_TAG, reader_status.to_bytes(2, "big"))
             )
