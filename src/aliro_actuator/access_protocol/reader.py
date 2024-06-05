@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 from binascii import hexlify
+from enum import Enum
 
 from aliro_actuator import READER_GROUP_ID_LENGTH, READER_GROUP_SUB_ID_LENGTH, Global
 from aliro_actuator.access_protocol import Device
@@ -67,6 +68,11 @@ from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
+
+
+class ReaderState(Enum):
+    EXPEDITED = 1
+    STEPUP = 2
 
 
 class ReaderStorage:
@@ -802,6 +808,7 @@ class Reader(Device):
         ursk: bytes | None = None,
         update_doc: bytes | None = None,
         reader_status: int | None = None,
+        reader_state: ReaderState = ReaderState.EXPEDITED,
     ) -> list[bytes]:
         """
         Create and send a exchange command.
@@ -872,9 +879,16 @@ class Reader(Device):
 
         payload_tlv = TLV(payload)
 
+        if reader_state == ReaderState.EXPEDITED:
+            encryption = self.session.encryption_expedited
+        elif reader_state == ReaderState.STEPUP:
+            encryption = self.session.encryption_stepup
+        if encryption is None:
+            raise AccessProtocolError("no encryption engine found")
+
         try:
             response = await self.command_exchange(
-                atomic_session, payload_tlv, self.session.encryption_expedited
+                atomic_session, payload_tlv, encryption
             )
         except (InvalidResponseError, VerificationError) as error:
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)

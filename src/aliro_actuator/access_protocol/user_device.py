@@ -726,14 +726,13 @@ class UserDevice(Device):
 
         if self.session is None:
             raise SessionError("No Session")
-        if self.session.encryption_expedited is None:
-            raise SessionError("No encryption engine")
         if not self.session.state_valid(
             [
                 UserSessionState.AUTH0_FAST_DONE,
                 UserSessionState.AUTH1_DONE,
                 UserSessionState.EXCHANGE_DONE,
                 UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
         ):
             state = self.session.state
@@ -743,12 +742,32 @@ class UserDevice(Device):
             )
 
         Global.logger.info("Handling EXCHANGE Command")
-        if not self.session.encryption_expedited.check_counters_valid():
+        if self.session.state_valid(
+            [
+                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.STEPUP_EXCHANGE_DONE,
+            ]
+        ):
+            encryption = self.session.encryption_stepup
+        else:
+            encryption = self.session.encryption_expedited
+        if encryption is None:
+            raise AccessProtocolError("no encryption engine found")
+
+        if not encryption.check_counters_valid():
             # End current session
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             return
 
-        self.session.update_state(UserSessionState.EXCHANGE_DONE)
+        if self.session.state_valid(
+            [
+                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.STEPUP_EXCHANGE_DONE,
+            ]
+        ):
+            self.session.update_state(UserSessionState.STEPUP_EXCHANGE_DONE)
+        else:
+            self.session.update_state(UserSessionState.EXCHANGE_DONE)
 
         if (
             self.transport_protocol_type == TransportProtocol.BLE_UWB
@@ -775,7 +794,7 @@ class UserDevice(Device):
             > 0
         ):
             if self.mailbox is None:
-                await self.return_exchange_error_and_close_channel()
+                await self.return_exchange_error_and_close_channel(encryption)
                 raise AccessProtocolError(
                     "Read, write or set request received, but no mailbox is present"
                 )
@@ -814,7 +833,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(read[0:2], "big"), int.from_bytes(read[2:4], "big")
                 ):
-                    await self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel(encryption)
                     raise AccessProtocolError("Read request out of mailbox boundaries")
 
             for write in exchange_command.write_requests:
@@ -823,7 +842,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(write[0:2], "big"), len(write) - 2
                 ):
-                    await self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel(encryption)
                     raise AccessProtocolError("Write request out of mailbox boundaries")
 
             for set in exchange_command.set_requests:
@@ -832,7 +851,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(set[0:2], "big"), int.from_bytes(set[2:4], "big")
                 ):
-                    await self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel(encryption)
                     raise AccessProtocolError("Set request out of mailbox boundaries")
 
         Global.logger.info("Handling notifications")
@@ -887,13 +906,13 @@ class UserDevice(Device):
             exchange_payload.extend(read_command[1])
         exchange_payload.extend(bytes([0x00, 0x02, 0x00, 0x00]))
 
-        await self.response_exchange(
-            exchange_payload, self.session.encryption_expedited
-        )
+        await self.response_exchange(exchange_payload, encryption)
 
         Global.logger.info("Handling EXCHANGE command done")
 
-    async def return_exchange_error_and_close_channel(self) -> None:
+    async def return_exchange_error_and_close_channel(
+        self, encryption: EncryptionEngine
+    ) -> None:
         """
         Return an exchange error and close the channel.
         Used when an exchange fails.
@@ -904,14 +923,10 @@ class UserDevice(Device):
         """
         if self.session is None:
             raise SessionError("No Session")
-        if self.session.encryption_expedited is None:
-            raise AccessProtocolError("no encryption engine found")
 
         Global.logger.info("Generating response payload with error")
         exchange_payload = bytes.fromhex("0002FFFF")
-        await self.response_exchange(
-            exchange_payload, self.session.encryption_expedited
-        )
+        await self.response_exchange(exchange_payload, encryption)
 
     async def handle_control_flow(self, control_flow_command: Command) -> None:
         """
@@ -1152,7 +1167,8 @@ class UserSessionState(Enum):
     EXCHANGE_DONE = 6
     SELECT_STEP_UP_DONE = 7
     GET_RESPONSE_DONE = 8
-    TRANSACTION_COMPLETE = 9
+    STEPUP_EXCHANGE_DONE = 9
+    TRANSACTION_COMPLETE = 10
 
 
 class UserSession:
