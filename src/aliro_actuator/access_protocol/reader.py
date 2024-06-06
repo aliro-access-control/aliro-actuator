@@ -68,8 +68,15 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     GeneralError_Values,
     Notification_ID,
     ProtocolType,
+    Supplementary_Service_ID,
+    UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
+from aliro_actuator.transport_protocol.errors import (
+    InvalidProtocolTypeError,
+    NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
+)
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
@@ -1246,6 +1253,97 @@ class Reader(Device):
         response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
 
         return response
+
+    async def ranging_loop(self) -> None:
+        while True:
+            try:
+                Global.logger.info("Waiting for ranging session setup")
+                payload, header, id = await self.transport_protocol.get_message()
+                if header is not None and id is not None:
+                    message = BleMessage(header, id, payload)
+                else:
+                    raise UnexpectedMessageTypeError
+            except NoDeviceConnectedError:
+                break
+            if (
+                header == ProtocolType.SUPPLEMENTARY_SERVICE
+                and id == Supplementary_Service_ID.TIME_SYNC
+            ):
+                self.handle_timesync(message)
+            elif header == ProtocolType.NOTIFICATION and id == Notification_ID.RANGING:
+                await self.handle_initiate_ranging(message)
+            elif (
+                header == ProtocolType.UWB_RANGING_SERVICE
+                and id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M2
+            ):
+                await self.handle_ranging_setup_m2(message)
+            elif (
+                header == ProtocolType.UWB_RANGING_SERVICE
+                and id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M4
+            ):
+                await self.handle_ranging_setup_m4(message)
+
+    def handle_timesync(self, message: BleMessage) -> None:
+        pass
+
+    async def handle_initiate_ranging(self, message: BleMessage) -> None:
+        await self.send_ranging_session_setup_m1()
+
+    async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
+        await self.send_ranging_session_setup_m3()
+
+    async def handle_ranging_setup_m4(self, message: BleMessage) -> None:
+        """
+        Finish setting up the ranging session and collect distance measurement
+        """
+
+    async def send_ranging_session_setup_m1(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session setup M2 ble message")
+
+        uwb_configuration_id = self.transport_protocol.get_uwb_config_id()
+        pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
+        channel_bitmask = self.transport_protocol.get_channel_bitmask()
+        uwb_session_id = self.transport_protocol.driver.get_uwb_config_id()
+        vendor_specific = 0xFF
+
+        message = BleMessage.create_ranging_session_setup_m1(
+            uwb_configuration_id,
+            pulse_shape_combination,
+            channel_bitmask,
+            uwb_session_id,
+            vendor_specific,
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_setup_m3(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        ran_multiplier = self.transport_protocol.get_ran_multiplier()
+        num_chaps_per_slot = self.transport_protocol.get_num_chaps_per_slot()
+        number_responder_nodes = self.transport_protocol.get_number_of_responder_nodes()
+        number_slots_per_round = (
+            self.transport_protocol.driver.get_number_slots_per_round()
+        )
+        sync_code_index_bitmask = self.transport_protocol.get_sync_code_index_bitmask()
+        hopping_conf_bitmask = self.transport_protocol.get_hopping_conf_bitmask()
+        mac_mode = self.transport_protocol.get_mac_mode()
+        vendor_specific = 0xFF
+
+        message = BleMessage.create_ranging_session_setup_m3(
+            ran_multiplier,
+            num_chaps_per_slot,
+            number_responder_nodes,
+            number_slots_per_round,
+            sync_code_index_bitmask,
+            hopping_conf_bitmask,
+            mac_mode,
+            vendor_specific,
+        )
+        await self.transport_protocol.send_message(message)
 
 
 class ReaderSession:

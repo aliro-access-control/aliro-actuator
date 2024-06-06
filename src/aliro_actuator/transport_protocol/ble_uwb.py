@@ -184,3 +184,24 @@ class BLEUWB(TransportProtocolBase):
             available versions
         """
         return self.ble_version, self.supported_versions
+
+    async def get_uwb_time0(self) -> int:
+        return await self.driver.get_uwb_time0()
+
+    def get_uwb_config_id(self) -> int:
+        return self.driver.get_uwb_config_id()
+
+    def get_pulseshape_combo(self) -> int:
+        return self.driver.get_pulse_shape_combination()
+
+    def get_channel_bitmask(self) -> int:
+        return self.driver.get_channel_bitmask()
+
+    async def get_sts_index0(self) -> int:
+        return await self.driver.get_sts_index0()
+
+    async def get_hop_mode_key(self) -> int:
+        return await self.driver.get_hop_mode_key()
+
+    def get_sync_code_bitmask(self) -> int:
+        return self.driver.get_sync_code_bitmask()

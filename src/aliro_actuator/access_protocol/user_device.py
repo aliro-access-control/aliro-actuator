@@ -72,7 +72,10 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
-from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
+from aliro_actuator.transport_protocol.errors import (
+    InvalidProtocolTypeError,
+    NoDeviceConnectedError,
+)
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import (
@@ -346,16 +349,22 @@ class UserDevice(Device):
         ):
             self.handle_ranging_setup_m1(message)
         elif (
-            message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M1
+            message.header == ProtocolType.UWB_RANGING_SERVICE
             and message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M3
         ):
-            self.handle_ranging.setup_m3(message)
+            self.handle_ranging_setup_m3(message)
         else:
             raise UnexpectedBLEMessageError(
                 "Received unhandleable ble message",
                 message.header,
                 message.id,
             )
+
+    def handle_ranging_setup_m1(self, message: BleMessage) -> None:
+        await self.send_ranging_session_setup_m2()
+
+    def handle_ranging_setup_m3(self, message: BleMessage) -> None:
+        await self.send_ranging_session_setup_m4()
 
     def start_new_session(self) -> None:
         """
@@ -406,14 +415,15 @@ class UserDevice(Device):
         includes, the 13 DeviceEventCount, the UWB Device Time timestamp and the UWB
         Device Time uncertainty.
         """
-        if self.transport_protocol_type != TransportProtocol.BLE_UWB:
-            raise InvalidCommandError
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
 
         Global.logger.info("Sending time sync ble message")
 
-        # Some values have been set to a default value
+        # Some values have been set to a default value,
+        # and will need further investigation
         data_event_count = 0xFFFFFFFFFFFFFFFF
-        uwb_dev_time = await self.transport_protocol.driver.get_uwb_time0()
+        uwb_dev_time = await self.transport_protocol.get_uwb_time0()
         uwb_dev_time_uncertainty = 0
         uwb_clk_skew_measurement_available = 0
         dev_ppm = 0
@@ -434,8 +444,8 @@ class UserDevice(Device):
         """
         Used to trigger the Reader to initiate a new UWB ranging session
         """
-        if self.transport_protocol_type != TransportProtocol.BLE_UWB:
-            raise InvalidCommandError
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
 
         Global.logger.info("Sending initiate ranging ble message")
 
@@ -443,35 +453,41 @@ class UserDevice(Device):
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_setup_m2(self) -> None:
-        if self.transport_protocol_type != TransportProtocol.BLE_UWB:
-            raise InvalidCommandError
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
 
         Global.logger.info("Sending ranging session setup M2 ble message")
 
-        uwb_configuration_id = self.transport_protocol.driver.get_uwb_config_id()
-        pulse_shape_combination = self.transport_protocol.driver.get_pulseshape_combo()
-        channel_bitmask = self.transport_protocol.driver.get_channel_bitmask()
-        uwb_session_id = self.transport_protocol.driver.get_uwb_config_id()
-        vendore_specific = 0xFF
+        uwb_configuration_id = self.transport_protocol.get_uwb_config_id()
+        pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
+        channel_bitmask = self.transport_protocol.get_channel_bitmask()
+        sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
+        ran_multiplier = self.transport_protocol.get_ran_multiplier()
+        slot_bitmask = self.transport_protocol.get_slot_bitmask()
+        hopping_conf_bitmask = self.transport_protocol.get_hopping_conf_bitmask()
+        vendor_specific = 0xFF
 
         message = BleMessage.create_ranging_session_setup_m2(
             uwb_configuration_id,
             pulse_shape_combination,
             channel_bitmask,
-            uwb_session_id,
-            vendore_specific,
+            sync_code_index_bitmask,
+            ran_multiplier,
+            slot_bitmask,
+            hopping_conf_bitmask,
+            vendor_specific,
         )
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_setup_m4(self) -> None:
-        if self.transport_protocol_type != TransportProtocol.BLE_UWB:
-            raise InvalidCommandError
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
 
         Global.logger.info("Sending ranging session setup M4 ble message")
-        sts_index0 = await self.transport_protocol.driver.get_sts_index0()
-        uwb_time0 = await self.transport_protocol.driver.get_uwb_time0()
-        hop_mode_key = await self.transport_protocol.driver.get_hop_mode_key()
-        sync_code_index = self.transport_protocol.driver.get_sync_code_bitmask()
+        sts_index0 = await self.transport_protocol.get_sts_index0()
+        uwb_time0 = await self.transport_protocol.get_uwb_time0()
+        hop_mode_key = await self.transport_protocol.get_hop_mode_key()
+        sync_code_index = self.transport_protocol.get_sync_code_bitmask()
 
         message = BleMessage.create_ranging_session_setup_m4(
             sts_index0, uwb_time0, hop_mode_key, sync_code_index
