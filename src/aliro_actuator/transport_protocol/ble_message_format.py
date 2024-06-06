@@ -409,20 +409,58 @@ class BleMessage(Message):
         return message
 
     @staticmethod
-    def create_initiate_ranging_session(self) -> BleMessage:
-        attribute = BleAttribute(
-            RangingMessage_AttributeID.INITIATE_RANGING_SESSION, None
-        )
+    def create_initiate_ranging_session() -> BleMessage:
+        data = BleAttribute(RangingMessage_AttributeID.INITIATE_RANGING_SESSION)
         return BleMessage(
-            ProtocolType.NOTIFICATION, Notification_ID.RANGING, attribute.to_bytes()
+            ProtocolType.NOTIFICATION, Notification_ID.RANGING, data.to_bytes()
         )
+
+    @staticmethod
+    def create_ranging_session_setup_m1(
+        uwb_configuration_id: int,
+        pulse_shape_combination: int,
+        channel_bitmask: int,
+        uwb_session_id: int,
+        vendor_specific: int,
+    ) -> BleMessage:
+        data = uwb_configuration_id.to_bytes(2, "big")
+        uwb_configuration_id_attr = BleAttribute(
+            UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
+        )
+        data = pulse_shape_combination.to_bytes(1, "big")
+        pulse_shape_combination_attr = BleAttribute(
+            UWB_AttributeID.PULSE_SHAPE_COMBO, data
+        )
+        data = uwb_session_id.to_bytes(4, "big")
+        uwb_session_id_attr = BleAttribute(UWB_AttributeID.UWB_SESSION_IDENTIFIER, data)
+        data = channel_bitmask.to_bytes(1, "big")
+        channel_bitmask_attr = BleAttribute(UWB_AttributeID.CHANNEL_BITMASK, data)
+
+        # vendor specific information
+        data = vendor_specific.to_bytes(3, "big")
+        vendor_specific_attr = BleAttribute(UWB_AttributeID.VENDOR_SPECIFIC, data)
+        payload = bytearray()
+        payload.extend(uwb_configuration_id_attr.to_bytes())
+        payload.extend(pulse_shape_combination_attr.to_bytes())
+        payload.extend(channel_bitmask_attr.to_bytes())
+        payload.extend(uwb_session_id_attr.to_bytes())
+        payload.extend(vendor_specific_attr.to_bytes())
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_SETUP_M1,
+            payload,
+        )
+        return message
 
     @staticmethod
     def create_ranging_session_setup_m2(
         uwb_configuration_id: int,
         pulse_shape_combination: int,
         channel_bitmask: int,
-        uwb_session_id: int,
+        sync_code_index_bitmask: int,
+        ran_multiplier: int,
+        slot_bitmask: int,
+        hopping_conf_bitmask: int,
         vendor_specific: int,
     ) -> BleMessage:
         data = uwb_configuration_id.to_bytes(2, "big")
@@ -553,7 +591,7 @@ class SupplementaryService_AttributeID(IntEnum):
 
 
 class BleAttribute:
-    def __init__(self, id: int, value: bytes) -> None:
+    def __init__(self, id: int, value: bytes | None = None) -> None:
         self.id = id
         self.value = value
 
@@ -567,6 +605,9 @@ class BleAttribute:
     def to_bytes(self) -> bytes:
         output = bytearray()
         output.append(self.id)
-        output.append(len(self.value))
-        output.extend(self.value)
+        if self.value is not None:
+            output.append(len(self.value))
+            output.extend(self.value)
+        else:
+            output.append(0)
         return bytes(output)
