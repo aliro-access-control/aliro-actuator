@@ -455,7 +455,7 @@ class UserDevice(Device):
         sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
         ran_multiplier = self.transport_protocol.get_ran_multiplier()
         slot_bitmask = self.transport_protocol.get_slot_bitmask()
-        hopping_conf_bitmask = self.transport_protocol.get_hopping_conf_bitmask()
+        hopping_conf_bitmask = self.transport_protocol.get_hopping_config_bitmask()
         vendor_specific = 0xFF
 
         message = BleMessage.create_ranging_session_setup_m2(

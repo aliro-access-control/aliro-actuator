@@ -471,23 +471,93 @@ class BleMessage(Message):
         pulse_shape_combination_attr = BleAttribute(
             UWB_AttributeID.PULSE_SHAPE_COMBO, data
         )
-        data = uwb_session_id.to_bytes(4, "big")
-        uwb_session_id_attr = BleAttribute(UWB_AttributeID.UWB_SESSION_IDENTIFIER, data)
         data = channel_bitmask.to_bytes(1, "big")
         channel_bitmask_attr = BleAttribute(UWB_AttributeID.CHANNEL_BITMASK, data)
+        data = sync_code_index_bitmask.to_bytes(4, "big")
+        sync_code_index_bitmask_attr = BleAttribute(
+            UWB_AttributeID.SYNC_CODE_INDEX_BITMASK, data
+        )
+        data = ran_multiplier.to_bytes(1, "big")
+        ran_multiplier_attr = BleAttribute(UWB_AttributeID.RAN_MULTIPLIER, data)
+        data = slot_bitmask.to_bytes(1, "big")
+        slot_bitmask_attr = BleAttribute(UWB_AttributeID.SLOT_BITMASK, data)
+        data = hopping_conf_bitmask.to_bytes(1, "big")
+        hopping_conf_bitmask_attr = BleAttribute(
+            UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK, data
+        )
 
         # vendor specific information
         data = vendor_specific.to_bytes(3, "big")
         vendor_specific_attr = BleAttribute(UWB_AttributeID.VENDOR_SPECIFIC, data)
+
         payload = bytearray()
         payload.extend(uwb_configuration_id_attr.to_bytes())
         payload.extend(pulse_shape_combination_attr.to_bytes())
         payload.extend(channel_bitmask_attr.to_bytes())
-        payload.extend(uwb_session_id_attr.to_bytes())
+        payload.extend(sync_code_index_bitmask_attr.to_bytes())
+        payload.extend(ran_multiplier_attr.to_bytes())
+        payload.extend(slot_bitmask_attr.to_bytes())
+        payload.extend(hopping_conf_bitmask_attr.to_bytes())
         payload.extend(vendor_specific_attr.to_bytes())
         message = BleMessage(
             ProtocolType.UWB_RANGING_SERVICE,
-            UWB_RangingService_ID.RANGING_SESSION_SETUP_M1,
+            UWB_RangingService_ID.RANGING_SESSION_SETUP_M2,
+            payload,
+        )
+        return message
+
+    @staticmethod
+    def create_ranging_session_setup_m3(
+        ran_multiplier: int,
+        num_chaps_per_slot: int,
+        number_responder_nodes: int,
+        number_slots_per_round: int,
+        sync_code_index_bitmask: int,
+        hopping_conf_bitmask: int,
+        mac_mode: int,
+        vendor_specific: int,
+    ) -> BleMessage:
+        data = ran_multiplier.to_bytes(1, "big")
+        ran_multiplier_attr = BleAttribute(UWB_AttributeID.RAN_MULTIPLIER, data)
+        data = num_chaps_per_slot.to_bytes(1, "big")
+        num_chaps_per_slot_attr = BleAttribute(
+            UWB_AttributeID.NUMBER_CHAPS_PER_SLOT, data
+        )
+        data = number_responder_nodes.to_bytes(1, "big")
+        number_responder_nodes_attr = BleAttribute(
+            UWB_AttributeID.NUMBER_RESPONDERS_NODES, data
+        )
+        data = number_slots_per_round.to_bytes(1, "big")
+        number_slots_per_round_attr = BleAttribute(
+            UWB_AttributeID.NUMBER_SLOTS_PER_ROUND, data
+        )
+        data = sync_code_index_bitmask.to_bytes(4, "big")
+        sync_code_index_bitmask_attr = BleAttribute(
+            UWB_AttributeID.SYNC_CODE_INDEX_BITMASK, data
+        )
+        data = hopping_conf_bitmask.to_bytes(1, "big")
+        hopping_conf_bitmask_attr = BleAttribute(
+            UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK, data
+        )
+        data = mac_mode.to_bytes(1, "big")
+        mac_mode_attr = BleAttribute(UWB_AttributeID.MAC_MODE, data)
+
+        # vendor specific information
+        data = vendor_specific.to_bytes(3, "big")
+        vendor_specific_attr = BleAttribute(UWB_AttributeID.VENDOR_SPECIFIC, data)
+
+        payload = bytearray()
+        payload.extend(ran_multiplier_attr.to_bytes())
+        payload.extend(num_chaps_per_slot_attr.to_bytes())
+        payload.extend(number_responder_nodes_attr.to_bytes())
+        payload.extend(number_slots_per_round_attr.to_bytes())
+        payload.extend(sync_code_index_bitmask_attr.to_bytes())
+        payload.extend(hopping_conf_bitmask_attr.to_bytes())
+        payload.extend(mac_mode_attr.to_bytes())
+        payload.extend(vendor_specific_attr.to_bytes())
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_SETUP_M3,
             payload,
         )
         return message
