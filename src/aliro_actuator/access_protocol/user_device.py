@@ -1449,7 +1449,9 @@ class UserSession:
 
     def get_reader_issuer_certificate_public_key(self) -> PublicKey:
         if hasattr(self, "access_credential"):
-            return self.access_credential.get_issuer_public_key()
+            return self.access_credential.get_issuer_public_key(
+                self.reader_group_identifier
+            )
         else:
             raise AccessProtocolError("No access credential set")
 

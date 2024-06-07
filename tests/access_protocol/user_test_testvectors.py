@@ -37,7 +37,9 @@ if __name__ == "__main__":
 
     access_credentials = [
         AccessCredential(
-            user_key, [(READER_GROUP_IDENTIFIER, reader_public_key)], reader_public_key
+            user_key,
+            [(READER_GROUP_IDENTIFIER, reader_public_key)],
+            [(READER_GROUP_IDENTIFIER, reader_public_key)],
         )
     ]
     card = UserDevice(
