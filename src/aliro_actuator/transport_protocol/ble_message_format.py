@@ -724,6 +724,10 @@ class BleAttribute:
     def __init__(self, id: int, value: bytes | None = None) -> None:
         self.id = id
         self.value = value
+        if value is not None:
+            self.length = len(value) + 2
+        else:
+            self.length = 2
 
     @classmethod
     def from_bytes(cls, input: bytes) -> BleAttribute:
@@ -733,6 +737,7 @@ class BleAttribute:
             value = input[2 : 2 + length]
         else:
             value = None
+        length = length + 2
         return BleAttribute(id, value)
 
     def to_bytes(self) -> bytes:
