@@ -13,9 +13,12 @@
 # limitations under the License.
 
 from binascii import hexlify
+from hashlib import sha1
 
+from aliro_actuator import Global
 from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.trust_framework.key_slot import get_key_slot
 
 
 class AccessCredential:
@@ -33,8 +36,25 @@ class AccessCredential:
         user_device_key_pair: KeyPair,
         reader_id_key_list: list[tuple[bytes, PublicKey]],
     ):
+        Global.logger.debug("Creating Access Credential")
         self.user_device_key_pair = user_device_key_pair
+        Global.logger.debug(
+            "Using user device private key: {!r}".format(
+                hexlify(self.user_device_key_pair.get_private_key().as_bytes())
+            )
+        )
+        Global.logger.debug(
+            "Using user device public key: {!r}".format(
+                hexlify(self.user_device_key_pair.get_public_key_as_bytes())
+            )
+        )
         self.reader_id_key_list = reader_id_key_list
+        Global.logger.debug("Reader id key list:")
+        for id, key in self.reader_id_key_list:
+            Global.logger.debug("Reader group identifier: {!r}".format(hexlify(id)))
+            Global.logger.debug(
+                "Reader public key: {!r}".format(hexlify(key.as_bytes()))
+            )
 
     def has_identifier(self, group_identifier: bytes) -> bool:
         """
@@ -69,5 +89,4 @@ class AccessCredential:
         return list(map(lambda x: x[0], self.reader_id_key_list))
 
     def get_key_slot(self) -> bytes:
-        # TODO implement
-        return bytes.fromhex("ABADCAFEBAADF00D")
+        return get_key_slot(self.user_device_key_pair.get_public_key())
