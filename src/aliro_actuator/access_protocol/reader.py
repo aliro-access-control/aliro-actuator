@@ -793,7 +793,7 @@ class Reader(Device):
             raise AccessProtocolError("No keys with the requested key slot")
         return valid_keys[0]
 
-    async def handle_control_flow(self, success: bool) -> None:
+    async def handle_control_flow(self, s2: S2) -> None:
         """
         Create and send a control_flow command.
         Required data from is retrieved from the Reader (self) and the session.

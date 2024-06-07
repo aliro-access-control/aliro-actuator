@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from binascii import hexlify
-from hashlib import sha1
 
 from aliro_actuator import Global
 from aliro_actuator.trust_framework.errors import KeyLookupFailed
@@ -40,15 +39,15 @@ class AccessCredential:
         reader_system_issuer_ca_certificate_public_key: PublicKey,
     ):
         Global.logger.debug("Creating Access Credential")
-        self.user_device_key_pair = user_device_key_pair
+        self.access_credential_key_pair = access_credential_key_pair
         Global.logger.debug(
             "Using user device private key: {!r}".format(
-                hexlify(self.user_device_key_pair.get_private_key().as_bytes())
+                hexlify(self.access_credential_key_pair.get_private_key().as_bytes())
             )
         )
         Global.logger.debug(
             "Using user device public key: {!r}".format(
-                hexlify(self.user_device_key_pair.get_public_key_as_bytes())
+                hexlify(self.access_credential_key_pair.get_public_key_as_bytes())
             )
         )
         self.reader_id_key_list = reader_id_key_list
@@ -98,4 +97,4 @@ class AccessCredential:
         return list(map(lambda x: x[0], self.reader_id_key_list))
 
     def get_key_slot(self) -> bytes:
-        return get_key_slot(self.user_device_key_pair.get_public_key())
+        return get_key_slot(self.access_credential_key_pair.get_public_key())
