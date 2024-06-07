@@ -96,9 +96,9 @@ class BleMessage(Message):
             case ProtocolType.NOTIFICATION:
                 self._parse_notification_payload(ble_encryption)
             case ProtocolType.UWB_RANGING_SERVICE:
-                raise NotImplementedError
+                self._parse_uwb_ranging_service_payload(ble_encryption)
             case ProtocolType.SUPPLEMENTARY_SERVICE:
-                raise NotImplementedError
+                self._parse_supplementary_service_payload(ble_encryption)
             case ProtocolType.THIRD_PARTY_APP:
                 raise NotImplementedError
 
@@ -111,7 +111,7 @@ class BleMessage(Message):
             case Notification_ID.EVENT:
                 self._parse_event_payload()
             case Notification_ID.RANGING:
-                raise NotImplementedError
+                self._parse_ranging_initiation_payload()
             case Notification_ID.READER_STATUS_CHANGED:
                 raise NotImplementedError
             case Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED:
@@ -122,6 +122,32 @@ class BleMessage(Message):
                 self._parse_initiate_access_protocol()
             case Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE:
                 raise NotImplementedError
+
+    def _parse_uwb_ranging_service_payload(
+        self, ble_encryption: EncryptionEngine | None = None
+    ) -> None:
+        self._decrypt(ble_encryption)
+
+        match self.id:
+            case UWB_RangingService_ID.RANGING_SESSION_SETUP_M1:
+                self._parse_ranging_session_setup_m1()
+            case UWB_RangingService_ID.RANGING_SESSION_SETUP_M2:
+                self._parse_ranging_session_setup_m2()
+            case UWB_RangingService_ID.RANGING_SESSION_SETUP_M3:
+                self._parse_ranging_session_setup_m3()
+            case UWB_RangingService_ID.RANGING_SESSION_SETUP_M4:
+                self._parse_ranging_session_setup_m4()
+            case UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST:
+                raise NotImplementedError
+            case UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST:
+                raise NotImplementedError
+            case UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE:
+                raise NotImplementedError
+
+    def _parse_supplementary_service_payload(
+        self, ble_encryption: EncryptionEngine | None = None
+    ) -> None:
+        self._decrypt(ble_encryption)
 
     def _parse_event_payload(self) -> None:
         Global.logger.info("Parsing Event")
@@ -244,6 +270,32 @@ class BleMessage(Message):
             tlv_data=self.proprietary_tlv,
         )
         Global.logger.info("Parsing Initiate Access Protocol done")
+
+    def _parse_ranging_initiation_payload(self) -> None:
+        Global.logger.info("Parsing ranging initiation")
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.attribute.id),
+            )
+        if self.attribute.value != None:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.attribute.id),
+            )
+
+    def _parse_ranging_session_setup_m1(self) -> None:
+        pass
+
+    def _parse_ranging_session_setup_m2(self) -> None:
+        pass
+
+    def _parse_ranging_session_setup_m3(self) -> None:
+        pass
+
+    def _parse_ranging_session_setup_m4(self) -> None:
+        pass
 
     def _encrypt(self, ble_encryption: EncryptionEngine | None) -> None:
         """
@@ -677,7 +729,10 @@ class BleAttribute:
     def from_bytes(cls, input: bytes) -> BleAttribute:
         id = input[0]
         length = input[1]
-        value = input[2 : 2 + length]
+        if length != 0:
+            value = input[2 : 2 + length]
+        else:
+            value = None
         return BleAttribute(id, value)
 
     def to_bytes(self) -> bytes:
