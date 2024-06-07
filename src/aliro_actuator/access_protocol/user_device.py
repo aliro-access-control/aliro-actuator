@@ -310,7 +310,7 @@ class UserDevice(Device):
                                     "command: {} not implemented".format(message.ins)
                                 )
                     else:
-                        self.handle_ble_messages(message)
+                        await self.handle_ble_messages(message)
                 except AccessProtocolError as error:
                     Global.logger.error(
                         "restarting session because of error: {}".format(repr(error))
@@ -322,7 +322,7 @@ class UserDevice(Device):
                     # try to reconnect in outer loop
                     break
 
-    def handle_ble_messages(self, message: BleMessage) -> None:
+    async def handle_ble_messages(self, message: BleMessage) -> None:
         Global.logger.info("Handling (non command) ble message")
         if (
             message.header == ProtocolType.NOTIFICATION
@@ -338,12 +338,12 @@ class UserDevice(Device):
             message.header == ProtocolType.UWB_RANGING_SERVICE
             and message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M1
         ):
-            self.handle_ranging_setup_m1(message)
+            await self.handle_ranging_setup_m1(message)
         elif (
             message.header == ProtocolType.UWB_RANGING_SERVICE
             and message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M3
         ):
-            self.handle_ranging_setup_m3(message)
+            await self.handle_ranging_setup_m3(message)
         else:
             raise UnexpectedBLEMessageError(
                 "Received unhandleable ble message",
@@ -351,10 +351,14 @@ class UserDevice(Device):
                 message.id,
             )
 
-    def handle_ranging_setup_m1(self, message: BleMessage) -> None:
+    async def handle_ranging_setup_m1(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session setup message M1")
+        message.parse_payload()
         await self.send_ranging_session_setup_m2()
 
-    def handle_ranging_setup_m3(self, message: BleMessage) -> None:
+    async def handle_ranging_setup_m3(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session setup message M3")
+        message.parse_payload()
         await self.send_ranging_session_setup_m4()
 
     def start_new_session(self) -> None:

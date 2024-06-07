@@ -1193,20 +1193,34 @@ class Reader(Device):
                 and id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M4
             ):
                 await self.handle_ranging_setup_m4(message)
+            else:
+                raise UnexpectedBLEMessageError(
+                    "Received unexpected ble message while waiting for "
+                    "Ranging session setup sequence",
+                    header,
+                    id,
+                )
 
     def handle_timesync(self, message: BleMessage) -> None:
-        pass
+        Global.logger.info("Handling time sync message")
+        message.parse_payload()
 
     async def handle_initiate_ranging(self, message: BleMessage) -> None:
+        Global.logger.info("Handling initiate ranging message")
+        message.parse_payload()
         await self.send_ranging_session_setup_m1()
 
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session setup message M2")
+        message.parse_payload()
         await self.send_ranging_session_setup_m3()
 
     async def handle_ranging_setup_m4(self, message: BleMessage) -> None:
         """
         Finish setting up the ranging session and collect distance measurement
         """
+        Global.logger.info("Handling ranging session setup message M4")
+        message.parse_payload()
 
     async def send_ranging_session_setup_m1(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
