@@ -282,6 +282,16 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
 
+    async def get_num_chaps_per_slot(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.SLOT_DURATION,
+            session_id=self.session_handle_dh,
+        )
+        val = data.fields["NUMBER_OF_CONTROLEES"].val
+        number_of_chaps = val / 1200 * 3
+        return number_of_chaps
+
     def get_sync_code_bitmask(self) -> int:
         return self.sync_code_index_bitmask
 

@@ -205,3 +205,24 @@ class BLEUWB(TransportProtocolBase):
 
     def get_sync_code_bitmask(self) -> int:
         return self.driver.get_sync_code_bitmask()
+
+    async def get_ran_multiplier(self) -> int:
+        return await self.driver.get_ran_multiplier()
+
+    def get_slot_bitmask(self) -> int:
+        return self.driver.get_slot_bitmask()
+
+    def get_hopping_config_bitmask(self) -> int:
+        return self.driver.get_hopping_config_bitmask()
+
+    async def get_number_responders(self) -> int:
+        return await self.driver.get_number_responders()
+
+    async def get_slots_per_round(self) -> int:
+        return await self.driver.get_slots_per_round()
+
+    async def get_mac_mode(self) -> int:
+        return await self.driver.get_mac_mode()
+
+    async def get_num_chaps_per_slot(self) -> int:
+        return await self.driver.get_num_chaps_per_slot()
