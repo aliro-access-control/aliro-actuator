@@ -62,7 +62,7 @@ class AccessCredential:
             reader_system_issuer_ca_certificate_id_key_list
         )
         Global.logger.debug("Reader issuer CA id key list:")
-        for id, key in self.reader_id_key_list:
+        for id, key in self.issuer_ca_certificate_id_key_list:
             Global.logger.debug("Reader group identifier: {!r}".format(hexlify(id)))
             Global.logger.debug(
                 "Reader system issuer public key: {!r}".format(hexlify(key.as_bytes()))
@@ -108,7 +108,11 @@ class AccessCredential:
         )
 
     def get_all_reader_id(self) -> list[bytes]:
-        return list(map(lambda x: x[0], self.reader_id_key_list))
+        all_reader_id = set(map(lambda x: x[0], self.reader_id_key_list))
+        all_reader_id.update(
+            map(lambda x: x[0], self.issuer_ca_certificate_id_key_list)
+        )
+        return list(all_reader_id)
 
     def get_key_slot(self) -> bytes:
         return get_key_slot(self.access_credential_key_pair.get_public_key())

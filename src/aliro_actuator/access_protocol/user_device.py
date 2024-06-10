@@ -471,21 +471,33 @@ class UserDevice(Device):
             if access_credential.has_identifier(self.session.reader_group_identifier):
                 self.session.set_access_credential(access_credential)
                 Global.logger.info("Access credential found")
-                Global.logger.info(
-                    "Reader public key in access credential: {!r}".format(
-                        hexlify(
-                            access_credential.get_reader_public_key(
-                                self.session.reader_group_identifier
-                            ).as_bytes()
+                try:
+                    key = access_credential.get_reader_public_key(
+                        self.session.reader_group_identifier
+                    ).as_bytes()
+                    Global.logger.info(
+                        "Reader public key in access credential: {!r}".format(
+                            hexlify(key)
                         )
                     )
-                )
+                except KeyLookupFailed:
+                    pass
+                try:
+                    key = access_credential.get_issuer_public_key(
+                        self.session.reader_group_identifier
+                    ).as_bytes()
+                    Global.logger.info(
+                        "Issuer CA Certificate public key in access credential"
+                        ": {!r}".format(hexlify(key))
+                    )
+                except KeyLookupFailed:
+                    pass
+
                 break
         else:
             raise AccessProtocolError(
-                "Could not find key for reader identifier: {!r}".format(
-                    hexlify(self.session.reader_group_identifier)
-                )
+                "Could not find key for reader identifier in access credential: "
+                "{!r}".format(hexlify(self.session.reader_group_identifier))
             )
 
         if self.session.get_transaction_type() == Transaction.STANDARD:
@@ -693,7 +705,7 @@ class UserDevice(Device):
         Global.logger.debug(
             "verifying with signature: {!r}".format(hexlify(reader_signature))
         )
-        intermediate_public_key = self.session.get_intermediate_reader_public_key()
+        intermediate_public_key = self.session.get_reader_public_key()
         Global.logger.debug(
             "verifying with key: {!r}".format(
                 hexlify(intermediate_public_key.as_bytes())
@@ -1414,9 +1426,11 @@ class UserSession:
             Global.logger.warning("Verification unsuccessfull")
         return verified
 
-    def get_intermediate_reader_public_key(self) -> PublicKey:
+    def get_reader_public_key(self) -> PublicKey:
+        Global.logger.debug("Looking for reader public key")
+
         if hasattr(self, "cert"):
-            Global.logger.info("has cert")
+            Global.logger.info("Checking certificate")
             reader_public_key = self.cert.get_public_key()
             Global.logger.info(
                 "get reader public key from certificate: {!r}".format(
@@ -1424,11 +1438,9 @@ class UserSession:
                 )
             )
             return reader_public_key
-        return self.get_reader_public_key()
 
-    def get_reader_public_key(self) -> PublicKey:
-        Global.logger.debug("Looking for reader public key")
         if hasattr(self, "access_credential"):
+            Global.logger.info("Checking Access Credential")
             if self.access_credential.has_identifier(self.reader_group_identifier):
                 reader_public_key = self.access_credential.get_reader_public_key(
                     self.reader_group_identifier
