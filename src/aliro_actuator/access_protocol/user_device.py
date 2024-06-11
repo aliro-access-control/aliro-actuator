@@ -276,7 +276,7 @@ class UserDevice(Device):
         while True:
             self.single_transaction()
 
-    async def single_transaction(self) -> None:
+    async def single_transaction(self, terminate_at_end: bool = True) -> None:
         """
         Handles a single transaction.
         Returns when completed or an error occurred.
@@ -307,7 +307,8 @@ class UserDevice(Device):
                             await self.handle_load_cert(message)
                         case INS.CONTROL_FLOW:
                             await self.handle_control_flow(message)
-                            await self.transaction_termination()
+                            if terminate_at_end:
+                                await self.transaction_termination()
                             return
                         case INS.EXCHANGE:
                             await self.handle_exchange(message)
@@ -318,7 +319,8 @@ class UserDevice(Device):
                 else:
                     completed = await self.handle_ble_messages(message)
                     if completed:
-                        await self.transaction_termination()
+                        if terminate_at_end:
+                            await self.transaction_termination()
                         return
             except AccessProtocolError as error:
                 Global.logger.error(
