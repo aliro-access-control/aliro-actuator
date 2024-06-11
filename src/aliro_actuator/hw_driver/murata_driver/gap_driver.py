@@ -31,7 +31,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
             OpGroup.GAP, OpCodeGAP.GENERIC_EVENT_PUBLIC_ADDRESS_READY
         )
         Global.logger.debug("Read public device address ready")
-        return response.data
+        return change_endianness(response.data)
 
     async def set_advertising_parameters(self) -> None:
         Global.logger.debug("Setting advertising parameters")
@@ -134,28 +134,13 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         Global.logger.debug("Advertising stopped")
 
     async def wait_for_connection_event(self) -> None:
-        self.set_low_timeout()
-        while True:
-            try:
-                message = await self.read()
-                if (
-                    message.op_group == OpGroup.GAP
-                    and message.op_code == OpCodeGAP.CONNECTION_EVENT_CONNECTED
-                ):
-                    device_id = message.get_device_id()
-                    Global.logger.info(
-                        "connected to device with device id: {}".format(device_id)
-                    )
-                    self.set_normal_timeout()
-                    self.connected_devices.append(device_id)
-                    return
-                else:
-                    Global.logger.debug("Unexpected message received:")
-                    message.print()
-            except NoResponseError:
-                # sleep so other processes can run
-                await asyncio.sleep(0.1)
-                pass
+        message = await self.wait_for_message(
+            OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_CONNECTED
+        )
+        device_id = message.get_device_id()
+        Global.logger.info("connected to device with device id: {}".format(device_id))
+
+        self.connected_devices.append(device_id)
 
     async def disconnect(self, device_id: int) -> None:
         Global.logger.debug("Disconnect")
@@ -187,7 +172,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         data = bytearray()
         data.append(0x01)  # scanning parameters included
         data.append(0x00)  # type (passive)
-        data.extend(0x0010.to_bytes(2, "little"))  # interval (ms)
+        data.extend(0x0100.to_bytes(2, "little"))  # interval (ms)
         data.extend(0x0010.to_bytes(2, "little"))  # window (ms)
         data.append(0x00)  # own address type (public)
         data.append(0x00)  # filter policy (ScanAll)
@@ -203,12 +188,15 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
         Global.logger.debug("Scanning Started")
 
-    async def stop_scanning(self) -> None:
+    async def stop_scanning(self, state_change: bool = True) -> None:
         Global.logger.info("Stop Scanning")
         message = Message(OpGroup.GAP, OpCodeGAP.STOP_SCANNING)
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
-        await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        if state_change:
+            await self.wait_for_message(
+                OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED
+            )
         Global.logger.debug("Scanning Stopped")
 
     async def connect(
@@ -224,7 +212,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         data.append(0x00)  # filter policy
         data.append(0x00)  # own address type
         data.append(peer_address_type)  # peer address type
-        data.extend(peer_address)  # peer address
+        data.extend(change_endianness(peer_address))  # peer address
         data.extend(int.to_bytes(20, 2, "little"))  # conn interval min
         data.extend(int.to_bytes(20, 2, "little"))  # conn interval max
         data.extend(int.to_bytes(0, 2, "little"))  # conn latency
@@ -275,44 +263,60 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         reader_group_id: list | None = None,
     ) -> tuple[int, bytes, int]:
-        self.set_low_timeout()
         while True:
-            try:
-                message = await self.read()
-                if (
-                    message.op_group == OpGroup.GAP
-                    and message.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
-                ):
-                    advertising_data = message.get_advertising_data()
-                    _, address, _ = message.get_address()
-                    Global.logger.debug(
-                        "Scanned device with address: {!r} and data: {!r}".format(
-                            hexlify(address), hexlify(advertising_data)
-                        )
+            message = await self.wait_for_message(
+                OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
+            )
+            advertising_data = message.get_advertising_data()
+            _, address, _ = message.get_address()
+            Global.logger.debug(
+                "Scanned device with address: {!r} and data: {!r}".format(
+                    hexlify(address), hexlify(advertising_data)
+                )
+            )
+            if len(advertising_data) != 31:
+                Global.logger.debug("Advertising data has invalid length")
+            elif change_endianness(advertising_data[5:7]) != service_uuid:
+                Global.logger.debug(
+                    "No valid service uuid found, expected: {!r}, "
+                    "found: {!r}".format(
+                        hexlify(service_uuid),
+                        hexlify(change_endianness(advertising_data[5:7])),
                     )
-                    if (
-                        change_endianness(advertising_data[5:7]) == service_uuid
-                        and (
-                            not check_dynamic_tag
-                            or dynamic_tag_generation(
+                )
+            elif (
+                check_dynamic_tag
+                and dynamic_tag_generation(
+                    group_resolving_key=group_resolving_key,
+                    expiry_timestamp=advertising_data[19:23],
+                    advertising_address=address,
+                )
+                != advertising_data[24:31]
+            ):
+                Global.logger.debug(
+                    "No valid dynamic tag found, expected: {!r}, "
+                    "found {!r}".format(
+                        hexlify(
+                            dynamic_tag_generation(
                                 group_resolving_key=group_resolving_key,
                                 expiry_timestamp=advertising_data[19:23],
                                 advertising_address=address,
                             )
-                            == advertising_data[24:31]
-                        )
-                        and (
-                            reader_group_id is None
-                            or advertising_data[9:17] in reader_group_id
-                        )
-                    ):
-                        Global.logger.info("Device Found!")
-                        self.set_normal_timeout()
-                        return message.get_address()
-                else:
-                    Global.logger.debug("Unexpected message received:")
-                    message.print()
-            except NoResponseError:
-                # sleep so other processes can run
-                await asyncio.sleep(0.1)
-                pass
+                        ),
+                        hexlify(advertising_data[24:31]),
+                    )
+                )
+            elif (
+                reader_group_id is not None
+                and advertising_data[9:17] not in reader_group_id
+            ):
+                Global.logger.debug(
+                    "No valid reader group id found, found {!r}, "
+                    "which is not in list: [{}]".format(
+                        hexlify(advertising_data[9:17]),
+                        ", ".join(str(hexlify(x)) for x in reader_group_id),
+                    )
+                )
+            else:
+                Global.logger.info("Device Found!")
+                return message.get_address()

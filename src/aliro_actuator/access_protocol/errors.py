@@ -48,6 +48,21 @@ class UnexpectedResponseError(AccessProtocolError):
     pass
 
 
+class UnexpectedBLEMessageError(AccessProtocolError):
+    """
+    Raised when a different ble message is received than expected.
+    """
+
+    def __init__(
+        self, message: str = "", header: int | None = None, id: int | None = None
+    ):
+        if header is not None:
+            message += ", received header: 0x{:02x}".format(header)
+        if id is not None:
+            message += ", received id: 0x{:02x}".format(id)
+        AccessProtocolError.__init__(self, message)
+
+
 class UnexpectedCommandError(AccessProtocolError):
     """
     Raised when a different command is received than expected.

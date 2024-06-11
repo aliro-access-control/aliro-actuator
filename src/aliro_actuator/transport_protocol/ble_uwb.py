@@ -15,25 +15,27 @@
 from binascii import hexlify
 
 from aliro_actuator import Global
+from aliro_actuator.access_protocol.apdu import Command, Response
 from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
 )
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
-from aliro_actuator.transport_protocol.ble_message_format import (
-    AP_ID,
-    BleMessage,
-    Notification_ID,
-    ProtocolType,
+from aliro_actuator.hw_driver.murata_driver.errors import (
+    DeviceDisconnectedError,
+    DeviceNotFoundError,
 )
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
     UnknownVersionRequestedError,
 )
+from aliro_actuator.transport_protocol.message import Message
 
 DEFAULT_PORT = "/dev/ttyUSB0"
 SUPPORTED_VERSIONS = [0x0100]
+CURRENT_VERSION = 0x0100
 
 
 class BLEUWB(TransportProtocolBase):
@@ -62,7 +64,9 @@ class BLEUWB(TransportProtocolBase):
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port)
             )
-            await self.driver.setup_gatt_database(self.spsm)
+
+            self.supported_versions = SUPPORTED_VERSIONS
+            await self.driver.setup_gatt_database(self.spsm, self.supported_versions)
             await self.driver.setup_connection(
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
@@ -84,65 +88,93 @@ class BLEUWB(TransportProtocolBase):
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()
         if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
-            ble_version = await self.driver.wait_for_write()
+            self.ble_version = await self.driver.wait_for_write()
             Global.logger.info(
                 "Checking ble version requested by User Device: 0x{:4x}".format(
-                    ble_version
+                    self.ble_version
                 )
             )
-            if ble_version not in SUPPORTED_VERSIONS:
+            if self.ble_version not in self.supported_versions:
                 raise UnknownVersionRequestedError
             Global.logger.info("Valid ble version requested by User Device")
         if self.mode == Mode.USER_DEVICE and isinstance(
             self.driver, UserDeviceMurataDriver
         ):
-            self.spsm = await self.driver.handle_GATT_layer()
-        await self.driver.setup_l2cap_connection(self.spsm)
+            self.ble_version = CURRENT_VERSION
+            (
+                self.spsm,
+                self.supported_versions,
+            ) = await self.driver.handle_GATT_layer(self.ble_version)
 
-    async def send_message(self, command: bytes, type: MessageType) -> None:
+        if self.mode == Mode.USER_DEVICE:
+            await self.driver.setup_l2cap_connection_user(self.spsm)
+        if self.mode == Mode.READER:
+            await self.driver.setup_l2cap_connection_reader(self.spsm)
+
+    async def send_message(
+        self,
+        message: bytes | Message,
+    ) -> None:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
-        Global.logger.info("sending command: {!r}".format(hexlify(command)))
-        if type == MessageType.REQUEST:
-            protocol_type = ProtocolType.AP
-            id: int = AP_ID.AP_RQ
-        elif type == MessageType.RESPONSE:
-            protocol_type = ProtocolType.AP
-            id = AP_ID.AP_RS
-        elif type == MessageType.INITIATE_ACCESS_PROTOCOL:
-            protocol_type = ProtocolType.NOTIFICATION
-            id = Notification_ID.INITIATE_ACCESS_PROTOCOL
+
+        if isinstance(message, Command):
+            command_bytes = message.to_bytes()
+            Global.logger.info(
+                "Sending AP command: {!r}".format(hexlify(command_bytes))
+            )
+            message_bytes = BleMessage.create_ap_command_message(
+                command_bytes
+            ).to_bytes()
+        elif isinstance(message, Response):
+            command_bytes = message.to_bytes()
+            Global.logger.info(
+                "Sending AP response: {!r}".format(hexlify(command_bytes))
+            )
+            message_bytes = BleMessage.create_ap_response_message(
+                command_bytes
+            ).to_bytes()
+        elif isinstance(message, BleMessage):
+            message_bytes = message.to_bytes()
+            Global.logger.info(
+                "Sending BLE message: {!r}".format(hexlify(message_bytes))
+            )
+        elif isinstance(message, bytes):
+            Global.logger.info("Sending message: {!r}".format(hexlify(message)))
+            message_bytes = message
         else:
-            raise NotImplementedError
+            raise UnexpectedMessageTypeError("Unknown message type")
 
-        message = BleMessage(protocol_type, id, command)
-        Global.logger.info("BLE message: {!r}".format(hexlify(message.to_bytes())))
-        await self.driver.send_le_cb_data(
-            self.driver.connected_devices[0], message.to_bytes()
+        Global.logger.debug(
+            "Sending data using BLE: {!r}".format(hexlify(message_bytes))
         )
+        try:
+            await self.driver.send_le_cb_data(
+                self.driver.connected_devices[0], message_bytes
+            )
+        except (DeviceDisconnectedError, DeviceNotFoundError) as error:
+            raise NoDeviceConnectedError from error
 
-    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
+    async def get_message(self) -> tuple[bytes, int | None, int | None]:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
-        message_bytes = await self.driver.wait_for_data(
-            self.driver.connected_devices[0]
-        )
+        try:
+            message_bytes = await self.driver.wait_for_data(
+                self.driver.connected_devices[0]
+            )
+        except (DeviceDisconnectedError, DeviceNotFoundError) as error:
+            raise NoDeviceConnectedError from error
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
-        if expected_type == MessageType.ANY:
-            pass
-        elif expected_type == MessageType.REQUEST:
-            if message.header != ProtocolType.AP or message.id != AP_ID.AP_RQ:
-                raise UnexpectedMessageTypeError
-        elif expected_type == MessageType.RESPONSE:
-            if message.header != ProtocolType.AP or message.id != AP_ID.AP_RS:
-                raise UnexpectedMessageTypeError
-        elif expected_type == MessageType.INITIATE_ACCESS_PROTOCOL:
-            if (
-                message.header != ProtocolType.NOTIFICATION
-                or message.id != Notification_ID.INITIATE_ACCESS_PROTOCOL
-            ):
-                raise UnexpectedMessageTypeError
-        else:
-            raise NotImplementedError
-        return message.payload
+
+        return message.payload, message.header, message.id
+
+    def get_ble_versions(self) -> tuple[int, list[int]]:
+        """
+        Returns info on the selected and available ble/uwb protocol versions
+
+        Returns:
+            tuple[int, list[int]]: the selected ble/uwb versions, and a list of
+            available versions
+        """
+        return self.ble_version, self.supported_versions

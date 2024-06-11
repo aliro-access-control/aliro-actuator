@@ -25,7 +25,7 @@ from aliro_actuator.access_protocol.defines import (
 from aliro_actuator.access_protocol.reader import Reader, ReaderSession
 
 
-class Test_reader(unittest.TestCase):
+class Test_reader(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.other = subprocess.Popen(
             ["python3", "tests/access_protocol/card_test_1.py"]
@@ -42,15 +42,6 @@ class Test_reader(unittest.TestCase):
             reader_group_sub_identifier=b"sub_reader_group",
         )
         await reader.transaction_initiation()
-
-    async def test_select(self) -> None:
-        reader = Reader(
-            TransportProtocol.SOCKET_NFC,
-            reader_group_identifier=b"test_readergroup",
-            reader_group_sub_identifier=b"sub_reader_group",
-        )
-        await reader.transaction_initiation()
-        response = await reader.command_select(EXPEDITED_PHASE_AID)
 
     async def test_auth0(self) -> None:
         reader = Reader(

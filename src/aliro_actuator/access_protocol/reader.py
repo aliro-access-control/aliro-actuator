@@ -17,12 +17,10 @@ import os
 from binascii import hexlify
 
 from aliro_actuator import READER_GROUP_ID_LENGTH, READER_GROUP_SUB_ID_LENGTH, Global
-from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
     AUTHENTICATION_TAG_SIZE,
     INS,
     Auth1Response,
-    Message,
     Response,
     StatusBytes,
     Transaction,
@@ -39,9 +37,9 @@ from aliro_actuator.access_protocol.defines import (
     STEPUP_PHASE_AID,
     Auth1,
     Exchange,
-    Select,
     TransportProtocol,
 )
+from aliro_actuator.access_protocol.device import Device
 from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
@@ -55,11 +53,19 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseError,
     InvalidStatusError,
     SessionError,
-    UnexpectedNotificationDataError,
+    UnexpectedBLEMessageError,
 )
-from aliro_actuator.access_protocol.tlv import TLV, TlvError
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
-from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
+from aliro_actuator.access_protocol.tlv import TLV
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_encryption import get_ble_encryption
+from aliro_actuator.transport_protocol.ble_message_format import (
+    AP_ID,
+    BleMessage,
+    GeneralError_Values,
+    Notification_ID,
+    ProtocolType,
+)
+from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
@@ -366,7 +372,7 @@ class Reader(Device):
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
         ):
-            # TODO: implement failure event message
+            await self.handle_error_event_ble_message(GeneralError_Values.UNKNOWN_ERROR)
             pass
 
         await self.transaction_termination()
@@ -376,13 +382,22 @@ class Reader(Device):
             raise SessionError("No Session")
 
         Global.logger.info("Waiting for Initiate access protocol notification")
-        response_str = await self.transport_protocol.get_message(
-            MessageType.INITIATE_ACCESS_PROTOCOL
-        )
-        attribute = BleAttribute.from_bytes(response_str)
-        if attribute.id != 0x00:
-            raise AccessProtocolError("User send unknown attribute ID")
-        self.session.set_initiate_access_protocol_info(attribute.value)
+        response_str, header, id = await self.transport_protocol.get_message()
+        if (
+            header != ProtocolType.NOTIFICATION
+            or id != Notification_ID.INITIATE_ACCESS_PROTOCOL
+        ):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "initiate_access_protocol message",
+                header,
+                id,
+            )
+
+        message = BleMessage(header, id, response_str)
+        message.parse_payload(self.session.get_ble_encryption())
+
+        self.session.set_initiate_access_protocol_info(message)
 
         if self.session.application_type != CSA_APPLICATION_TYPE:
             raise AccessProtocolError("User send unknown application type")
@@ -409,6 +424,10 @@ class Reader(Device):
             )
 
         Global.logger.info("Initiate access protocol notification handling done")
+
+    async def handle_error_event_ble_message(self, error_code: int) -> None:
+        message = BleMessage.create_error_event_message(error_code)
+        await self.transport_protocol.send_message(message)
 
     async def handle_select(self, aid: bytes) -> None:
         """
@@ -604,6 +623,7 @@ class Reader(Device):
                     "decrypted cryptogram: {!r}".format(hexlify(decrypted_cryptogram))
                 )
                 self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
+                self.session.set_credential_public_key(entry.access_credential)
                 return
             except VerificationError:
                 Global.logger.info("decryption failed, trying next key in storage")
@@ -656,6 +676,12 @@ class Reader(Device):
         Global.logger.info("Create shared keys")
         self.session.set_shared_key()
         self.session.derive_key_volatile(self.transport_protocol_type)
+        if self.transport_protocol_type in [
+            TransportProtocol.BLE_UWB,
+            TransportProtocol.SOCKET_BLE,
+        ]:
+            Global.logger.info("Setting up BLE encryption")
+            self.session.set_ble_encryption(self.transport_protocol)
 
         Global.logger.info(
             "Start handling AUTH1 with key type request: {}".format(
@@ -898,6 +924,7 @@ class Reader(Device):
         )
 
         Global.logger.info("Checking read data")
+        read_data = []
         if len(response.read_data) == 0:
             if read_requests is not None and len(read_requests) != 0:
                 raise AccessProtocolError(
@@ -907,7 +934,6 @@ class Reader(Device):
             else:
                 Global.logger.info("No read data found, as expected")
         else:
-            read_data = []
             index = 0
             while index < len(response.read_data):
                 length = int.from_bytes(response.read_data[index : index + 2], "big")
@@ -926,6 +952,34 @@ class Reader(Device):
         Global.logger.info("Handling EXCHANGE response done")
 
         return read_data
+
+    async def reader_status_access_protocol_completed(
+        self, unsolicited_reader_status_reporting: int, reader_status_information: int
+    ) -> None:
+        """
+        Send the BLE message Reader Status Access Protocol Completed.
+        """
+        Global.logger.info(
+            "Sending Reader Status Access Protocol Completed BLE message"
+        )
+
+        message = BleMessage.create_access_protocol_completed(
+            unsolicited_reader_status_reporting, reader_status_information
+        )
+        await self.transport_protocol.send_message(message)
+
+    def check_ble_message_type_for_response(
+        self, header: int | None, id: int | None
+    ) -> None:
+        if (header is not None and header != ProtocolType.AP) or (
+            id is not None and id != AP_ID.AP_RS
+        ):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP response message",
+                header,
+                id,
+            )
 
     async def command_auth0(
         self,
@@ -964,12 +1018,11 @@ class Reader(Device):
         )
 
         Global.logger.info("Sending AUTH0 command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for AUTH0 response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.AUTH0)
 
@@ -1011,12 +1064,12 @@ class Reader(Device):
         command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
         Global.logger.info("Sending AUTH1 command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for AUTH1 response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.AUTH1, encryption)
 
@@ -1035,12 +1088,12 @@ class Reader(Device):
         command = self.apdu.create_select_command(aid)
 
         Global.logger.info("Sending SELECT command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for SELECT response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.SELECT)
 
@@ -1065,12 +1118,12 @@ class Reader(Device):
         command = self.apdu.create_load_cert_command(compressed_cert)
 
         Global.logger.info("Sending LOAD CERT command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for LOAD CERT response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.LOAD_CERT)
 
@@ -1094,12 +1147,12 @@ class Reader(Device):
         command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
 
         Global.logger.info("Sending EXCHANGE command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for EXCHANGE response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.EXCHANGE, encryption)
 
@@ -1122,12 +1175,12 @@ class Reader(Device):
         command = self.apdu.create_control_flow_command(s1, s2, domain_specific_data)
 
         Global.logger.info("Sending CONTROL FLOW command")
-        await self.transport_protocol.send_message(
-            command.to_bytes(), MessageType.REQUEST
-        )
+        await self.transport_protocol.send_message(command)
 
         Global.logger.info("Waiting for CONTROL FLOW response")
-        response_str = await self.transport_protocol.get_message()
+        response_str, header, id = await self.transport_protocol.get_message()
+        self.check_ble_message_type_for_response(header, id)
+
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
 
@@ -1149,6 +1202,7 @@ class ReaderSession:
         self.reader_identifier = reader_identifier
         self.command_vendor_extension = vendor_extension
         self.response_vendor_extension: bytes | None = None
+        self.ble_encryption_engine: EncryptionEngine | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -1177,111 +1231,15 @@ class ReaderSession:
         self.proprietary_tlv = select_response.proprietary_tlv
 
     def set_initiate_access_protocol_info(
-        self, initiate_access_protocol_notification: bytes
+        self, initiate_ap_notification: BleMessage
     ) -> None:
-        Global.logger.debug(
-            "Initiate access protocol TLV: {!r}".format(
-                hexlify(initiate_access_protocol_notification)
-            )
+        self.application_type = initiate_ap_notification.application_type
+        self.expedited_phase_supported_protocol_versions = (
+            initiate_ap_notification.expedited_phase_supported_protocol_versions
         )
-        try:
-            self.proprietary_tlv = TLV.from_bytes(initiate_access_protocol_notification)
-        except TlvError as error:
-            raise UnexpectedNotificationDataError(
-                initiate_access_protocol_notification,
-                "Proprietary information is not a valid TLV",
-            ) from error
-
-        try:
-            type_bytes = self.proprietary_tlv.get_bytes(Select.TYPE_TAG)
-            if len(type_bytes) != Select.TYPE_LEN:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification, "Type has invalid length"
-                )
-            self.application_type = int.from_bytes(type_bytes, byteorder="big")
-            Global.logger.debug("type: {}".format(self.application_type))
-        except IndexError as error:
-            raise UnexpectedNotificationDataError(
-                initiate_access_protocol_notification,
-                "missing Type, tag: {:#x}".format(error.args[0]),
-            ) from error
-
-        try:
-            etspv_bytes = self.proprietary_tlv.get_bytes(Select.ETSPV_TAG)
-            if (len(etspv_bytes) % 2) == 1:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification,
-                    "expedited_phase_supported_protocol_versions has invalid length",
-                )
-            self.expedited_phase_supported_protocol_versions = (
-                Message._data_to_2byte_list(etspv_bytes)
-            )
-            Global.logger.debug(
-                "expedited transaction supported protocol versions: {}".format(
-                    self.expedited_phase_supported_protocol_versions
-                )
-            )
-        except IndexError as error:
-            raise UnexpectedNotificationDataError(
-                initiate_access_protocol_notification,
-                "missing expedited_phase_supported_protocol_versions, tag: {:#x}".format(
-                    error.args[0]
-                ),
-            ) from error
-
-        self.maximum_command_apdu = None
-        self.maximum_response_apdu = None
-        try:
-            extended_length = self.proprietary_tlv.get_tlv(Select.EXTENDED_INFO_TAG)
-            if len(extended_length.to_bytes()) != Select.EXTENDED_INFO_LEN:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification,
-                    "Extended Length Information has invalid length",
-                )
-            try:
-                self.maximum_command_apdu = int.from_bytes(
-                    extended_length.get_bytes(Select.MAX_COMMAND_TAG, index=0), "big"
-                )
-            except IndexError as error:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification,
-                    "missing Maximum Command APDU, tag: {:#x}".format(error.args[0]),
-                ) from error
-            try:
-                self.maximum_response_apdu = int.from_bytes(
-                    extended_length.get_bytes(Select.MAX_RESPONSE_TAG, index=1), "big"
-                )
-            except IndexError as error:
-                raise UnexpectedNotificationDataError(
-                    initiate_access_protocol_notification,
-                    "missing Maximum response, tag: {:#x}".format(error.args[0]),
-                ) from error
-        except IndexError:
-            pass
-        Global.logger.debug(
-            "maximum command apdu: {}".format(self.maximum_command_apdu)
-        )
-        Global.logger.debug(
-            "maximum response apdu: {}".format(self.maximum_response_apdu)
-        )
-
-        self.vendor_specific_extensions = None
-        try:
-            self.vendor_specific_extensions = self.proprietary_tlv.get_tlv(
-                Select.VENDOR_SPECIFIC_TAG
-            )
-            Global.logger.debug(
-                "vendor specific extensions: {!r}".format(
-                    hexlify(self.vendor_specific_extensions.to_bytes())
-                )
-            )
-        except IndexError:
-            pass
-        except TlvError as error:
-            raise UnexpectedNotificationDataError(
-                initiate_access_protocol_notification,
-                "Vendor specific extensions is not a valid TLV",
-            ) from error
+        self.maximum_command_apdu = initiate_ap_notification.maximum_command_apdu
+        self.maximum_response_apdu = initiate_ap_notification.maximum_response_apdu
+        self.proprietary_tlv = initiate_ap_notification.proprietary_tlv
 
     @property
     def transaction_identifier(self) -> bytes:
@@ -1502,6 +1460,18 @@ class ReaderSession:
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
+
+    def set_ble_encryption(self, transport_protocol: TransportProtocolBase) -> None:
+        if not isinstance(transport_protocol, BLEUWB):
+            raise AccessProtocolError("Trying to set BLE encryption while using NFC")
+
+        selected_version, available_versions = transport_protocol.get_ble_versions()
+        self.ble_encryption_engine = get_ble_encryption(
+            DeviceType.READER, self.ble_SK, selected_version, available_versions
+        )
+
+    def get_ble_encryption(self) -> EncryptionEngine | None:
+        return self.ble_encryption_engine
 
     def encrypt_payload(self, payload: bytes) -> tuple[bytes, bytes]:
         return self.encryption.encrypt(payload)

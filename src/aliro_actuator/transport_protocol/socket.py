@@ -16,11 +16,14 @@ import socket
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
+from aliro_actuator.access_protocol.apdu import APDUMessage
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
     InvalidModeError,
     NoDataReceivedError,
 )
+from aliro_actuator.transport_protocol.message import Message
 
 PORT = 5000
 TIMEOUT = 20  # seconds
@@ -57,9 +60,6 @@ class Socket(TransportProtocolBase):
             self.host.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.host.settimeout(TIMEOUT)
 
-    async def disconnect(self) -> None:
-        pass
-
     async def wait_for_connection(self) -> None:
         if self.mode == Mode.READER:
             self.client.connect((socket.gethostname(), PORT))
@@ -68,31 +68,37 @@ class Socket(TransportProtocolBase):
             self.host.listen(1)
             self.host, address = self.host.accept()
 
-    def disconnect(self) -> None:
+    async def disconnect(self) -> None:
         if self.mode == Mode.READER:
             self.client.close()
         elif self.mode == Mode.USER_DEVICE:
             self.host.close()
 
-    async def send_message(self, command: bytes, type: MessageType) -> None:
-        Global.logger.debug("sending message {!r}".format(hexlify(command)))
-        if self.mode == Mode.READER:
-            self.client.send(command)
-        elif self.mode == Mode.USER_DEVICE:
-            self.host.send(command)
+    async def send_message(
+        self,
+        message: bytes | Message,
+    ) -> None:
+        if not isinstance(message, bytes):
+            message = message.to_bytes()
 
-    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
+        Global.logger.debug("sending message {!r}".format(hexlify(message)))
+        if self.mode == Mode.READER:
+            self.client.send(message)
+        elif self.mode == Mode.USER_DEVICE:
+            self.host.send(message)
+
+    async def get_message(self) -> tuple[bytes, int | None, int | None]:
         if self.mode == Mode.READER:
             data = self.client.recv(4096)
             if data == b"":
                 raise NoDataReceivedError
             Global.logger.debug("received message {!r}".format(hexlify(data)))
-            return data
+            return data, None, None
         elif self.mode == Mode.USER_DEVICE:
             data = self.host.recv(4096)
             if data == b"":
                 raise NoDataReceivedError
             Global.logger.debug("received message {!r}".format(hexlify(data)))
-            return data
+            return data, None, None
         else:
             raise InvalidModeError

@@ -33,6 +33,8 @@ class ConfirmStatus(IntEnum):
     OS_ERROR = 0x07
     UNEXPECTED_ERROR = 0x08
     INVALID_STATE = 0x09
+    CALLBACK_ALREADY_INSTALLED = 0x03F3
+    LE_PSM_ALREADY_REGISTERED = 0x3F5
 
 
 class Message:
@@ -148,6 +150,13 @@ class Message:
                     raise ErrorReturnedError(result)
                 return connection_complete_structure[0]
         elif (
+            self.op_group == OpGroup.L2CAP
+            and self.op_code == OpCodeL2CAP.LE_PSM_CONNECTION_REQUEST
+        ):
+            if self.data[0] == 0x01:
+                connection_request_structure = self.data[1:]
+                return connection_request_structure[0]
+        elif (
             self.op_group == OpGroup.GATT
             and self.op_code == OpCodeGATT.ATTRIBUTE_WRITTEN
         ):
@@ -177,7 +186,7 @@ class Message:
             and self.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
         ):
             address_type = self.data[0]
-            address = self.data[1:7]
+            address = change_endianness(self.data[1:7])
             advertising_address_resolved = self.data[-1]
             return (address_type, address, advertising_address_resolved)
         raise NotImplementedError

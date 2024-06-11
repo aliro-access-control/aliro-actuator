@@ -19,10 +19,10 @@ from os import urandom
 from aliro_actuator import Global
 from aliro_actuator.access_document.access_credential import AccessDocument
 from aliro_actuator.access_document.revocation_document import RevocationDocument
-from aliro_actuator.access_protocol import Device
 from aliro_actuator.access_protocol.apdu import (
     INS,
     TLV,
+    APDUMessage,
     Auth1Response,
     Command,
     StatusBytes,
@@ -40,6 +40,7 @@ from aliro_actuator.access_protocol.defines import (
     Auth0,
     TransportProtocol,
 )
+from aliro_actuator.access_protocol.device import Device
 from aliro_actuator.access_protocol.encryption import (
     DeviceType,
     EncryptionEngine,
@@ -55,12 +56,21 @@ from aliro_actuator.access_protocol.errors import (
     InvalidCommandError,
     InvalidParameterError,
     SessionError,
+    UnexpectedBLEMessageError,
     UnexpectedCommandError,
     VersionError,
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
-from aliro_actuator.transport_protocol.ble_message_format import BleAttribute
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_encryption import get_ble_encryption
+from aliro_actuator.transport_protocol.ble_message_format import (
+    AP_ID,
+    BleMessage,
+    Event_AttributeID,
+    Notification_ID,
+    ProtocolType,
+)
+from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -265,7 +275,7 @@ class UserDevice(Device):
                 try:
                     if self.session is None:
                         raise SessionError("starting session failed")
-                    command = await self.wait_for_command(
+                    message = await self.wait_for_message(
                         encryption=self.session.encryption
                     )
                 except (InvalidCommandError, VerificationError):
@@ -275,30 +285,31 @@ class UserDevice(Device):
                     # try to reconnect in outer loop
                     break
                 try:
-                    match command.ins:
-                        case INS.SELECT:
-                            await self.handle_select(command)
-                        case INS.AUTH0:
-                            await self.handle_auth0(command)
-                        case INS.AUTH1:
-                            await self.handle_auth1(command)
-                        case INS.LOAD_CERT:
-                            await self.handle_load_cert(command)
-                        case INS.CONTROL_FLOW:
-                            await self.handle_control_flow(command)
-                            await self.transaction_termination()
-                            break
-                        case INS.EXCHANGE:
-                            await self.handle_exchange(command)
-                        case _:
-                            raise NotImplementedError(
-                                "command: {} not implemented".format(command.ins)
-                            )
+                    if isinstance(message, Command):
+                        match message.ins:
+                            case INS.SELECT:
+                                await self.handle_select(message)
+                            case INS.AUTH0:
+                                await self.handle_auth0(message)
+                            case INS.AUTH1:
+                                await self.handle_auth1(message)
+                            case INS.LOAD_CERT:
+                                await self.handle_load_cert(message)
+                            case INS.CONTROL_FLOW:
+                                await self.handle_control_flow(message)
+                                await self.transaction_termination()
+                                break
+                            case INS.EXCHANGE:
+                                await self.handle_exchange(message)
+                            case _:
+                                raise NotImplementedError(
+                                    "command: {} not implemented".format(message.ins)
+                                )
+                    else:
+                        self.handle_ble_messages(message)
                 except AccessProtocolError as error:
                     Global.logger.error(
-                        "restarting session because of error: {}".format(
-                            error.__class__.__name__
-                        )
+                        "restarting session because of error: {}".format(repr(error))
                     )
                     # main loop should continue even when commands are not valid
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
@@ -306,6 +317,25 @@ class UserDevice(Device):
                 except NoDeviceConnectedError:
                     # try to reconnect in outer loop
                     break
+
+    def handle_ble_messages(self, message: BleMessage) -> None:
+        Global.logger.info("Handling (non command) ble message")
+        if (
+            message.header == ProtocolType.NOTIFICATION
+            and message.id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
+        ):
+            self.handle_reader_status_access_protocol_completed_message(message)
+        elif (
+            message.header == ProtocolType.NOTIFICATION
+            and message.id == Notification_ID.EVENT
+        ):
+            self.handle_event_message(message)
+        else:
+            raise UnexpectedBLEMessageError(
+                "Received unhandleable ble message",
+                message.header,
+                message.id,
+            )
 
     def start_new_session(self) -> None:
         """
@@ -335,9 +365,7 @@ class UserDevice(Device):
         Destroys all session bound keys and data.
         """
         response = self.apdu.create_error_response(error_code)
-        await self.transport_protocol.send_message(
-            response.to_bytes(), MessageType.RESPONSE
-        )
+        await self.transport_protocol.send_message(response)
 
         await self.transaction_termination()
 
@@ -349,10 +377,8 @@ class UserDevice(Device):
             CSA_APPLICATION_TYPE,
             self.supported_versions,
         )
-        attribute = BleAttribute(0x00, proprietary.to_bytes())
-        await self.transport_protocol.send_message(
-            attribute.to_bytes(), MessageType.INITIATE_ACCESS_PROTOCOL
-        )
+        message = BleMessage.create_initiate_access_protocol(proprietary.to_bytes())
+        await self.transport_protocol.send_message(message)
 
     async def handle_select(self, select_command: Command) -> bytes:
         """
@@ -620,6 +646,13 @@ class UserDevice(Device):
             Global.logger.info("Creating shared keys")
             self.session.set_shared_key()
             self.session.derive_key_volatile(self.transport_protocol_type)
+            if self.transport_protocol_type in [
+                TransportProtocol.BLE_UWB,
+                TransportProtocol.SOCKET_BLE,
+            ]:
+                Global.logger.info("Setting up BLE encryption")
+                self.session.set_ble_encryption(self.transport_protocol)
+
             Global.logger.info("Creating Kpersistent")
             self.storage.add_kpersistent(
                 kpersistent=self.session.derive_key_persistent(
@@ -880,6 +913,64 @@ class UserDevice(Device):
 
         Global.logger.info("Handling CONTROL FLOW command done")
 
+    def handle_reader_status_access_protocol_completed_message(
+        self, message: BleMessage
+    ) -> None:
+        Global.logger.info("Handling Reader Status Access Protocol Completed message")
+        message.check_header_and_id(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED,
+        )
+        message.parse_payload(self.session.get_ble_encryption())
+
+    def handle_event_message(self, message: BleMessage) -> None:
+        Global.logger.info("Handling Event message")
+        message.check_header_and_id(ProtocolType.NOTIFICATION, Notification_ID.EVENT)
+        message.parse_payload(self.session.get_ble_encryption())
+        if message.attribute.id == Event_AttributeID.GENERAL_ERROR:
+            Global.logger.warning(
+                "Received General Error, with reason: {}".format(
+                    message.reason_code.name
+                )
+            )
+        else:
+            raise NotImplementedError
+
+    async def wait_for_ble_message(
+        self,
+        expected_command: INS | list[INS] | None = None,
+        encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        """
+        Waits until a ble message is received.
+
+        Args:
+            expected_command (INS | list[INS] | None, optional): INS or list of INS with
+            expected commands. raises UnexpectedCommandError if another command is
+            received. Defaults to None.
+            encryption (EncryptionEngine | None, optional): Used for decrypting
+            messages.
+            Not required for every command. Defaults to None.
+
+        Raises:
+            InvalidCLAError: Raised when the received command has an invalid CLA.
+            InvalidParameterError: Raised when the received command has an invalid
+            Parameter (P1 or P2).
+            InvalidCommandError: Raised when the received command is invalid.
+            VerificationError: Raised when the verification of an AES decryption fails.
+            UnexpectedCommandError: when the command is not in expected_command.
+
+        Returns:
+            BleMessage: the received ble message.
+        """
+        message = await self.wait_for_message(expected_command, encryption)
+        if not isinstance(message, BleMessage):
+            raise AccessProtocolError(
+                "Received unexpected command while waiting for BLE message : "
+                "{!r}".format(hexlify(message.to_bytes()))
+            )
+        return message
+
     async def wait_for_command(
         self,
         expected_command: INS | list[INS] | None = None,
@@ -890,13 +981,53 @@ class UserDevice(Device):
 
         Args:
             expected_command (INS | list[INS] | None, optional): INS or list of INS with
-            expected commands. raises UnexpectedCommandError if another command is received. Defaults to None.
-            encryption (EncryptionEngine | None, optional): Used for decrypting messages.
+            expected commands. raises UnexpectedCommandError if another command is
+            received. Defaults to None.
+            encryption (EncryptionEngine | None, optional): Used for decrypting
+            messages.
             Not required for every command. Defaults to None.
 
         Raises:
             InvalidCLAError: Raised when the received command has an invalid CLA.
-            InvalidParameterError: Raised when the received command has an invalid Paramenter (P1 or P2).
+            InvalidParameterError: Raised when the received command has an invalid
+            Parameter (P1 or P2).
+            InvalidCommandError: Raised when the received command is invalid.
+            VerificationError: Raised when the verification of an AES decryption fails.
+            UnexpectedCommandError: when the command is not in expected_command.
+
+        Returns:
+            Command: the received command.
+        """
+        message = await self.wait_for_message(expected_command, encryption)
+        if not isinstance(message, APDUMessage):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP request message",
+                message.header,
+                message.id,
+            )
+        return message
+
+    async def wait_for_message(
+        self,
+        expected_command: INS | list[INS] | None = None,
+        encryption: EncryptionEngine | None = None,
+    ) -> Command | BleMessage:
+        """
+        Waits until a message is received, and parses it if it is a command.
+
+        Args:
+            expected_command (INS | list[INS] | None, optional): INS or list of INS with
+            expected commands. raises UnexpectedCommandError if another command is
+            received. Defaults to None.
+            encryption (EncryptionEngine | None, optional): Used for decrypting
+            messages.
+            Not required for every command. Defaults to None.
+
+        Raises:
+            InvalidCLAError: Raised when the received command has an invalid CLA.
+            InvalidParameterError: Raised when the received command has an invalid
+            Parameter (P1 or P2).
             InvalidCommandError: Raised when the received command is invalid.
             VerificationError: Raised when the verification of an AES decryption fails.
             UnexpectedCommandError: when the command is not in expected_command.
@@ -908,8 +1039,21 @@ class UserDevice(Device):
             expected_command = [expected_command]
 
         Global.logger.info("Waiting for command")
-        command_str = await self.transport_protocol.get_message()
-        Global.logger.info("Received command")
+        command_str, header, id = await self.transport_protocol.get_message()
+        if (header is None and id is None) or (
+            header == ProtocolType.AP and id == AP_ID.AP_RQ
+        ):
+            Global.logger.info("Received command")
+        elif header is not None and id is not None:
+            Global.logger.info(
+                "Received BLE message with header: 0x{:02x} and id: 0x{:02x}".format(
+                    header, id
+                )
+            )
+            return BleMessage(header, id, command_str)
+        else:
+            raise AccessProtocolError("Message invalid (missing header or id)")
+
         try:
             command = self.apdu.parse_command(command_str, encryption)
         except InvalidCLAError as error:
@@ -944,9 +1088,7 @@ class UserDevice(Device):
             credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
         Global.logger.info("Sending AUTH0 response")
-        await self.transport_protocol.send_message(
-            auth0_response.to_bytes(), MessageType.RESPONSE
-        )
+        await self.transport_protocol.send_message(auth0_response)
 
     async def response_auth1(
         self,
@@ -990,9 +1132,7 @@ class UserDevice(Device):
             revocation_signed_timestamp,
         )
         Global.logger.info("Sending AUTH1 response")
-        await self.transport_protocol.send_message(
-            auth1_response.to_bytes(), MessageType.RESPONSE
-        )
+        await self.transport_protocol.send_message(auth1_response)
 
     async def response_select(
         self,
@@ -1024,9 +1164,7 @@ class UserDevice(Device):
             vendor_specific_tlv=vendor_specific_tlv,
         )
         Global.logger.info("Sending SELECT response")
-        await self.transport_protocol.send_message(
-            select_response.to_bytes(), MessageType.RESPONSE
-        )
+        await self.transport_protocol.send_message(select_response)
 
     def response_envelope(self) -> None:
         raise NotImplementedError
@@ -1040,9 +1178,7 @@ class UserDevice(Device):
         """
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
         Global.logger.info("Sending LOAD CERT response")
-        await self.transport_protocol.send_message(
-            load_cert_response.to_bytes(), MessageType.RESPONSE
-        )
+        await self.transport_protocol.send_message(load_cert_response)
 
     async def response_exchange(
         self,
@@ -1060,9 +1196,7 @@ class UserDevice(Device):
             payload, encryption, StatusBytes.SUCCESS
         )
         Global.logger.info("Sending EXCHANGE response")
-        await self.transport_protocol.send_message(
-            exchange_response.to_bytes(), MessageType.RESPONSE
-        )
+        await self.transport_protocol.send_message(exchange_response)
 
     async def response_control_flow(self) -> None:
         """
@@ -1072,9 +1206,7 @@ class UserDevice(Device):
             StatusBytes.SUCCESS
         )
         Global.logger.info("Sending CONTROL FLOW response")
-        await self.transport_protocol.send_message(
-            control_flow_response.to_bytes(), MessageType.RESPONSE
-        )
+        await self.transport_protocol.send_message(control_flow_response)
 
 
 class UserSessionState(Enum):
@@ -1102,6 +1234,7 @@ class UserSession:
         self.encryption: EncryptionEngine | None = None
         self.command_vendor_extension: bytes | None = None
         self.response_vendor_extension = vendor_extension
+        self.ble_encryption_engine: EncryptionEngine | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -1291,6 +1424,18 @@ class UserSession:
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
+
+    def set_ble_encryption(self, transport_protocol: TransportProtocolBase) -> None:
+        if not isinstance(transport_protocol, BLEUWB):
+            raise AccessProtocolError("Trying to set BLE encryption while using NFC")
+
+        selected_version, available_versions = transport_protocol.get_ble_versions()
+        self.ble_encryption = get_ble_encryption(
+            DeviceType.USER, self.ble_SK, selected_version, available_versions
+        )
+
+    def get_ble_encryption(self) -> EncryptionEngine | None:
+        return self.ble_encryption_engine
 
     def set_cert_and_verify(
         self, compressed_cert: bytes, public_key: PublicKey
