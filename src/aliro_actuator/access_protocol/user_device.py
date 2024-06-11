@@ -274,61 +274,80 @@ class UserDevice(Device):
         """
 
         while True:
-            await self.transaction_initiation()
-            while True:
-                try:
-                    if self.session is None:
-                        raise SessionError("starting session failed")
-                    message = await self.wait_for_message(
-                        encryption=self.session.encryption
-                    )
-                except (InvalidCommandError, VerificationError):
-                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
-                    break
-                except NoDeviceConnectedError:
-                    # try to reconnect in outer loop
-                    break
-                try:
-                    if isinstance(message, Command):
-                        match message.ins:
-                            case INS.SELECT:
-                                await self.handle_select(message)
-                            case INS.AUTH0:
-                                await self.handle_auth0(message)
-                            case INS.AUTH1:
-                                await self.handle_auth1(message)
-                            case INS.LOAD_CERT:
-                                await self.handle_load_cert(message)
-                            case INS.CONTROL_FLOW:
-                                await self.handle_control_flow(message)
-                                await self.transaction_termination()
-                                break
-                            case INS.EXCHANGE:
-                                await self.handle_exchange(message)
-                            case _:
-                                raise NotImplementedError(
-                                    "command: {} not implemented".format(message.ins)
-                                )
-                    else:
-                        await self.handle_ble_messages(message)
-                except AccessProtocolError as error:
-                    Global.logger.error(
-                        "restarting session because of error: {}".format(repr(error))
-                    )
-                    # main loop should continue even when commands are not valid
-                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
-                    break
-                except NoDeviceConnectedError:
-                    # try to reconnect in outer loop
-                    break
+            self.single_transaction()
 
-    async def handle_ble_messages(self, message: BleMessage) -> None:
+    async def single_transaction(self) -> None:
+        """
+        Handles a single transaction.
+        Returns when completed or an error occurred.
+        """
+        await self.transaction_initiation()
+        while True:
+            try:
+                if self.session is None:
+                    raise SessionError("starting session failed")
+                message = await self.wait_for_message(
+                    encryption=self.session.encryption
+                )
+            except (InvalidCommandError, VerificationError):
+                await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                return
+            except NoDeviceConnectedError:
+                return
+            try:
+                if isinstance(message, Command):
+                    match message.ins:
+                        case INS.SELECT:
+                            await self.handle_select(message)
+                        case INS.AUTH0:
+                            await self.handle_auth0(message)
+                        case INS.AUTH1:
+                            await self.handle_auth1(message)
+                        case INS.LOAD_CERT:
+                            await self.handle_load_cert(message)
+                        case INS.CONTROL_FLOW:
+                            await self.handle_control_flow(message)
+                            await self.transaction_termination()
+                            return
+                        case INS.EXCHANGE:
+                            await self.handle_exchange(message)
+                        case _:
+                            raise NotImplementedError(
+                                "command: {} not implemented".format(message.ins)
+                            )
+                else:
+                    completed = await self.handle_ble_messages(message)
+                    if completed:
+                        await self.transaction_termination()
+                        return
+            except AccessProtocolError as error:
+                Global.logger.error(
+                    "restarting session because of error: {}".format(repr(error))
+                )
+                await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                return
+            except NoDeviceConnectedError:
+                return
+
+    async def handle_ble_messages(self, message: BleMessage) -> bool:
+        """Handles ble messages
+
+        Args:
+            message (BleMessage): The message to handle
+
+        Raises:
+            UnexpectedBLEMessageError: raised when the messages is unknown
+
+        Returns:
+            bool: True when the access protocol is completed, else False
+        """
         Global.logger.info("Handling (non command) ble message")
         if (
             message.header == ProtocolType.NOTIFICATION
             and message.id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
         ):
             self.handle_reader_status_access_protocol_completed_message(message)
+            return True
         elif (
             message.header == ProtocolType.NOTIFICATION
             and message.id == Notification_ID.EVENT
