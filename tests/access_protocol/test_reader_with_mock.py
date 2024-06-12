@@ -495,7 +495,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
             transaction_identifier_list=[transaction_identifier],
         )
         reader.start_new_session()
-        reader.session.encryption = encryption_reader
+        reader.session.encryption_expedited = encryption_reader
         await reader.handle_exchange(
             atomic_session=False,
             read_requests=None,
@@ -543,7 +543,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
             transaction_identifier_list=[transaction_identifier],
         )
         reader.start_new_session()
-        reader.session.encryption = encryption_reader
+        reader.session.encryption_expedited = encryption_reader
         read_data = await reader.handle_exchange(
             atomic_session=False,
             read_requests=[(0, 2), (0x10, 0x20)],

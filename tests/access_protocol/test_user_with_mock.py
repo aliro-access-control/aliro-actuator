@@ -157,7 +157,9 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             mock_nfc,
             access_credentials=[
                 AccessCredential(
-                    user_keys, [(reader_identifier[:16], reader_keys.get_public_key())]
+                    user_keys,
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
         )
@@ -197,7 +199,9 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             mock_nfc,
             access_credentials=[
                 AccessCredential(
-                    user_keys, [(reader_identifier[:16], reader_keys.get_public_key())]
+                    user_keys,
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
         )
@@ -246,7 +250,9 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             fast_transaction_implemented=False,
             access_credentials=[
                 AccessCredential(
-                    user_keys, [(reader_identifier[:16], reader_keys.get_public_key())]
+                    user_keys,
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
         )
@@ -404,7 +410,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
                     ),
                 ],
                 reader_system_issuer_ca_certificate_id_key_list=[
-                    (reader_identifier[:16], reader_key),
+                    (reader_id[:16], reader_key),
                 ],
             )
         ]
@@ -521,7 +527,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         user = UserDevice(TransportProtocol.NFC, mock_nfc, mailbox=0x20)
         user.start_new_session()
         user.session.update_state(UserSessionState.AUTH1_DONE)
-        user.session.encryption = EncryptionEngine(
+        user.session.encryption_expedited = EncryptionEngine(
             DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
         command = await user.wait_for_command()
@@ -552,7 +558,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         )
         user.start_new_session()
         user.session.update_state(UserSessionState.AUTH1_DONE)
-        user.session.encryption = EncryptionEngine(
+        user.session.encryption_expedited = EncryptionEngine(
             DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
         command = await user.wait_for_command()
