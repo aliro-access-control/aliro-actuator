@@ -14,6 +14,8 @@
 
 from binascii import hexlify
 
+import ucitool.base_uci.helpers.uci_helper as uci
+
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.apdu import Command, Response
 from aliro_actuator.hw_driver.murata_driver import (
@@ -78,12 +80,23 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
             )
+            await self.driver.uci_initialize(
+                session_id=0,
+                dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
+                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
+            )
         elif self.mode == Mode.USER_DEVICE:
             truncated_list = list(map(lambda x: x[:8], reader_group_identifier_list))
             self.driver = UserDeviceMurataDriver(self.port, self.baudrate)
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
                 reader_group_identifier_list=truncated_list,
+            )
+
+            await self.driver.uci_initialize(
+                session_id=0,
+                dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
+                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
             )
 
     async def disconnect(self) -> None:
