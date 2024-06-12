@@ -1,11 +1,13 @@
+import asyncio
+
 import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator.hw_driver.murata_driver.uwb_driver import MurataUWBDriver
 
 
-def main():
+async def main():
     driver = MurataUWBDriver("/dev/ttyUSB0", 576000)
-    driver.uci_initialize(
+    await driver.uci_initialize(
         session_id=0,
         dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
         dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
@@ -19,4 +21,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
