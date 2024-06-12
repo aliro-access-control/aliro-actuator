@@ -34,6 +34,7 @@
         "spsm",
         "transceive",
         "type",
+        "unhandleable",
         "urandom",
         "ursk",
         "wlan"

@@ -15,11 +15,11 @@
 import subprocess
 import unittest
 
-from aliro_actuator.transport_protocol import MessageType, Mode
+from aliro_actuator.transport_protocol import Mode
 from aliro_actuator.transport_protocol.socket import Socket
 
 
-class Test_socket_card(unittest.TestCase):
+class Test_socket_card(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.other = subprocess.Popen(
             ["python3", "tests/transport_protocol/reader_test.py"]
@@ -32,12 +32,12 @@ class Test_socket_card(unittest.TestCase):
         card = Socket()
         await card.initialization(Mode.USER_DEVICE)
         await card.wait_for_connection()
-        card.disconnect()
+        await card.disconnect()
 
     async def test_send(self) -> None:
         card = Socket()
         await card.initialization(Mode.USER_DEVICE)
         await card.wait_for_connection()
-        await card.send_message(bytes([0x12, 0x34, 0x56, 0x78]), MessageType.REQUEST)
-        self.assertEqual(bytes([0x13, 0x35, 0x57, 0x79]), await card.get_message())
-        card.disconnect()
+        await card.send_message(bytes([0x12, 0x34, 0x56, 0x78]))
+        self.assertEqual(bytes([0x13, 0x35, 0x57, 0x79]), (await card.get_message())[0])
+        await card.disconnect()

@@ -3,7 +3,7 @@ from binascii import hexlify
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
-from aliro_actuator.hw_driver.murata_driver.fsci import Message
+from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
 from aliro_actuator.hw_driver.murata_driver.gatt import (
     Characteristic,
     Permissions,
@@ -19,6 +19,30 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import (
 
 
 class MurataGATTServerDriver(MurataBaseDriver):
+    async def release_database(self) -> None:
+        Global.logger.debug("Release database")
+        message = Message(
+            OpGroup.GATT_DB,
+            OpCodeGATTDB.RELEASE_DATABASE,
+        )
+        self.write(message)
+        await self.wait_for_confirm(
+            OpGroup.GATT_DB, [ConfirmStatus.SUCCESS, ConfirmStatus.INVALID_STATE]
+        )
+        Global.logger.debug("Release database done")
+
+    async def gattbd_initialize(self) -> None:
+        Global.logger.debug("Initialize GATTDB")
+        message = Message(
+            OpGroup.GATT_DB,
+            OpCodeGATTDB.DYN_INIT,
+        )
+        self.write(message)
+        await self.wait_for_confirm(
+            OpGroup.GATT_DB, [ConfirmStatus.SUCCESS, ConfirmStatus.INVALID_STATE]
+        )
+        Global.logger.debug("Initialize GATTDB")
+
     async def add_primary_service_declaration(
         self, handle: int, uuid: bytes, uuid_type: UuidType = UuidType.uuid_16_bits
     ) -> int:

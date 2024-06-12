@@ -104,10 +104,22 @@ class EncryptionEngine:
             tuple[bytes, bytes]: tuple of the encrypted data and the authentication tag.
         """
         iv = self.encryption_iv_pt1 + self.encryption_counter.to_bytes(4, "big")
+
+        Global.logger.debug("Encryption data: {!r}".format(hexlify(data)))
+        Global.logger.debug("Additional data: {!r}".format(hexlify(ad)))
+        Global.logger.debug("IV: {!r}".format(hexlify(iv)))
+        Global.logger.debug("Encryption key: {!r}".format(hexlify(self.encryption_key)))
+
         cipher = AES.new(self.encryption_key, AES.MODE_GCM, nonce=iv)
         cipher.update(ad)
         ciphertext, authentication_tag = cipher.encrypt_and_digest(data)
         self.encryption_counter += 1
+
+        Global.logger.debug("Ciphertext: {!r}".format(hexlify(ciphertext)))
+        Global.logger.debug(
+            "Authentication tag: {!r}".format(hexlify(authentication_tag))
+        )
+
         return ciphertext, authentication_tag
 
     def decrypt(
@@ -130,6 +142,11 @@ class EncryptionEngine:
             bytes: decrypted plaintext
         """
         iv = self.decryption_iv_pt1 + self.decryption_counter.to_bytes(4, "big")
+
+        Global.logger.debug("Additional data: {!r}".format(hexlify(ad)))
+        Global.logger.debug("IV: {!r}".format(hexlify(iv)))
+        Global.logger.debug("Decryption key: {!r}".format(hexlify(self.decryption_key)))
+
         cipher = AES.new(self.decryption_key, AES.MODE_GCM, nonce=iv)
         cipher.update(ad)
         plaintext = cipher.decrypt(ciphertext)

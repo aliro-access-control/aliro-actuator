@@ -14,10 +14,16 @@
 
 import asyncio
 
+from aliro_actuator.access_protocol.apdu import APDUMessage
 from aliro_actuator.hw_driver.pn7160_driver import Driver
 from aliro_actuator.hw_driver.pn7160_driver.errors import NoReaderError, NoTagError
-from aliro_actuator.transport_protocol import MessageType, Mode, TransportProtocolBase
-from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
+from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import BleMessage
+from aliro_actuator.transport_protocol.errors import (
+    NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
+)
+from aliro_actuator.transport_protocol.message import Message
 
 
 class NFC(TransportProtocolBase):
@@ -46,14 +52,28 @@ class NFC(TransportProtocolBase):
         elif self.mode == Mode.READER:
             await asyncio.to_thread(self.driver.wait_for_tag)
 
-    async def send_message(self, command: bytes, type: MessageType) -> None:
+    async def send_message(
+        self,
+        message: bytes | Message,
+    ) -> None:
+        if isinstance(message, BleMessage):
+            raise UnexpectedMessageTypeError(
+                "It is not possible to send BLE messages using NFC"
+            )
+        elif isinstance(message, APDUMessage):
+            message_bytes = message.to_bytes()
+        elif isinstance(message, bytes):
+            message_bytes = message
+        else:
+            raise UnexpectedMessageTypeError("Unknown message type")
+
         try:
-            await asyncio.to_thread(self.driver.send_message, command)
+            await asyncio.to_thread(self.driver.send_message, message_bytes)
         except (NoTagError, NoReaderError) as error:
             raise NoDeviceConnectedError from error
 
-    async def get_message(self, expected_type: MessageType = MessageType.ANY) -> bytes:
+    async def get_message(self) -> tuple[bytes, int | None, int | None]:
         try:
-            return await asyncio.to_thread(self.driver.receive_message)
+            return await asyncio.to_thread(self.driver.receive_message), None, None
         except (NoTagError, NoReaderError) as error:
             raise NoDeviceConnectedError from error

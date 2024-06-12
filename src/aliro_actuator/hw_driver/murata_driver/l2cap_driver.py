@@ -1,22 +1,31 @@
 import asyncio
+import random
 from binascii import hexlify
 
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.errors import (
+    DeviceNotFoundError,
     ErrorReturnedError,
     NoResponseError,
 )
-from aliro_actuator.hw_driver.murata_driver.fsci import Message
+from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeL2CAP, OpGroup
 
 
 class MurataL2CAPDriver(MurataBaseDriver):
-    async def setup_l2cap_connection(self, psm: bytes) -> None:
+    async def setup_l2cap_connection_user(self, psm: bytes) -> None:
         Global.logger.debug("Setup l2cap connection")
         await self.register_le_cb_callback()
         await self.register_le_psm(psm)
+        await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
+
+    async def setup_l2cap_connection_reader(self, psm: bytes) -> None:
+        Global.logger.debug("Setup l2cap connection")
+        await self.register_le_cb_callback()
+        await self.register_le_psm(psm)
+        await self.wait_for_l2cap_request(self.connected_devices[0])
         await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
 
     async def register_le_cb_callback(self) -> None:
@@ -26,7 +35,10 @@ class MurataL2CAPDriver(MurataBaseDriver):
             OpCodeL2CAP.REGISTER_LE_CB_CALLBACKS,
         )
         self.write(message)
-        await self.wait_for_confirm(OpGroup.L2CAP)
+        await self.wait_for_confirm(
+            OpGroup.L2CAP,
+            [ConfirmStatus.SUCCESS, ConfirmStatus.CALLBACK_ALREADY_INSTALLED],
+        )
 
     async def register_le_psm(self, psm: bytes, psm_mtu: int = 0xFF) -> None:
         Global.logger.debug("Register Le PSM")
@@ -37,6 +49,23 @@ class MurataL2CAPDriver(MurataBaseDriver):
         message = Message(
             OpGroup.L2CAP,
             OpCodeL2CAP.REGISTER_LE_PSM,
+            len(data),
+            data,
+        )
+        self.write(message)
+        await self.wait_for_confirm(
+            OpGroup.L2CAP,
+            [ConfirmStatus.SUCCESS, ConfirmStatus.LE_PSM_ALREADY_REGISTERED],
+        )
+
+    async def deregister_le_psm(self, psm: bytes) -> None:
+        Global.logger.debug("Deregister Le PSM")
+        data = bytearray()
+        data.extend(change_endianness(psm[:2]))
+
+        message = Message(
+            OpGroup.L2CAP,
+            OpCodeL2CAP.DEREGISTER_LE_PSM,
             len(data),
             data,
         )
@@ -62,24 +91,35 @@ class MurataL2CAPDriver(MurataBaseDriver):
         while device_id not in self.channel_ids.keys():
             self.write(message)
             await self.wait_for_confirm(OpGroup.L2CAP)
-            if device_id in self.channel_ids.keys():
-                break  # received connection complete while waiting for confirm
             response = await self.wait_for_message(
                 OpGroup.L2CAP,
                 OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE,
             )
-            Global.logger.debug("LE PSM connection Complete")
             try:
                 response.check_for_error()
                 break
             except ErrorReturnedError as error:
                 if error.error_code == 0x02 or error.error_code == 0xFFFE:
-                    # other side is not yet ready for l2cap, try again later
+                    Global.logger.debug(
+                        "other side is not yet ready for l2cap, try again later"
+                    )
                     await asyncio.sleep(0.1)
                     continue
                 else:
                     raise error
+        Global.logger.debug("LE PSM connection Complete")
         return self.channel_ids[device_id]
+
+    async def wait_for_l2cap_request(self, device_id: int) -> None:
+        Global.logger.debug("Wait for L2CAP request")
+        while True:
+            response = await self.wait_for_message(
+                OpGroup.L2CAP,
+                OpCodeL2CAP.LE_PSM_CONNECTION_REQUEST,
+            )
+            if response.get_device_id() == device_id:
+                Global.logger.debug("Wait for L2CAP request done")
+                return
 
     async def send_le_credit(self, device_id: int, no_credits: int) -> bytes:
         Global.logger.debug("Send Le Credit")
@@ -105,6 +145,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
 
     async def send_le_cb_data(self, device_id: int, data_to_send: bytes) -> None:
         Global.logger.debug("Send le cb data")
+        if device_id not in self.connected_devices:
+            raise DeviceNotFoundError
+
         data = bytearray()
         data.append(device_id)
         data.extend(self.channel_ids[device_id].to_bytes(2, "little"))
@@ -122,25 +165,14 @@ class MurataL2CAPDriver(MurataBaseDriver):
 
     async def wait_for_data(self, device_id_requested: int) -> bytes:
         Global.logger.debug("Wait for data")
+        if device_id_requested not in self.connected_devices:
+            raise DeviceNotFoundError
+
         while True:
-            try:
-                message = await self.read()
-                if (
-                    message.op_group == OpGroup.L2CAP
-                    and message.op_code == OpCodeL2CAP.LE_CB_DATA
-                ):
-                    device_id = message.get_device_id()
-                    Global.logger.debug(
-                        "Received data from device id: {:x}".format(device_id)
-                    )
-                    if device_id == device_id_requested:
-                        data = message.get_packet()
-                        Global.logger.debug("Received data: {!r}".format(hexlify(data)))
-                        return data
-                else:
-                    Global.logger.debug("Unexpected message received:")
-                    message.print()
-            except NoResponseError:
-                # sleep so other processes can run
-                await asyncio.sleep(0.1)
-                pass
+            message = await self.wait_for_message(OpGroup.L2CAP, OpCodeL2CAP.LE_CB_DATA)
+            device_id = message.get_device_id()
+            Global.logger.debug("Received data from device id: {:x}".format(device_id))
+            if device_id == device_id_requested:
+                data = message.get_packet()
+                Global.logger.debug("Received data: {!r}".format(hexlify(data)))
+                return data

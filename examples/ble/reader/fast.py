@@ -15,6 +15,7 @@
 import asyncio
 import os
 import sys
+import time
 
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
@@ -42,14 +43,16 @@ async def main():
         AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
     await reader.handle_exchange(False, None, None, None)
-    await reader.handle_control_flow(True)
+    await reader.reader_status_access_protocol_completed(0, 0)
+    time.sleep(0.1)
     await reader.transaction_termination()
     await reader.transaction_initiation()
     await reader.expedited_transaction_fast(
         AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
-    await reader.handle_control_flow(True)
-    await reader.transaction_initiation()
+    await reader.reader_status_access_protocol_completed(0, 0)
+    time.sleep(0.1)
+    await reader.transaction_termination()
 
 
 if __name__ == "__main__":

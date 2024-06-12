@@ -33,7 +33,7 @@ class ErrorReturnedError(MurataError):
     """
 
     def __init__(self, error_code: int, expected: list[int] | None = None) -> None:
-        message = "Error returned: {:x}".format(error_code)
+        message = "Error returned: 0x{:x}".format(error_code)
         self.error_code = error_code
         if expected is not None:
             expected_str = ""
@@ -81,6 +81,14 @@ class InvalidChecksumError(FSCIError):
 
 
 class DeviceDisconnectedError(MurataError):
+    """
+    Raised when a device is disconnected.
+    """
+
+    pass
+
+
+class DeviceNotFoundError(MurataError):
     """
     Raised when a device is disconnected.
     """
