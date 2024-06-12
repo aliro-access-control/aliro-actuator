@@ -1030,7 +1030,6 @@ class UserDevice(Device):
     async def wait_for_ble_message(
         self,
         expected_command: INS | list[INS] | None = None,
-        encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         """
         Waits until a ble message is received.
@@ -1054,7 +1053,7 @@ class UserDevice(Device):
         Returns:
             BleMessage: the received ble message.
         """
-        message = await self.wait_for_message(expected_command, encryption)
+        message = await self.wait_for_message(expected_command)
         if not isinstance(message, BleMessage):
             raise AccessProtocolError(
                 "Received unexpected command while waiting for BLE message : "
