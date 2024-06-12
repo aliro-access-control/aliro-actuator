@@ -498,7 +498,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         user.session.reader_epubk = reader_ephemeral_keypair.get_public_key()
         user.session.reader_identifier = reader_identifier
         user.session.transaction_identifier = transaction_identifier
-        user.session.encryption = EncryptionEngine(
+        user.session.encryption_expedited = EncryptionEngine(
             DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
         user.session.access_credential = access_credentials[0]

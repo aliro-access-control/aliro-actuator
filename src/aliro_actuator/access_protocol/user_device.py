@@ -286,9 +286,7 @@ class UserDevice(Device):
                 try:
                     if self.session is None:
                         raise SessionError("starting session failed")
-                    message = await self.wait_for_message(
-                        encryption=self.session.encryption
-                    )
+                    message = await self.wait_for_message()
                 except (InvalidCommandError, VerificationError):
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                     break
