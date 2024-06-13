@@ -439,7 +439,12 @@ class Reader(Device):
         Global.logger.info("Initiate access protocol notification handling done")
 
     async def handle_error_event_ble_message(self, error_code: int) -> None:
-        message = BleMessage.create_error_event_message(error_code)
+        if self.session is None:
+            raise SessionError("No Session")
+
+        message = BleMessage.create_error_event_message(
+            error_code, self.session.get_ble_encryption()
+        )
         await self.transport_protocol.send_message(message)
 
     async def handle_select(self, aid: bytes) -> None:
@@ -1004,12 +1009,17 @@ class Reader(Device):
         """
         Send the BLE message Reader Status Access Protocol Completed.
         """
+        if self.session is None:
+            raise SessionError("No Session")
+
         Global.logger.info(
             "Sending Reader Status Access Protocol Completed BLE message"
         )
 
         message = BleMessage.create_access_protocol_completed(
-            unsolicited_reader_status_reporting, reader_status_information
+            unsolicited_reader_status_reporting,
+            reader_status_information,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
