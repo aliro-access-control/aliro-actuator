@@ -251,9 +251,9 @@ class BleMessage(Message):
             )
             self.payload = encrypted_payload + tag
         elif ble_encryption is None:
-            Global.logger.info("No Ble encryption available, not encrypting payload")
+            Global.logger.debug("No Ble encryption available, not encrypting payload")
         else:
-            Global.logger.info("Message type does not use BLE encryption")
+            Global.logger.debug("Message type does not use BLE encryption")
 
     def _decrypt(self, ble_encryption: EncryptionEngine | None) -> None:
         """
@@ -266,12 +266,12 @@ class BleMessage(Message):
             ProtocolType.THIRD_PARTY_APP,
         ]:
             Global.logger.info("Decrypting BLE message")
-            Global.logger.info(
+            Global.logger.debug(
                 "Encrypted payload: {!r}".format(
                     hexlify(self.payload[:-AUTHENTICATION_TAG_SIZE])
                 )
             )
-            Global.logger.info(
+            Global.logger.debug(
                 "Authentication tag: {!r}".format(
                     hexlify(self.payload[-AUTHENTICATION_TAG_SIZE:])
                 )
@@ -283,10 +283,11 @@ class BleMessage(Message):
                 + self.id.to_bytes(1, "little")
                 + len(self.payload[:-AUTHENTICATION_TAG_SIZE]).to_bytes(2, "little"),
             )
+            Global.logger.debug("Decrypted payload: {!r}".format(hexlify(self.payload)))
         elif ble_encryption is None:
-            Global.logger.info("No Ble encryption available, not decrypting payload")
+            Global.logger.debug("No Ble encryption available, not decrypting payload")
         else:
-            Global.logger.info("Message type does not use BLE encryption")
+            Global.logger.debug("Message type does not use BLE encryption")
 
     @staticmethod
     def create_access_protocol_completed(
