@@ -1544,7 +1544,7 @@ class UserSession:
             raise AccessProtocolError("Trying to set BLE encryption while using NFC")
 
         selected_version, available_versions = transport_protocol.get_ble_versions()
-        self.ble_encryption = get_ble_encryption(
+        self.ble_encryption_engine = get_ble_encryption(
             DeviceType.USER, self.ble_SK, selected_version, available_versions
         )
 

@@ -250,6 +250,10 @@ class BleMessage(Message):
                 + len(self.payload).to_bytes(2, "little"),
             )
             self.payload = encrypted_payload + tag
+        elif ble_encryption is None:
+            Global.logger.info("No Ble encryption available, not encrypting payload")
+        else:
+            Global.logger.info("Message type does not use BLE encryption")
 
     def _decrypt(self, ble_encryption: EncryptionEngine | None) -> None:
         """
@@ -279,6 +283,10 @@ class BleMessage(Message):
                 + self.id.to_bytes(1, "little")
                 + len(self.payload[:-AUTHENTICATION_TAG_SIZE]).to_bytes(2, "little"),
             )
+        elif ble_encryption is None:
+            Global.logger.info("No Ble encryption available, not decrypting payload")
+        else:
+            Global.logger.info("Message type does not use BLE encryption")
 
     @staticmethod
     def create_access_protocol_completed(
