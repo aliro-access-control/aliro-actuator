@@ -149,55 +149,69 @@ class BleMessage(Message):
         self, ble_encryption: EncryptionEngine | None = None
     ) -> None:
         self._decrypt(ble_encryption)
-        self.tlv_data = TLV.from_bytes(self.payload)
-
-        try:
-            self.tlv_data = TLV.from_bytes(self.payload)
-        except TlvError as error:
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != SupplementaryService_AttributeID.DEVICE_EVENT_COUNT:
             raise BLEMessageError(
                 self.to_bytes(),
-                "Supplementary service payload is not a valid TLV",
-            ) from error
-
-        self.device_event_count = self._get_bytes_from_TLV(
-            "Device event count",
-            SupplementaryService_AttributeID.DEVICE_EVENT_COUNT,
-            tlv_data=self.tlv_data,
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.uwb_dev_time = self._get_bytes_from_TLV(
-            "UWB device time",
-            SupplementaryService_AttributeID.UWB_DEVICE_TIME,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != SupplementaryService_AttributeID.UWB_DEVICE_TIME:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.uwb_dev_time_uncertainty = self._get_bytes_from_TLV(
-            "UWB device time uncertainty",
-            SupplementaryService_AttributeID.UWB_DEVICE_TIME_UNCERTAINTY,
-            tlv_data=self.tlv_data,
+        if (
+            self.attribute.id
+            != SupplementaryService_AttributeID.UWB_DEVICE_TIME_UNCERTAINTY
+        ):
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.uwb_clk_skew_measurement_available = self._get_bytes_from_TLV(
-            "UWB clock skew measurement available",
-            SupplementaryService_AttributeID.UWB_CLOCK_SKEW_MEASUREMENT_AVAILABLE,
-            tlv_data=self.tlv_data,
+        if (
+            self.attribute.id
+            != SupplementaryService_AttributeID.UWB_CLOCK_SKEW_MEASUREMENT_AVAILABLE
+        ):
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.dev_max_ppm = self._get_bytes_from_TLV(
-            "Device max ppm",
-            SupplementaryService_AttributeID.DEVICE_MAX_PPM,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != SupplementaryService_AttributeID.DEVICE_MAX_PPM:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.success = self._get_int_from_TLV(
-            "Device max ppm",
-            SupplementaryService_AttributeID.SUCCESS,
-            tlv_data=self.tlv_data,
-            length=1,
+        if (
+            self.attribute.id != SupplementaryService_AttributeID.SUCCESS
+            and int.from_bytes(self.attribute.value, "big") == 1
+        ):
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        if self.success != 1:
-            raise BLEMessageError(self.to_bytes(), "Success flag reports failure")
-
-        self.retry_delay = self._get_bytes_from_TLV(
-            "Retry delay",
-            SupplementaryService_AttributeID.RETRY_DELAY,
-            tlv_data=self.tlv_data,
-        )
+        if self.attribute.id != SupplementaryService_AttributeID.RETRY_DELAY:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
 
     def _parse_event_payload(self) -> None:
         Global.logger.info("Parsing Event")
@@ -336,137 +350,195 @@ class BleMessage(Message):
             )
 
     def _parse_ranging_session_setup_m1(self) -> None:
-        self.uwb_configuration_id = self._get_bytes_from_TLV(
-            "UWB configuration identifier",
-            UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER,
-            tlv_data=self.tlv_data,
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.pulse_shape_combination = self._get_bytes_from_TLV(
-            "Pulse shape combination",
-            UWB_AttributeID.PULSE_SHAPE_COMBO,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.PULSE_SHAPE_COMBO:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.channel_bitmask = self._get_bytes_from_TLV(
-            "Channel bitmask",
-            UWB_AttributeID.CHANNEL_BITMASK,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.UWB_SESSION_IDENTIFIER:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.uwb_session_id = self._get_bytes_from_TLV(
-            "UWB session identifier",
-            UWB_AttributeID.UWB_SESSION_IDENTIFIER,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.CHANNEL_BITMASK:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.vendor_specific = self._get_optional_bytes_from_TLV(
-            "Vendor specific",
-            UWB_AttributeID.VENDOR_SPECIFIC,
-            tlv_data=self.tlv_data,
-        )
+        if self.attribute.id != UWB_AttributeID.VENDOR_SPECIFIC:
+            Global.logger.warning("Vendor specific attribute is missing")
 
     def _parse_ranging_session_setup_m2(self) -> None:
-        self.uwb_configuration_id = self._get_bytes_from_TLV(
-            "UWB configuration identifier",
-            UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER,
-            tlv_data=self.tlv_data,
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.pulse_shape_combination = self._get_bytes_from_TLV(
-            "Pulse shape combination",
-            UWB_AttributeID.PULSE_SHAPE_COMBO,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.PULSE_SHAPE_COMBO:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.channel_bitmask = self._get_bytes_from_TLV(
-            "Channel bitmask",
-            UWB_AttributeID.CHANNEL_BITMASK,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.CHANNEL_BITMASK:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.sync_code_index_bitmask = self._get_bytes_from_TLV(
-            "Sync code index bitmask",
-            UWB_AttributeID.SYNC_CODE_INDEX_BITMASK,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.SYNC_CODE_INDEX_BITMASK:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.ran_multiplier = self._get_bytes_from_TLV(
-            "RAN multiplier",
-            UWB_AttributeID.RAN_MULTIPLIER,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.RAN_MULTIPLIER:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.slot_bitmask = self._get_bytes_from_TLV(
-            "Slot bitmask",
-            UWB_AttributeID.SLOT_BITMASK,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.SLOT_BITMASK:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.hopping_conf_bitmask = self._get_bytes_from_TLV(
-            "Hopping configuration bitmask",
-            UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.vendor_specific = self._get_optional_bytes_from_TLV(
-            "Vendor specific",
-            UWB_AttributeID.VENDOR_SPECIFIC,
-            tlv_data=self.tlv_data,
-        )
+        if self.attribute.id != UWB_AttributeID.VENDOR_SPECIFIC:
+            Global.logger.warning("Vendor specific attribute is missing")
 
     def _parse_ranging_session_setup_m3(self) -> None:
-        self.ran_multiplier = self._get_bytes_from_TLV(
-            "RAN multiplier",
-            UWB_AttributeID.RAN_MULTIPLIER,
-            tlv_data=self.tlv_data,
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != UWB_AttributeID.RAN_MULTIPLIER:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.num_chaps_per_slot = self._get_bytes_from_TLV(
-            "Number of chaps per slot",
-            UWB_AttributeID.NUMBER_CHAPS_PER_SLOT,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.NUMBER_CHAPS_PER_SLOT:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.number_responder_nodes = self._get_bytes_from_TLV(
-            "Number of responder nodes",
-            UWB_AttributeID.NUMBER_RESPONDERS_NODES,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.NUMBER_RESPONDERS_NODES:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.number_slots_per_round = self._get_bytes_from_TLV(
-            "Number of slots per round",
-            UWB_AttributeID.NUMBER_SLOTS_PER_ROUND,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.NUMBER_SLOTS_PER_ROUND:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.sync_code_index_bitmask = self._get_bytes_from_TLV(
-            "Sync code index bitmask",
-            UWB_AttributeID.SYNC_CODE_INDEX_BITMASK,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.SYNC_CODE_INDEX_BITMASK:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.hopping_conf_bitmask = self._get_bytes_from_TLV(
-            "Hopping configuration bitmask",
-            UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.mac_mode = self._get_bytes_from_TLV(
-            "Mac mode",
-            UWB_AttributeID.MAC_MODE,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.MAC_MODE:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.vendor_specific = self._get_optional_bytes_from_TLV(
-            "Vendor specific",
-            UWB_AttributeID.VENDOR_SPECIFIC,
-            tlv_data=self.tlv_data,
-        )
+        if self.attribute.id != UWB_AttributeID.VENDOR_SPECIFIC:
+            Global.logger.warning("Vendor specific attribute is missing")
 
     def _parse_ranging_session_setup_m4(self) -> None:
-        self.sts_index0 = self._get_bytes_from_TLV(
-            "STS index0",
-            UWB_AttributeID.STS_INDEX0,
-            tlv_data=self.tlv_data,
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != UWB_AttributeID.STS_INDEX0:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.uwb_time0 = self._get_bytes_from_TLV(
-            "UWB time0",
-            UWB_AttributeID.UWB_TIME0,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.UWB_TIME0:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.hop_mode_key = self._get_bytes_from_TLV(
-            "Hop mode key",
-            UWB_AttributeID.HOP_MODE_KEY,
-            tlv_data=self.tlv_data,
+        if self.attribute.id != UWB_AttributeID.HOP_MODE_KEY:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+        self.attribute = BleAttribute.from_bytes(
+            self.payload[self.attribute.length : None]
         )
-        self.sync_code_index = self._get_bytes_from_TLV(
-            "Sync code index",
-            UWB_AttributeID.SYNC_CODE_INDEX,
-            tlv_data=self.tlv_data,
-        )
+        if self.attribute.id != UWB_AttributeID.SYNC_CODE_INDEX:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
 
     def _encrypt(self, ble_encryption: EncryptionEngine | None) -> None:
         """
