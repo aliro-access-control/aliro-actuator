@@ -589,43 +589,44 @@ class BleMessage(Message):
         success: int,
         retry_delay: int,
     ) -> BleMessage:
-        data_fields: list[tuple[int, bytes | list]] = [
-            (
-                SupplementaryService_AttributeID.DEVICE_EVENT_COUNT,
-                data_event_count.to_bytes(8, "big"),
-            ),
-            (
-                SupplementaryService_AttributeID.UWB_DEVICE_TIME,
-                uwb_dev_time.to_bytes(8, "big"),
-            ),
-            (
-                SupplementaryService_AttributeID.UWB_DEVICE_TIME_UNCERTAINTY,
-                uwb_dev_time_uncertainty.to_bytes(1, "big"),
-            ),
-            (
-                SupplementaryService_AttributeID.UWB_CLOCK_SKEW_MEASUREMENT_AVAILABLE,
-                uwb_clk_skew_measurement_available.to_bytes(1, "big"),
-            ),
-            (
-                SupplementaryService_AttributeID.DEVICE_MAX_PPM,
-                dev_max_ppm.to_bytes(2, "big"),
-            ),
-            (SupplementaryService_AttributeID.SUCCESS, success.to_bytes(1, "big")),
-            (
-                SupplementaryService_AttributeID.RETRY_DELAY,
-                retry_delay.to_bytes(2, "big"),
-            ),
-        ]
-
-        data = TLV(data_fields)
-        Global.logger.debug(
-            "Message contains TLV structure: {}".format(data.to_print())
+        data = data_event_count.to_bytes(8, "big")
+        device_event_count_attr = BleAttribute(
+            SupplementaryService_AttributeID.DEVICE_EVENT_COUNT, data
         )
-
+        data = uwb_dev_time.to_bytes(8, "big")
+        uwb_dev_time_attr = BleAttribute(
+            SupplementaryService_AttributeID.UWB_DEVICE_TIME, data
+        )
+        data = uwb_dev_time_uncertainty.to_bytes(1, "big")
+        uwb_dev_time_uncertainty_attr = BleAttribute(
+            SupplementaryService_AttributeID.UWB_DEVICE_TIME_UNCERTAINTY, data
+        )
+        data = uwb_clk_skew_measurement_available.to_bytes(1, "big")
+        uwb_clk_skew_measurement_available_attr = BleAttribute(
+            SupplementaryService_AttributeID.UWB_CLOCK_SKEW_MEASUREMENT_AVAILABLE, data
+        )
+        data = dev_max_ppm.to_bytes(2, "big")
+        dev_max_ppm_attr = BleAttribute(
+            SupplementaryService_AttributeID.DEVICE_MAX_PPM, data
+        )
+        data = success.to_bytes(1, "big")
+        success_attr = BleAttribute(SupplementaryService_AttributeID.SUCCESS, data)
+        data = retry_delay.to_bytes(2, "big")
+        retry_delay_attr = BleAttribute(
+            SupplementaryService_AttributeID.RETRY_DELAY, data
+        )
+        payload = bytearray()
+        payload.extend(device_event_count_attr.to_bytes())
+        payload.extend(uwb_dev_time_attr.to_bytes())
+        payload.extend(uwb_dev_time_uncertainty_attr.to_bytes())
+        payload.extend(uwb_clk_skew_measurement_available_attr.to_bytes())
+        payload.extend(dev_max_ppm_attr.to_bytes())
+        payload.extend(success_attr.to_bytes())
+        payload.extend(retry_delay_attr.to_bytes())
         message = BleMessage(
             ProtocolType.SUPPLEMENTARY_SERVICE,
             Supplementary_Service_ID.TIME_SYNC,
-            data.to_bytes(),
+            payload,
         )
         return message
 
@@ -644,30 +645,32 @@ class BleMessage(Message):
         uwb_session_id: int,
         vendor_specific: int,
     ) -> BleMessage:
-        data_fields: list[tuple[int, bytes | list]] = [
-            (
-                UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER,
-                uwb_configuration_id.to_bytes(2, "big"),
-            ),
-            (
-                UWB_AttributeID.PULSE_SHAPE_COMBO,
-                pulse_shape_combination.to_bytes(1, "big"),
-            ),
-            (UWB_AttributeID.CHANNEL_BITMASK, channel_bitmask.to_bytes(1, "big")),
-            (UWB_AttributeID.UWB_SESSION_IDENTIFIER, uwb_session_id.to_bytes(4, "big")),
-            # vendor specific information
-            (UWB_AttributeID.VENDOR_SPECIFIC, vendor_specific.to_bytes(3, "big")),
-        ]
-
-        data = TLV(data_fields)
-        Global.logger.debug(
-            "Message contains TLV structure: {}".format(data.to_print())
+        data = uwb_configuration_id.to_bytes(2, "big")
+        uwb_configuration_id_attr = BleAttribute(
+            UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
         )
+        data = pulse_shape_combination.to_bytes(1, "big")
+        pulse_shape_combination_attr = BleAttribute(
+            UWB_AttributeID.PULSE_SHAPE_COMBO, data
+        )
+        data = uwb_session_id.to_bytes(4, "big")
+        uwb_session_id_attr = BleAttribute(UWB_AttributeID.UWB_SESSION_IDENTIFIER, data)
+        data = channel_bitmask.to_bytes(1, "big")
+        channel_bitmask_attr = BleAttribute(UWB_AttributeID.CHANNEL_BITMASK, data)
 
+        # vendor specific information
+        data = vendor_specific.to_bytes(3, "big")
+        vendor_specific_attr = BleAttribute(UWB_AttributeID.VENDOR_SPECIFIC, data)
+        payload = bytearray()
+        payload.extend(uwb_configuration_id_attr.to_bytes())
+        payload.extend(pulse_shape_combination_attr.to_bytes())
+        payload.extend(channel_bitmask_attr.to_bytes())
+        payload.extend(uwb_session_id_attr.to_bytes())
+        payload.extend(vendor_specific_attr.to_bytes())
         message = BleMessage(
             ProtocolType.UWB_RANGING_SERVICE,
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M1,
-            data.to_bytes(),
+            payload,
         )
         return message
 
@@ -682,39 +685,46 @@ class BleMessage(Message):
         hopping_conf_bitmask: int,
         vendor_specific: int,
     ) -> BleMessage:
-        data_fields: list[tuple[int, bytes | list]] = [
-            (
-                UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER,
-                uwb_configuration_id.to_bytes(2, "big"),
-            ),
-            (
-                UWB_AttributeID.PULSE_SHAPE_COMBO,
-                pulse_shape_combination.to_bytes(1, "big"),
-            ),
-            (UWB_AttributeID.CHANNEL_BITMASK, channel_bitmask.to_bytes(1, "big")),
-            (
-                UWB_AttributeID.SYNC_CODE_INDEX_BITMASK,
-                sync_code_index_bitmask.to_bytes(4, "big"),
-            ),
-            (UWB_AttributeID.RAN_MULTIPLIER, ran_multiplier.to_bytes(1, "big")),
-            (UWB_AttributeID.SLOT_BITMASK, slot_bitmask.to_bytes(1, "big")),
-            (
-                UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK,
-                hopping_conf_bitmask.to_bytes(1, "big"),
-            ),
-            # vendor specific information
-            (UWB_AttributeID.VENDOR_SPECIFIC, vendor_specific.to_bytes(3, "big")),
-        ]
-
-        data = TLV(data_fields)
-        Global.logger.debug(
-            "Message contains TLV structure: {}".format(data.to_print())
+        data = uwb_configuration_id.to_bytes(2, "big")
+        uwb_configuration_id_attr = BleAttribute(
+            UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
+        )
+        data = pulse_shape_combination.to_bytes(1, "big")
+        pulse_shape_combination_attr = BleAttribute(
+            UWB_AttributeID.PULSE_SHAPE_COMBO, data
+        )
+        data = channel_bitmask.to_bytes(1, "big")
+        channel_bitmask_attr = BleAttribute(UWB_AttributeID.CHANNEL_BITMASK, data)
+        data = sync_code_index_bitmask.to_bytes(4, "big")
+        sync_code_index_bitmask_attr = BleAttribute(
+            UWB_AttributeID.SYNC_CODE_INDEX_BITMASK, data
+        )
+        data = ran_multiplier.to_bytes(1, "big")
+        ran_multiplier_attr = BleAttribute(UWB_AttributeID.RAN_MULTIPLIER, data)
+        data = slot_bitmask.to_bytes(1, "big")
+        slot_bitmask_attr = BleAttribute(UWB_AttributeID.SLOT_BITMASK, data)
+        data = hopping_conf_bitmask.to_bytes(1, "big")
+        hopping_conf_bitmask_attr = BleAttribute(
+            UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK, data
         )
 
+        # vendor specific information
+        data = vendor_specific.to_bytes(3, "big")
+        vendor_specific_attr = BleAttribute(UWB_AttributeID.VENDOR_SPECIFIC, data)
+
+        payload = bytearray()
+        payload.extend(uwb_configuration_id_attr.to_bytes())
+        payload.extend(pulse_shape_combination_attr.to_bytes())
+        payload.extend(channel_bitmask_attr.to_bytes())
+        payload.extend(sync_code_index_bitmask_attr.to_bytes())
+        payload.extend(ran_multiplier_attr.to_bytes())
+        payload.extend(slot_bitmask_attr.to_bytes())
+        payload.extend(hopping_conf_bitmask_attr.to_bytes())
+        payload.extend(vendor_specific_attr.to_bytes())
         message = BleMessage(
             ProtocolType.UWB_RANGING_SERVICE,
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M2,
-            data.to_bytes(),
+            payload,
         )
         return message
 
@@ -729,42 +739,48 @@ class BleMessage(Message):
         mac_mode: int,
         vendor_specific: int,
     ) -> BleMessage:
-        data_fields: list[tuple[int, bytes | list]] = [
-            (UWB_AttributeID.RAN_MULTIPLIER, ran_multiplier.to_bytes(1, "big")),
-            (
-                UWB_AttributeID.NUMBER_CHAPS_PER_SLOT,
-                num_chaps_per_slot.to_bytes(1, "big"),
-            ),
-            (
-                UWB_AttributeID.NUMBER_RESPONDERS_NODES,
-                number_responder_nodes.to_bytes(1, "big"),
-            ),
-            (
-                UWB_AttributeID.NUMBER_SLOTS_PER_ROUND,
-                number_slots_per_round.to_bytes(1, "big"),
-            ),
-            (
-                UWB_AttributeID.SYNC_CODE_INDEX_BITMASK,
-                sync_code_index_bitmask.to_bytes(4, "big"),
-            ),
-            (
-                UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK,
-                hopping_conf_bitmask.to_bytes(1, "big"),
-            ),
-            (UWB_AttributeID.MAC_MODE, mac_mode.to_bytes(1, "big")),
-            # vendor specific information
-            (UWB_AttributeID.VENDOR_SPECIFIC, vendor_specific.to_bytes(3, "big")),
-        ]
-
-        data = TLV(data_fields)
-        Global.logger.debug(
-            "Message contains TLV structure: {}".format(data.to_print())
+        data = ran_multiplier.to_bytes(1, "big")
+        ran_multiplier_attr = BleAttribute(UWB_AttributeID.RAN_MULTIPLIER, data)
+        data = num_chaps_per_slot.to_bytes(1, "big")
+        num_chaps_per_slot_attr = BleAttribute(
+            UWB_AttributeID.NUMBER_CHAPS_PER_SLOT, data
         )
+        data = number_responder_nodes.to_bytes(1, "big")
+        number_responder_nodes_attr = BleAttribute(
+            UWB_AttributeID.NUMBER_RESPONDERS_NODES, data
+        )
+        data = number_slots_per_round.to_bytes(1, "big")
+        number_slots_per_round_attr = BleAttribute(
+            UWB_AttributeID.NUMBER_SLOTS_PER_ROUND, data
+        )
+        data = sync_code_index_bitmask.to_bytes(4, "big")
+        sync_code_index_bitmask_attr = BleAttribute(
+            UWB_AttributeID.SYNC_CODE_INDEX_BITMASK, data
+        )
+        data = hopping_conf_bitmask.to_bytes(1, "big")
+        hopping_conf_bitmask_attr = BleAttribute(
+            UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK, data
+        )
+        data = mac_mode.to_bytes(1, "big")
+        mac_mode_attr = BleAttribute(UWB_AttributeID.MAC_MODE, data)
 
+        # vendor specific information
+        data = vendor_specific.to_bytes(3, "big")
+        vendor_specific_attr = BleAttribute(UWB_AttributeID.VENDOR_SPECIFIC, data)
+
+        payload = bytearray()
+        payload.extend(ran_multiplier_attr.to_bytes())
+        payload.extend(num_chaps_per_slot_attr.to_bytes())
+        payload.extend(number_responder_nodes_attr.to_bytes())
+        payload.extend(number_slots_per_round_attr.to_bytes())
+        payload.extend(sync_code_index_bitmask_attr.to_bytes())
+        payload.extend(hopping_conf_bitmask_attr.to_bytes())
+        payload.extend(mac_mode_attr.to_bytes())
+        payload.extend(vendor_specific_attr.to_bytes())
         message = BleMessage(
             ProtocolType.UWB_RANGING_SERVICE,
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M3,
-            data.to_bytes(),
+            payload,
         )
         return message
 
@@ -772,22 +788,24 @@ class BleMessage(Message):
     def create_ranging_session_setup_m4(
         sts_index0: int, uwb_time0: int, hop_mode_key: int, sync_code_index: int
     ) -> BleMessage:
-        data_fields: list[tuple[int, bytes | list]] = [
-            (UWB_AttributeID.STS_INDEX0, sts_index0.to_bytes(2, "big")),
-            (UWB_AttributeID.UWB_TIME0, uwb_time0.to_bytes(1, "big")),
-            (UWB_AttributeID.HOP_MODE_KEY, hop_mode_key.to_bytes(4, "big")),
-            (UWB_AttributeID.SYNC_CODE_INDEX, sync_code_index.to_bytes(4, "big")),
-        ]
+        data = sts_index0.to_bytes(2, "big")
+        sts_index0_attr = BleAttribute(UWB_AttributeID.STS_INDEX0, data)
+        data = uwb_time0.to_bytes(1, "big")
+        uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, data)
+        data = hop_mode_key.to_bytes(4, "big")
+        hop_mode_key_attr = BleAttribute(UWB_AttributeID.HOP_MODE_KEY, data)
+        data = sync_code_index.to_bytes(4, "big")
+        sync_code_index_attr = BleAttribute(UWB_AttributeID.SYNC_CODE_INDEX, data)
 
-        data = TLV(data_fields)
-        Global.logger.debug(
-            "Message contains TLV structure: {}".format(data.to_print())
-        )
-
+        payload = bytearray()
+        payload.extend(sts_index0_attr.to_bytes())
+        payload.extend(uwb_time0_attr.to_bytes())
+        payload.extend(hop_mode_key_attr.to_bytes())
+        payload.extend(sync_code_index_attr.to_bytes())
         message = BleMessage(
             ProtocolType.UWB_RANGING_SERVICE,
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M4,
-            data.to_bytes(),
+            payload,
         )
         return message
 
