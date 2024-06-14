@@ -75,6 +75,7 @@ from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import (
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
 )
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -275,6 +276,19 @@ class UserDevice(Device):
 
         while True:
             self.single_transaction()
+
+    async def ranging_loop(self) -> None:
+        while True:
+            try:
+                Global.logger.info("Waiting for ranging session setup")
+                payload, header, id = await self.transport_protocol.get_message()
+                if header is not None and id is not None:
+                    message = BleMessage(header, id, payload)
+                else:
+                    raise UnexpectedMessageTypeError
+            except NoDeviceConnectedError:
+                break
+            await self.handle_ble_messages(message)
 
     async def single_transaction(self, terminate_at_end: bool = True) -> None:
         """
@@ -478,7 +492,7 @@ class UserDevice(Device):
         pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
         channel_bitmask = self.transport_protocol.get_channel_bitmask()
         sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
-        ran_multiplier = self.transport_protocol.get_ran_multiplier()
+        ran_multiplier = await self.transport_protocol.get_ran_multiplier()
         slot_bitmask = self.transport_protocol.get_slot_bitmask()
         hopping_conf_bitmask = self.transport_protocol.get_hopping_config_bitmask()
         vendor_specific = 0xFF

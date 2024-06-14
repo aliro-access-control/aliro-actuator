@@ -42,11 +42,11 @@ async def main():
         access_credentials=access_credentials,
         mailbox=0x20,
     )
-    await user_device.single_transaction()
+    await user_device.single_transaction(False)
 
-    user_device.send_timesync()
-    user_device.send_initiate_ranging()
-    await user_device.main_loop()
+    await user_device.send_timesync()
+    await user_device.send_initiate_ranging()
+    await user_device.ranging_loop()
 
 
 if __name__ == "__main__":

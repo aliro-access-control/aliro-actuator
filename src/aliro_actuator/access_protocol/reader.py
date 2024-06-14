@@ -1260,12 +1260,12 @@ class Reader(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
-        Global.logger.info("Sending ranging session setup M2 ble message")
+        Global.logger.info("Sending ranging session setup M1 ble message")
 
         uwb_configuration_id = self.transport_protocol.get_uwb_config_id()
         pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
         channel_bitmask = self.transport_protocol.get_channel_bitmask()
-        uwb_session_id = self.transport_protocol.driver.get_uwb_config_id()
+        uwb_session_id = self.transport_protocol.get_uwb_config_id()
         vendor_specific = 0xFF
 
         message = BleMessage.create_ranging_session_setup_m1(
@@ -1281,12 +1281,12 @@ class Reader(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
+        Global.logger.info("Sending ranging session setup M3 ble message")
+
         ran_multiplier = await self.transport_protocol.get_ran_multiplier()
         num_chaps_per_slot = await self.transport_protocol.get_num_chaps_per_slot()
         number_responder_nodes = await self.transport_protocol.get_number_responders()
-        number_slots_per_round = (
-            await self.transport_protocol.driver.get_slots_per_round()
-        )
+        number_slots_per_round = await self.transport_protocol.get_slots_per_round()
         sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
         hopping_conf_bitmask = self.transport_protocol.get_hopping_config_bitmask()
         mac_mode = await self.transport_protocol.get_mac_mode()
