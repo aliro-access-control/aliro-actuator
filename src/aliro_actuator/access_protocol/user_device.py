@@ -75,6 +75,7 @@ from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import (
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
 )
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -285,31 +286,53 @@ class UserDevice(Device):
         """
 
         while True:
-            await self.transaction_initiation()
-            while True:
-                try:
-                    if self.session is None:
-                        raise SessionError("starting session failed")
-                    message = await self.wait_for_message()
-                except (InvalidCommandError, VerificationError):
-                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
-                    break
-                except NoDeviceConnectedError:
-                    # try to reconnect in outer loop
-                    break
-                try:
-                    if isinstance(message, Command):
-                        match message.ins:
-                            case INS.SELECT:
-                                await self.handle_select(message)
-                            case INS.AUTH0:
-                                await self.handle_auth0(message)
-                            case INS.AUTH1:
-                                await self.handle_auth1(message)
-                            case INS.LOAD_CERT:
-                                await self.handle_load_cert(message)
-                            case INS.CONTROL_FLOW:
-                                await self.handle_control_flow(message)
+            self.single_transaction()
+
+    async def ranging_loop(self) -> None:
+        while True:
+            try:
+                Global.logger.info("Waiting for ranging session setup")
+                payload, header, id = await self.transport_protocol.get_message()
+                if header is not None and id is not None:
+                    message = BleMessage(header, id, payload)
+                else:
+                    raise UnexpectedMessageTypeError
+            except NoDeviceConnectedError:
+                break
+            await self.handle_ble_messages(message)
+
+    async def single_transaction(self, terminate_at_end: bool = True) -> None:
+        """
+        Handles a single transaction.
+        Returns when completed or an error occurred.
+        """
+        await self.transaction_initiation()
+        while True:
+            try:
+                if self.session is None:
+                    raise SessionError("starting session failed")
+                message = await self.wait_for_message(
+                    encryption=self.session.encryption
+                )
+            except (InvalidCommandError, VerificationError):
+                await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                return
+            except NoDeviceConnectedError:
+                return
+            try:
+                if isinstance(message, Command):
+                    match message.ins:
+                        case INS.SELECT:
+                            await self.handle_select(message)
+                        case INS.AUTH0:
+                            await self.handle_auth0(message)
+                        case INS.AUTH1:
+                            await self.handle_auth1(message)
+                        case INS.LOAD_CERT:
+                            await self.handle_load_cert(message)
+                        case INS.CONTROL_FLOW:
+                            await self.handle_control_flow(message)
+                            if terminate_at_end:
                                 await self.transaction_termination()
                                 break
                             case INS.EXCHANGE:
@@ -466,7 +489,7 @@ class UserDevice(Device):
         pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
         channel_bitmask = self.transport_protocol.get_channel_bitmask()
         sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
-        ran_multiplier = self.transport_protocol.get_ran_multiplier()
+        ran_multiplier = await self.transport_protocol.get_ran_multiplier()
         slot_bitmask = self.transport_protocol.get_slot_bitmask()
         hopping_conf_bitmask = self.transport_protocol.get_hopping_config_bitmask()
         vendor_specific = 0xFF
