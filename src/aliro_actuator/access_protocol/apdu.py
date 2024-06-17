@@ -1126,6 +1126,18 @@ class APDU:
 
     def __init__(self) -> None:
         self.support_extended_length_apdu = False
+        self.maximum_command_apdu = 0
+        self.maximum_response_apdu = 0
+
+    def set_extended_length(self, command_length: int, response_length: int) -> None:
+        self.support_extended_length_apdu = True
+        self.maximum_command_apdu = command_length
+        self.maximum_response_apdu = response_length
+
+    def reset_extended_length(self) -> None:
+        self.support_extended_length_apdu = False
+        self.maximum_command_apdu = 0
+        self.maximum_response_apdu = 0
 
     def parse_command(
         self, command_as_bytes: bytes, encryption: EncryptionEngine | None = None
