@@ -47,8 +47,8 @@ from aliro_actuator.access_protocol.tlv import TLV, TlvError
 from aliro_actuator.transport_protocol.message import Message
 
 # See Aliro spec 8.3
-APDU_COMMAND_MAX_LENGTH = 255
-APDU_RESPONSE_MAX_LENGTH = 256
+APDU_COMMAND_MAX_DATA_LENGTH = 255
+APDU_RESPONSE_MAX_DATA_LENGTH = 256
 
 MAX_VALUE_BYTE = 0xFF
 MAX_VALUE_2_BYTES = 0xFFFF
@@ -1233,7 +1233,7 @@ class APDU:
             "Response contains TLV structure: {}".format(data_bytes.to_print())
         )
 
-        return Response.create_from_parameters(data_bytes.to_bytes(), status)
+        return self.create_response(data_bytes.to_bytes(), status)
 
     def create_auth0_command(
         self,
@@ -1284,7 +1284,7 @@ class APDU:
         Global.logger.debug(
             "Response contains TLV structure: {}".format(data_bytes.to_print())
         )
-        return Response.create_from_parameters(data_bytes.to_bytes(), status)
+        return self.create_response(data_bytes.to_bytes(), status)
 
     def create_load_cert_command(self, compressed_reader_cert: bytes) -> Command:
         Global.logger.info("Creating LOAD CERT command")
@@ -1299,7 +1299,7 @@ class APDU:
 
     def create_load_cert_response(self, status: int) -> Response:
         Global.logger.info("Creating LOAD CERT response")
-        return Response.create_from_parameters(status=status)
+        return self.create_response(status=status)
 
     def create_auth1_command(
         self,
@@ -1427,7 +1427,7 @@ class APDU:
         )
 
         payload = bytes([*encrypted_payload, *tag])
-        return Response.create_from_parameters(payload, status)
+        return self.create_response(payload, status)
 
     def create_control_flow_command(
         self, S1: int, S2: int, domain_specific_data: bytes | None = None
@@ -1459,7 +1459,7 @@ class APDU:
 
     def create_control_flow_response(self, status: int) -> Response:
         Global.logger.info("Creating CONTROL FLOW response")
-        return Response.create_from_parameters(status=status)
+        return self.create_response(status=status)
 
     def create_exchange_command(
         self, atomic_session: bool, payload_tlv: TLV, encryption: EncryptionEngine
@@ -1496,7 +1496,7 @@ class APDU:
         )
 
         payload = encrypted_payload + tag
-        return Response.create_from_parameters(payload, status)
+        return self.create_response(payload, status)
 
     def create_envelope_command(self, payload: bytes, chain: bool) -> Command:
         Global.logger.info("Creating ENVELOPE command")
@@ -1518,7 +1518,7 @@ class APDU:
         self, payload: bytes | None = None, status: int = StatusBytes.SUCCESS
     ) -> Response:
         Global.logger.info("Creating ENVELOPE response")
-        return Response.create_from_parameters(payload, status)
+        return self.create_response(payload, status)
 
     def create_get_response_command(self) -> Command:
         Global.logger.info("Creating GET RESPONSE command")
@@ -1533,7 +1533,7 @@ class APDU:
 
     def create_get_response_response(self, payload: bytes, status: int) -> Response:
         Global.logger.info("Creating GET RESPONSE response")
-        return Response.create_from_parameters(payload, status)
+        return self.create_response(payload, status)
 
     def create_command(
         self, cla: int, ins: int, p1: int, p2: int, data: bytes, le: int | None
@@ -1544,18 +1544,34 @@ class APDU:
 
         if (
             not self.support_extended_length_apdu
-            and len(data) > APDU_COMMAND_MAX_LENGTH
+            and len(data) > APDU_COMMAND_MAX_DATA_LENGTH
         ):
             raise MessageTooLongError
         if (
             not self.support_extended_length_apdu
             and le is not None
-            and le > APDU_RESPONSE_MAX_LENGTH
+            and le > APDU_RESPONSE_MAX_DATA_LENGTH
         ):
             raise MessageTooLongError
 
         return Command.create_from_parameters(cla, ins, p1, p2, data, le)
 
+    def create_response(
+        self, data: bytes | None = None, status: int = StatusBytes.SUCCESS
+    ) -> Response:
+        """
+        Create a response.
+        """
+
+        if (
+            not self.support_extended_length_apdu
+            and data is not None
+            and len(data) > APDU_RESPONSE_MAX_DATA_LENGTH
+        ):
+            raise MessageTooLongError
+
+        return Response.create_from_parameters(data, status)
+
     def create_error_response(self, status_bytes: int) -> Response:
         Global.logger.info("Creating error response")
-        return Response.create_from_parameters(status=status_bytes)
+        return self.create_response(status=status_bytes)
