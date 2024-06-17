@@ -1565,6 +1565,28 @@ class APDU:
             and le > APDU_RESPONSE_MAX_DATA_LENGTH
         ):
             raise MessageTooLongError
+        if self.support_extended_length_apdu:
+            if len(data) == 0:
+                lc_len = 0
+            elif len(data) < 256:
+                lc_len = 1
+            elif len(data) <= 65535:
+                lc_len = 3
+            else:
+                raise MessageTooLongError
+
+            if le is None:
+                le_len = 0
+            elif le < 256:
+                le_len = 1
+            elif lc_len == 0:
+                le_len = 3
+            else:
+                le_len = 2
+
+            total_length = 4 + lc_len + len(data) + le_len
+            if total_length > self.maximum_command_apdu:
+                raise MessageTooLongError
 
         return Command.create_from_parameters(cla, ins, p1, p2, data, le)
 
@@ -1581,6 +1603,9 @@ class APDU:
             and len(data) > APDU_RESPONSE_MAX_DATA_LENGTH
         ):
             raise MessageTooLongError
+        if self.support_extended_length_apdu:
+            if data is not None and len(data) + 2 > self.maximum_command_apdu:
+                raise MessageTooLongError
 
         return Response.create_from_parameters(data, status)
 
