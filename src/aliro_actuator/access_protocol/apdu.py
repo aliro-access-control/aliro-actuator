@@ -1498,8 +1498,13 @@ class APDU:
         payload = encrypted_payload + tag
         return Response.create_from_parameters(payload, status)
 
-    def create_envelope_command(self, payload: bytes) -> Command:
+    def create_envelope_command(self, payload: bytes, chain: bool) -> Command:
         Global.logger.info("Creating ENVELOPE command")
+
+        cla = 0x00
+        if chain:
+            cla |= 0x10
+
         return self.create_command(
             cla=0x00,
             ins=INS.ENVELOPE,
@@ -1515,7 +1520,8 @@ class APDU:
         Global.logger.info("Creating ENVELOPE response")
         return Response.create_from_parameters(payload, status)
 
-    def create_get_response_command(self, payload: bytes) -> Command:
+    def create_get_response_command(self) -> Command:
+        Global.logger.info("Creating GET RESPONSE command")
         return self.create_command(
             cla=0x00,
             ins=INS.GET_RESPONSE,
