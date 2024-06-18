@@ -42,8 +42,11 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseDataError,
     InvalidStatusError,
     MessageTooLongError,
+    UnexpectedBLEMessageError,
 )
 from aliro_actuator.access_protocol.tlv import TLV, TlvError
+from aliro_actuator.transport_protocol import TransportProtocolBase
+from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.message import Message
 
 # See Aliro spec 8.3
@@ -157,6 +160,7 @@ class StatusBytes(IntEnum):
 
     # Normal processing
     SUCCESS = 0x9000
+    MORE_DATA_AVAILABLE = 0x61
 
     # Warning processing
 
@@ -171,6 +175,8 @@ class StatusBytes(IntEnum):
     ## functions in CLA not supported
     FUNCTIONS_IN_CLA_NOT_SUPPORTED = 0x6800
     LOGICAL_CHANNEL_NOT_SUPPORTED = 0x6881
+    LAST_COMMAND_OF_CHAIN_EXPECTED = 0x6883
+    COMMAND_CHAINING_NOT_SUPPORTED = 0x6884
     ## command not allowed
     COMMAND_NOT_ALLOWED = 0x6900
     SECURITY_STATUS_NOT_SATISFIED = 0x6982
@@ -1139,6 +1145,76 @@ class APDU:
         self.maximum_command_apdu = 0
         self.maximum_response_apdu = 0
 
+    async def handle_chaining_command(
+        self,
+        command_name: str,
+        commands: list[Command],
+        transport_layer: TransportProtocolBase,
+    ) -> Response:
+        total_response_data = bytearray()
+
+        if len(commands) == 1:
+            Global.logger.debug("Command fits in one message, no chaining required")
+            Global.logger.info("Sending {} command".format(command_name))
+            await transport_layer.send_message(commands[0])
+
+            Global.logger.info("Waiting for {} response".format(command_name))
+            response_str, header, id = await transport_layer.get_message()
+            self.check_ble_message_type_for_response(header, id)
+            Global.logger.info("Received response")
+            response = Response.create_from_bytestring(response_str)
+            if response.data is not None:
+                total_response_data.extend(response.data)
+            chaining_remaining = self.check_chaining_response(response)
+        else:
+            Global.logger.debug("Command chaining required")
+            for command in commands:
+                Global.logger.info("Sending {} command".format(command_name))
+                await transport_layer.send_message(command)
+
+                Global.logger.info("Waiting for {} response".format(command_name))
+                response_str, header, id = await transport_layer.get_message()
+                self.check_ble_message_type_for_response(header, id)
+                Global.logger.info("Received response")
+                response = Response.create_from_bytestring(response_str)
+                if response.data is not None:
+                    total_response_data.extend(response.data)
+                chaining_remaining = self.check_chaining_response(response)
+
+        # response chaining
+        while chaining_remaining is not None:
+            expected_response_size = chaining_remaining
+            if self.support_extended_length_apdu:
+                expected_response_size = self.maximum_response_apdu
+            get_response = self.create_get_response_command(expected_response_size)
+            Global.logger.info("Sending GET RESPONSE command")
+            await transport_layer.send_message(get_response)
+
+            Global.logger.info("Waiting for GET RESPONSE response")
+            response_str, header, id = await transport_layer.get_message()
+            self.check_ble_message_type_for_response(header, id)
+            Global.logger.info("Received response")
+            response = Response.create_from_bytestring(response_str)
+            if response.data is not None:
+                total_response_data.extend(response.data)
+            chaining_remaining = self.check_chaining_response(response)
+
+        total_response_data.extend(response.status.to_bytes(2, "big"))
+        return Response.create_from_bytestring(bytes(total_response_data))
+
+    def check_ble_message_type_for_response(
+        self, header: int | None, id: int | None
+    ) -> None:
+        if (header is not None and header != ProtocolType.AP) or (
+            id is not None and id != AP_ID.AP_RS
+        ):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP response message",
+                header,
+                id,
+            )
+
     def parse_command(
         self, command_as_bytes: bytes, encryption: EncryptionEngine | None = None
     ) -> Command:
@@ -1168,6 +1244,36 @@ class APDU:
                 raise InvalidINSError(command.as_bytes)
 
         return command
+
+    def check_chaining_response(self, response: Response) -> None | int:
+        """Checks if the response status indicates the response is chained
+
+        Args:
+            response (bytes): the response to check
+
+        Returns:
+            None | int: None if no chaining is required, int indicating how many bytes
+             are left, if chaining is required.
+        """
+        if response.sw1 == StatusBytes.MORE_DATA_AVAILABLE:
+            Global.logger.debug(
+                "Chaining indicated by response, bytes left: 0x{:02x}".format(
+                    response.sw2
+                )
+            )
+            return response.sw2
+        elif response.status == StatusBytes.COMMAND_CHAINING_NOT_SUPPORTED:
+            raise InvalidStatusError(
+                response.to_bytes(), response.status, "command chaining not supported"
+            )
+        elif response.status == StatusBytes.LAST_COMMAND_OF_CHAIN_EXPECTED:
+            raise InvalidStatusError(
+                response.to_bytes(), response.status, "last command of chain expected"
+            )
+        elif response.status == StatusBytes.SUCCESS:
+            return None
+        else:
+            raise InvalidStatusError(response.to_bytes(), response.status)
 
     def parse_response(
         self,
@@ -1532,7 +1638,7 @@ class APDU:
         Global.logger.info("Creating ENVELOPE response")
         return self.create_response(payload, status)
 
-    def create_get_response_command(self) -> Command:
+    def create_get_response_command(self, expected_response_size: int) -> Command:
         Global.logger.info("Creating GET RESPONSE command")
         return self.create_command(
             cla=0x00,
@@ -1540,7 +1646,7 @@ class APDU:
             p1=0x00,
             p2=0x00,
             data=bytes(),
-            le=0x00,
+            le=expected_response_size,
         )
 
     def create_get_response_response(self, payload: bytes, status: int) -> Response:

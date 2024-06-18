@@ -187,11 +187,13 @@ class InvalidStatusError(InvalidResponseError):
     Raised when the received Response has an invalid status.
     """
 
-    def __init__(self, response: bytes, status: int):
+    def __init__(self, response: bytes, status: int, additional_message: str = ""):
         self.status = status
         message = "invalid status found: 0x{:04x}, complete response: {!r}".format(
             status, response
         )
+        if additional_message != "":
+            message += ", " + additional_message
         AccessProtocolError.__init__(self, message)
 
 
