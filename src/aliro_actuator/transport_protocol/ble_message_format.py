@@ -245,9 +245,9 @@ class BleMessage(Message):
             Global.logger.info("Encrypting BLE message")
             encrypted_payload, tag = ble_encryption.encrypt(
                 self.payload,
-                self.header.to_bytes(1, "little")
-                + self.id.to_bytes(1, "little")
-                + len(self.payload).to_bytes(2, "little"),
+                self.header.to_bytes(1, "big")
+                + self.id.to_bytes(1, "big")
+                + len(self.payload).to_bytes(2, "big"),
             )
             self.payload = encrypted_payload + tag
         elif ble_encryption is None:
@@ -279,9 +279,9 @@ class BleMessage(Message):
             self.payload = ble_encryption.decrypt(
                 self.payload[:-AUTHENTICATION_TAG_SIZE],
                 self.payload[-AUTHENTICATION_TAG_SIZE:],
-                self.header.to_bytes(1, "little")
-                + self.id.to_bytes(1, "little")
-                + len(self.payload[:-AUTHENTICATION_TAG_SIZE]).to_bytes(2, "little"),
+                self.header.to_bytes(1, "big")
+                + self.id.to_bytes(1, "big")
+                + len(self.payload[:-AUTHENTICATION_TAG_SIZE]).to_bytes(2, "big"),
             )
             Global.logger.debug("Decrypted payload: {!r}".format(hexlify(self.payload)))
         elif ble_encryption is None:
