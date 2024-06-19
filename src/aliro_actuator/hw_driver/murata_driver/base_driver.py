@@ -35,23 +35,24 @@ class MurataBaseDriver:
         )
         # serial should ALWAYS map to serial from uciTool
         self.serial = self.dh.device.ser
-        # self.serial.timeout = TIMEOUT_LOW
+        self.serial.timeout = TIMEOUT_LOW
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
 
     def open(self) -> None:
-        self.serial = serial.Serial(self.com_port, self.baudrate, timeout=0.1)
+        if not self.serial.isOpen:
+            self.serial = serial.Serial(self.com_port, self.baudrate, timeout=0.1)
 
-        Global.logger.debug(
-            "cleaning serial buffer (if this takes too long, make sure "
-            "the murata has been reset by pressing switch SW1)"
-        )
-        while True:
-            data = self.serial.read(1)
-            if len(data) == 0:
-                break
+            Global.logger.debug(
+                "cleaning serial buffer (if this takes too long, make sure "
+                "the murata has been reset by pressing switch SW1)"
+            )
+            while True:
+                data = self.serial.read(1)
+                if len(data) == 0:
+                    break
 
-        self.serial.timeout = TIMEOUT
+            self.serial.timeout = TIMEOUT
 
     def close(self) -> None:
         self.serial.close()
