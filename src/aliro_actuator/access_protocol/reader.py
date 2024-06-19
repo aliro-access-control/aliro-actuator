@@ -649,6 +649,12 @@ class Reader(Device):
                 self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
                 self.session.set_credential_public_key(entry.access_credential)
                 self.session.create_encryption_engine_expedited()
+                if self.transport_protocol_type in [
+                    TransportProtocol.BLE_UWB,
+                    TransportProtocol.SOCKET_BLE,
+                ]:
+                    Global.logger.info("Setting up BLE encryption")
+                    self.session.set_ble_encryption(self.transport_protocol)
                 return
             except VerificationError:
                 Global.logger.info("decryption failed, trying next key in storage")

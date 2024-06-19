@@ -546,6 +546,12 @@ class UserDevice(Device):
                     self.transport_protocol_type, kpersistent
                 )
                 self.session.create_encryption_engine_expedited()
+                if self.transport_protocol_type in [
+                    TransportProtocol.BLE_UWB,
+                    TransportProtocol.SOCKET_BLE,
+                ]:
+                    Global.logger.info("Setting up BLE encryption")
+                    self.session.set_ble_encryption(self.transport_protocol)
 
                 doc_timestamp = None
                 revoke_timestamp = None
