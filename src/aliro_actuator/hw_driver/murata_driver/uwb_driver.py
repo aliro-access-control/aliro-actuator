@@ -56,12 +56,6 @@ sync_code_index = [
 
 
 class MurataUWBDriver(MurataBaseDriver):
-    def __init__(self, com_port: str, baudrate: int):
-        self.com_port = com_port
-        self.baudrate = baudrate
-        self.connected_devices: list[int] = []
-        self.channel_ids: dict[int, int] = dict()
-
     async def uci_initialize(
         self,
         session_id: int,
@@ -78,12 +72,6 @@ class MurataUWBDriver(MurataBaseDriver):
         self.session_id = session_id
         self.device_role = dev_role
         self.device_type = dev_type
-
-        self.dh = uci.UciHost(
-            port=self.com_port, id="master", ser_props={"baudrate": self.baudrate}
-        )
-
-        self.serial = self.dh.device.ser
 
         self.dh.disable_ntf_prints()
         self.dh.disable_uci_prints()

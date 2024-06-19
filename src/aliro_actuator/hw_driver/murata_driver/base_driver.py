@@ -3,6 +3,8 @@ from binascii import hexlify
 
 import serial
 
+import ucitool.base_uci.helpers.uci_helper as uci
+
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.errors import (
     DeviceDisconnectedError,
@@ -29,23 +31,29 @@ class MurataBaseDriver:
     def __init__(self, com_port: str, baudrate: int):
         self.com_port = com_port
         self.baudrate = baudrate
-        self.open()
+        self.dh = uci.UciHost(
+            port=self.com_port, id="master", ser_props={"baudrate": self.baudrate}
+        )
+        # serial should ALWAYS map to serial from uciTool
+        self.serial = self.dh.device.ser
+        self.serial.timeout = TIMEOUT
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
 
     def open(self) -> None:
-        self.serial = serial.Serial(self.com_port, self.baudrate, timeout=0.1)
+        if not self.serial.isOpen:
+            self.serial = serial.Serial(self.com_port, self.baudrate, timeout=0.1)
 
-        Global.logger.debug(
-            "cleaning serial buffer (if this takes too long, make sure "
-            "the murata has been reset by pressing switch SW1)"
-        )
-        while True:
-            data = self.serial.read(1)
-            if len(data) == 0:
-                break
+            Global.logger.debug(
+                "cleaning serial buffer (if this takes too long, make sure "
+                "the murata has been reset by pressing switch SW1)"
+            )
+            while True:
+                data = self.serial.read(1)
+                if len(data) == 0:
+                    break
 
-        self.serial.timeout = TIMEOUT
+            self.serial.timeout = TIMEOUT
 
     def close(self) -> None:
         self.serial.close()
