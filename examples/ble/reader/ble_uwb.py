@@ -42,7 +42,6 @@ async def main():
         TransactionCode.USER_DEVICE_SECURE_ACTION
     )
     await reader.reader_status_access_protocol_completed(0, 0)
-    await reader.transaction_termination()
 
     await reader.ranging_loop()
 

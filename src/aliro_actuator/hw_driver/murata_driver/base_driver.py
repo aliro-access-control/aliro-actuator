@@ -2,7 +2,6 @@ import asyncio
 from binascii import hexlify
 
 import serial
-
 import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import Global
@@ -36,7 +35,7 @@ class MurataBaseDriver:
         )
         # serial should ALWAYS map to serial from uciTool
         self.serial = self.dh.device.ser
-        self.serial.timeout = TIMEOUT
+        # self.serial.timeout = TIMEOUT_LOW
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
 
@@ -65,16 +64,27 @@ class MurataBaseDriver:
         self.serial.timeout = TIMEOUT
 
     async def read(self) -> Message:
-        header = await asyncio.to_thread(self.serial.read, 5)
-        if len(header) == 0:
+        packet = self.dh.device.fsci_read_packet()
+        Global.logger.debug(f"packet: {packet}")
+        while packet is None:
+            packet = self.dh.device.fsci_read_packet()
+        if len(packet) == 0:
             raise NoResponseError
-        if header[0] != 0x02:
+        if int.from_bytes(packet[0], "little") != 0x02:
             raise STXError
-        data = await asyncio.to_thread(self.serial.read, get_length_from_header(header))
-        checksum = await asyncio.to_thread(self.serial.read, 1)
+        # data = self.dh.device.fsci_read_packet()
+        # Global.logger.debug(f"data: {data}")
+        # checksum = self.dh.device.fsci_read_packet()
+        lung = get_length_from_header(packet[:5])
+        Global.logger.debug(f"lenght: {lung}")
         message = Message(
-            header[1], header[2], get_length_from_header(header), data, checksum
+            packet[1],
+            packet[2],
+            get_length_from_header(packet[:5]),
+            bytes(packet[5 : 5 + get_length_from_header(packet[:5])]),
+            packet[-1].to_bytes(1, "little"),
         )
+        Global.logger.debug("message: {!r}".format(hexlify(message.to_bytes())))
         return message
 
     def write(self, message: Message) -> None:

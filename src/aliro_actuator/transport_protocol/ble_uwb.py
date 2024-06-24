@@ -32,7 +32,7 @@ from aliro_actuator.transport_protocol.errors import (
 from aliro_actuator.transport_protocol.message import Message
 
 DEFAULT_PORT = "/dev/ttyUSB0"
-DEFAULT_BAUDRATE = "576000"
+DEFAULT_BAUDRATE = "230400"
 SUPPORTED_VERSIONS = [0x0100]
 CURRENT_VERSION = 0x0100
 
@@ -70,29 +70,29 @@ class BLEUWB(TransportProtocolBase):
             )
 
             self.supported_versions = SUPPORTED_VERSIONS
+            await self.driver.uci_initialize(
+                session_id=0,
+                dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
+                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
+            )
             await self.driver.setup_gatt_database(self.spsm, self.supported_versions)
             await self.driver.setup_connection(
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
             )
-            await self.driver.uci_initialize(
-                session_id=0,
-                dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
-                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
-            )
+
         elif self.mode == Mode.USER_DEVICE:
             truncated_list = list(map(lambda x: x[:8], reader_group_identifier_list))
             self.driver = UserDeviceMurataDriver(self.port, self.baudrate)
-            await self.driver.setup_connection(
-                group_resolving_key=self.group_resolving_key,
-                reader_group_identifier_list=truncated_list,
-            )
-
             await self.driver.uci_initialize(
                 session_id=0,
                 dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
+            )
+            await self.driver.setup_connection(
+                group_resolving_key=self.group_resolving_key,
+                reader_group_identifier_list=truncated_list,
             )
 
     async def disconnect(self) -> None:
@@ -186,42 +186,56 @@ class BLEUWB(TransportProtocolBase):
 
     async def get_uwb_time0(self) -> int:
         return await self.driver.get_uwb_time0()
+        # return 0
 
     def get_uwb_config_id(self) -> int:
         return self.driver.get_uwb_config_id()
+        # return 0
 
     def get_pulseshape_combo(self) -> int:
         return self.driver.get_pulse_shape_combination()
+        # return 0
 
     def get_channel_bitmask(self) -> int:
         return self.driver.get_channel_bitmask()
+        # return 0
 
     async def get_sts_index0(self) -> int:
         return await self.driver.get_sts_index0()
+        # return 0
 
     async def get_hop_mode_key(self) -> int:
         return await self.driver.get_hop_mode_key()
+        # return 0
 
     def get_sync_code_bitmask(self) -> int:
         return self.driver.get_sync_code_bitmask()
+        # return 0
 
     async def get_ran_multiplier(self) -> int:
         return await self.driver.get_ran_multiplier()
+        # return 0
 
     def get_slot_bitmask(self) -> int:
         return self.driver.get_slot_bitmask()
+        # return 0
 
     def get_hopping_config_bitmask(self) -> int:
         return self.driver.get_hopping_config_bitmask()
+        # return 0
 
     async def get_number_responders(self) -> int:
         return await self.driver.get_number_responders()
+        # return 0
 
     async def get_slots_per_round(self) -> int:
         return await self.driver.get_slots_per_round()
+        # return 0
 
     async def get_mac_mode(self) -> int:
         return await self.driver.get_mac_mode()
+        # return 0
 
     async def get_num_chaps_per_slot(self) -> int:
         return await self.driver.get_num_chaps_per_slot()
+        # return 0

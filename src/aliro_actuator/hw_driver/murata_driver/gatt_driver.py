@@ -3,7 +3,7 @@ from binascii import hexlify
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
-from aliro_actuator.hw_driver.murata_driver.fsci import Message, ConfirmStatus
+from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
 from aliro_actuator.hw_driver.murata_driver.gatt import (
     Characteristic,
     Permissions,
