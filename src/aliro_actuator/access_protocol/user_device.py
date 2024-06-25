@@ -1477,6 +1477,9 @@ class UserDevice(Device):
         else:
             raise AccessProtocolError("Message invalid (missing header or id)")
 
+        command = await self.apdu.handle_chaining_receive_command(
+            command_str, self.transport_protocol
+        )
         try:
             command = self.apdu.parse_command(
                 command_str, self.session.encryption_expedited

@@ -221,6 +221,7 @@ class Command(APDUMessage):
     lc: int
     data: bytes
     le: int
+    chaining_control_bit: bool
     """
 
     def __init__(self) -> None:
@@ -231,6 +232,7 @@ class Command(APDUMessage):
         self.lc = -1
         self.le = -1
         self.data: bytes | None = None
+        self.chaining_control_bit = False
 
         self.invalid_data_error = InvalidCommandDataError
 
@@ -255,6 +257,7 @@ class Command(APDUMessage):
 
         new_command = Command()
         new_command.cla = cla
+        new_command.chaining_control_bit = cla & 0x10 == 0x10
         Global.logger.debug("Command CLA: 0x{:02x}".format(new_command.cla))
         new_command.ins = ins
         Global.logger.debug("Command INS: 0x{:02x}".format(new_command.ins))
@@ -300,6 +303,7 @@ class Command(APDUMessage):
         new_command.as_bytes = bytestring
 
         new_command.cla = bytestring[0]
+        new_command.chaining_control_bit = new_command.cla & 0x10 == 0x10
         new_command.ins = bytestring[1]
         new_command.p1 = bytestring[2]
         new_command.p2 = bytestring[3]
@@ -371,15 +375,21 @@ class Command(APDUMessage):
         Should be 0x00 for interindustry instructions, 0x80 for other instructions.
         """
         if interindustry:
-            if self.cla != 0x00:
-                raise InvalidCLAError(self.as_bytes)
-            else:
+            if self.cla == 0x00:
                 Global.logger.info("Valid CLA found: 0x{:02x}".format(self.cla))
+            elif self.cla == 0x10:
+                Global.logger.info("Valid CLA found: 0x{:02x}".format(self.cla))
+                Global.logger.info("CLA command chaining control bit is true")
+            else:
+                raise InvalidCLAError(self.as_bytes)
         else:
-            if self.cla != 0x80:
-                raise InvalidCLAError(self.as_bytes)
-            else:
+            if self.cla == 0x80:
                 Global.logger.info("Valid CLA found: 0x{:02x}".format(self.cla))
+            elif self.cla == 0x90:
+                Global.logger.info("Valid CLA found: 0x{:02x}".format(self.cla))
+                Global.logger.info("CLA command chaining control bit is true")
+            else:
+                raise InvalidCLAError(self.as_bytes)
 
     def _check_ins(self, expected_ins: INS) -> None:
         """
@@ -1145,7 +1155,7 @@ class APDU:
         self.maximum_command_apdu = 0
         self.maximum_response_apdu = 0
 
-    async def handle_chaining_command(
+    async def handle_chaining_send_command(
         self,
         command_name: str,
         commands: list[Command],
@@ -1202,6 +1212,40 @@ class APDU:
         total_response_data.extend(response.status.to_bytes(2, "big"))
         return Response.create_from_bytestring(bytes(total_response_data))
 
+    async def handle_chaining_receive_command(
+        self,
+        command_bytes: bytes,
+        transport_layer: TransportProtocolBase,
+    ) -> Command:
+        command = Command.create_from_bytestring(command_bytes)
+
+        if not command.chaining_control_bit:
+            Global.logger.debug("No chaining used in this command")
+            return command
+
+        Global.logger.debug("Chained command, getting the other commands of the chain")
+        total_payload = bytearray()
+        if command.data is not None:
+            total_payload = bytearray(command.data)
+
+        while command.chaining_control_bit:
+            response = Response.create_from_parameters(status=StatusBytes.SUCCESS)
+            await transport_layer.send_message(response)
+            command_str, header, id = await transport_layer.get_message()
+            self.check_ble_message_type_for_command(header, id)
+            command = Command.create_from_bytestring(command_str)
+            if command.data is not None:
+                total_payload.extend(command.data)
+
+        return Command.create_from_parameters(
+            command.cla,
+            command.ins,
+            command.p1,
+            command.p2,
+            bytes(total_payload),
+            command.le,
+        )
+
     def check_ble_message_type_for_response(
         self, header: int | None, id: int | None
     ) -> None:
@@ -1215,13 +1259,27 @@ class APDU:
                 id,
             )
 
+    def check_ble_message_type_for_command(
+        self, header: int | None, id: int | None
+    ) -> None:
+        if (header is not None and header != ProtocolType.AP) or (
+            id is not None and id != AP_ID.AP_RQ
+        ):
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "AP command message",
+                header,
+                id,
+            )
+
     def parse_command(
-        self, command_as_bytes: bytes, encryption: EncryptionEngine | None = None
+        self, command: bytes | Command, encryption: EncryptionEngine | None = None
     ) -> Command:
         """
         Parse a command bytestring. Used to extract info from a received command.
         """
-        command = Command.create_from_bytestring(command_as_bytes)
+        if isinstance(command, bytes):
+            command = Command.create_from_bytestring(command)
 
         match command.ins:
             case INS.SELECT:
