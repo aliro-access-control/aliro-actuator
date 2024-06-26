@@ -1516,7 +1516,9 @@ class UserDevice(Device):
             credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
         Global.logger.info("Sending AUTH0 response")
-        await self.transport_protocol.send_message(auth0_response)
+        await self.apdu.handle_chaining_send_response(
+            [auth0_response], self.transport_protocol
+        )
 
     async def response_auth1(
         self,
@@ -1560,7 +1562,9 @@ class UserDevice(Device):
             revocation_signed_timestamp,
         )
         Global.logger.info("Sending AUTH1 response")
-        await self.transport_protocol.send_message(auth1_response)
+        await self.apdu.handle_chaining_send_response(
+            [auth1_response], self.transport_protocol
+        )
 
     async def response_select(
         self,
@@ -1592,7 +1596,9 @@ class UserDevice(Device):
             vendor_specific_tlv=vendor_specific_tlv,
         )
         Global.logger.info("Sending SELECT response")
-        await self.transport_protocol.send_message(select_response)
+        await self.apdu.handle_chaining_send_response(
+            [select_response], self.transport_protocol
+        )
 
     def response_envelope(self) -> None:
         raise NotImplementedError
@@ -1606,7 +1612,9 @@ class UserDevice(Device):
         """
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
         Global.logger.info("Sending LOAD CERT response")
-        await self.transport_protocol.send_message(load_cert_response)
+        await self.apdu.handle_chaining_send_response(
+            [load_cert_response], self.transport_protocol
+        )
 
     async def response_exchange(
         self,
@@ -1624,7 +1632,9 @@ class UserDevice(Device):
             payload, encryption, StatusBytes.SUCCESS
         )
         Global.logger.info("Sending EXCHANGE response")
-        await self.transport_protocol.send_message(exchange_response)
+        await self.apdu.handle_chaining_send_response(
+            [exchange_response], self.transport_protocol
+        )
 
     async def response_control_flow(self) -> None:
         """
@@ -1634,7 +1644,9 @@ class UserDevice(Device):
             StatusBytes.SUCCESS
         )
         Global.logger.info("Sending CONTROL FLOW response")
-        await self.transport_protocol.send_message(control_flow_response)
+        await self.apdu.handle_chaining_send_response(
+            [control_flow_response], self.transport_protocol
+        )
 
 
 class UserSessionState(Enum):

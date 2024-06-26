@@ -1246,6 +1246,33 @@ class APDU:
             command.le,
         )
 
+    async def handle_chaining_send_response(
+        self,
+        responses: list[Response],
+        transport_layer: TransportProtocolBase,
+    ) -> None:
+        if len(responses) == 1:
+            Global.logger.debug("Response fits in one message, no chaining required")
+            await transport_layer.send_message(responses[0])
+            return
+
+        Global.logger.debug("Response chaining required")
+        for response in responses:
+            Global.logger.debug("Sending response")
+            await transport_layer.send_message(response)
+            if response.status == StatusBytes.SUCCESS:
+                Global.logger.debug("Last response send")
+                break
+
+            Global.logger.info("Waiting for GET RESPONSE command")
+            command_str, header, id = await transport_layer.get_message()
+            self.check_ble_message_type_for_command(header, id)
+            command = self.parse_command(command_str)
+            if command.ins != INS.GET_RESPONSE:
+                Global.logger.error("Received command other than GET RESPONSE")
+                raise InvalidINSError(command.to_bytes())
+            Global.logger.info("Received GET RESPONSE command")
+
     def check_ble_message_type_for_response(
         self, header: int | None, id: int | None
     ) -> None:
