@@ -1517,7 +1517,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending AUTH0 response")
         await self.apdu.handle_chaining_send_response(
-            [auth0_response], self.transport_protocol
+            auth0_response, self.transport_protocol
         )
 
     async def response_auth1(
@@ -1563,7 +1563,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending AUTH1 response")
         await self.apdu.handle_chaining_send_response(
-            [auth1_response], self.transport_protocol
+            auth1_response, self.transport_protocol
         )
 
     async def response_select(
@@ -1597,7 +1597,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending SELECT response")
         await self.apdu.handle_chaining_send_response(
-            [select_response], self.transport_protocol
+            select_response, self.transport_protocol
         )
 
     def response_envelope(self) -> None:
@@ -1613,7 +1613,7 @@ class UserDevice(Device):
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
         Global.logger.info("Sending LOAD CERT response")
         await self.apdu.handle_chaining_send_response(
-            [load_cert_response], self.transport_protocol
+            load_cert_response, self.transport_protocol
         )
 
     async def response_exchange(
@@ -1633,7 +1633,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending EXCHANGE response")
         await self.apdu.handle_chaining_send_response(
-            [exchange_response], self.transport_protocol
+            exchange_response, self.transport_protocol
         )
 
     async def response_control_flow(self) -> None:
@@ -1645,7 +1645,7 @@ class UserDevice(Device):
         )
         Global.logger.info("Sending CONTROL FLOW response")
         await self.apdu.handle_chaining_send_response(
-            [control_flow_response], self.transport_protocol
+            control_flow_response, self.transport_protocol
         )
 
 

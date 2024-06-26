@@ -160,7 +160,8 @@ class StatusBytes(IntEnum):
 
     # Normal processing
     SUCCESS = 0x9000
-    MORE_DATA_AVAILABLE = 0x61
+    MORE_DATA_AVAILABLE = 0x6100
+    MORE_DATA_AVAILABLE_SW1 = 0x61
 
     # Warning processing
 
@@ -1340,7 +1341,7 @@ class APDU:
             None | int: None if no chaining is required, int indicating how many bytes
              are left, if chaining is required.
         """
-        if response.sw1 == StatusBytes.MORE_DATA_AVAILABLE:
+        if response.sw1 == StatusBytes.MORE_DATA_AVAILABLE_SW1:
             Global.logger.debug(
                 "Chaining indicated by response, bytes left: 0x{:02x}".format(
                     response.sw2
@@ -1415,7 +1416,7 @@ class APDU:
         maximum_response_apdu: int | None = None,
         vendor_specific_tlv: TLV | None = None,
         status: int = StatusBytes.SUCCESS,
-    ) -> Response:
+    ) -> list[Response]:
         Global.logger.info("Creating SELECT response")
         proprietary = create_proprietary_information(
             type,
@@ -1475,7 +1476,7 @@ class APDU:
 
     def create_auth0_response(
         self, credential_epubk: bytes, status: int, cryptogram: bytes | None = None
-    ) -> Response:
+    ) -> list[Response]:
         Global.logger.info("Creating AUTH0 response")
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.CREDENTIAL_EPUBK_TAG, credential_epubk)
@@ -1500,7 +1501,7 @@ class APDU:
             le=0x00,
         )
 
-    def create_load_cert_response(self, status: int) -> Response:
+    def create_load_cert_response(self, status: int) -> list[Response]:
         Global.logger.info("Creating LOAD CERT response")
         return self.create_response(status=status)
 
@@ -1549,7 +1550,7 @@ class APDU:
         signaling_bitmap: bytes | None = None,
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
-    ) -> Response:
+    ) -> list[Response]:
         Global.logger.info("Creating AUTH1 response")
         Global.logger.info("creating response payload")
         auth1_payload: list[tuple[int, bytes | list]] = []
@@ -1660,7 +1661,7 @@ class APDU:
             le=None,
         )
 
-    def create_control_flow_response(self, status: int) -> Response:
+    def create_control_flow_response(self, status: int) -> list[Response]:
         Global.logger.info("Creating CONTROL FLOW response")
         return self.create_response(status=status)
 
@@ -1691,7 +1692,7 @@ class APDU:
 
     def create_exchange_response(
         self, payload: bytes, encryption: EncryptionEngine, status: int
-    ) -> Response:
+    ) -> list[Response]:
         Global.logger.info("Creating EXCHANGE response")
         Global.logger.info("encrypting EXCHANGE response payload")
         encrypted_payload, tag = encryption.encrypt(
@@ -1719,7 +1720,7 @@ class APDU:
 
     def create_envelope_response(
         self, payload: bytes | None = None, status: int = StatusBytes.SUCCESS
-    ) -> Response:
+    ) -> list[Response]:
         Global.logger.info("Creating ENVELOPE response")
         return self.create_response(payload, status)
 
@@ -1733,10 +1734,6 @@ class APDU:
             data=bytes(),
             le=expected_response_size,
         )
-
-    def create_get_response_response(self, payload: bytes, status: int) -> Response:
-        Global.logger.info("Creating GET RESPONSE response")
-        return self.create_response(payload, status)
 
     def create_command(
         self, cla: int, ins: int, p1: int, p2: int, data: bytes, le: int | None
@@ -1783,23 +1780,61 @@ class APDU:
 
     def create_response(
         self, data: bytes | None = None, status: int = StatusBytes.SUCCESS
-    ) -> Response:
+    ) -> list[Response]:
         """
         Create a response.
         """
 
-        if (
-            not self.support_extended_length_apdu
-            and data is not None
-            and len(data) > APDU_RESPONSE_MAX_DATA_LENGTH
-        ):
-            raise MessageTooLongError
-        if self.support_extended_length_apdu:
+        if not self.support_extended_length_apdu:
+            if data is not None and len(data) > APDU_RESPONSE_MAX_DATA_LENGTH:
+                # Chaining required
+                return self.create_response_chain(
+                    data, status, APDU_RESPONSE_MAX_DATA_LENGTH
+                )
+            else:
+                return [Response.create_from_parameters(data, status)]
+        else:
+            # extended length supported
             if data is not None and len(data) + 2 > self.maximum_command_apdu:
-                raise MessageTooLongError
+                # Chaining required
+                return self.create_response_chain(
+                    data, status, self.maximum_command_apdu - 2
+                )
+            else:
+                return [Response.create_from_parameters(data, status)]
 
-        return Response.create_from_parameters(data, status)
+    def create_response_chain(
+        self,
+        data: bytes,
+        status: int = StatusBytes.SUCCESS,
+        max_data_length: int = APDU_RESPONSE_MAX_DATA_LENGTH,
+    ) -> list[Response]:
+        response_list = []
+        index = 0
+        while len(data) > index:
+            bytes_left = len(data) - index
+            if bytes_left < max_data_length:
+                # last message in chain
+                chain_status = status
+            elif bytes_left > 0xFF:
+                bytes_left = 0xFF
+                chain_status = StatusBytes.MORE_DATA_AVAILABLE | bytes_left
+            else:
+                chain_status = StatusBytes.MORE_DATA_AVAILABLE | bytes_left
+
+            response_list.append(
+                Response.create_from_parameters(
+                    data[index : index + max_data_length], chain_status
+                )
+            )
+            index += max_data_length
+        return response_list
 
     def create_error_response(self, status_bytes: int) -> Response:
         Global.logger.info("Creating error response")
-        return self.create_response(status=status_bytes)
+        response_list = self.create_response(status=status_bytes)
+        if len(response_list) > 1:
+            raise MessageTooLongError(
+                "Error response message do not have data and do not have to be chained"
+            )
+        return response_list[0]
