@@ -365,7 +365,7 @@ class MurataUWBDriver(MurataBaseDriver):
     async def get_mac_mode(self) -> int:
         data = uci.get_config(
             self.dh,
-            config=uci.APP_CFG.CSA_MAC_MODE,
+            config=uci.VENDOR_APP_CFG.CSA_MAC_MODE,
             session_id=self.session_handle_dh,
         )
         return data.fields["CSA_MAC_MODE"].val
