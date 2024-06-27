@@ -539,7 +539,7 @@ class BleMessage(Message):
     @staticmethod
     def create_time_sync(
         data_event_count: int,
-        uwb_dev_time: int,
+        uwb_dev_time: bytes,
         uwb_dev_time_uncertainty: int,
         uwb_clk_skew_measurement_available: int,
         dev_max_ppm: int,
@@ -550,9 +550,8 @@ class BleMessage(Message):
         device_event_count_attr = BleAttribute(
             SupplementaryService_AttributeID.DEVICE_EVENT_COUNT, data
         )
-        data = uwb_dev_time.to_bytes(8, "big")
         uwb_dev_time_attr = BleAttribute(
-            SupplementaryService_AttributeID.UWB_DEVICE_TIME, data
+            SupplementaryService_AttributeID.UWB_DEVICE_TIME, uwb_dev_time
         )
         data = uwb_dev_time_uncertainty.to_bytes(1, "big")
         uwb_dev_time_uncertainty_attr = BleAttribute(
@@ -743,12 +742,11 @@ class BleMessage(Message):
 
     @staticmethod
     def create_ranging_session_setup_m4(
-        sts_index0: int, uwb_time0: int, hop_mode_key: int, sync_code_index: int
+        sts_index0: int, uwb_time0: bytes, hop_mode_key: int, sync_code_index: int
     ) -> BleMessage:
         data = sts_index0.to_bytes(2, "big")
         sts_index0_attr = BleAttribute(UWB_AttributeID.STS_INDEX0, data)
-        data = uwb_time0.to_bytes(1, "big")
-        uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, data)
+        uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, uwb_time0)
         data = hop_mode_key.to_bytes(4, "big")
         hop_mode_key_attr = BleAttribute(UWB_AttributeID.HOP_MODE_KEY, data)
         data = sync_code_index.to_bytes(4, "big")
