@@ -317,62 +317,72 @@ class BleMessage(Message):
             )
 
     def _parse_ranging_session_setup_m1(self) -> None:
-        self.attribute = BleAttribute.from_bytes(self.payload)
-        self.attribute.check_tag(UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER)
-        offset = self.attribute.length
+        self.uwb_configuration_id = BleAttribute.from_bytes(self.payload)
+        self.uwb_configuration_id.check_tag(
+            UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER
+        )
+        offset = self.uwb_configuration_id.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.PULSE_SHAPE_COMBO)
-        offset += self.attribute.length
+        self.pulse_shape_combo = BleAttribute.from_bytes(self.payload[offset:None])
+        self.pulse_shape_combo.check_tag(UWB_AttributeID.PULSE_SHAPE_COMBO)
+        offset += self.pulse_shape_combo.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.CHANNEL_BITMASK)
-        offset += self.attribute.length
+        self.channel_bitmask = BleAttribute.from_bytes(self.payload[offset:None])
+        self.channel_bitmask.check_tag(UWB_AttributeID.CHANNEL_BITMASK)
+        offset += self.channel_bitmask.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.UWB_SESSION_IDENTIFIER)
-        offset += self.attribute.length
+        self.uwb_session_id = BleAttribute.from_bytes(self.payload[offset:None])
+        self.uwb_session_id.check_tag(UWB_AttributeID.UWB_SESSION_IDENTIFIER)
+        offset += self.uwb_session_id.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
-        offset += self.attribute.length
+        self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
+        self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
+        offset += self.vendor_specific.length
 
     def _parse_ranging_session_setup_m2(self) -> None:
-        self.attribute = BleAttribute.from_bytes(self.payload)
-        self.attribute.check_tag(UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER)
-        offset = self.attribute.length
+        self.uwb_configuration_id = BleAttribute.from_bytes(self.payload)
+        self.uwb_configuration_id.check_tag(
+            UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER
+        )
+        offset = self.uwb_configuration_id.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.PULSE_SHAPE_COMBO)
-        offset += self.attribute.length
+        self.pulse_shape_combo = BleAttribute.from_bytes(self.payload[offset:None])
+        self.pulse_shape_combo.check_tag(UWB_AttributeID.PULSE_SHAPE_COMBO)
+        offset += self.pulse_shape_combo.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.CHANNEL_BITMASK)
-        offset += self.attribute.length
+        self.channel_bitmask = BleAttribute.from_bytes(self.payload[offset:None])
+        self.channel_bitmask.check_tag(UWB_AttributeID.CHANNEL_BITMASK)
+        offset += self.channel_bitmask.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.SYNC_CODE_INDEX_BITMASK)
-        offset += self.attribute.length
+        self.sync_code_index_bitmask = BleAttribute.from_bytes(
+            self.payload[offset:None]
+        )
+        self.sync_code_index_bitmask.check_tag(UWB_AttributeID.SYNC_CODE_INDEX_BITMASK)
+        offset += self.sync_code_index_bitmask.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.RAN_MULTIPLIER)
-        offset += self.attribute.length
+        self.ran_multiplier = BleAttribute.from_bytes(self.payload[offset:None])
+        self.ran_multiplier.check_tag(UWB_AttributeID.RAN_MULTIPLIER)
+        offset += self.ran_multiplier.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.SLOT_BITMASK)
-        offset += self.attribute.length
+        self.slot_bitmask = BleAttribute.from_bytes(self.payload[offset:None])
+        self.slot_bitmask.check_tag(UWB_AttributeID.SLOT_BITMASK)
+        offset += self.slot_bitmask.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK)
-        offset += self.attribute.length
+        self.hopping_configuration_bitmask = BleAttribute.from_bytes(
+            self.payload[offset:None]
+        )
+        self.hopping_configuration_bitmask.check_tag(
+            UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK
+        )
+        offset += self.hopping_configuration_bitmask.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
+        self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
+        self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
 
     def _parse_ranging_session_setup_m3(self) -> None:
-        self.attribute = BleAttribute.from_bytes(self.payload)
-        self.attribute.check_tag(UWB_AttributeID.RAN_MULTIPLIER)
-        offset = self.attribute.length
+        self.ran_multiplier = BleAttribute.from_bytes(self.payload)
+        self.ran_multiplier.check_tag(UWB_AttributeID.RAN_MULTIPLIER)
+        offset = self.ran_multiplier.length
 
         self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
         self.attribute.check_tag(UWB_AttributeID.NUMBER_CHAPS_PER_SLOT)

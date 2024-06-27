@@ -389,6 +389,9 @@ class UserDevice(Device):
     async def handle_ranging_setup_m1(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M1")
         message.parse_payload()
+        await self.transport_protocol.set_pulseshape_combo(message.pulse_shape_combo)
+        await self.transport_protocol.set_uwb_config_id(message.uwb_configuration_id)
+        await self.transport_protocol.set_channel_bitmask(message.channel_bitmask)
         await self.send_ranging_session_setup_m2()
 
     async def handle_ranging_setup_m3(self, message: BleMessage) -> None:

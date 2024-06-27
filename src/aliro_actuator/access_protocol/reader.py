@@ -1247,6 +1247,15 @@ class Reader(Device):
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M2")
         message.parse_payload()
+        # TODO: Number Chaps per Slot, Number Responder Nodes, Number Slots per Round,
+        await self.transport_protocol.set_ran_multiplier(message.ran_multiplier)
+        await self.transport_protocol.set_sync_code_bitmask(
+            message.sync_code_index_bitmask
+        )
+        await self.transport_protocol.set_hopping_config_bitmask(
+            message.hopping_configuration_bitmask
+        )
+        await self.transport_protocol.set_mac_mode(0)  # TODO
         await self.send_ranging_session_setup_m3()
 
     async def handle_ranging_setup_m4(self, message: BleMessage) -> None:
