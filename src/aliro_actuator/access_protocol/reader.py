@@ -1227,6 +1227,7 @@ class Reader(Device):
                 and id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M4
             ):
                 await self.handle_ranging_setup_m4(message)
+                await self.transport_protocol.start_ranging()
             else:
                 raise UnexpectedBLEMessageError(
                     "Received unexpected ble message while waiting for "

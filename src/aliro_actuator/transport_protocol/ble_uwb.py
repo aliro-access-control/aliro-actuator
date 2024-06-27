@@ -255,3 +255,9 @@ class BLEUWB(TransportProtocolBase):
     async def get_num_chaps_per_slot(self) -> int:
         return await self.driver.get_num_chaps_per_slot()
         # return 0
+
+    async def start_ranging(self) -> None:
+        await self.driver.start_ranging()
+
+    async def stop_ranging(self) -> None:
+        await self.driver.stop_ranging()
