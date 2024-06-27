@@ -241,7 +241,7 @@ class MurataUWBDriver(MurataBaseDriver):
         # Range = 1 to 255
         # T_Block_S = Session_RAN_Multiplier × 96 ms
         # Time Range = 96ms to 24480 ms
-        val = ran_multiplier * 96
+        val = int(ran_multiplier * 96)
         uci.set_config(
             self.dh,
             config=uci.APP_CFG.RANGING_DURATION,
@@ -255,7 +255,7 @@ class MurataUWBDriver(MurataBaseDriver):
             config=uci.APP_CFG.RANGING_DURATION,
             session_id=self.session_handle_dh,
         )
-        val = data.fields["RANGING_DURATION"].val / 96
+        val = int(data.fields["RANGING_DURATION"].val / 96)
         return val
 
     async def set_app_config(self, channel: uci.APP_CFG.CHANNEL_ID) -> None:
@@ -281,11 +281,11 @@ class MurataUWBDriver(MurataBaseDriver):
     async def get_num_chaps_per_slot(self) -> int:
         data = uci.get_config(
             self.dh,
-            config=uci.APP_CFG.SLOT_DURATION,
+            config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
             session_id=self.session_handle_dh,
         )
         val = data.fields["NUMBER_OF_CONTROLEES"].val
-        number_of_chaps = val / 1200 * 3
+        number_of_chaps = int(val / 1200 * 3)
         return number_of_chaps
 
     def get_sync_code_bitmask(self) -> int:
@@ -326,7 +326,7 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["STS_INDEX"].val
 
-    async def get_uwb_time0(self) -> int:
+    async def get_uwb_time0(self) -> bytes:
         data = uci.get_config(
             self.dh,
             config=uci.APP_CFG.UWB_INITIATION_TIME,

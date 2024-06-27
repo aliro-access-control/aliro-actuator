@@ -71,7 +71,7 @@ class BLEUWB(TransportProtocolBase):
 
             self.supported_versions = SUPPORTED_VERSIONS
             await self.driver.uci_initialize(
-                session_id=0,
+                session_id=1,
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
             )
@@ -86,7 +86,7 @@ class BLEUWB(TransportProtocolBase):
             truncated_list = list(map(lambda x: x[:8], reader_group_identifier_list))
             self.driver = UserDeviceMurataDriver(self.port, self.baudrate)
             await self.driver.uci_initialize(
-                session_id=0,
+                session_id=1,
                 dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
             )
@@ -184,7 +184,7 @@ class BLEUWB(TransportProtocolBase):
         """
         return self.ble_version, self.supported_versions
 
-    async def get_uwb_time0(self) -> int:
+    async def get_uwb_time0(self) -> bytes:
         return await self.driver.get_uwb_time0()
         # return 0
 
@@ -233,8 +233,8 @@ class BLEUWB(TransportProtocolBase):
         # return 0
 
     async def get_mac_mode(self) -> int:
-        return await self.driver.get_mac_mode()
-        # return 0
+        # return await self.driver.get_mac_mode()
+        return 0
 
     async def get_num_chaps_per_slot(self) -> int:
         return await self.driver.get_num_chaps_per_slot()
