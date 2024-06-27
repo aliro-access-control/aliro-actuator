@@ -72,11 +72,6 @@ class MurataBaseDriver:
             raise NoResponseError
         if int.from_bytes(packet[0], "little") != 0x02:
             raise STXError
-        # data = self.dh.device.fsci_read_packet()
-        # Global.logger.debug(f"data: {data}")
-        # checksum = self.dh.device.fsci_read_packet()
-        lung = get_length_from_header(packet[:5])
-        Global.logger.debug(f"lenght: {lung}")
         message = Message(
             packet[1],
             packet[2],
@@ -84,7 +79,6 @@ class MurataBaseDriver:
             bytes(packet[5 : 5 + get_length_from_header(packet[:5])]),
             packet[-1].to_bytes(1, "little"),
         )
-        Global.logger.debug("message: {!r}".format(hexlify(message.to_bytes())))
         return message
 
     def write(self, message: Message) -> None:

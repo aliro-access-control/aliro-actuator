@@ -598,7 +598,7 @@ class BleMessage(Message):
         uwb_configuration_id_attr = BleAttribute(
             UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
         )
-        data = pulse_shape_combination.to_bytes(1, "big")
+        data = pulse_shape_combination.to_bytes(3, "big")
         pulse_shape_combination_attr = BleAttribute(
             UWB_AttributeID.PULSE_SHAPE_COMBO, data
         )
@@ -638,7 +638,7 @@ class BleMessage(Message):
         uwb_configuration_id_attr = BleAttribute(
             UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
         )
-        data = pulse_shape_combination.to_bytes(1, "big")
+        data = pulse_shape_combination.to_bytes(3, "big")
         pulse_shape_combination_attr = BleAttribute(
             UWB_AttributeID.PULSE_SHAPE_COMBO, data
         )
