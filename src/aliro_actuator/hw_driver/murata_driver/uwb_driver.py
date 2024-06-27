@@ -293,10 +293,10 @@ class MurataUWBDriver(MurataBaseDriver):
     async def get_num_chaps_per_slot(self) -> int:
         data = uci.get_config(
             self.dh,
-            config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
+            config=uci.APP_CFG.SLOT_DURATION,
             session_id=self.session_handle_dh,
         )
-        val = data.fields["NUMBER_OF_CONTROLEES"].val
+        val = data.fields["SLOT_DURATION"].val
         number_of_chaps = int(val / 1200 * 3)
         return number_of_chaps
 
@@ -309,10 +309,6 @@ class MurataUWBDriver(MurataBaseDriver):
 
     def get_hopping_config_bitmask(self) -> int:
         return self.hopping_config_bitmask
-
-    async def set_hopping_config_bitmask(self, hopping_config_bitmask: int) -> None:
-        # TODO
-        pass
 
     async def set_hopping_mode(self, hopping_mode: int) -> None:
         uci.set_config(
@@ -330,6 +326,14 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["NUMBER_OF_CONTROLEES"].val
 
+    async def set_number_responders(self, number_of_responders) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
+            value=number_of_responders,
+            session_id=self.session_handle_dh,
+        )
+
     async def get_slots_per_round(self) -> int:
         data = uci.get_config(
             self.dh,
@@ -337,6 +341,14 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
         return data.fields["SLOTS_PER_RR"].val
+
+    async def set_slots_per_round(self, slots_per_round) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.SLOTS_PER_RR,
+            value=slots_per_round,
+            session_id=self.session_handle_dh,
+        )
 
     async def get_sts_index0(self) -> int:
         data = uci.get_config(
@@ -346,6 +358,14 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["STS_INDEX"].val
 
+    async def set_sts_index0(self, sts_index0) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.STS_INDEX,
+            value=sts_index0,
+            session_id=self.session_handle_dh,
+        )
+
     async def get_uwb_time0(self) -> bytes:
         data = uci.get_config(
             self.dh,
@@ -354,6 +374,14 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["UWB_INITIATION_TIME"].val
 
+    async def set_uwb_time0(self, uwb_time0) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.UWB_INITIATION_TIME,
+            value=uwb_time0,
+            session_id=self.session_handle_dh,
+        )
+
     async def get_hop_mode_key(self) -> int:
         data = uci.get_config(
             self.dh,
@@ -361,6 +389,14 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
         return data.fields["HOP_MODE_KEY"].val
+
+    async def set_hop_mode_key(self, hop_mode_key) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.HOP_MODE_KEY,
+            value=hop_mode_key,
+            session_id=self.session_handle_dh,
+        )
 
     async def get_mac_mode(self) -> int:
         data = uci.get_config(

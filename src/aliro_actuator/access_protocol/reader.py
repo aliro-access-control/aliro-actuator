@@ -1304,12 +1304,14 @@ class Reader(Device):
         Global.logger.info("Handling ranging session setup message M2")
         message.parse_payload()
         # TODO: Number Chaps per Slot, Number Responder Nodes, Number Slots per Round,
-        await self.transport_protocol.set_ran_multiplier(message.ran_multiplier)
+        await self.transport_protocol.set_ran_multiplier(
+            int.from_bytes(message.ran_multiplier.value, "big")
+        )
         await self.transport_protocol.set_sync_code_bitmask(
-            message.sync_code_index_bitmask
+            int.from_bytes(message.sync_code_index_bitmask.value, "big")
         )
         await self.transport_protocol.set_hopping_config_bitmask(
-            message.hopping_configuration_bitmask
+            int.from_bytes(message.hopping_configuration_bitmask.value, "big")
         )
         await self.transport_protocol.set_mac_mode(0)  # TODO
         await self.send_ranging_session_setup_m3()
@@ -1319,6 +1321,21 @@ class Reader(Device):
         Finish setting up the ranging session and collect distance measurement
         """
         Global.logger.info("Handling ranging session setup message M4")
+        await self.transport_protocol.set_sts_index0(
+            int.from_bytes(message.sts_index0.value, "big")
+        )
+        await self.transport_protocol.set_uwb_time0(
+            int.from_bytes(message.uwb_time0.value, "big")
+        )
+        await self.transport_protocol.set_hop_mode_key(
+            int.from_bytes(message.hop_mode_key.value, "big")
+        )
+        await self.transport_protocol.set_hop_mode_key(
+            int.from_bytes(message.hop_mode_key.value, "big")
+        )
+        await self.transport_protocol.set_sync_code_bitmask(
+            int.from_bytes(message.sync_code_index.value, "big")
+        )
         message.parse_payload()
 
     async def send_ranging_session_setup_m1(self) -> None:

@@ -383,48 +383,54 @@ class BleMessage(Message):
         self.ran_multiplier.check_tag(UWB_AttributeID.RAN_MULTIPLIER)
         offset = self.ran_multiplier.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.NUMBER_CHAPS_PER_SLOT)
-        offset += self.attribute.length
+        self.number_chaps_per_slot = BleAttribute.from_bytes(self.payload[offset:None])
+        self.number_chaps_per_slot.check_tag(UWB_AttributeID.NUMBER_CHAPS_PER_SLOT)
+        offset += self.number_chaps_per_slot.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.NUMBER_RESPONDERS_NODES)
-        offset += self.attribute.length
+        self.number_responder_nodes = BleAttribute.from_bytes(self.payload[offset:None])
+        self.number_responder_nodes.check_tag(UWB_AttributeID.NUMBER_RESPONDERS_NODES)
+        offset += self.number_responder_nodes.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.NUMBER_SLOTS_PER_ROUND)
-        offset += self.attribute.length
+        self.number_slots_per_round = BleAttribute.from_bytes(self.payload[offset:None])
+        self.number_slots_per_round.check_tag(UWB_AttributeID.NUMBER_SLOTS_PER_ROUND)
+        offset += self.number_slots_per_round.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.SYNC_CODE_INDEX_BITMASK)
-        offset += self.attribute.length
+        self.sync_code_index_bitmask = BleAttribute.from_bytes(
+            self.payload[offset:None]
+        )
+        self.sync_code_index_bitmask.check_tag(UWB_AttributeID.SYNC_CODE_INDEX_BITMASK)
+        offset += self.sync_code_index_bitmask.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK)
-        offset += self.attribute.length
+        self.hopping_configuration_bitmask = BleAttribute.from_bytes(
+            self.payload[offset:None]
+        )
+        self.hopping_configuration_bitmask.check_tag(
+            UWB_AttributeID.HOPPING_CONFIGURATION_BITMASK
+        )
+        offset += self.hopping_configuration_bitmask.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.MAC_MODE)
-        offset += self.attribute.length
+        self.mac_mode = BleAttribute.from_bytes(self.payload[offset:None])
+        self.mac_mode.check_tag(UWB_AttributeID.MAC_MODE)
+        offset += self.mac_mode.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
+        self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
+        self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
 
     def _parse_ranging_session_setup_m4(self) -> None:
-        self.attribute = BleAttribute.from_bytes(self.payload)
-        self.attribute.check_tag(UWB_AttributeID.STS_INDEX0)
-        offset = self.attribute.length
+        self.sts_index0 = BleAttribute.from_bytes(self.payload)
+        self.sts_index0.check_tag(UWB_AttributeID.STS_INDEX0)
+        offset = self.sts_index0.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.UWB_TIME0)
-        offset += self.attribute.length
+        self.uwb_time0 = BleAttribute.from_bytes(self.payload[offset:None])
+        self.uwb_time0.check_tag(UWB_AttributeID.UWB_TIME0)
+        offset += self.uwb_time0.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.HOP_MODE_KEY)
-        offset += self.attribute.length
+        self.hop_mode_key = BleAttribute.from_bytes(self.payload[offset:None])
+        self.hop_mode_key.check_tag(UWB_AttributeID.HOP_MODE_KEY)
+        offset += self.hop_mode_key.length
 
-        self.attribute = BleAttribute.from_bytes(self.payload[offset:None])
-        self.attribute.check_tag(UWB_AttributeID.SYNC_CODE_INDEX)
+        self.sync_code_index = BleAttribute.from_bytes(self.payload[offset:None])
+        self.sync_code_index.check_tag(UWB_AttributeID.SYNC_CODE_INDEX)
 
     def _encrypt(self, ble_encryption: EncryptionEngine | None) -> None:
         """

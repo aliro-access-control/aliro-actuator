@@ -387,14 +387,34 @@ class UserDevice(Device):
     async def handle_ranging_setup_m1(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M1")
         message.parse_payload()
-        await self.transport_protocol.set_pulseshape_combo(message.pulse_shape_combo)
-        await self.transport_protocol.set_uwb_config_id(message.uwb_configuration_id)
-        await self.transport_protocol.set_channel_bitmask(message.channel_bitmask)
+        await self.transport_protocol.set_pulseshape_combo(
+            int.from_bytes(message.pulse_shape_combo.value, "big")
+        )
+        await self.transport_protocol.set_uwb_config_id(
+            int.from_bytes(message.uwb_configuration_id.value, "big")
+        )
+        await self.transport_protocol.set_channel_bitmask(
+            int.from_bytes(message.channel_bitmask.value)
+        )
         await self.send_ranging_session_setup_m2()
 
     async def handle_ranging_setup_m3(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M3")
         message.parse_payload()
+        await self.trnasport_protocol.set_ran_multiplier(
+            int.from_bytes(message.ran_multiplier.value, "big")
+        )
+        slot_duration = (
+            int.from_bytes(message.number_chaps_per_slot.value, "big") / 3 * 1200
+        )
+        await self.transport_protocol.set_slot_duration(slot_duration)
+        await self.transport_protocol.set_number_responders(int.from_bytes(message.number_responder_nodes.value. "big"))
+        await self.transport_protocol.set_slots_per_round(int.from_bytes(message.number_slots_per_round.value. "big"))
+        await self.transport_protocol.set_sync_code_bitmask(int.from_bytes(message.sync_code_index_bitmask.value. "big"))
+        hopping_config = int.from_bytes(message.hopping_configuration_bitmask.value. "big") 
+        await self.transport_protocol.set_hopping_mode(0) # TODO
+        await self.transport_protocol.set_mac_mode(0) # TODO
+    
         await self.send_ranging_session_setup_m4()
 
     def start_new_session(self) -> None:
