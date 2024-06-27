@@ -213,6 +213,14 @@ class MurataUWBDriver(MurataBaseDriver):
     def get_uwb_config_id(self) -> int:
         return self.uwb_config_id
 
+    async def set_uwb_config_id(self, uwb_config_id: int) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.UWB_CONFIG_ID,
+            value=uwb_config_id,
+            session_id=self.session_handle_dh,
+        )
+
     def get_pulse_shape_combination(self) -> int:
         return self.pulseshape_combo
 
@@ -228,6 +236,10 @@ class MurataUWBDriver(MurataBaseDriver):
 
     def get_channel_bitmask(self) -> int:
         return self.channel_bitmask
+
+    async def set_channel_bitmask(self, channel_bitmask: int) -> None:
+        # TODO
+        pass
 
     async def set_uwb_configuration_id(self, uwb_config_id: int) -> None:
         uci.set_config(
@@ -291,8 +303,16 @@ class MurataUWBDriver(MurataBaseDriver):
     def get_sync_code_bitmask(self) -> int:
         return self.sync_code_index_bitmask
 
+    async def set_sync_code_bitmask(self, sync_code_bitmask: int) -> None:
+        # TODO
+        pass
+
     def get_hopping_config_bitmask(self) -> int:
         return self.hopping_config_bitmask
+
+    async def set_hopping_config_bitmask(self, hopping_config_bitmask: int) -> None:
+        # TODO
+        pass
 
     async def set_hopping_mode(self, hopping_mode: int) -> None:
         uci.set_config(
@@ -349,3 +369,7 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
         return data.fields["CSA_MAC_MODE"].val
+
+    async def set_mac_mode(self, mac_mode: int) -> None:
+        # TODO
+        pass

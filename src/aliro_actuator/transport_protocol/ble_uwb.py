@@ -204,15 +204,22 @@ class BLEUWB(TransportProtocolBase):
 
     def get_uwb_config_id(self) -> int:
         return self.driver.get_uwb_config_id()
-        # return 0
+
+    async def set_uwb_config_id(self, uwb_config_id: int) -> None:
+        self.driver.set_uwb_config_id(uwb_config_id)
 
     def get_pulseshape_combo(self) -> int:
         return self.driver.get_pulse_shape_combination()
-        # return 0
+
+    def set_pulseshape_combo(self, pulseshape_combo: int) -> None:
+        self.driver.set_pulse_shape_combination(pulseshape_combo)
 
     def get_channel_bitmask(self) -> int:
         return self.driver.get_channel_bitmask()
-        # return 0
+
+    def set_channel_bitmask(self, channel_bitmask: int) -> None:
+        # TODO
+        self.driver.set_channel_bitmask(channel_bitmask)
 
     async def get_sts_index0(self) -> int:
         return await self.driver.get_sts_index0()
@@ -224,11 +231,15 @@ class BLEUWB(TransportProtocolBase):
 
     def get_sync_code_bitmask(self) -> int:
         return self.driver.get_sync_code_bitmask()
-        # return 0
+
+    async def set_sync_code_bitmask(self, sync_code_bitmask) -> None:
+        return await self.driver.set_sync_code_bitmask(sync_code_bitmask)
 
     async def get_ran_multiplier(self) -> int:
         return await self.driver.get_ran_multiplier()
-        # return 0
+
+    async def set_ran_multiplier(self, ran_multiplier: int) -> None:
+        await self.driver.set_ran_multiplier(ran_multiplier)
 
     def get_slot_bitmask(self) -> int:
         return self.driver.get_slot_bitmask()
@@ -236,7 +247,9 @@ class BLEUWB(TransportProtocolBase):
 
     def get_hopping_config_bitmask(self) -> int:
         return self.driver.get_hopping_config_bitmask()
-        # return 0
+
+    async def set_hopping_config_bitmask(self, hopping_config_bitmask: int) -> None:
+        return await self.driver.set_hopping_config_bitmask()
 
     async def get_number_responders(self) -> int:
         return await self.driver.get_number_responders()
@@ -249,6 +262,9 @@ class BLEUWB(TransportProtocolBase):
     async def get_mac_mode(self) -> int:
         # return await self.driver.get_mac_mode()
         return 0
+
+    async def set_mac_mode(self, mac_mode: int) -> None:
+        return await self.driver.set_mac_mode(mac_mode)
 
     async def get_num_chaps_per_slot(self) -> int:
         return await self.driver.get_num_chaps_per_slot()
