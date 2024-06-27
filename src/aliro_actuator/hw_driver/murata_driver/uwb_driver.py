@@ -373,3 +373,9 @@ class MurataUWBDriver(MurataBaseDriver):
     async def set_mac_mode(self, mac_mode: int) -> None:
         # TODO
         pass
+
+    async def start_ranging(self) -> None:
+        uci.rng_start(self.dh, session_id=self.session_handle_dh)
+
+    async def stop_ranging(self) -> None:
+        uci.rng_stop(self.dh, session_id=self.session_handle_dh)

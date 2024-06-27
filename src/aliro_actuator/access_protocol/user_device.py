@@ -376,6 +376,7 @@ class UserDevice(Device):
             and message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M3
         ):
             await self.handle_ranging_setup_m3(message)
+            await self.transport_protocol.start_ranging()
         else:
             raise UnexpectedBLEMessageError(
                 "Received unhandleable ble message",
