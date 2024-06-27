@@ -65,7 +65,6 @@ class MurataBaseDriver:
 
     async def read(self) -> Message:
         packet = self.dh.device.fsci_read_packet()
-        Global.logger.debug(f"packet: {packet}")
         while packet is None:
             packet = self.dh.device.fsci_read_packet()
         if len(packet) == 0:
