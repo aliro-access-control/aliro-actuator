@@ -64,9 +64,9 @@ class MurataBaseDriver:
         self.serial.timeout = TIMEOUT
 
     async def read(self) -> Message:
-        packet = await asyncio.to_thread(self.dh.device.fsci_read_packet())
+        packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
         while packet is None:
-            packet = await asyncio.to_thread(self.dh.device.fsci_read_packet())
+            packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
         if len(packet) == 0:
             raise NoResponseError
         if int.from_bytes(packet[0], "little") != 0x02:
