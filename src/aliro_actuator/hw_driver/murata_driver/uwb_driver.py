@@ -1,6 +1,7 @@
 import asyncio
 from binascii import hexlify
 from enum import IntEnum
+from pathlib import Path
 
 import ucitool.base_uci.helpers.uci_helper as uci
 
@@ -10,6 +11,17 @@ from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.errors import (
     DeviceDisconnectedError,
     NoResponseError,
+)
+
+DRIVER_PATH = Path(__file__).parent
+ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[
+    3
+]  # 4 levels up: aliro_actuator/src/aliro_actuator/hw_driver/murata_driver
+DEFAULT_SR150_FIRMWARE_PATH = (
+    ACTUATOR_ROOT_PATH
+    / "third_party"
+    / "murata_fw"
+    / "aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin"
 )
 
 
@@ -79,7 +91,7 @@ class MurataUWBDriver(MurataBaseDriver):
         Global.logger.info("Upload UWB device firmware.")
         uci.device_creation(
             self.dh,
-            fw=r"third_party/murata_fw/aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin",
+            fw=DEFAULT_SR150_FIRMWARE_PATH,
             skip_fw_download=False,
         )
         uci.device_init(self.dh)
