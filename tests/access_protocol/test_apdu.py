@@ -23,9 +23,9 @@ from aliro_actuator.access_protocol.apdu import (
     S1,
     S2,
     Auth1Response,
+    AuthenticationPolicy,
     Command,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
 from aliro_actuator.access_protocol.errors import (
@@ -158,7 +158,7 @@ class Test_apdu(unittest.TestCase):
 
         message = self.apdu.create_auth0_command(
             Transaction.STANDARD,
-            TransactionCode.USER_DEVICE_SECURE_ACTION,
+            AuthenticationPolicy.USER_DEVICE_SECURE_ACTION,
             protocol_version=0x0100,
             reader_epubk=reader_epubk,
             transaction_identifier=transaction_identifier,
@@ -181,7 +181,7 @@ class Test_apdu(unittest.TestCase):
                     Transaction.STANDARD,
                     0x42,
                     0x01,
-                    TransactionCode.USER_DEVICE_SECURE_ACTION,
+                    AuthenticationPolicy.USER_DEVICE_SECURE_ACTION,
                     0x5C,
                     0x02,
                     *protocol_version,
@@ -338,7 +338,7 @@ class Test_apdu(unittest.TestCase):
         )
 
         message = self.apdu.create_control_flow_command(
-            S1.FINISHED_WITH_SUCCESS, S2.NONE
+            S1.FINISHED_WITH_FAILURE, S2.NONE
         )
         self.assertEqual(
             message.to_bytes(),
@@ -351,7 +351,7 @@ class Test_apdu(unittest.TestCase):
                     0x06,
                     0x41,
                     0x01,
-                    S1.FINISHED_WITH_SUCCESS,
+                    S1.FINISHED_WITH_FAILURE,
                     0x42,
                     0x01,
                     S2.NONE,
@@ -360,14 +360,14 @@ class Test_apdu(unittest.TestCase):
         )
 
     def test_exchange(self) -> None:
-        exchange_SK_reader = os.urandom(0x20)
-        exchange_SK_device = os.urandom(0x20)
+        expedited_SK_reader = os.urandom(0x20)
+        expedited_SK_device = os.urandom(0x20)
 
         encryption_1 = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
         encryption_2 = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
         payload = TLV([(0x87, os.urandom(4)), (0x95, os.urandom(5))])
         message = self.apdu.create_exchange_command(False, payload, encryption_1)

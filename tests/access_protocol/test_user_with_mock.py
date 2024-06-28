@@ -23,10 +23,10 @@ from aliro_actuator.access_document.revocation_document import RevocationDocumen
 from aliro_actuator.access_protocol.apdu import (
     APDU,
     Auth1Response,
+    AuthenticationPolicy,
     Response,
     StatusBytes,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
@@ -142,7 +142,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         mock_nfc.get_message.return_value = (
             apdu.create_auth0_command(
                 Transaction.STANDARD,
-                TransactionCode.USER_DEVICE_SECURE_ACTION,
+                AuthenticationPolicy.USER_DEVICE_SECURE_ACTION,
                 PROTOCOL_VERSION,
                 reader_keys.get_public_key_as_bytes(),
                 transaction_identifier,
@@ -157,7 +157,9 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             mock_nfc,
             access_credentials=[
                 AccessCredential(
-                    user_keys, [(reader_identifier[:16], reader_keys.get_public_key())]
+                    user_keys,
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
         )
@@ -182,7 +184,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         mock_nfc.get_message.return_value = (
             apdu.create_auth0_command(
                 Transaction.STANDARD,
-                TransactionCode.USER_DEVICE_SECURE_ACTION,
+                AuthenticationPolicy.USER_DEVICE_SECURE_ACTION,
                 0x0000,
                 reader_keys.get_public_key_as_bytes(),
                 transaction_identifier,
@@ -197,7 +199,9 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             mock_nfc,
             access_credentials=[
                 AccessCredential(
-                    user_keys, [(reader_identifier[:16], reader_keys.get_public_key())]
+                    user_keys,
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
         )
@@ -230,7 +234,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         mock_nfc.get_message.return_value = (
             apdu.create_auth0_command(
                 Transaction.FAST,
-                TransactionCode.USER_DEVICE_SECURE_ACTION,
+                AuthenticationPolicy.USER_DEVICE_SECURE_ACTION,
                 PROTOCOL_VERSION,
                 reader_keys.get_public_key_as_bytes(),
                 transaction_identifier,
@@ -246,7 +250,9 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             fast_transaction_implemented=False,
             access_credentials=[
                 AccessCredential(
-                    user_keys, [(reader_identifier[:16], reader_keys.get_public_key())]
+                    user_keys,
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
+                    [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
         )
@@ -299,7 +305,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         mock_nfc.get_message.return_value = (
             apdu.create_auth0_command(
                 Transaction.FAST,
-                TransactionCode.USER_DEVICE,
+                AuthenticationPolicy.USER_DEVICE,
                 PROTOCOL_VERSION,
                 reader_ephemeral.as_bytes(),
                 transaction_identifier,
@@ -314,8 +320,11 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             mock_nfc,
             access_credentials=[
                 AccessCredential(
-                    user_device_key_pair=user_credential,
+                    access_credential_key_pair=user_credential,
                     reader_id_key_list=[
+                        (reader_identifier[:16], reader_key),
+                    ],
+                    reader_system_issuer_ca_certificate_id_key_list=[
                         (reader_identifier[:16], reader_key),
                     ],
                 )
@@ -400,6 +409,9 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
                         reader_key,
                     ),
                 ],
+                reader_system_issuer_ca_certificate_id_key_list=[
+                    (reader_id[:16], reader_key),
+                ],
             )
         ]
         user = UserDevice(TransportProtocol.NFC, mock_nfc, access_credentials)
@@ -417,10 +429,10 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
     async def test_auth1_command(self, mock_nfc: AsyncMock) -> None:
-        exchange_SK_reader = os.urandom(32)
-        exchange_SK_device = os.urandom(32)
+        expedited_SK_reader = os.urandom(32)
+        expedited_SK_device = os.urandom(32)
         encryption = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
 
         reader_ephemeral_keypair = KeyPair()
@@ -464,6 +476,7 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             AccessCredential(
                 credential_keypair,
                 [(reader_identifier[:16], reader_keypair.get_public_key())],
+                [(reader_identifier[:16], reader_keypair.get_public_key())],
             )
         ]
         user = UserDevice(
@@ -476,15 +489,17 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         user.session.update_state(UserSessionState.AUTH0_STD_DONE)
         user.session.set_access_credential(access_credentials[0])
         user.session.command_parameters = Transaction.STANDARD
-        user.session.transaction_code = TransactionCode.USER_DEVICE_SECURE_ACTION
+        user.session.authentication_policy = (
+            AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
+        )
         user.session.expedited_phase_protocol_version = PROTOCOL_VERSION
         user.session.vendor_specific_extension = None
         user.session.credential_ephemeral = credential_ephemeral_keypair
         user.session.reader_epubk = reader_ephemeral_keypair.get_public_key()
         user.session.reader_identifier = reader_identifier
         user.session.transaction_identifier = transaction_identifier
-        user.session.encryption = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+        user.session.encryption_expedited = EncryptionEngine(
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
         user.session.access_credential = access_credentials[0]
 
@@ -495,10 +510,10 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
     async def test_exchange_command(self, mock_nfc: AsyncMock) -> None:
-        exchange_SK_reader = os.urandom(32)
-        exchange_SK_device = os.urandom(32)
+        expedited_SK_reader = os.urandom(32)
+        expedited_SK_device = os.urandom(32)
         encryption = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
         data = TLV(data=[])
 
@@ -512,18 +527,18 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         user = UserDevice(TransportProtocol.NFC, mock_nfc, mailbox=0x20)
         user.start_new_session()
         user.session.update_state(UserSessionState.AUTH1_DONE)
-        user.session.encryption = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+        user.session.encryption_expedited = EncryptionEngine(
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
-        command = await user.wait_for_command(encryption=user.session.encryption)
+        command = await user.wait_for_command()
         await user.handle_exchange(command)
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
     async def test_exchange_command_mailbox(self, mock_nfc: AsyncMock) -> None:
-        exchange_SK_reader = os.urandom(32)
-        exchange_SK_device = os.urandom(32)
+        expedited_SK_reader = os.urandom(32)
+        expedited_SK_device = os.urandom(32)
         encryption = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
         commands = TLV([])
         commands.add_value(0x87, bytes.fromhex("00000005"))
@@ -543,10 +558,10 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         )
         user.start_new_session()
         user.session.update_state(UserSessionState.AUTH1_DONE)
-        user.session.encryption = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+        user.session.encryption_expedited = EncryptionEngine(
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
-        command = await user.wait_for_command(encryption=user.session.encryption)
+        command = await user.wait_for_command()
         await user.handle_exchange(command)
 
         self.assertEqual(user.mailbox.read(0, 5), bytes.fromhex("FFFFFFFFFF"))

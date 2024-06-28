@@ -36,6 +36,7 @@ class UserDeviceMurataDriver(
         Global.logger.info("setup ble connection")
         self.group_resolving_key = group_resolving_key
         self.reader_group_identifier_list = reader_group_identifier_list
+        await self.stop_scanning(False)
         await self.start_scanning()
 
     async def wait_for_connection(self) -> None:
@@ -123,7 +124,9 @@ class UserDeviceMurataDriver(
         no_versions = read_value[2] // 2  # every version is 2 byte long
         versions = []
         for index in range(no_versions):
-            versions.append(int.from_bytes(read_value[3 + index : 5 + index], "big"))
+            start_index = 3 + index * 2
+            end_index = 5 + index * 2
+            versions.append(int.from_bytes(read_value[start_index:end_index], "big"))
         return read_value[:2], versions
 
     async def handle_GATT_layer_write_characteristic(
@@ -158,7 +161,9 @@ class ReaderMurataDriver(
         self, spsm: bytes, supported_versions: list[int]
     ) -> None:
         Global.logger.info("Creating GATT Database")
+        await self.release_database()
         await self.gattbd_initialize()
+
         service_handle = await self.add_primary_service_declaration(
             0x01, ALIRO_SERVICE_UUID
         )

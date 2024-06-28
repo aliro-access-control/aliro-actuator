@@ -33,6 +33,8 @@ class ConfirmStatus(IntEnum):
     OS_ERROR = 0x07
     UNEXPECTED_ERROR = 0x08
     INVALID_STATE = 0x09
+    CALLBACK_ALREADY_INSTALLED = 0x03F3
+    LE_PSM_ALREADY_REGISTERED = 0x03F5
 
 
 class Message:
@@ -147,6 +149,13 @@ class Message:
                 if result != 0x0000:
                     raise ErrorReturnedError(result)
                 return connection_complete_structure[0]
+        elif (
+            self.op_group == OpGroup.L2CAP
+            and self.op_code == OpCodeL2CAP.LE_PSM_CONNECTION_REQUEST
+        ):
+            if self.data[0] == 0x01:
+                connection_request_structure = self.data[1:]
+                return connection_request_structure[0]
         elif (
             self.op_group == OpGroup.GATT
             and self.op_code == OpCodeGATT.ATTRIBUTE_WRITTEN

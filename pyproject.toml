@@ -6,7 +6,7 @@ license = "Apache-2.0"
 authors = ["Mike Jongen <mike.jongen@nxp.com>"]
 readme = "README.md"
 packages = [
-  { include = "aliro_actuator", from = "src" },
+  { include = "aliro_actuator", from = "src" }
 ]
 
 [tool.poetry.dependencies]

@@ -31,12 +31,28 @@ async def main():
     reader_public_key_pem = open("examples/nfc/reader_public_key.pem", "rt")
     reader_public_key = PublicKey(reader_public_key_pem.read())
 
+<<<<<<< HEAD
     reader_identifier_list = [(READER_GROUP_IDENTIFIER, reader_public_key)]
+=======
+    issuer_public_key_pem = open("examples/nfc/issuer_public_key.pem", "rt")
+    issuer_public_key = PublicKey(issuer_public_key_pem.read())
+
+    reader_identifier_list = [(READER_GROUP_IDENTIFIER, reader_public_key)]
+    reader_issuer_identifier_list = [(READER_GROUP_IDENTIFIER, issuer_public_key)]
+>>>>>>> 27-add-uwb-support
 
     private_key_pem = open("examples/nfc/credential_private_key.pem", "rt")
     public_key_pem = open("examples/nfc/credential_public_key.pem", "rt")
     credential_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
+<<<<<<< HEAD
     access_credentials = [AccessCredential(credential_keypair, reader_identifier_list)]
+=======
+    access_credentials = [
+        AccessCredential(
+            credential_keypair, reader_identifier_list, reader_issuer_identifier_list
+        )
+    ]
+>>>>>>> 27-add-uwb-support
 
     reader = UserDevice(
         transport_protocol=TransportProtocol.NFC,

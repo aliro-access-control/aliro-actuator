@@ -14,27 +14,59 @@
 
 from binascii import hexlify
 
+from aliro_actuator import Global
 from aliro_actuator.trust_framework.errors import KeyLookupFailed
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
+from aliro_actuator.trust_framework.key_slot import get_key_slot
 
 
 class AccessCredential:
     """_summary_
 
     Args:
-        user_device_key_pair (KeyPair): keypair used by the User Device when this
+        access_credential_key_pair (KeyPair): keypair used by the User Device when this
         AccessCredential has a matching reader group identifier
         reader_id_key_list (list[tuple[bytes, PublicKey]]): a list with tuples
         containing reader_group_identifier and reader_public_key pairs
+        reader_system_issuer_ca_certificate_id_key_list (list[tuple[bytes, PublicKey]]):
+        list containing the public key of the Reader System Issuer CA certificates,
+        used for certificate verification. Similar formatted to reader_id_key_list.
     """
 
     def __init__(
         self,
-        user_device_key_pair: KeyPair,
+        access_credential_key_pair: KeyPair,
         reader_id_key_list: list[tuple[bytes, PublicKey]],
+        reader_system_issuer_ca_certificate_id_key_list: list[tuple[bytes, PublicKey]],
     ):
-        self.user_device_key_pair = user_device_key_pair
+        Global.logger.debug("Creating Access Credential")
+        self.access_credential_key_pair = access_credential_key_pair
+        Global.logger.debug(
+            "Using user device private key: {!r}".format(
+                hexlify(self.access_credential_key_pair.get_private_key().as_bytes())
+            )
+        )
+        Global.logger.debug(
+            "Using user device public key: {!r}".format(
+                hexlify(self.access_credential_key_pair.get_public_key_as_bytes())
+            )
+        )
         self.reader_id_key_list = reader_id_key_list
+        Global.logger.debug("Reader id key list:")
+        for id, key in self.reader_id_key_list:
+            Global.logger.debug("Reader group identifier: {!r}".format(hexlify(id)))
+            Global.logger.debug(
+                "Reader public key: {!r}".format(hexlify(key.as_bytes()))
+            )
+        self.issuer_ca_certificate_id_key_list = (
+            reader_system_issuer_ca_certificate_id_key_list
+        )
+        Global.logger.debug("Reader issuer CA id key list:")
+        for id, key in self.issuer_ca_certificate_id_key_list:
+            Global.logger.debug("Reader group identifier: {!r}".format(hexlify(id)))
+            Global.logger.debug(
+                "Reader system issuer public key: {!r}".format(hexlify(key.as_bytes()))
+            )
 
     def has_identifier(self, group_identifier: bytes) -> bool:
         """
@@ -52,7 +84,7 @@ class AccessCredential:
         return False
 
     def sign(self, data: bytes) -> bytes:
-        return self.user_device_key_pair.sign(data)
+        return self.access_credential_key_pair.sign(data)
 
     def get_reader_public_key(self, identifier: bytes) -> PublicKey:
         for id_key_pair in self.reader_id_key_list:
@@ -62,12 +94,25 @@ class AccessCredential:
             "Could not find key for reader identifier: {!r}".format(hexlify(identifier))
         )
 
-    def get_credential_public_key(self) -> PublicKey:
-        return self.user_device_key_pair.get_public_key()
+    def get_access_credential_public_key(self) -> PublicKey:
+        return self.access_credential_key_pair.get_public_key()
+
+    def get_issuer_public_key(self, identifier: bytes) -> PublicKey:
+        for id_key_pair in self.issuer_ca_certificate_id_key_list:
+            if id_key_pair[0] == identifier:
+                return id_key_pair[1]
+        raise KeyLookupFailed(
+            "Could not find issuer key for reader identifier: {!r}".format(
+                hexlify(identifier)
+            )
+        )
 
     def get_all_reader_id(self) -> list[bytes]:
-        return list(map(lambda x: x[0], self.reader_id_key_list))
+        all_reader_id = set(map(lambda x: x[0], self.reader_id_key_list))
+        all_reader_id.update(
+            map(lambda x: x[0], self.issuer_ca_certificate_id_key_list)
+        )
+        return list(all_reader_id)
 
     def get_key_slot(self) -> bytes:
-        # TODO implement
-        return bytes.fromhex("ABADCAFEBAADF00D")
+        return get_key_slot(self.access_credential_key_pair.get_public_key())

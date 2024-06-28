@@ -44,13 +44,14 @@ class Select:
     EXTENDED_INFO_LEN = 8
     MAX_COMMAND_LEN = 2
     MAX_RESPONSE_LEN = 2
+    MAX_VENDOR_SPECIFIC_LEN = 127
 
 
 # Auth0 defines
 class Auth0:
     # command
     COMMAND_TAG = 0x41
-    TRANSACTION_CODE_TAG = 0x42
+    AUTHENTICATION_POLICY_TAG = 0x42
     ETPV_TAG = 0x5C
     READER_EPUBK_TAG = 0x87
     TRANSACTION_ID_TAG = 0x4C
@@ -58,7 +59,7 @@ class Auth0:
     VENDOR_SPECIFIC_TAG = 0xB1
 
     COMMAND_LEN = 1
-    TRANSACTION_CODE_LEN = 1
+    AUTHENTICATION_POLICY_LEN = 1
     ETPV_LEN = 2
     READER_EPUBK_LEN = 65
     TRANSACTION_ID_LEN = 16
@@ -118,11 +119,13 @@ class Exchange:
     WRITE_TAG = 0x8A
     SET_TAG = 0x95
     NOTIFY_TAG = 0xAE
+    READER_STATUS_TAG = 0x97
     URSK_TAG = 0x98
     UPDATE_DOC_TAG = 0x81
 
     READ_LEN = 4
     SET_LEN = 5
+    READER_STATUS_LEN = 2
 
 
 class ReaderAuth:

@@ -48,28 +48,28 @@ class EncryptionEngine:
     Args:
         devicetype (DeviceType): indicates if the device creating this class is a
         user or reader
-        exchange_SK_reader (bytes): exchange SK Reader as described in Figure 8-13
+        sk_reader (bytes): secret key for the Reader as described in Figure 8-13
         of the Aliro spec
-        exchange_SK_device (bytes): exchange SK Device as described in Figure 8-13
+        sk_device (bytes): secret key for the User Device as described in Figure 8-13
         of the Aliro spec
     """
 
     def __init__(
         self,
         devicetype: DeviceType,
-        exchange_SK_reader: bytes,
-        exchange_SK_device: bytes,
+        sk_reader: bytes,
+        sk_device: bytes,
     ):
         self.encryption_counter = 0x01
         self.decryption_counter = 0x01
         if devicetype == DeviceType.READER:
-            self.encryption_key = exchange_SK_reader
-            self.decryption_key = exchange_SK_device
+            self.encryption_key = sk_reader
+            self.decryption_key = sk_device
             self.encryption_iv_pt1 = 0x00.to_bytes(8, "big")
             self.decryption_iv_pt1 = 0x01.to_bytes(8, "big")
         elif devicetype == DeviceType.USER:
-            self.encryption_key = exchange_SK_device
-            self.decryption_key = exchange_SK_reader
+            self.encryption_key = sk_device
+            self.decryption_key = sk_reader
             self.encryption_iv_pt1 = 0x01.to_bytes(8, "big")
             self.decryption_iv_pt1 = 0x00.to_bytes(8, "big")
 
@@ -183,7 +183,7 @@ def create_salt(
         reader_identifier (bytes).
         protocol_version (bytes).
         transaction_identifier (bytes).
-        flag (bytes): command_parameters || transaction_code.
+        flag (bytes): command_parameters || authentication_policy.
         proprietary_information (bytes): proprietary information.
         credential_ephemeral_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
 

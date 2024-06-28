@@ -86,7 +86,12 @@ class MurataBaseDriver:
         )
         self.serial.write(message.to_bytes())
 
-    async def wait_for_message(self, op_group: OpGroup, opcode: int) -> Message:
+    async def wait_for_message(
+        self,
+        op_group: OpGroup,
+        opcode: int,
+        return_opcode_list: list[int] | None = None,
+    ) -> Message:
         self.set_low_timeout()
         while True:
             try:
@@ -101,6 +106,11 @@ class MurataBaseDriver:
                         channel = response.get_channel_id()
                         id = response.get_device_id()
                         self.channel_ids[id] = channel
+                        Global.logger.debug(
+                            "Received Le PSM connection complete message, using channel: 0x{:02x}".format(
+                                channel
+                            )
+                        )
                     except ErrorReturnedError:
                         pass  # just ignore message
                 if (
@@ -115,6 +125,10 @@ class MurataBaseDriver:
                         if id in self.channel_ids.keys():
                             del self.channel_ids[id]
                         self.connected_devices.remove(id)
+                        Global.logger.debug(
+                            "Received connection event disconnected message, "
+                            "disconnected id: 0x{:02x}".format(id)
+                        )
                     except ErrorReturnedError:
                         pass  # just ignore message
                     raise DeviceDisconnectedError
@@ -122,6 +136,16 @@ class MurataBaseDriver:
                     response.get_op_group() != op_group
                     or response.get_op_code() != opcode
                 ):
+                    if (
+                        response.get_op_group() == op_group
+                        and return_opcode_list is not None
+                        and response.get_op_code() in return_opcode_list
+                    ):
+                        Global.logger.debug(
+                            "Received message with opcode: 0x{:02x}, returning message "
+                            "for further handling".format(response.get_op_code())
+                        )
+                        return response
                     Global.logger.debug("Unexpected Command received:")
                     response.print()
                     continue

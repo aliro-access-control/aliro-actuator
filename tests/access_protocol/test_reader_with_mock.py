@@ -21,9 +21,9 @@ from aliro_actuator.access_protocol.apdu import (
     APDU,
     INS,
     Auth1Response,
+    AuthenticationPolicy,
     StatusBytes,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import (
     CSA_APPLICATION_TYPE,
@@ -190,7 +190,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
         reader = Reader(TransportProtocol.NFC, mock_nfc)
         reader.start_new_session()
         await reader.handle_auth0(
-            Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+            Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
         )
         self.assertEqual(
             reader.session.get_credential_ephemeral_key(),
@@ -216,7 +216,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
         reader.start_new_session()
         with self.assertRaises(CryptogramNotFound):
             await reader.handle_auth0(
-                Transaction.FAST, TransactionCode.USER_DEVICE_SECURE_ACTION
+                Transaction.FAST, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
             )
 
     @patch("aliro_actuator.transport_protocol.nfc.NFC", new_callable=AsyncMock)
@@ -298,19 +298,19 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
             ),
         )
 
-        await reader.handle_auth0(Transaction.FAST, TransactionCode.USER_DEVICE)
+        await reader.handle_auth0(Transaction.FAST, AuthenticationPolicy.USER_DEVICE)
 
         self.assertEqual(
             user_credential.as_bytes(), reader.session.credential_pubk.as_bytes()
         )
         self.assertEqual(
-            reader.session.exchange_SK_reader,
+            reader.session.expedited_SK_reader,
             bytes.fromhex(
                 "30953d4ea9e3ea2fde1e7adebe9c619cc70a7c46af0ce2fc29598a8a19332915"
             ),
         )
         self.assertEqual(
-            reader.session.exchange_SK_device,
+            reader.session.expedited_SK_device,
             bytes.fromhex(
                 "475d26c582dbdce602e7d27c33fbcfdc4cca15ed84602faa58c934b9bd754351"
             ),
@@ -382,16 +382,16 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
             transaction_identifier=transaction_identifier,
             flag=bytes(
-                [Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION]
+                [Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION]
             ),
             proprietary_information=proprietary_information.to_bytes(),
         )
 
         derived_key = derive_key(shared_key, bytes(info), 160, salt)
-        exchange_SK_reader = derived_key[0:32]
-        exchange_SK_device = derived_key[32:64]
+        expedited_SK_reader = derived_key[0:32]
+        expedited_SK_device = derived_key[32:64]
         encryption = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
 
         reader_auth = TLV(
@@ -450,7 +450,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
         reader.session.vendor_specific_extension = None
         reader.session.proprietary_tlv = proprietary_information
         reader.session.set_flag(
-            Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+            Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
         )
         await reader.handle_auth1()
 
@@ -466,13 +466,13 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
         reader_group_sub_identifier = os.urandom(0x10)
         transaction_identifier = os.urandom(0x10)
 
-        exchange_SK_reader = os.urandom(32)
-        exchange_SK_device = os.urandom(32)
+        expedited_SK_reader = os.urandom(32)
+        expedited_SK_device = os.urandom(32)
         encryption_user = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
         encryption_reader = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
 
         apdu = APDU()
@@ -495,7 +495,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
             transaction_identifier_list=[transaction_identifier],
         )
         reader.start_new_session()
-        reader.session.encryption = encryption_reader
+        reader.session.encryption_expedited = encryption_reader
         await reader.handle_exchange(
             atomic_session=False,
             read_requests=None,
@@ -510,13 +510,13 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
         reader_group_sub_identifier = os.urandom(0x10)
         transaction_identifier = os.urandom(0x10)
 
-        exchange_SK_reader = os.urandom(32)
-        exchange_SK_device = os.urandom(32)
+        expedited_SK_reader = os.urandom(32)
+        expedited_SK_device = os.urandom(32)
         encryption_user = EncryptionEngine(
-            DeviceType.USER, exchange_SK_reader, exchange_SK_device
+            DeviceType.USER, expedited_SK_reader, expedited_SK_device
         )
         encryption_reader = EncryptionEngine(
-            DeviceType.READER, exchange_SK_reader, exchange_SK_device
+            DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
 
         rand_data = os.urandom(0x20)
@@ -543,7 +543,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
             transaction_identifier_list=[transaction_identifier],
         )
         reader.start_new_session()
-        reader.session.encryption = encryption_reader
+        reader.session.encryption_expedited = encryption_reader
         read_data = await reader.handle_exchange(
             atomic_session=False,
             read_requests=[(0, 2), (0x10, 0x20)],

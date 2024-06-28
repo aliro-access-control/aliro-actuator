@@ -46,6 +46,7 @@ class Mailbox:
         size: int = 0,
         read_permission: bool = True,
         write_permission: bool = True,
+        step_up_permission: bool = True,
     ):
         """
         For storing mailbox data and handling mailbox requests.
@@ -64,6 +65,7 @@ class Mailbox:
         """
         self.read_permission = read_permission
         self.write_permission = write_permission
+        self.step_up_permission = step_up_permission
         self.index: list[tuple[bytes, int, int]] = []
         self.data_set = False
         if initial_data is None:
