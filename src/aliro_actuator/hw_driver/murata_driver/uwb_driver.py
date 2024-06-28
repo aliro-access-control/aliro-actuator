@@ -111,7 +111,9 @@ class MurataUWBDriver(MurataBaseDriver):
 
         Global.logger.info("Calibrate device.")
         await self.set_calibration()
+        await self.initial_config()
         await self.get_capabilities()
+        await self.set_app_config(uci.APP_CFG.CHANNEL_ID.CH_9)
 
     async def set_calibration(self) -> None:
         # fmt: off
@@ -198,6 +200,102 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         self.session_handle_dh = session_init_rsp.fields["SESSION_HANDLE"].val
 
+        uci.set_vendor_app_config(
+            self.dh,
+            config=uci.VENDOR_APP_CFG.ANTENNAS_CONFIGURATION_RX,
+            value=[1, 2, 1, 2],
+            session_id=self.session_handle_dh,
+        )
+
+    async def initial_config(self) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.STS_CONFIG,
+            value=uci.APP_CFG.STS_CONFIG.PROVISIONED_STS,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.SLOT_DURATION,
+            value=2400,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.RANGING_DURATION,
+            value=96,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.STS_INDEX,
+            value=0,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.PREAMBLE_CODE_INDEX,
+            value=9,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(self.dh, config=uci.APP_CFG.SLOTS_PER_RR, value=24)
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.MAX_NUMBER_OF_MEASUREMENTS,
+            value=0xFFFF,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.HOPPING_MODE,
+            value=uci.APP_CFG.HOPPING_MODE.DISABLED,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.URSK_TTL,
+            value=720,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.CCC_CONFIG_QUIRKS,
+            value=1,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.RANGING_PROTOCOL_VER,
+            value=0x0100,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.UWB_CONFIG_ID,
+            value=0xFFFF,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.PULSESHAPE_COMBO,
+            value=0,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
+            value=uci.APP_CFG.NUMBER_OF_CONTROLEES.SINGLE_ANCHOR,
+            session_id=self.session_handle_dh,
+        )
+
+        if self.device_role == uci.APP_CFG.DEVICE_ROLE.RESPONDER:
+            uci.set_config(
+                self.dh,
+                config=uci.APP_CFG.RESPONDER_SLOT_INDEX,
+                value=0,
+                session_id=self.session_handle_dh,
+            )
+
     async def get_capabilities(self) -> None:
         Global.logger.info("Retrive UWB capabilities")
         data = uci.get_caps(self.dh)
@@ -224,9 +322,10 @@ class MurataUWBDriver(MurataBaseDriver):
     def get_pulse_shape_combination(self) -> int:
         return self.pulseshape_combo
 
-    async def set_pulse_shape_combination(
-        self, pulse_shape_combo: PulseShapeCombo
-    ) -> None:
+    async def set_pulse_shape_combination(self, pulse_shape_combo: int) -> None:
+        # TODO - compare pulshape combo and select apropiate one
+        pulse_shape_combo &= 0x0  # select mandatory combo
+
         uci.set_config(
             self.dh,
             config=uci.APP_CFG.PULSESHAPE_COMBO,
@@ -283,6 +382,8 @@ class MurataUWBDriver(MurataBaseDriver):
         return self.slot_bitmask
 
     async def set_slot_duration(self, duration: int) -> None:
+        print(f"slot duration = {duration}")
+
         uci.set_config(
             self.dh,
             config=uci.APP_CFG.SLOT_DURATION,
@@ -297,7 +398,13 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
         val = data.fields["SLOT_DURATION"].val
-        number_of_chaps = int(val / 1200 * 3)
+
+        # Check if slot duration is higher than 0
+        if val == 0:
+            number_of_chaps = 6
+            await self.set_slot_duration(2400)
+        else:
+            number_of_chaps = int(val / 1200 * 3)
         return number_of_chaps
 
     def get_sync_code_bitmask(self) -> int:
@@ -326,7 +433,7 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["NUMBER_OF_CONTROLEES"].val
 
-    async def set_number_responders(self, number_of_responders) -> None:
+    async def set_number_responders(self, number_of_responders: int) -> None:
         uci.set_config(
             self.dh,
             config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
@@ -342,7 +449,7 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["SLOTS_PER_RR"].val
 
-    async def set_slots_per_round(self, slots_per_round) -> None:
+    async def set_slots_per_round(self, slots_per_round: int) -> None:
         uci.set_config(
             self.dh,
             config=uci.APP_CFG.SLOTS_PER_RR,
@@ -358,7 +465,7 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["STS_INDEX"].val
 
-    async def set_sts_index0(self, sts_index0) -> None:
+    async def set_sts_index0(self, sts_index0: int) -> None:
         uci.set_config(
             self.dh,
             config=uci.APP_CFG.STS_INDEX,
@@ -374,7 +481,7 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["UWB_INITIATION_TIME"].val
 
-    async def set_uwb_time0(self, uwb_time0) -> None:
+    async def set_uwb_time0(self, uwb_time0: int) -> None:
         uci.set_config(
             self.dh,
             config=uci.APP_CFG.UWB_INITIATION_TIME,
@@ -390,7 +497,7 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         return data.fields["HOP_MODE_KEY"].val
 
-    async def set_hop_mode_key(self, hop_mode_key) -> None:
+    async def set_hop_mode_key(self, hop_mode_key: int) -> None:
         uci.set_config(
             self.dh,
             config=uci.APP_CFG.HOP_MODE_KEY,
@@ -399,7 +506,7 @@ class MurataUWBDriver(MurataBaseDriver):
         )
 
     async def get_mac_mode(self) -> int:
-        data = uci.get_config(
+        data = uci.get_vendor_config(
             self.dh,
             config=uci.VENDOR_APP_CFG.CSA_MAC_MODE,
             session_id=self.session_handle_dh,
@@ -407,11 +514,19 @@ class MurataUWBDriver(MurataBaseDriver):
         return data.fields["CSA_MAC_MODE"].val
 
     async def set_mac_mode(self, mac_mode: int) -> None:
-        # TODO
-        pass
+        uci.set_vendor_app_config(
+            self.dh,
+            config=uci.VENDOR_APP_CFG.CSA_MAC_MODE,
+            value=mac_mode,
+            session_id=self.session_handle_dh,
+        )
 
     async def start_ranging(self) -> None:
         uci.rng_start(self.dh, session_id=self.session_handle_dh)
 
     async def stop_ranging(self) -> None:
         uci.rng_stop(self.dh, session_id=self.session_handle_dh)
+
+    async def get_ranging_data(self) -> int:
+        ntf = self.dh.wait_for_notification(ntf=uci.Cmds.RANGE_CCC_DATA, timeout=2)
+        return ntf.fields["DISTANCE"].val

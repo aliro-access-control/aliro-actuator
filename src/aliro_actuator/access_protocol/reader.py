@@ -1317,6 +1317,7 @@ class Reader(Device):
             ):
                 await self.handle_ranging_setup_m4(message)
                 await self.transport_protocol.start_ranging()
+                await self.transport_protocol.get_ranging_data()
             else:
                 raise UnexpectedBLEMessageError(
                     "Received unexpected ble message while waiting for "
@@ -1344,9 +1345,7 @@ class Reader(Device):
         await self.transport_protocol.set_sync_code_bitmask(
             int.from_bytes(message.sync_code_index_bitmask.value, "big")
         )
-        await self.transport_protocol.set_hopping_config_bitmask(
-            int.from_bytes(message.hopping_configuration_bitmask.value, "big")
-        )
+        await self.transport_protocol.set_hopping_mode(0)  # TODO
         await self.transport_protocol.set_mac_mode(0)  # TODO
         await self.send_ranging_session_setup_m3()
 
@@ -1355,6 +1354,7 @@ class Reader(Device):
         Finish setting up the ranging session and collect distance measurement
         """
         Global.logger.info("Handling ranging session setup message M4")
+        message.parse_payload()
         await self.transport_protocol.set_sts_index0(
             int.from_bytes(message.sts_index0.value, "big")
         )
@@ -1370,7 +1370,6 @@ class Reader(Device):
         await self.transport_protocol.set_sync_code_bitmask(
             int.from_bytes(message.sync_code_index.value, "big")
         )
-        message.parse_payload()
 
     async def send_ranging_session_setup_m1(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):

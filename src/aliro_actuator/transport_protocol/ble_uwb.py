@@ -208,26 +208,26 @@ class BLEUWB(TransportProtocolBase):
         return self.driver.get_uwb_config_id()
 
     async def set_uwb_config_id(self, uwb_config_id: int) -> None:
-        self.driver.set_uwb_config_id(uwb_config_id)
+        await self.driver.set_uwb_config_id(uwb_config_id)
 
     def get_pulseshape_combo(self) -> int:
         return self.driver.get_pulse_shape_combination()
 
-    def set_pulseshape_combo(self, pulseshape_combo: int) -> None:
-        self.driver.set_pulse_shape_combination(pulseshape_combo)
+    async def set_pulseshape_combo(self, pulseshape_combo: int) -> None:
+        await self.driver.set_pulse_shape_combination(pulseshape_combo)
 
     def get_channel_bitmask(self) -> int:
         return self.driver.get_channel_bitmask()
 
-    def set_channel_bitmask(self, channel_bitmask: int) -> None:
+    async def set_channel_bitmask(self, channel_bitmask: int) -> None:
         # TODO
-        self.driver.set_channel_bitmask(channel_bitmask)
+        await self.driver.set_channel_bitmask(channel_bitmask)
 
     async def get_sts_index0(self) -> int:
         return await self.driver.get_sts_index0()
 
     async def set_sts_index0(self, sts_index0: int) -> None:
-        self.driver.set_sts_index0(sts_index0)
+        await self.driver.set_sts_index0(sts_index0)
 
     async def get_hop_mode_key(self) -> int:
         return await self.driver.get_hop_mode_key()
@@ -238,8 +238,8 @@ class BLEUWB(TransportProtocolBase):
     def get_sync_code_bitmask(self) -> int:
         return self.driver.get_sync_code_bitmask()
 
-    async def set_sync_code_bitmask(self, sync_code_bitmask) -> None:
-        return await self.driver.set_sync_code_bitmask(sync_code_bitmask)
+    async def set_sync_code_bitmask(self, sync_code_bitmask: int) -> None:
+        await self.driver.set_sync_code_bitmask(sync_code_bitmask)
 
     async def get_ran_multiplier(self) -> int:
         return await self.driver.get_ran_multiplier()
@@ -259,28 +259,32 @@ class BLEUWB(TransportProtocolBase):
     async def get_number_responders(self) -> int:
         return await self.driver.get_number_responders()
 
-    async def set_number_responders(self, number_of_responders) -> None:
+    async def set_number_responders(self, number_of_responders: int) -> None:
         await self.driver.set_number_responders(number_of_responders)
 
     async def get_slots_per_round(self) -> int:
         return await self.driver.get_slots_per_round()
 
-    async def set_slots_per_round(self, slots_per_round) -> None:
-        await self.driver.set_slots_per_round()
+    async def set_slots_per_round(self, slots_per_round: int) -> None:
+        await self.driver.set_slots_per_round(slots_per_round)
 
     async def get_mac_mode(self) -> int:
-        # TODO
-        # return await self.driver.get_mac_mode()
-        return 0
+        return await self.driver.get_mac_mode()
 
     async def set_mac_mode(self, mac_mode: int) -> None:
-        return await self.driver.set_mac_mode(mac_mode)
+        await self.driver.set_mac_mode(mac_mode)
 
     async def get_num_chaps_per_slot(self) -> int:
         return await self.driver.get_num_chaps_per_slot()
+
+    async def set_slot_duration(self, duration: int) -> None:
+        await self.driver.set_slot_duration(duration)
 
     async def start_ranging(self) -> None:
         await self.driver.start_ranging()
 
     async def stop_ranging(self) -> None:
         await self.driver.stop_ranging()
+
+    async def get_ranging_data(self) -> int:
+        await self.driver.get_ranging_data()
