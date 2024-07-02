@@ -113,7 +113,7 @@ class BleMessage(Message):
             case Notification_ID.RANGING:
                 self._parse_ranging_initiation_payload()
             case Notification_ID.READER_STATUS_CHANGED:
-                raise NotImplementedError
+                self._parse_reader_status_changed_payload()
             case Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED:
                 self._parse_access_protocol_completed_payload()
             case Notification_ID.RKE_REQUEST:
@@ -209,6 +209,35 @@ class BleMessage(Message):
                 GeneralError_Values,
             )
         Global.logger.info("Parsing Event done")
+
+    def _parse_reader_status_changed_payload(self) -> None:
+        Global.logger.info("Parsing Reader Status Changed")
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != ReaderStatusChanged_AttributeID.STATE:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.id),
+            )
+
+        if self.attribute.value is None:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Attribute has no data: 0x{:02x}".format(self.id),
+            )
+
+        Global.logger.info("Parsing attribute: State")
+        self.operation_source = self._enumerate(
+            "operation source information",
+            self.attribute.value[0],
+            OperationSourceInformation_Values,
+        )
+
+        self.reader_status_information = self._enumerate(
+            "reader status information",
+            self.attribute.value[1],
+            ReaderStatusInformation_Values,
+        )
+        Global.logger.info("Parsing Reader Status Changed done")
 
     def _parse_access_protocol_completed_payload(self) -> None:
         Global.logger.info("Parsing Reader Status Access Protocol Completed")
@@ -488,6 +517,30 @@ class BleMessage(Message):
             Global.logger.debug("No Ble encryption available, not decrypting payload")
         else:
             Global.logger.debug("Message type does not use BLE encryption")
+
+    @staticmethod
+    def create_reader_status_changed(
+        operation_source_information: int,
+        reader_status_information: int,
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        attribute_payload = bytearray()
+        attribute_payload.append(operation_source_information)
+        attribute_payload.append(reader_status_information)
+        attribute_payload_bytes = bytes(attribute_payload)
+
+        payload = BleAttribute(
+            ReaderStatusChanged_AttributeID.STATE,
+            attribute_payload_bytes,
+        )
+
+        ble_message = BleMessage(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.READER_STATUS_CHANGED,
+            payload.to_bytes(),
+        )
+        ble_message._encrypt(ble_encryption)
+        return ble_message
 
     @staticmethod
     def create_access_protocol_completed(
@@ -790,6 +843,10 @@ class Event_AttributeID(IntEnum):
     GENERAL_ERROR = 0x01
 
 
+class ReaderStatusChanged_AttributeID(IntEnum):
+    STATE = 0x00
+
+
 class AccessProtocolCompleted_AttributeID(IntEnum):
     READER_INFORMATION = 0x00
 
@@ -829,6 +886,14 @@ class GeneralError_Values(IntEnum):
     RESOURCE_UNAVAILABLE = 0x01
     WRONG_PARAMETERS = 0x02
     URSK_UNAVAILABLE = 0x3
+
+
+class OperationSourceInformation_Values(IntEnum):
+    UNSPECIFIED = 0
+    MANUAL = 1
+    AUTO = 2
+    SCHEDULE = 3
+    THIS_USER_DEVICE = 4
 
 
 class UnsolicitedReaderStatusReporting_Values(IntEnum):

@@ -359,6 +359,12 @@ class UserDevice(Device):
         Global.logger.info("Handling (non command) ble message")
         if (
             message.header == ProtocolType.NOTIFICATION
+            and message.id == Notification_ID.READER_STATUS_CHANGED
+        ):
+            self.handle_reader_status_changed_message(message)
+            return True
+        elif (
+            message.header == ProtocolType.NOTIFICATION
             and message.id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
         ):
             self.handle_reader_status_access_protocol_completed_message(message)
@@ -1167,6 +1173,14 @@ class UserDevice(Device):
         await self.response_control_flow()
 
         Global.logger.info("Handling CONTROL FLOW command done")
+
+    def handle_reader_status_changed_message(self, message: BleMessage) -> None:
+        Global.logger.info("Handling Reader Status Changed message")
+        message.check_header_and_id(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.READER_STATUS_CHANGED,
+        )
+        message.parse_payload(self.session.get_ble_encryption())
 
     def handle_reader_status_access_protocol_completed_message(
         self, message: BleMessage
