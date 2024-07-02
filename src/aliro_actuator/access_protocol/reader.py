@@ -1318,10 +1318,8 @@ class Reader(Device):
                 await self.handle_ranging_setup_m4(message)
                 await self.transport_protocol.start_ranging()
 
-                while True:
-                    val = await self.transport_protocol.get_ranging_data()
-                    Global.logger.info(f"Ranging distance: {val}")
-
+                val = await self.transport_protocol.get_ranging_data()
+                Global.logger.info(f"Ranging distance: {val}")
             else:
                 raise UnexpectedBLEMessageError(
                     "Received unexpected ble message while waiting for "
