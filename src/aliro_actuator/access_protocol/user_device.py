@@ -286,7 +286,7 @@ class UserDevice(Device):
         """
 
         while True:
-            self.single_transaction()
+            await self.single_transaction()
 
     async def ranging_loop(self) -> None:
         while True:
