@@ -1016,6 +1016,24 @@ class Reader(Device):
 
         return read_data
 
+    async def reader_status_status_changed(
+        self, operation_source_information: int, reader_status_information: int
+    ) -> None:
+        """
+        Send the BLE message Reader Status Changed.
+        """
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Sending Reader Status Changed BLE message")
+
+        message = BleMessage.create_reader_status_changed(
+            operation_source_information,
+            reader_status_information,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
     async def reader_status_access_protocol_completed(
         self, unsolicited_reader_status_reporting: int, reader_status_information: int
     ) -> None:
