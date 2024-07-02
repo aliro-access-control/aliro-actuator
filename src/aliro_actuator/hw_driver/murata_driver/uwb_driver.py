@@ -123,6 +123,8 @@ class MurataUWBDriver(MurataBaseDriver):
 
         Global.logger.info("Calibrate device.")
         await self.set_calibration()
+        await self.set_app_config(uci.APP_CFG.CHANNEL_ID.CH_9)
+        await self.initial_config()
         await self.get_capabilities()
 
     async def set_calibration(self) -> None:
@@ -131,7 +133,7 @@ class MurataUWBDriver(MurataBaseDriver):
             self.dh,
             uci.APP_CFG.CHANNEL_ID.CH_9, 
             uci.CALIB_TYPE.RX_ANT_DELAY_CALIB, 
-            [0x03, 0x01, 0xBC, 0x3A, 0x02, 0xBC, 0x3A, 0x03, 0xBC, 0x3A]
+            [0x03, 0x01, 0xC5, 0x3A, 0x02, 0xC5, 0x3A, 0x03, 0xC5, 0x3A]
         )
         uci.set_calibration(
             self.dh,
@@ -210,6 +212,96 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         self.session_handle_dh = session_init_rsp.fields["SESSION_HANDLE"].val
 
+        uci.set_vendor_app_config(
+            self.dh,
+            config=uci.VENDOR_APP_CFG.ANTENNAS_CONFIGURATION_RX,
+            value=[1, 2, 1, 2],
+            session_id=self.session_handle_dh,
+        )
+
+    async def initial_config(self) -> None:
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.STS_CONFIG,
+            value=uci.APP_CFG.STS_CONFIG.PROVISIONED_STS,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.SLOT_DURATION,
+            value=2400,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.RANGING_DURATION,
+            value=96,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.STS_INDEX,
+            value=0,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.PREAMBLE_CODE_INDEX,
+            value=9,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(self.dh, config=uci.APP_CFG.SLOTS_PER_RR, value=24)
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.MAX_NUMBER_OF_MEASUREMENTS,
+            value=0xFFFF,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.HOPPING_MODE,
+            value=uci.APP_CFG.HOPPING_MODE.DISABLED,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.URSK_TTL,
+            value=720,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.CCC_CONFIG_QUIRKS,
+            value=1,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.RANGING_PROTOCOL_VER,
+            value=0x0100,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.PULSESHAPE_COMBO,
+            value=0,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_config(
+            self.dh,
+            config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
+            value=uci.APP_CFG.NUMBER_OF_CONTROLEES.SINGLE_ANCHOR,
+            session_id=self.session_handle_dh,
+        )
+
+        if self.device_role == uci.APP_CFG.DEVICE_ROLE.RESPONDER:
+            uci.set_config(
+                self.dh,
+                config=uci.APP_CFG.RESPONDER_SLOT_INDEX,
+                value=0,
+                session_id=self.session_handle_dh,
+            )
+
     async def get_capabilities(self) -> None:
         Global.logger.info("Retrive UWB capabilities")
         data = uci.get_caps(self.dh)
@@ -222,8 +314,19 @@ class MurataUWBDriver(MurataBaseDriver):
         self.uwb_config_id = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
         self.pulseshape_combo = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
 
-    def get_uwb_config_id(self) -> int:
+    def get_uwb_session_id(self) -> int:
+        return self.session_id
+
+    def get_uwb_config_id_capability(self) -> int:
         return self.uwb_config_id
+
+    async def get_uwb_config_id(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.UWB_CONFIG_ID,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["UWB_CONFIG_ID"].val
 
     async def set_uwb_config_id(self, uwb_config_id: int) -> None:
         uci.set_config(

@@ -299,6 +299,7 @@ class UserDevice(Device):
                     raise UnexpectedMessageTypeError
             except NoDeviceConnectedError:
                 break
+            # await self.transport_protocol.start_ranging()
             await self.handle_ble_messages(message)
 
     async def single_transaction(self, terminate_at_end: bool = True) -> None:
@@ -393,6 +394,7 @@ class UserDevice(Device):
         await self.transport_protocol.set_uwb_config_id(
             int.from_bytes(message.uwb_configuration_id.value, "big")
         )
+
         await self.transport_protocol.set_channel_bitmask(
             int.from_bytes(message.channel_bitmask.value)
         )
@@ -509,7 +511,7 @@ class UserDevice(Device):
 
         Global.logger.info("Sending ranging session setup M2 ble message")
 
-        uwb_configuration_id = self.transport_protocol.get_uwb_config_id()
+        uwb_configuration_id = await self.transport_protocol.get_uwb_config_id()
         pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
         channel_bitmask = self.transport_protocol.get_channel_bitmask()
         sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()

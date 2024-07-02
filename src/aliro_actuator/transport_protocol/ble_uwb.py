@@ -204,8 +204,14 @@ class BLEUWB(TransportProtocolBase):
     async def set_uwb_time0(self, uwb_time0: int) -> None:
         await self.driver.set_uwb_time0(uwb_time0)
 
-    def get_uwb_config_id(self) -> int:
-        return self.driver.get_uwb_config_id()
+    def get_uwb_config_id_capability(self) -> int:
+        return self.driver.get_uwb_config_id_capability()
+
+    async def get_uwb_config_id(self) -> int:
+        return await self.driver.get_uwb_config_id()
+
+    def get_uwb_session_id(self) -> int:
+        return self.driver.get_uwb_session_id()
 
     async def set_uwb_config_id(self, uwb_config_id: int) -> None:
         self.driver.set_uwb_config_id(uwb_config_id)
@@ -284,3 +290,6 @@ class BLEUWB(TransportProtocolBase):
 
     async def stop_ranging(self) -> None:
         await self.driver.stop_ranging()
+
+    async def get_ranging_data(self) -> int:
+        return await self.driver.get_ranging_data()

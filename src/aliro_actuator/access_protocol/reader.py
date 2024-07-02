@@ -651,17 +651,17 @@ class Reader(Device):
                     )
                 )
                 Global.logger.info(
-                    "decrypted cryptogram: {!r}".format(hexlify(decrypted_cryptogram))
+                    "decrypted cryptogram: {!r}".format(hexlify(decrypted cryptogram))
                 )
-                self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
-                self.session.set_credential_public_key(entry.access_credential)
+                self.session.set_cryptogram_info(TLV.from_bytes(decrypted cryptogram))
+                self.session.set_credential_public_key(entry.access_crede tial)
                 self.session.create_encryption_engine_expedited()
                 if self.transport_protocol_type in [
                     TransportProtocol.BLE_UWB,
                     TransportProtocol.SOCKET_BLE,
                 ]:
                     Global.logger.info("Setting up BLE encryption")
-                    self.session.set_ble_encryption(self.transport_protocol)
+                    self.session.set_ble_encryption(self.transport_protoc l)
                 return
             except VerificationError:
                 Global.logger.info("decryption failed, trying next key in storage")
@@ -1283,6 +1283,11 @@ class Reader(Device):
             ):
                 await self.handle_ranging_setup_m4(message)
                 await self.transport_protocol.start_ranging()
+
+                while True:
+                    val = await self.transport_protocol.get_ranging_data()
+                    Global.logger.info(f"Ranging distance: {val}")
+
             else:
                 raise UnexpectedBLEMessageError(
                     "Received unexpected ble message while waiting for "
@@ -1344,10 +1349,10 @@ class Reader(Device):
 
         Global.logger.info("Sending ranging session setup M1 ble message")
 
-        uwb_configuration_id = self.transport_protocol.get_uwb_config_id()
+        uwb_configuration_id = self.transport_protocol.get_uwb_config_id_capability()
         pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
         channel_bitmask = self.transport_protocol.get_channel_bitmask()
-        uwb_session_id = self.transport_protocol.get_uwb_config_id()
+        uwb_session_id = self.transport_protocol.get_uwb_session_id()
         vendor_specific = 0xFF
 
         message = BleMessage.create_ranging_session_setup_m1(
