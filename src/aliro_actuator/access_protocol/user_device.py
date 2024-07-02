@@ -151,6 +151,8 @@ class UserDevice(Device):
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         ephemeral_key_list: list[KeyPair] | None = None,
         mode: UserMode = UserMode.TEST,
+        support_step_up_notify: bool = True,
+        support_step_up_update_doc: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -193,6 +195,9 @@ class UserDevice(Device):
         self.ephemeral_key_list = ephemeral_key_list
 
         self.mode = mode
+
+        self.support_step_up_notify = support_step_up_notify
+        self.support_step_up_update_doc = support_step_up_update_doc
 
     async def transaction_initiation(self) -> None:
         """
@@ -249,7 +254,7 @@ class UserDevice(Device):
             out |= 1 << 3
         if self.mailbox is not None and self.mailbox.read_permission:
             out |= 1 << 4
-        if self.mailbox is not None and self.mailbox.read_permission:
+        if self.mailbox is not None and self.mailbox.write_permission:
             out |= 1 << 5
         if self.has_issuer_backend:
             out |= 1 << 6
@@ -257,6 +262,12 @@ class UserDevice(Device):
             out |= 1 << 7
         if self.access_document is not None and self.access_document_updatable:
             out |= 1 << 9
+        if self.mailbox is not None and self.mailbox.step_up_permission:
+            out |= 1 << 10
+        if self.support_step_up_notify:
+            out |= 1 << 11
+        if self.support_step_up_update_doc:
+            out |= 1 << 12
         return out.to_bytes(2, "big")
 
     async def main_loop(self) -> None:
@@ -275,9 +286,7 @@ class UserDevice(Device):
                 try:
                     if self.session is None:
                         raise SessionError("starting session failed")
-                    message = await self.wait_for_message(
-                        encryption=self.session.encryption
-                    )
+                    message = await self.wait_for_message()
                 except (InvalidCommandError, VerificationError):
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                     break
@@ -488,21 +497,33 @@ class UserDevice(Device):
             if access_credential.has_identifier(self.session.reader_group_identifier):
                 self.session.set_access_credential(access_credential)
                 Global.logger.info("Access credential found")
-                Global.logger.info(
-                    "Reader public key in access credential: {!r}".format(
-                        hexlify(
-                            access_credential.get_reader_public_key(
-                                self.session.reader_group_identifier
-                            ).as_bytes()
+                try:
+                    key = access_credential.get_reader_public_key(
+                        self.session.reader_group_identifier
+                    ).as_bytes()
+                    Global.logger.info(
+                        "Reader public key in access credential: {!r}".format(
+                            hexlify(key)
                         )
                     )
-                )
+                except KeyLookupFailed:
+                    pass
+                try:
+                    key = access_credential.get_issuer_public_key(
+                        self.session.reader_group_identifier
+                    ).as_bytes()
+                    Global.logger.info(
+                        "Issuer CA Certificate public key in access credential"
+                        ": {!r}".format(hexlify(key))
+                    )
+                except KeyLookupFailed:
+                    pass
+
                 break
         else:
             raise AccessProtocolError(
-                "Could not find key for reader identifier: {!r}".format(
-                    hexlify(self.session.reader_group_identifier)
-                )
+                "Could not find key for reader identifier in access credential: "
+                "{!r}".format(hexlify(self.session.reader_group_identifier))
             )
 
         if self.session.get_transaction_type() == Transaction.STANDARD:
@@ -524,6 +545,13 @@ class UserDevice(Device):
                 self.session.derive_key_volatile_fast(
                     self.transport_protocol_type, kpersistent
                 )
+                self.session.create_encryption_engine_expedited()
+                if self.transport_protocol_type in [
+                    TransportProtocol.BLE_UWB,
+                    TransportProtocol.SOCKET_BLE,
+                ]:
+                    Global.logger.info("Setting up BLE encryption")
+                    self.session.set_ble_encryption(self.transport_protocol)
 
                 doc_timestamp = None
                 revoke_timestamp = None
@@ -581,9 +609,11 @@ class UserDevice(Device):
         Global.logger.info("Handling LOAD CERT Command")
         Global.logger.info("Decompressing and verifying certificate")
         try:
-            reader_public_key = self.session.get_reader_public_key()
+            reader_issuer_public_key = (
+                self.session.get_reader_issuer_certificate_public_key()
+            )
             verified = self.session.set_cert_and_verify(
-                load_cert_command.reader_cert, reader_public_key
+                load_cert_command.reader_cert, reader_issuer_public_key
             )
         except CertificateDecodingError as error:
             await self.response_load_cert()
@@ -626,9 +656,11 @@ class UserDevice(Device):
         if auth1_command.certificate_data is not None:
             Global.logger.info("AUTH1 Command contains certificate")
             try:
-                reader_public_key = self.session.get_reader_public_key()
+                reader_issuer_public_key = (
+                    self.session.get_reader_issuer_certificate_public_key()
+                )
                 verified = self.session.set_cert_and_verify(
-                    auth1_command.certificate_data, reader_public_key
+                    auth1_command.certificate_data, reader_issuer_public_key
                 )
                 if not verified:
                     await self.failure_process(
@@ -681,17 +713,17 @@ class UserDevice(Device):
             )
         )
 
-        if self.session.encryption is None:
+        if self.session.encryption_expedited is None:
             raise AccessProtocolError("no encryption engine found")
 
         self.session.update_state(UserSessionState.AUTH1_DONE)
 
         await self.response_auth1(
             self.session.access_credential.get_key_slot(),
-            self.session.access_credential.get_credential_public_key().as_bytes(),
+            self.session.access_credential.get_access_credential_public_key().as_bytes(),
             auth1_command.expected_response,
             signature,
-            self.session.encryption,
+            self.session.encryption_expedited,
             StatusBytes.SUCCESS,
             signaling_bitmap=self.get_signaling_bitmap(),
         )
@@ -712,7 +744,7 @@ class UserDevice(Device):
         Global.logger.debug(
             "verifying with signature: {!r}".format(hexlify(reader_signature))
         )
-        intermediate_public_key = self.session.get_intermediate_reader_public_key()
+        intermediate_public_key = self.session.get_reader_public_key()
         Global.logger.debug(
             "verifying with key: {!r}".format(
                 hexlify(intermediate_public_key.as_bytes())
@@ -722,7 +754,7 @@ class UserDevice(Device):
             reader_authentication.to_bytes(), reader_signature
         )
         if not verified:
-            await self.failure_process(StatusBytes.GENERIC_ERROR)
+            await self.failure_process(StatusBytes.SECURITY_STATUS_NOT_SATISFIED)
             raise AccessProtocolError("reader authentication data verification failed")
         Global.logger.info("reader authentication data verified successfully")
 
@@ -745,13 +777,13 @@ class UserDevice(Device):
 
         if self.session is None:
             raise SessionError("No Session")
-        if self.session.encryption is None:
-            raise SessionError("No encryption engine")
         if not self.session.state_valid(
             [
                 UserSessionState.AUTH0_FAST_DONE,
                 UserSessionState.AUTH1_DONE,
                 UserSessionState.EXCHANGE_DONE,
+                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
         ):
             state = self.session.state
@@ -761,12 +793,50 @@ class UserDevice(Device):
             )
 
         Global.logger.info("Handling EXCHANGE Command")
-        if not self.session.encryption.check_counters_valid():
+        if self.session.state_valid(
+            [
+                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.STEPUP_EXCHANGE_DONE,
+            ]
+        ):
+            encryption = self.session.encryption_stepup
+        else:
+            encryption = self.session.encryption_expedited
+        if encryption is None:
+            raise AccessProtocolError("no encryption engine found")
+
+        if not encryption.check_counters_valid():
             # End current session
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             return
 
-        self.session.update_state(UserSessionState.EXCHANGE_DONE)
+        if self.session.state_valid(
+            [
+                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.STEPUP_EXCHANGE_DONE,
+            ]
+        ):
+            self.session.update_state(UserSessionState.STEPUP_EXCHANGE_DONE)
+        else:
+            self.session.update_state(UserSessionState.EXCHANGE_DONE)
+
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ) and exchange_command.reader_status is not None:
+            raise AccessProtocolError(
+                "EXCHANGE command has reader status tag while using BLE"
+            )
+        elif exchange_command.reader_status is not None:
+            Global.logger.info(
+                "Received reader status: 0x{:04x}, transaction is completed".format(
+                    exchange_command.reader_status.value
+                )
+            )
+            self.session.update_state(UserSessionState.TRANSACTION_COMPLETE)
+
+        if exchange_command.ursk is not None:
+            self.session.set_ursk(exchange_command.ursk)
 
         if (
             len(exchange_command.read_requests)
@@ -775,9 +845,36 @@ class UserDevice(Device):
             > 0
         ):
             if self.mailbox is None:
-                await self.return_exchange_error_and_close_channel()
+                await self.return_exchange_error_and_close_channel(encryption)
                 raise AccessProtocolError(
                     "Read, write or set request received, but no mailbox is present"
+                )
+
+            if (
+                self.session.state_valid(UserSessionState.GET_RESPONSE_DONE)
+                and not self.mailbox.step_up_permission
+            ):
+                raise AccessProtocolError(
+                    "Read, write or set request received, but mailbox does not give "
+                    "read/write permission for step up phase"
+                )
+
+            if (
+                len(exchange_command.read_requests) > 0
+                and not self.mailbox.read_permission
+            ):
+                raise AccessProtocolError(
+                    "Read request received, but mailbox does not give read permission"
+                )
+
+            if (
+                len(exchange_command.write_requests)
+                + len(exchange_command.set_requests)
+                > 0
+            ) and not self.mailbox.write_permission:
+                raise AccessProtocolError(
+                    "Write and/or set request received, but mailbox does not give "
+                    "write permission"
                 )
 
             Global.logger.info("Checking boundaries of read, write and set commands")
@@ -787,7 +884,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(read[0:2], "big"), int.from_bytes(read[2:4], "big")
                 ):
-                    await self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel(encryption)
                     raise AccessProtocolError("Read request out of mailbox boundaries")
 
             for write in exchange_command.write_requests:
@@ -796,7 +893,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(write[0:2], "big"), len(write) - 2
                 ):
-                    await self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel(encryption)
                     raise AccessProtocolError("Write request out of mailbox boundaries")
 
             for set in exchange_command.set_requests:
@@ -805,7 +902,7 @@ class UserDevice(Device):
                 if not self.mailbox.check_boundaries(
                     int.from_bytes(set[0:2], "big"), int.from_bytes(set[2:4], "big")
                 ):
-                    await self.return_exchange_error_and_close_channel()
+                    await self.return_exchange_error_and_close_channel(encryption)
                     raise AccessProtocolError("Set request out of mailbox boundaries")
 
         Global.logger.info("Handling notifications")
@@ -860,11 +957,13 @@ class UserDevice(Device):
             exchange_payload.extend(read_command[1])
         exchange_payload.extend(bytes([0x00, 0x02, 0x00, 0x00]))
 
-        await self.response_exchange(exchange_payload, self.session.encryption)
+        await self.response_exchange(exchange_payload, encryption)
 
         Global.logger.info("Handling EXCHANGE command done")
 
-    async def return_exchange_error_and_close_channel(self) -> None:
+    async def return_exchange_error_and_close_channel(
+        self, encryption: EncryptionEngine
+    ) -> None:
         """
         Return an exchange error and close the channel.
         Used when an exchange fails.
@@ -875,12 +974,10 @@ class UserDevice(Device):
         """
         if self.session is None:
             raise SessionError("No Session")
-        if self.session.encryption is None:
-            raise AccessProtocolError("no encryption engine found")
 
         Global.logger.info("Generating response payload with error")
         exchange_payload = bytes.fromhex("0002FFFF")
-        await self.response_exchange(exchange_payload, self.session.encryption)
+        await self.response_exchange(exchange_payload, encryption)
 
     async def handle_control_flow(self, control_flow_command: Command) -> None:
         """
@@ -939,7 +1036,6 @@ class UserDevice(Device):
     async def wait_for_ble_message(
         self,
         expected_command: INS | list[INS] | None = None,
-        encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         """
         Waits until a ble message is received.
@@ -963,7 +1059,7 @@ class UserDevice(Device):
         Returns:
             BleMessage: the received ble message.
         """
-        message = await self.wait_for_message(expected_command, encryption)
+        message = await self.wait_for_message(expected_command)
         if not isinstance(message, BleMessage):
             raise AccessProtocolError(
                 "Received unexpected command while waiting for BLE message : "
@@ -974,7 +1070,6 @@ class UserDevice(Device):
     async def wait_for_command(
         self,
         expected_command: INS | list[INS] | None = None,
-        encryption: EncryptionEngine | None = None,
     ) -> Command:
         """
         Waits until a command is received, and parses the command.
@@ -998,7 +1093,7 @@ class UserDevice(Device):
         Returns:
             Command: the received command.
         """
-        message = await self.wait_for_message(expected_command, encryption)
+        message = await self.wait_for_message(expected_command)
         if not isinstance(message, APDUMessage):
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
@@ -1011,7 +1106,6 @@ class UserDevice(Device):
     async def wait_for_message(
         self,
         expected_command: INS | list[INS] | None = None,
-        encryption: EncryptionEngine | None = None,
     ) -> Command | BleMessage:
         """
         Waits until a message is received, and parses it if it is a command.
@@ -1020,9 +1114,6 @@ class UserDevice(Device):
             expected_command (INS | list[INS] | None, optional): INS or list of INS with
             expected commands. raises UnexpectedCommandError if another command is
             received. Defaults to None.
-            encryption (EncryptionEngine | None, optional): Used for decrypting
-            messages.
-            Not required for every command. Defaults to None.
 
         Raises:
             InvalidCLAError: Raised when the received command has an invalid CLA.
@@ -1035,6 +1126,9 @@ class UserDevice(Device):
         Returns:
             Command: the received command.
         """
+        if self.session is None:
+            raise SessionError("No Session")
+
         if isinstance(expected_command, INS):
             expected_command = [expected_command]
 
@@ -1055,7 +1149,9 @@ class UserDevice(Device):
             raise AccessProtocolError("Message invalid (missing header or id)")
 
         try:
-            command = self.apdu.parse_command(command_str, encryption)
+            command = self.apdu.parse_command(
+                command_str, self.session.encryption_expedited
+            )
         except InvalidCLAError as error:
             await self.failure_process(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
             raise error
@@ -1080,7 +1176,7 @@ class UserDevice(Device):
         Create and send an auth0 response.
 
         Args:
-            credential_epubk (bytes): Credential Ephemeral public key.
+            credential_epubk (bytes): Access credential ephemeral public key.
             cryptogram (bytes | None, optional): authentication cryptogram.
             Defaults to None.
         """
@@ -1217,6 +1313,9 @@ class UserSessionState(Enum):
     AUTH1_DONE = 5
     EXCHANGE_DONE = 6
     SELECT_STEP_UP_DONE = 7
+    GET_RESPONSE_DONE = 8
+    STEPUP_EXCHANGE_DONE = 9
+    TRANSACTION_COMPLETE = 10
 
 
 class UserSession:
@@ -1231,9 +1330,11 @@ class UserSession:
     ) -> None:
         self.state = UserSessionState.SESSION_START
         self.supported_versions = supported_version
-        self.encryption: EncryptionEngine | None = None
+        self.encryption_expedited: EncryptionEngine | None = None
+        self.encryption_stepup: EncryptionEngine | None = None
         self.command_vendor_extension: bytes | None = None
         self.response_vendor_extension = vendor_extension
+        self.ursk_arbitrary_data: bytes | None = None
         self.ble_encryption_engine: EncryptionEngine | None = None
 
     @property
@@ -1267,7 +1368,7 @@ class UserSession:
         auth0_command: Command,
     ) -> None:
         self.command_parameters = auth0_command.command_parameters
-        self.transaction_code = auth0_command.transaction_code
+        self.authentication_policy = auth0_command.authentication_policy
         self.expedited_phase_protocol_version = (
             auth0_command.expedited_phase_protocol_version
         )
@@ -1326,29 +1427,28 @@ class UserSession:
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
-            flag=bytes([self.command_parameters, self.transaction_code]),
+            flag=bytes([self.command_parameters, self.authentication_policy]),
             proprietary_information=proprietary_information,
         )
         derived_key = derive_key(self.shared_key, bytes(info), 160, salt)
-        self.exchange_SK_reader = derived_key[0:32]
-        self.exchange_SK_device = derived_key[32:64]
+        self.expedited_SK_reader = derived_key[0:32]
+        self.expedited_SK_device = derived_key[32:64]
         self.step_up_SK = derived_key[64:96]
         self.ble_SK = derived_key[96:128]
         self.UR_SK = derived_key[128:160]
 
         Global.logger.debug(
-            "exchange SK reader: {!r}".format(hexlify(self.exchange_SK_reader))
+            "expedited SK reader: {!r}".format(hexlify(self.expedited_SK_reader))
         )
         Global.logger.debug(
-            "exchange SK device: {!r}".format(hexlify(self.exchange_SK_device))
+            "expedited SK device: {!r}".format(hexlify(self.expedited_SK_device))
         )
         Global.logger.debug("step up SK: {!r}".format(hexlify(self.step_up_SK)))
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
 
-        self.encryption = EncryptionEngine(
-            DeviceType.USER, self.exchange_SK_reader, self.exchange_SK_device
-        )
+        self.create_encryption_engine_expedited()
+        self.create_encryption_engine_stepup()
 
     def derive_key_volatile_fast(
         self, transport_protocol: TransportProtocol, k_persistent: bytes
@@ -1375,23 +1475,23 @@ class UserSession:
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
-            flag=bytes([self.command_parameters, self.transaction_code]),
+            flag=bytes([self.command_parameters, self.authentication_policy]),
             proprietary_information=proprietary_information,
-            credential_ephemeral_public_key=self.access_credential.get_credential_public_key(),
+            credential_ephemeral_public_key=self.access_credential.get_access_credential_public_key(),
         )
         derived_key = derive_key(k_persistent, bytes(info), 160, salt)
         self.cryptogram_SK = derived_key[0:32]
-        self.exchange_SK_reader = derived_key[32:64]
-        self.exchange_SK_device = derived_key[64:96]
+        self.expedited_SK_reader = derived_key[32:64]
+        self.expedited_SK_device = derived_key[64:96]
         self.ble_SK = derived_key[96:128]
         self.UR_SK = derived_key[128:160]
 
         Global.logger.debug("cryptogram SK: {!r}".format(hexlify(self.cryptogram_SK)))
         Global.logger.debug(
-            "exchange SK reader: {!r}".format(hexlify(self.exchange_SK_reader))
+            "expedited SK reader: {!r}".format(hexlify(self.expedited_SK_reader))
         )
         Global.logger.debug(
-            "exchange SK device: {!r}".format(hexlify(self.exchange_SK_device))
+            "expedited SK device: {!r}".format(hexlify(self.expedited_SK_device))
         )
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
@@ -1419,18 +1519,38 @@ class UserSession:
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
-            flag=bytes([self.command_parameters, self.transaction_code]),
+            flag=bytes([self.command_parameters, self.authentication_policy]),
             proprietary_information=proprietary_information,
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
+
+    def create_encryption_engine_expedited(self) -> None:
+        Global.logger.debug("Creating encryption engine for expedited phase")
+        self.encryption_expedited = EncryptionEngine(
+            DeviceType.USER, self.expedited_SK_reader, self.expedited_SK_device
+        )
+
+    def create_encryption_engine_stepup(self) -> None:
+        Global.logger.debug("Creating encryption engine for step-up phase")
+        Global.logger.debug("deriving stepupSKReader:")
+        stepup_SK_reader = derive_key(
+            self.step_up_SK, "SKReader".encode("utf-8"), 32, b""
+        )
+        Global.logger.debug("deriving stepupSKDevice:")
+        stepup_SK_device = derive_key(
+            self.step_up_SK, "SKDevice".encode("utf-8"), 32, b""
+        )
+        self.encryption_stepup = EncryptionEngine(
+            DeviceType.USER, stepup_SK_reader, stepup_SK_device
+        )
 
     def set_ble_encryption(self, transport_protocol: TransportProtocolBase) -> None:
         if not isinstance(transport_protocol, BLEUWB):
             raise AccessProtocolError("Trying to set BLE encryption while using NFC")
 
         selected_version, available_versions = transport_protocol.get_ble_versions()
-        self.ble_encryption = get_ble_encryption(
+        self.ble_encryption_engine = get_ble_encryption(
             DeviceType.USER, self.ble_SK, selected_version, available_versions
         )
 
@@ -1454,9 +1574,11 @@ class UserSession:
             Global.logger.warning("Verification unsuccessfull")
         return verified
 
-    def get_intermediate_reader_public_key(self) -> PublicKey:
+    def get_reader_public_key(self) -> PublicKey:
+        Global.logger.debug("Looking for reader public key")
+
         if hasattr(self, "cert"):
-            Global.logger.info("has cert")
+            Global.logger.info("Checking certificate")
             reader_public_key = self.cert.get_public_key()
             Global.logger.info(
                 "get reader public key from certificate: {!r}".format(
@@ -1464,11 +1586,9 @@ class UserSession:
                 )
             )
             return reader_public_key
-        return self.get_reader_public_key()
 
-    def get_reader_public_key(self) -> PublicKey:
-        Global.logger.debug("Looking for reader public key")
         if hasattr(self, "access_credential"):
+            Global.logger.info("Checking Access Credential")
             if self.access_credential.has_identifier(self.reader_group_identifier):
                 reader_public_key = self.access_credential.get_reader_public_key(
                     self.reader_group_identifier
@@ -1486,6 +1606,20 @@ class UserSession:
                 hexlify(self.reader_group_identifier)
             )
         )
+
+    def get_reader_issuer_certificate_public_key(self) -> PublicKey:
+        if hasattr(self, "access_credential"):
+            return self.access_credential.get_issuer_public_key(
+                self.reader_group_identifier
+            )
+        else:
+            raise AccessProtocolError("No access credential set")
+
+    def set_ursk(self, ursk_arbitrary_data: bytes) -> None:
+        if self.ursk_arbitrary_data is not None:
+            raise AccessProtocolError("URSK arbitrary data can only be set once")
+        else:
+            self.ursk_arbitrary_data = ursk_arbitrary_data
 
 
 class MailboxSession:

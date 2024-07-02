@@ -23,8 +23,8 @@ import asyncio
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.apdu import (
     Auth1Response,
+    AuthenticationPolicy,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.reader import Reader
@@ -50,7 +50,7 @@ async def main():
     await reader.transaction_initiation()
     Global.logger.info("Start Expedited Transaction (standard)")
     await reader.handle_auth0(
-        Transaction.STANDARD, TransactionCode.USER_DEVICE_SECURE_ACTION
+        Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
     await reader.handle_auth1(Auth1Response.KEY_SLOT)
     Global.logger.info("Expedited Transaction (standard) Done")

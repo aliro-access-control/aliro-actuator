@@ -39,7 +39,11 @@ async def main() -> None:
     user_ephemeral_key = KeyPair(f.read())
 
     access_credentials = [
-        AccessCredential(user_key, [(READER_GROUP_IDENTIFIER, reader_public_key)])
+        AccessCredential(
+            user_key,
+            [(READER_GROUP_IDENTIFIER, reader_public_key)],
+            [(READER_GROUP_IDENTIFIER, reader_public_key)],
+        )
     ]
     card = UserDevice(
         TransportProtocol.SOCKET_NFC,

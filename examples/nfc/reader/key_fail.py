@@ -20,7 +20,7 @@ sys.path.append(PROJECT_PATH)
 
 import asyncio
 
-from aliro_actuator.access_protocol.apdu import TransactionCode
+from aliro_actuator.access_protocol.apdu import AuthenticationPolicy, ReaderStatus
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -40,9 +40,11 @@ async def main():
     )
     await reader.transaction_initiation()
     await reader.expedited_transaction_standard(
-        TransactionCode.USER_DEVICE_SECURE_ACTION
+        AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
-    await reader.handle_control_flow(True)
+    await reader.handle_exchange(
+        False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+    )
     await reader.transaction_termination()
 
 

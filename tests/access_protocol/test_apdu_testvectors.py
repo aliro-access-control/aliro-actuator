@@ -6,9 +6,9 @@ from aliro_actuator.access_protocol.apdu import (
     APDU,
     INS,
     Auth1Response,
+    AuthenticationPolicy,
     StatusBytes,
     Transaction,
-    TransactionCode,
 )
 from aliro_actuator.access_protocol.authentication import (
     create_reader_authentication,
@@ -35,8 +35,8 @@ from tests.access_protocol.testvectors import (
     AUTH1_RESPONSE_PAYLOAD,
     CONTROL_FLOW_COMMAND,
     CONTROL_FLOW_RESPONSE,
-    EXCHANGE_SK_DEVICE,
-    EXCHANGE_SK_READER,
+    EXPEDITED_SK_DEVICE,
+    EXPEDITED_SK_READER,
     PROTOCOL_VERSION,
     READER_AUTHENTICATION_DATA,
     READER_IDENTIFIER,
@@ -81,7 +81,7 @@ class Test_apdu_testvectors(unittest.TestCase):
 
         command = self.apdu.create_auth0_command(
             transaction_type=Transaction.STANDARD,
-            transaction_code=TransactionCode.USER_DEVICE,
+            authentication_policy=AuthenticationPolicy.USER_DEVICE,
             protocol_version=0x0100,
             reader_epubk=reader_epub_key.as_bytes(),
             transaction_identifier=TRANSACTION_IDENTIFIER,
@@ -95,7 +95,9 @@ class Test_apdu_testvectors(unittest.TestCase):
 
         command = self.apdu.parse_command(AUTH0_COMMAND)
         self.assertEqual(command.command_parameters, Transaction.STANDARD)
-        self.assertEqual(command.transaction_code, TransactionCode.USER_DEVICE)
+        self.assertEqual(
+            command.authentication_policy, AuthenticationPolicy.USER_DEVICE
+        )
         self.assertEqual(command.expedited_phase_protocol_version, 0x0100)
         self.assertEqual(command.reader_epubk, reader_epub_key.as_bytes())
         self.assertEqual(command.transaction_identifier, TRANSACTION_IDENTIFIER)
@@ -247,22 +249,22 @@ class Test_apdu_testvectors(unittest.TestCase):
             reader_identifier=READER_IDENTIFIER,
             protocol_version=PROTOCOL_VERSION,
             transaction_identifier=TRANSACTION_IDENTIFIER,
-            flag=bytes([Transaction.STANDARD, TransactionCode.USER_DEVICE]),
+            flag=bytes([Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE]),
             proprietary_information=proprietary_information,
         )
         self.assertEqual(hexlify(salt_bytes), hexlify(SALT))
 
         derived_key = derive_key(shared_key, bytes(info), 160, salt_bytes)
-        exchange_SK_reader = derived_key[0:32]
-        exchange_SK_device = derived_key[32:64]
+        expedited_SK_reader = derived_key[0:32]
+        expedited_SK_device = derived_key[32:64]
         step_up_SK = derived_key[64:96]
         ble_SK = derived_key[96:128]
         UR_SK = derived_key[128:160]
 
-        self.assertEqual(hexlify(EXCHANGE_SK_READER), hexlify(exchange_SK_reader))
-        self.assertEqual(hexlify(EXCHANGE_SK_DEVICE), hexlify(exchange_SK_device))
+        self.assertEqual(hexlify(EXPEDITED_SK_READER), hexlify(expedited_SK_reader))
+        self.assertEqual(hexlify(EXPEDITED_SK_DEVICE), hexlify(expedited_SK_device))
 
-        return EncryptionEngine(device_type, exchange_SK_reader, exchange_SK_device)
+        return EncryptionEngine(device_type, expedited_SK_reader, expedited_SK_device)
 
     def test_reader_control_flow_command(self) -> None:
         command = self.apdu.create_control_flow_command(0x01, 0x00)

@@ -24,7 +24,7 @@ import asyncio
 
 from access_protocol.testvectors import AID, READER_IDENTIFIER, TRANSACTION_IDENTIFIER
 
-from aliro_actuator.access_protocol.apdu import Transaction, TransactionCode
+from aliro_actuator.access_protocol.apdu import AuthenticationPolicy, Transaction
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair
@@ -46,7 +46,7 @@ async def main() -> None:
     )
     await reader.transaction_initiation()
 
-    await reader.handle_auth0(Transaction.STANDARD, TransactionCode.USER_DEVICE)
+    await reader.handle_auth0(Transaction.STANDARD, AuthenticationPolicy.USER_DEVICE)
     await reader.handle_auth1()
     await reader.handle_control_flow(True)
 

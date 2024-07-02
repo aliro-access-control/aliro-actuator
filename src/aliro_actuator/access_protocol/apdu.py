@@ -82,9 +82,9 @@ class Transaction(IntEnum):
     FAST = 0x1
 
 
-class TransactionCode(IntEnum):
+class AuthenticationPolicy(IntEnum):
     """
-    Indicating the transaction code in a auth0 command.
+    Indicating the authentication policy in a auth0 command.
     See table 8-1 and 8-3 of the Aliro spec.
     """
 
@@ -112,7 +112,6 @@ class S1(IntEnum):
     """
 
     FINISHED_WITH_FAILURE = 0x00
-    FINISHED_WITH_SUCCESS = 0x01
 
 
 class S2(IntEnum):
@@ -124,6 +123,31 @@ class S2(IntEnum):
 
     NONE = 0x00
     PROTOCOL_VERSION_NOT_SUPPORTED = 0x27
+
+
+class ReaderStatus(IntEnum):
+    """
+    Indicating the reader status in an EXCHANGE command
+    Send with tag 0x97.
+    """
+
+    PUBLIC_KEY_NOT_FOUND = 0x0001
+    PUBLIC_KEY_EXPIRED = 0x0002
+    PUBLIC_KEY_NOT_TRUSTED = 0x0003
+    INVALID_SIGNATURE = 0x0004
+    INVALID_DATA_FORMAT = 0x0006
+    INVALID_DATA_CONTENT = 0x0007
+    STATUS_WORD_ERROR = 0x0020
+    NO_KEY_SLOT_IN_RESPONSE = 0x0021
+    NO_PUBLIC_KEY_IN_RESPONSE = 0x0022
+    NO_SIGNATURE_PRESENT = 0x0023
+    INVALID_ACCESS_RIGHTS = 0x0025
+    HARDWARE_ISSUE = 0x0026
+    READER_STATE_SECURED = 0x0100
+    READER_STATE_UNSECURED = 0x0101
+    READER_STATE_JAMMED = 0x0102
+    READER_STARTED_SECURE = 0x0180
+    READER_STARTED_UNSECURE = 0x0181
 
 
 class StatusBytes(IntEnum):
@@ -396,10 +420,15 @@ class Command(APDUMessage):
         self._check_ins(INS.SELECT)
         self._check_parameters(0x04, 0x00)
 
-        if self.lc > Select.AID_LEN:
-            raise InvalidCommandDataError(self.as_bytes, "AID too long")
         if self.data is None:
             raise InvalidCommandDataError(self.as_bytes, "No AID found")
+        if self.lc != Select.AID_LEN or len(self.data) != Select.AID_LEN:
+            raise InvalidCommandDataError(
+                self.as_bytes,
+                "AID has invalid length: expected {}, but has a length of {}".format(
+                    Select.AID_LEN, len(self.data)
+                ),
+            )
 
         self.aid = self.data
         Global.logger.info("Valid Lc found: 0x{:02x}".format(self.lc))
@@ -445,7 +474,7 @@ class Command(APDUMessage):
         Checks the fields and raises errors for invalid fields.
         creates the following attributes:
         command_parameters: int
-        transaction_code: int
+        authentication_policy: int
         expedited_phase_protocol_version: int
         reader_epubk: bytes
         transaction_identifier: bytes
@@ -474,11 +503,13 @@ class Command(APDUMessage):
             Transaction,
         )
 
-        transaction_code_int = self._get_int_from_TLV(
-            "Transaction code", Auth0.TRANSACTION_CODE_TAG, Auth0.TRANSACTION_CODE_LEN
+        authentication_policy_int = self._get_int_from_TLV(
+            "Authentication policy",
+            Auth0.AUTHENTICATION_POLICY_TAG,
+            Auth0.AUTHENTICATION_POLICY_LEN,
         )
-        self.transaction_code = self._enumerate(
-            "Transaction code", transaction_code_int, TransactionCode
+        self.authentication_policy = self._enumerate(
+            "Authentication policy", authentication_policy_int, AuthenticationPolicy
         )
 
         self.expedited_phase_protocol_version = self._get_int_from_TLV(
@@ -648,7 +679,22 @@ class Command(APDUMessage):
                 tlv_data=self.payload_tlv,
             )
 
-            self.notify = self._get_multiple_optional_bytes_from_TLV(
+            reader_status_bytes = self._get_optional_bytes_from_TLV(
+                "Reader Status",
+                Exchange.READER_STATUS_TAG,
+                Exchange.READER_STATUS_LEN,
+                tlv_data=self.payload_tlv,
+            )
+            if reader_status_bytes is not None:
+                self.reader_status: int | None = self._enumerate(
+                    "Reader Status",
+                    int.from_bytes(reader_status_bytes, "big"),
+                    ReaderStatus,
+                )
+            else:
+                self.reader_status = None
+
+            self.notify = self._get_multiple_optional_TLV_from_TLV(
                 "Notify", Exchange.NOTIFY_TAG, tlv_data=self.payload_tlv
             )
 
@@ -861,6 +907,7 @@ class Response(APDUMessage):
         self.vendor_specific_extensions = self._get_optional_TLV_from_TLV(
             "Vendor specific extensions",
             Select.VENDOR_SPECIFIC_TAG,
+            max_length=Select.MAX_VENDOR_SPECIFIC_LEN,
             tlv_data=self.proprietary_tlv,
         )
         Global.logger.info("Done parsing SELECT response")
@@ -1191,7 +1238,7 @@ class APDU:
     def create_auth0_command(
         self,
         transaction_type: Transaction,
-        transaction_code: TransactionCode,
+        authentication_policy: AuthenticationPolicy,
         protocol_version: int,
         reader_epubk: bytes,
         transaction_identifier: bytes,
@@ -1201,7 +1248,7 @@ class APDU:
         Global.logger.info("Creating AUTH0 command")
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.COMMAND_TAG, transaction_type.to_bytes(1, "big")),
-            (Auth0.TRANSACTION_CODE_TAG, transaction_code.to_bytes(1, "big")),
+            (Auth0.AUTHENTICATION_POLICY_TAG, authentication_policy.to_bytes(1, "big")),
             (Auth0.ETPV_TAG, protocol_version.to_bytes(2, "big")),
             (Auth0.READER_EPUBK_TAG, reader_epubk),
             (Auth0.TRANSACTION_ID_TAG, transaction_identifier),
@@ -1418,7 +1465,11 @@ class APDU:
         self, atomic_session: bool, payload_tlv: TLV, encryption: EncryptionEngine
     ) -> Command:
         Global.logger.info("Creating EXCHANGE command")
+        Global.logger.debug(
+            "Command contains TLV structure: {}".format(payload_tlv.to_print())
+        )
         payload = atomic_session.to_bytes(1, "big") + payload_tlv.to_bytes()
+        Global.logger.debug("Payload: {!r}".format(hexlify(payload)))
 
         Global.logger.info("encrypting EXCHANGE command payload")
         encrypted_payload, tag = encryption.encrypt(

@@ -123,7 +123,9 @@ class UserDeviceMurataDriver(
         no_versions = read_value[2] // 2  # every version is 2 byte long
         versions = []
         for index in range(no_versions):
-            versions.append(int.from_bytes(read_value[3 + index : 5 + index], "big"))
+            start_index = 3 + index * 2
+            end_index = 5 + index * 2
+            versions.append(int.from_bytes(read_value[start_index:end_index], "big"))
         return read_value[:2], versions
 
     async def handle_GATT_layer_write_characteristic(

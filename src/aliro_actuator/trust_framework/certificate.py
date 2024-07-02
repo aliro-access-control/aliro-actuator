@@ -297,4 +297,4 @@ class Certificate:
         return verified
 
     def get_public_key(self) -> PublicKey:
-        return PublicKey(self.key_info_subject_public_key)
+        return PublicKey(self.key_info_subject_public_key[1:])

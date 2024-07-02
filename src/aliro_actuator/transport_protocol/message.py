@@ -116,7 +116,7 @@ class Message:
             int: enum_class of the bitmasked value
         """
         value_bits_int = value & bitmask
-        value_bits_int >= self._get_shift_from_bitmask(bitmask)
+        value_bits_int >>= self._get_shift_from_bitmask(bitmask)
         return self._enumerate(value_name, value_bits_int, enum_class)
 
     def _get_bytes_from_TLV(
