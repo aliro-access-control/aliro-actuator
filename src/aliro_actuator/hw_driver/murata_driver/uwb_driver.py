@@ -123,9 +123,9 @@ class MurataUWBDriver(MurataBaseDriver):
 
         Global.logger.info("Calibrate device.")
         await self.set_calibration()
+        await self.set_app_config(uci.APP_CFG.CHANNEL_ID.CH_9)
         await self.initial_config()
         await self.get_capabilities()
-        await self.set_app_config(uci.APP_CFG.CHANNEL_ID.CH_9)
 
     async def set_calibration(self) -> None:
         # fmt: off
@@ -133,7 +133,7 @@ class MurataUWBDriver(MurataBaseDriver):
             self.dh,
             uci.APP_CFG.CHANNEL_ID.CH_9, 
             uci.CALIB_TYPE.RX_ANT_DELAY_CALIB, 
-            [0x03, 0x01, 0xBC, 0x3A, 0x02, 0xBC, 0x3A, 0x03, 0xBC, 0x3A]
+            [0x03, 0x01, 0xC5, 0x3A, 0x02, 0xC5, 0x3A, 0x03, 0xC5, 0x3A]
         )
         uci.set_calibration(
             self.dh,
@@ -283,12 +283,6 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         uci.set_config(
             self.dh,
-            config=uci.APP_CFG.UWB_CONFIG_ID,
-            value=0xFFFF,
-            session_id=self.session_handle_dh,
-        )
-        uci.set_config(
-            self.dh,
             config=uci.APP_CFG.PULSESHAPE_COMBO,
             value=0,
             session_id=self.session_handle_dh,
@@ -320,8 +314,19 @@ class MurataUWBDriver(MurataBaseDriver):
         self.uwb_config_id = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
         self.pulseshape_combo = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
 
-    def get_uwb_config_id(self) -> int:
+    def get_uwb_session_id(self) -> int:
+        return self.session_id
+
+    def get_uwb_config_id_capability(self) -> int:
         return self.uwb_config_id
+
+    async def get_uwb_config_id(self) -> int:
+        data = uci.get_config(
+            self.dh,
+            config=uci.APP_CFG.UWB_CONFIG_ID,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["UWB_CONFIG_ID"].val
 
     async def set_uwb_config_id(self, uwb_config_id: int) -> None:
         uci.set_config(

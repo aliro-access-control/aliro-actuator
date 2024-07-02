@@ -80,8 +80,8 @@ from aliro_actuator.transport_protocol.errors import (
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
-from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 from aliro_actuator.trust_framework.key_slot import get_key_slot
+from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
 
 class ReaderState(Enum):
@@ -1317,7 +1317,11 @@ class Reader(Device):
             ):
                 await self.handle_ranging_setup_m4(message)
                 await self.transport_protocol.start_ranging()
-                await self.transport_protocol.get_ranging_data()
+
+                while True:
+                    val = await self.transport_protocol.get_ranging_data()
+                    Global.logger.info(f"Ranging distance: {val}")
+
             else:
                 raise UnexpectedBLEMessageError(
                     "Received unexpected ble message while waiting for "
@@ -1377,10 +1381,10 @@ class Reader(Device):
 
         Global.logger.info("Sending ranging session setup M1 ble message")
 
-        uwb_configuration_id = self.transport_protocol.get_uwb_config_id()
+        uwb_configuration_id = self.transport_protocol.get_uwb_config_id_capability()
         pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
         channel_bitmask = self.transport_protocol.get_channel_bitmask()
-        uwb_session_id = self.transport_protocol.get_uwb_config_id()
+        uwb_session_id = self.transport_protocol.get_uwb_session_id()
         vendor_specific = 0xFF
 
         message = BleMessage.create_ranging_session_setup_m1(
