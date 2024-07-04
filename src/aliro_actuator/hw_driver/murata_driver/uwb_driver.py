@@ -548,6 +548,6 @@ class MurataUWBDriver(MurataBaseDriver):
         ntf = self.dh.wait_for_notification(ntf=uci.Cmds.RANGE_CCC_DATA, timeout=2)
         return ntf.fields["DISTANCE"].val
 
-    def close_uci(self) -> None:
+    async def close_uci(self) -> None:
         uci.session_de_init(self.dh, session_id=self.session_handle_dh)
         self.dh.close()

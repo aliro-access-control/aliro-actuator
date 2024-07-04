@@ -103,6 +103,7 @@ class BLEUWB(TransportProtocolBase):
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         await self.driver.disconnect(self.driver.connected_devices[0])
+        await self.driver.close_uci()
 
     async def wait_for_connection(self) -> None:
         await self.driver.wait_for_connection()
@@ -294,6 +295,3 @@ class BLEUWB(TransportProtocolBase):
 
     async def get_ranging_data(self) -> int:
         return await self.driver.get_ranging_data()
-
-    def close_uci(self) -> None:
-        self.driver.close_uci()
