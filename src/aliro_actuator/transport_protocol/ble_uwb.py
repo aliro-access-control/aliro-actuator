@@ -293,3 +293,6 @@ class BLEUWB(TransportProtocolBase):
 
     async def get_ranging_data(self) -> int:
         return await self.driver.get_ranging_data()
+
+    def close_uci(self) -> None:
+        self.driver.close_uci()

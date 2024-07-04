@@ -530,3 +530,11 @@ class MurataUWBDriver(MurataBaseDriver):
 
     async def stop_ranging(self) -> None:
         uci.rng_stop(self.dh, session_id=self.session_handle_dh)
+
+    async def get_ranging_data(self) -> int:
+        ntf = self.dh.wait_for_notification(ntf=uci.Cmds.RANGE_CCC_DATA, timeout=2)
+        return ntf.fields["DISTANCE"].val
+
+    def close_uci(self) -> None:
+        uci.session_de_init(self.dh, session_id=self.session_handle_dh)
+        self.dh.close()
