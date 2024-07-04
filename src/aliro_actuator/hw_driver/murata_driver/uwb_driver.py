@@ -549,5 +549,6 @@ class MurataUWBDriver(MurataBaseDriver):
         return ntf.fields["DISTANCE"].val
 
     async def close_uci(self) -> None:
+        Global.logger.debug("Close UCI")
         uci.session_de_init(self.dh, session_id=self.session_handle_dh)
-        self.dh.close()
+        self.dh.device.close()
