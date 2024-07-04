@@ -20,8 +20,8 @@ ACTUATOR_ROOT_PATH = DRIVER_PATH.parents[
 DEFAULT_SR150_FIRMWARE_PATH = (
     ACTUATOR_ROOT_PATH
     / "third_party"
-    / "murata_fw"
-    / "aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin"
+    / "aliro-th-additions"
+    / "ALIRO_IOT_SR150_FW_v46.42.01.bin"
 )
 
 
