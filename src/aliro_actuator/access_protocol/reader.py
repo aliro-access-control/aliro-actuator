@@ -1384,9 +1384,6 @@ class Reader(Device):
         await self.transport_protocol.set_hop_mode_key(
             int.from_bytes(message.hop_mode_key.value, "big")
         )
-        await self.transport_protocol.set_hop_mode_key(
-            int.from_bytes(message.hop_mode_key.value, "big")
-        )
         await self.transport_protocol.set_sync_code_bitmask(
             int.from_bytes(message.sync_code_index.value, "big")
         )
