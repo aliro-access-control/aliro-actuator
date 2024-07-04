@@ -1298,12 +1298,12 @@ files = [
 [[package]]
 name = "ucitool"
 version = "2.0.1+r.1.25.2.uci.2.0.6.dev3"
-description = "C:\\work\\ucitool2\\setup.py"
+description = "C:\\_ddm\\aliro_ws\\workspace\\release_int_IOT-AliroIntegration\\ucitool\\setup.py"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "ucitool-2.0.1+r.1.25.2.uci.2.0.6.dev3-py3-none-any.whl", hash = "sha256:53f56537a5673dd3f0a98faeb1ce77a1e8c34c64c66cc89ea9080ed8000afdd7"},
+    {file = "ucitool-2.0.1-py3-none-any.whl", hash = "sha256:6c01d2a462de3353271f1081e0784596bd1da60b8fc3f6032755320e5670ce88"},
 ]
 
 [package.dependencies]
@@ -1315,7 +1315,7 @@ PyYAML = "*"
 
 [package.source]
 type = "file"
-url = "third_party/ucitool/ucitool-2.0.1+r.1.25.2.uci.2.0.6.dev3-py3-none-any.whl"
+url = "third_party/aliro-th-additions/ucitool-2.0.1-py3-none-any.whl"
 
 [[package]]
 name = "urllib3"
@@ -1369,4 +1369,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "94cdc21eba1fdc99306d19e508b857b559a537afe184831438704faedaa46dfc"
+content-hash = "2ec722f29e8ac8afa0e636079664dc3e6c5e048093c74909b16e155c29ae21fe"
