@@ -32,7 +32,6 @@ which is the case by default. When this not the case (when for example another d
 is already using this name), you can change the location in 
 ```src/aliro_actuator/transport_protocol/ble_uwb.py```, by changing the 
 ```DEFAULT_PORT``` variable.
-<<<<<<< HEAD
 
 
 # UWB firmware
@@ -40,5 +39,3 @@ Inside this folder there is also the firmware that is loaded for the SR150 from 
 This firmware enables the UWB chip to be used for CCC ranging sessions along with the ucitool.
 
 Firmware for uwb: `aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin`
-=======
->>>>>>> 27-add-uwb-support
