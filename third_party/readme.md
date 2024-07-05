@@ -38,4 +38,8 @@ is already using this name), you can change the location in
 Inside this folder there is also the firmware that is loaded for the SR150 from the Murata board controller.  
 This firmware enables the UWB chip to be used for CCC ranging sessions along with the ucitool.
 
+<<<<<<< HEAD:third_party/murata_fw/readme.md
 Firmware for uwb: `aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin`
+=======
+Firmware for uwb: `aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin`
+>>>>>>> 4f0907e (remove third party firmware, should be gotten by external):third_party/readme.md
