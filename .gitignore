@@ -11,4 +11,4 @@ dist/
 docs/diagrams/out
 .idea/
 
-third_party/
+third_party/murata_fw
