@@ -67,7 +67,9 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     BleMessage,
     GeneralError_Values,
     Notification_ID,
+    OperationSourceInformation_Values,
     ProtocolType,
+    ReaderStatusInformation_Values,
     Supplementary_Service_ID,
     UWB_RangingService_ID,
 )
@@ -1304,6 +1306,11 @@ class Reader(Device):
 
                 val = await self.transport_protocol.get_ranging_data()
                 Global.logger.info(f"Ranging distance: {val}")
+                await self.transport_protocol.stop_ranging()
+                await self.reader_status_status_changed(
+                    ReaderStatusInformation_Values.UNSECURED,
+                    OperationSourceInformation_Values.UNSPECIFIED,
+                )
             else:
                 raise UnexpectedBLEMessageError(
                     "Received unexpected ble message while waiting for "

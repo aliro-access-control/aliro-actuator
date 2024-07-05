@@ -91,13 +91,12 @@ class MurataUWBDriver(MurataBaseDriver):
 
         Global.logger.info("Upload UWB device firmware.")
         await asyncio.to_thread(
-            uci.device_creation(
-                self.dh,
-                fw=DEFAULT_SR150_FIRMWARE_PATH,
-                skip_fw_download=False,
-            )
+            uci.device_creation,
+            self.dh,
+            fw=DEFAULT_SR150_FIRMWARE_PATH,
+            skip_fw_download=False,
         )
-        await asyncio.to_thread(uci.device_init(self.dh))
+        await asyncio.to_thread(uci.device_init, self.dh)
 
         # fmt: off
         await self.set_device_config(
@@ -129,40 +128,36 @@ class MurataUWBDriver(MurataBaseDriver):
 
     async def set_device_config(self, config: type, value: list) -> None:
         await asyncio.to_thread(
-            uci.set_device_config(
-                self.dh,
-                config=config,
-                value=value,
-            )
+            uci.set_device_config,
+            self.dh,
+            config=config,
+            value=value,
         )
 
     async def set_config(self, config: type, value: int) -> None:
         await asyncio.to_thread(
-            uci.set_config(
-                self.dh,
-                config=config,
-                value=value,
-                session_id=self.session_handle_dh,
-            )
+            uci.set_config,
+            self.dh,
+            config=config,
+            value=value,
+            session_id=self.session_handle_dh,
         )
 
     async def get_config(self, config: type) -> Any:
         return await asyncio.to_thread(
-            uci.get_config(
-                self.dh,
-                config=config,
-                session_id=self.session_handle_dh,
-            )
+            uci.get_config,
+            self.dh,
+            config=config,
+            session_id=self.session_handle_dh,
         )
 
     async def uci_set_calibration(self, channel: int, param: int, value: list) -> None:
         await asyncio.to_thread(
-            uci.set_calibration(
-                self.dh,
-                channel,
-                param,
-                value,
-            )
+            uci.set_calibration,
+            self.dh,
+            channel,
+            param,
+            value,
         )
 
     async def set_calibration(self) -> None:
