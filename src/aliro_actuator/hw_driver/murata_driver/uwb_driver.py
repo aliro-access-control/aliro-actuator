@@ -89,7 +89,7 @@ class MurataUWBDriver(MurataBaseDriver):
         self.dh.disable_ntf_prints()
         self.dh.disable_uci_prints()
 
-        Global.logger.info("Upload UWB device firmware.")
+        Global.logger.info("Upload UWB device firmware. (This can take a while)")
         await asyncio.to_thread(
             uci.device_creation,
             self.dh,
