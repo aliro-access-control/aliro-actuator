@@ -14,18 +14,25 @@
 
 import os
 import sys
+from binascii import hexlify
 
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
 
+from aliro_actuator import Global
 from aliro_actuator.trust_framework.key import KeyPair
 
 if __name__ == "__main__":
     keypair = KeyPair()
-    f = open("examples/nfc/private_key.pem", "wt")
-    f.write(keypair.get_private_key().as_pem())
+
+    private = keypair.get_private_key()
+    f = open("examples/cryptography/private_key.pem", "wt")
+    f.write(private.as_pem())
+    Global.logger.info("generated private key: {}".format(hexlify(private.as_bytes())))
     f.close()
 
-    f = open("examples/nfc/public_key.pem", "wt")
-    f.write(keypair.get_public_key().as_pem())
+    public = keypair.get_public_key()
+    f = open("examples/cryptography/public_key.pem", "wt")
+    f.write(public.as_pem())
+    Global.logger.info("generated public key: {}".format(hexlify(public.as_bytes())))
     f.close()
