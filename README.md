@@ -66,6 +66,9 @@ make
 sudo make install
 ```
 
+## Flashing the firmware
+[How to flash guide](third_party/readme.md)
+
 ## Examples
 The examples can be found in the examples folder. 
 You can run an example in the poetry shell with:
