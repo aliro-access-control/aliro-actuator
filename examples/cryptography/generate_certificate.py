@@ -38,21 +38,21 @@ if __name__ == "__main__":
                 hexlify(issuer_private.as_bytes())
             )
         )
-    else:
-        issuer_private = PrivateKey(bytes.fromhex(issuer_private_str))
-        Global.logger.info(
-            "Using Issuer Private key: {}".format(hexlify(issuer_private.as_bytes()))
-        )
-
-    Global.logger.info("Enter issuer public key (or leave empty to generate a key):")
-    issuer_public_str = input()
-    if issuer_private_str == "":
         issuer_public = issuer_private.generate_public_key()
         Global.logger.info(
             "Generated Issuer Public key: {}".format(hexlify(issuer_public.as_bytes()))
         )
+        issuer_generated = True
     else:
-        issuer_public = PrivateKey(bytes.fromhex(issuer_public_str))
+        Global.logger.info("Enter issuer public key:")
+        issuer_public_str = input()
+        issuer_private = PrivateKey(
+            bytes.fromhex(issuer_private_str), bytes.fromhex(issuer_public_str)
+        )
+        issuer_public = PublicKey(bytes.fromhex(issuer_public_str))
+        Global.logger.info(
+            "Using Issuer Private key: {}".format(hexlify(issuer_private.as_bytes()))
+        )
         Global.logger.info(
             "Using Issuer Public key: {}".format(hexlify(issuer_public.as_bytes()))
         )
