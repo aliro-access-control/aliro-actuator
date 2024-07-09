@@ -78,6 +78,12 @@ python3 -m examples.ble.reader.fast
 python3 -m examples.ble.user_device
 ```
 
+There are also examples that can be used to generate a keypair or a certificate:
+```
+python3 -m examples.cryptography.generate_certificate
+python3 -m examples.cryptography.generate_keypair
+```
+
 ## Using the Actuator
 This actuator supports both the reader side and the user side of the protocol. The class
 that implements the reader side is the ```Reader``` class located in ```aliro_actuator.access_protocol.reader```, and the user side is implemented by the ```UserDevice``` located in ```aliro_actuator.access_protocol.user_device```.
