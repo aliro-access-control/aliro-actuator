@@ -1355,16 +1355,16 @@ class Reader(Device):
 
     def handle_timesync(self, message: BleMessage) -> None:
         Global.logger.info("Handling time sync message")
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
 
     async def handle_initiate_ranging(self, message: BleMessage) -> None:
         Global.logger.info("Handling initiate ranging message")
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M2")
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
         # TODO: Number Chaps per Slot, Number Responder Nodes, Number Slots per Round,
         await self.transport_protocol.set_ran_multiplier(
             int.from_bytes(message.ran_multiplier.value, "big")
@@ -1381,7 +1381,7 @@ class Reader(Device):
         Finish setting up the ranging session and collect distance measurement
         """
         Global.logger.info("Handling ranging session setup message M4")
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
         await self.transport_protocol.set_sts_index0(
             int.from_bytes(message.sts_index0.value, "big")
         )
