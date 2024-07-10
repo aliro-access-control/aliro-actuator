@@ -1321,16 +1321,16 @@ class Reader(Device):
 
     def handle_timesync(self, message: BleMessage) -> None:
         Global.logger.info("Handling time sync message")
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
 
     async def handle_initiate_ranging(self, message: BleMessage) -> None:
         Global.logger.info("Handling initiate ranging message")
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M2")
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
         # TODO: Number Chaps per Slot, Number Responder Nodes, Number Slots per Round,
         await self.transport_protocol.set_ran_multiplier(
             int.from_bytes(message.ran_multiplier.value, "big")
@@ -1349,6 +1349,7 @@ class Reader(Device):
         Finish setting up the ranging session and collect distance measurement
         """
         Global.logger.info("Handling ranging session setup message M4")
+        message.parse_payload(self.session.get_ble_encryption())
         await self.transport_protocol.set_sts_index0(
             int.from_bytes(message.sts_index0.value, "big")
         )
@@ -1367,6 +1368,9 @@ class Reader(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
+        if self.session is None:
+            raise SessionError("No Session")
+
         Global.logger.info("Sending ranging session setup M1 ble message")
 
         uwb_configuration_id = self.transport_protocol.get_uwb_config_id_capability()
@@ -1381,12 +1385,16 @@ class Reader(Device):
             channel_bitmask,
             uwb_session_id,
             vendor_specific,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_setup_m3(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
+
+        if self.session is None:
+            raise SessionError("No Session")
 
         Global.logger.info("Sending ranging session setup M3 ble message")
 
@@ -1408,6 +1416,7 @@ class Reader(Device):
             hopping_conf_bitmask,
             mac_mode,
             vendor_specific,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 

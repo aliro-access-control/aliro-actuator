@@ -27,11 +27,12 @@ class AP_ID(IntEnum):
 
 
 class UWB_RangingService_ID(IntEnum):
-    RANGING_SESSION_SETUP_M1 = 0x01
-    RANGING_SESSION_SETUP_M2 = 0x02
-    RANGING_SESSION_SETUP_M3 = 0x03
-    RANGING_SESSION_SETUP_M4 = 0x04
-    RANGING_SESSION_SUSPEND_REQUEST = 0x05
+    RANGING_SESSION_SETUP_M1 = 0x00
+    RANGING_SESSION_SETUP_M2 = 0x01
+    RANGING_SESSION_SETUP_M3 = 0x02
+    RANGING_SESSION_SETUP_M4 = 0x03
+    RANGING_SESSION_SUSPEND_REQUEST = 0x04
+    RANGING_SESSION_SUSPEND_RESPONSE = 0x05
     RANGING_SESSION_RESUME_REQUEST = 0x06
     RANGING_SESSION_RESUME_RESPONSE = 0x07
 
@@ -614,6 +615,7 @@ class BleMessage(Message):
         dev_max_ppm: int,
         success: int,
         retry_delay: int,
+        ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         data = data_event_count.to_bytes(8, "big")
         device_event_count_attr = BleAttribute(
@@ -653,14 +655,19 @@ class BleMessage(Message):
             Supplementary_Service_ID.TIME_SYNC,
             payload,
         )
+        message._encrypt(ble_encryption)
         return message
 
     @staticmethod
-    def create_initiate_ranging_session() -> BleMessage:
+    def create_initiate_ranging_session(
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
         data = BleAttribute(RangingMessage_AttributeID.INITIATE_RANGING_SESSION)
-        return BleMessage(
+        message = BleMessage(
             ProtocolType.NOTIFICATION, Notification_ID.RANGING, data.to_bytes()
         )
+        message._encrypt(ble_encryption)
+        return message
 
     @staticmethod
     def create_ranging_session_setup_m1(
@@ -669,6 +676,7 @@ class BleMessage(Message):
         channel_bitmask: int,
         uwb_session_id: int,
         vendor_specific: int,
+        ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         data = uwb_configuration_id.to_bytes(2, "big")
         uwb_configuration_id_attr = BleAttribute(
@@ -697,6 +705,7 @@ class BleMessage(Message):
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M1,
             payload,
         )
+        message._encrypt(ble_encryption)
         return message
 
     @staticmethod
@@ -709,6 +718,7 @@ class BleMessage(Message):
         slot_bitmask: int,
         hopping_conf_bitmask: int,
         vendor_specific: int,
+        ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         data = uwb_configuration_id.to_bytes(2, "big")
         uwb_configuration_id_attr = BleAttribute(
@@ -751,6 +761,7 @@ class BleMessage(Message):
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M2,
             payload,
         )
+        message._encrypt(ble_encryption)
         return message
 
     @staticmethod
@@ -763,6 +774,7 @@ class BleMessage(Message):
         hopping_conf_bitmask: int,
         mac_mode: int,
         vendor_specific: int,
+        ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         data = ran_multiplier.to_bytes(1, "big")
         ran_multiplier_attr = BleAttribute(UWB_AttributeID.RAN_MULTIPLIER, data)
@@ -807,11 +819,16 @@ class BleMessage(Message):
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M3,
             payload,
         )
+        message._encrypt(ble_encryption)
         return message
 
     @staticmethod
     def create_ranging_session_setup_m4(
-        sts_index0: int, uwb_time0: bytes, hop_mode_key: int, sync_code_index: int
+        sts_index0: int,
+        uwb_time0: bytes,
+        hop_mode_key: int,
+        sync_code_index: int,
+        ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         data = sts_index0.to_bytes(2, "big")
         sts_index0_attr = BleAttribute(UWB_AttributeID.STS_INDEX0, data)
@@ -831,6 +848,7 @@ class BleMessage(Message):
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M4,
             payload,
         )
+        message._encrypt(ble_encryption)
         return message
 
 

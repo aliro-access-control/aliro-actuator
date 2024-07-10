@@ -393,7 +393,7 @@ class UserDevice(Device):
 
     async def handle_ranging_setup_m1(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M1")
-        message.parse_payload()
+        message.parse_payload(self.session.get_ble_encryption())
         await self.transport_protocol.set_pulseshape_combo(
             int.from_bytes(message.pulse_shape_combo.value, "big")
         )
@@ -408,8 +408,8 @@ class UserDevice(Device):
 
     async def handle_ranging_setup_m3(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M3")
-        message.parse_payload()
-        await self.trnasport_protocol.set_ran_multiplier(
+        message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.set_ran_multiplier(
             int.from_bytes(message.ran_multiplier.value, "big")
         )
         slot_duration = (
@@ -496,6 +496,7 @@ class UserDevice(Device):
             dev_ppm,
             success,
             retry_delay,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
@@ -508,7 +509,9 @@ class UserDevice(Device):
 
         Global.logger.info("Sending initiate ranging ble message")
 
-        message = BleMessage.create_initiate_ranging_session()
+        message = BleMessage.create_initiate_ranging_session(
+            self.session.get_ble_encryption()
+        )
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_setup_m2(self) -> None:
@@ -535,6 +538,7 @@ class UserDevice(Device):
             slot_bitmask,
             hopping_conf_bitmask,
             vendor_specific,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
@@ -549,7 +553,11 @@ class UserDevice(Device):
         sync_code_index = self.transport_protocol.get_sync_code_bitmask()
 
         message = BleMessage.create_ranging_session_setup_m4(
-            sts_index0, uwb_time0, hop_mode_key, sync_code_index
+            sts_index0,
+            uwb_time0,
+            hop_mode_key,
+            sync_code_index,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
