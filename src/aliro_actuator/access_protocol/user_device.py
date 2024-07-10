@@ -517,6 +517,7 @@ class UserDevice(Device):
             dev_ppm,
             success,
             retry_delay,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
@@ -529,7 +530,9 @@ class UserDevice(Device):
 
         Global.logger.info("Sending initiate ranging ble message")
 
-        message = BleMessage.create_initiate_ranging_session()
+        message = BleMessage.create_initiate_ranging_session(
+            self.session.get_ble_encryption()
+        )
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_setup_m2(self) -> None:
@@ -556,6 +559,7 @@ class UserDevice(Device):
             slot_bitmask,
             hopping_conf_bitmask,
             vendor_specific,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
@@ -570,7 +574,11 @@ class UserDevice(Device):
         sync_code_index = self.transport_protocol.get_sync_code_bitmask()
 
         message = BleMessage.create_ranging_session_setup_m4(
-            sts_index0, uwb_time0, hop_mode_key, sync_code_index
+            sts_index0,
+            uwb_time0,
+            hop_mode_key,
+            sync_code_index,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 

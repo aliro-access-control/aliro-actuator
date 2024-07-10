@@ -1399,6 +1399,9 @@ class Reader(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
+        if self.session is None:
+            raise SessionError("No Session")
+
         Global.logger.info("Sending ranging session setup M1 ble message")
 
         uwb_configuration_id = self.transport_protocol.get_uwb_config_id_capability()
@@ -1413,12 +1416,16 @@ class Reader(Device):
             channel_bitmask,
             uwb_session_id,
             vendor_specific,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_setup_m3(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
+
+        if self.session is None:
+            raise SessionError("No Session")
 
         Global.logger.info("Sending ranging session setup M3 ble message")
 
@@ -1440,6 +1447,7 @@ class Reader(Device):
             hopping_conf_bitmask,
             mac_mode,
             vendor_specific,
+            self.session.get_ble_encryption(),
         )
         await self.transport_protocol.send_message(message)
 
