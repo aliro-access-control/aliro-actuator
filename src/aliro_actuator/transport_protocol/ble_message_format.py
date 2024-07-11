@@ -364,10 +364,6 @@ class BleMessage(Message):
         self.uwb_session_id.check_tag(UWB_AttributeID.UWB_SESSION_IDENTIFIER)
         offset += self.uwb_session_id.length
 
-        self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
-        self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
-        offset += self.vendor_specific.length
-
     def _parse_ranging_session_setup_m2(self) -> None:
         self.uwb_configuration_id = BleAttribute.from_bytes(self.payload)
         self.uwb_configuration_id.check_tag(
@@ -442,9 +438,6 @@ class BleMessage(Message):
         self.mac_mode = BleAttribute.from_bytes(self.payload[offset:None])
         self.mac_mode.check_tag(UWB_AttributeID.MAC_MODE)
         offset += self.mac_mode.length
-
-        self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
-        self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
 
     def _parse_ranging_session_setup_m4(self) -> None:
         self.sts_index0 = BleAttribute.from_bytes(self.payload)
@@ -682,7 +675,7 @@ class BleMessage(Message):
         uwb_configuration_id_attr = BleAttribute(
             UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
         )
-        data = pulse_shape_combination.to_bytes(3, "big")
+        data = pulse_shape_combination.to_bytes(1, "big")
         pulse_shape_combination_attr = BleAttribute(
             UWB_AttributeID.PULSE_SHAPE_COMBO, data
         )
@@ -724,13 +717,13 @@ class BleMessage(Message):
         uwb_configuration_id_attr = BleAttribute(
             UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
         )
-        data = pulse_shape_combination.to_bytes(3, "big")
+        data = pulse_shape_combination.to_bytes(1, "big")
         pulse_shape_combination_attr = BleAttribute(
             UWB_AttributeID.PULSE_SHAPE_COMBO, data
         )
         data = channel_bitmask.to_bytes(1, "big")
         channel_bitmask_attr = BleAttribute(UWB_AttributeID.CHANNEL_BITMASK, data)
-        data = sync_code_index_bitmask.to_bytes(4, "big")
+        data = sync_code_index_bitmask.to_bytes(1, "big")
         sync_code_index_bitmask_attr = BleAttribute(
             UWB_AttributeID.SYNC_CODE_INDEX_BITMASK, data
         )
@@ -790,7 +783,7 @@ class BleMessage(Message):
         number_slots_per_round_attr = BleAttribute(
             UWB_AttributeID.NUMBER_SLOTS_PER_ROUND, data
         )
-        data = sync_code_index_bitmask.to_bytes(4, "big")
+        data = sync_code_index_bitmask.to_bytes(1, "big")
         sync_code_index_bitmask_attr = BleAttribute(
             UWB_AttributeID.SYNC_CODE_INDEX_BITMASK, data
         )
@@ -835,7 +828,7 @@ class BleMessage(Message):
         uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, uwb_time0)
         data = hop_mode_key.to_bytes(4, "big")
         hop_mode_key_attr = BleAttribute(UWB_AttributeID.HOP_MODE_KEY, data)
-        data = sync_code_index.to_bytes(4, "big")
+        data = sync_code_index.to_bytes(1, "big")
         sync_code_index_attr = BleAttribute(UWB_AttributeID.SYNC_CODE_INDEX, data)
 
         payload = bytearray()
