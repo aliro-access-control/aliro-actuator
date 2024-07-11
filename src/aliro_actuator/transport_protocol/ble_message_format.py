@@ -365,10 +365,6 @@ class BleMessage(Message):
         self.uwb_session_id.check_tag(UWB_AttributeID.UWB_SESSION_IDENTIFIER)
         offset += self.uwb_session_id.length
 
-        self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
-        self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
-        offset += self.vendor_specific.length
-
     def _parse_ranging_session_setup_m2(self) -> None:
         self.uwb_configuration_id = BleAttribute.from_bytes(self.payload)
         self.uwb_configuration_id.check_tag(
@@ -443,9 +439,6 @@ class BleMessage(Message):
         self.mac_mode = BleAttribute.from_bytes(self.payload[offset:None])
         self.mac_mode.check_tag(UWB_AttributeID.MAC_MODE)
         offset += self.mac_mode.length
-
-        self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
-        self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
 
     def _parse_ranging_session_setup_m4(self) -> None:
         self.sts_index0 = BleAttribute.from_bytes(self.payload)
