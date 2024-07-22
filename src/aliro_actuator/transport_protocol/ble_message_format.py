@@ -139,11 +139,13 @@ class BleMessage(Message):
             case UWB_RangingService_ID.RANGING_SESSION_SETUP_M4:
                 self._parse_ranging_session_setup_m4()
             case UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST:
-                raise NotImplementedError
+                self._parse_ranging_session_suspend_request()
+            case UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE:
+                self._parse_ranging_session_suspend_response()
             case UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST:
-                raise NotImplementedError
+                self._parse_ranging_session_resume_request()
             case UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE:
-                raise NotImplementedError
+                self._parse_ranging_session_resume_response()
 
     def _parse_supplementary_service_payload(
         self, ble_encryption: EncryptionEngine | None = None
@@ -454,6 +456,26 @@ class BleMessage(Message):
 
         self.sync_code_index = BleAttribute.from_bytes(self.payload[offset:None])
         self.sync_code_index.check_tag(UWB_AttributeID.SYNC_CODE_INDEX)
+
+    def _parse_ranging_session_suspend_request(self) -> None:
+        self.uwb_session_id = BleAttribute.from_bytes(self.payload)
+        self.uwb_session_id.check_tag(UWB_AttributeID.UWB_SESSION_IDENTIFIER)
+
+    def _parse_ranging_session_suspend_response(self) -> None:
+        self.status = BleAttribute.from_bytes(self.payload)
+        self.status.check_tag(UWB_AttributeID.STATUS)
+
+    def _parse_ranging_session_resume_request(self) -> None:
+        self.uwb_session_id = BleAttribute.from_bytes(self.payload)
+        self.uwb_session_id.check_tag(UWB_AttributeID.UWB_SESSION_IDENTIFIER)
+
+    def _parse_ranging_session_resume_response(self) -> None:
+        self.sts_index0 = BleAttribute.from_bytes(self.payload)
+        self.sts_index0.check_tag(UWB_AttributeID.STS_INDEX0)
+        offset = self.sts_index0.length
+
+        self.uwb_time0 = BleAttribute.from_bytes(self.payload[offset:None])
+        self.uwb_time0.check_tag(UWB_AttributeID.UWB_TIME0)
 
     def _encrypt(self, ble_encryption: EncryptionEngine | None) -> None:
         """
@@ -839,6 +861,85 @@ class BleMessage(Message):
         message = BleMessage(
             ProtocolType.UWB_RANGING_SERVICE,
             UWB_RangingService_ID.RANGING_SESSION_SETUP_M4,
+            payload,
+        )
+        message._encrypt(ble_encryption)
+        return message
+
+    @staticmethod
+    def create_ranging_session_suspend_request(
+        uwb_session_id: int,
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        data = uwb_session_id.to_bytes(4, "big")
+        uwb_session_id_attr = BleAttribute(UWB_AttributeID.UWB_SESSION_IDENTIFIER, data)
+
+        payload = bytearray()
+        payload.extend(uwb_session_id_attr.to_bytes())
+
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST,
+            payload,
+        )
+        message._encrypt(ble_encryption)
+        return message
+
+    @staticmethod
+    def create_ranging_session_suspend_response(
+        status: int,
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        data = status.to_bytes(1, "big")
+        uwb_session_id_attr = BleAttribute(UWB_AttributeID.STATUS, data)
+
+        payload = bytearray()
+        payload.extend(uwb_session_id_attr.to_bytes())
+
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE,
+            payload,
+        )
+        message._encrypt(ble_encryption)
+        return message
+
+    @staticmethod
+    def create_ranging_session_resume_request(
+        uwb_session_id: int,
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        data = uwb_session_id.to_bytes(4, "big")
+        uwb_session_id_attr = BleAttribute(UWB_AttributeID.UWB_SESSION_IDENTIFIER, data)
+
+        payload = bytearray()
+        payload.extend(uwb_session_id_attr.to_bytes())
+
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST,
+            payload,
+        )
+        message._encrypt(ble_encryption)
+        return message
+
+    @staticmethod
+    def create_ranging_session_resume_response(
+        sts_index0: int,
+        uwb_time0: bytes,
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        data = sts_index0.to_bytes(2, "big")
+        sts_index0_attr = BleAttribute(UWB_AttributeID.STS_INDEX0, data)
+        uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, uwb_time0)
+
+        payload = bytearray()
+        payload.extend(sts_index0_attr.to_bytes())
+        payload.extend(uwb_time0_attr.to_bytes())
+
+        message = BleMessage(
+            ProtocolType.UWB_RANGING_SERVICE,
+            UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE,
             payload,
         )
         message._encrypt(ble_encryption)
