@@ -745,7 +745,7 @@ class BleMessage(Message):
         )
         data = channel_bitmask.to_bytes(1, "big")
         channel_bitmask_attr = BleAttribute(UWB_AttributeID.CHANNEL_BITMASK, data)
-        data = sync_code_index_bitmask.to_bytes(1, "big")
+        data = sync_code_index_bitmask.to_bytes(4, "big")
         sync_code_index_bitmask_attr = BleAttribute(
             UWB_AttributeID.SYNC_CODE_INDEX_BITMASK, data
         )
@@ -805,7 +805,7 @@ class BleMessage(Message):
         number_slots_per_round_attr = BleAttribute(
             UWB_AttributeID.NUMBER_SLOTS_PER_ROUND, data
         )
-        data = sync_code_index_bitmask.to_bytes(1, "big")
+        data = sync_code_index_bitmask.to_bytes(4, "big")
         sync_code_index_bitmask_attr = BleAttribute(
             UWB_AttributeID.SYNC_CODE_INDEX_BITMASK, data
         )
