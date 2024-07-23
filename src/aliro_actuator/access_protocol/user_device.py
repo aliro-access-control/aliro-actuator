@@ -456,6 +456,7 @@ class UserDevice(Device):
     ) -> None:
         Global.logger.info("Handling ranging session suspend response")
         message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.stop_ranging()
 
     async def handle_ranging_session_resume_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume request")
@@ -466,6 +467,7 @@ class UserDevice(Device):
     async def handle_ranging_session_resume_response(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume response")
         message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.start_ranging()
 
     def start_new_session(self) -> None:
         """
@@ -624,6 +626,7 @@ class UserDevice(Device):
             status,
             self.session.get_ble_encryption(),
         )
+        await self.transport_protocol.stop_ranging()
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_resume_request(self) -> None:
@@ -650,6 +653,7 @@ class UserDevice(Device):
             uwb_time0,
             self.session.get_ble_encryption(),
         )
+        await self.transport_protocol.start_ranging()
         await self.transport_protocol.send_message(message)
 
     async def handle_select(self, select_command: Command) -> bytes:

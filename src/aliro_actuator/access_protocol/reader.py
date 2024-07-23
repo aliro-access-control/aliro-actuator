@@ -1395,6 +1395,7 @@ class Reader(Device):
     ) -> None:
         Global.logger.info("Handling ranging session suspend response")
         message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.stop_ranging()
 
     async def handle_ranging_session_resume_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume request")
@@ -1405,6 +1406,7 @@ class Reader(Device):
     async def handle_ranging_session_resume_response(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume response")
         message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.start_ranging()
 
     async def send_ranging_session_setup_m1(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -1483,6 +1485,7 @@ class Reader(Device):
             status,
             self.session.get_ble_encryption(),
         )
+        await self.transport_protocol.stop_ranging()
         await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_resume_request(self) -> None:
@@ -1509,6 +1512,7 @@ class Reader(Device):
             uwb_time0,
             self.session.get_ble_encryption(),
         )
+        await self.transport_protocol.start_ranging()
         await self.transport_protocol.send_message(message)
 
 
