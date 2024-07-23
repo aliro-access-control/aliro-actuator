@@ -1306,7 +1306,7 @@ class Reader(Device):
 
                 val = await self.transport_protocol.get_ranging_data()
                 Global.logger.info(f"Ranging distance: {val}")
-                await self.transport_protocol.stop_ranging()
+                await self.send_ranging_session_suspend_request()
                 await self.reader_status_status_changed(
                     ReaderStatusInformation_Values.UNSECURED,
                     OperationSourceInformation_Values.UNSPECIFIED,
@@ -1315,22 +1315,22 @@ class Reader(Device):
                 header == ProtocolType.UWB_RANGING_SERVICE
                 and id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST
             ):
-                await self.handle_ranging_session_suspend_request
+                await self.handle_ranging_session_suspend_request(message)
             elif (
                 header == ProtocolType.UWB_RANGING_SERVICE
                 and id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE
             ):
-                await self.handle_ranging_session_suspend_response
+                await self.handle_ranging_session_suspend_response(message)
             elif (
                 header == ProtocolType.UWB_RANGING_SERVICE
                 and id == UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST
             ):
-                await self.handle_ranging_session_resume_request
+                await self.handle_ranging_session_resume_request(message)
             elif (
                 header == ProtocolType.UWB_RANGING_SERVICE
                 and id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE
             ):
-                await self.handle_ranging_session_resume_response
+                await self.handle_ranging_session_resume_response(message)
             else:
                 raise UnexpectedBLEMessageError(
                     "Received unexpected ble message while waiting for "

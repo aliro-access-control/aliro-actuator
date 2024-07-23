@@ -609,6 +609,7 @@ class UserDevice(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
+        Global.logger.info("Sending ranging session suspend request ble message")
         uwb_session_id = self.transport_protocol.get_uwb_session_id()
 
         message = BleMessage.create_ranging_session_suspend_request(
@@ -621,6 +622,7 @@ class UserDevice(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
+        Global.logger.info("Sending ranging session suspend response ble message")
         status = 1
         message = BleMessage.create_ranging_session_suspend_response(
             status,
@@ -633,6 +635,7 @@ class UserDevice(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
+        Global.logger.info("Sending ranging session resume request ble message")
         uwb_session_id = self.transport_protocol.get_uwb_session_id()
 
         message = BleMessage.create_ranging_session_resume_request(
@@ -645,6 +648,7 @@ class UserDevice(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
+        Global.logger.info("Sending ranging session resume response ble message")
         sts_index0 = await self.transport_protocol.get_sts_index0()
         uwb_time0 = await self.transport_protocol.get_uwb_time0()
 
