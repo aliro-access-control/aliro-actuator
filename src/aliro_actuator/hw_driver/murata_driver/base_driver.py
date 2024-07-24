@@ -35,7 +35,7 @@ class MurataBaseDriver:
         )
         # serial should ALWAYS map to serial from uciTool
         self.serial = self.dh.device.ser
-        self.serial.timeout = TIMEOUT_LOW
+        self.dh.device.flush_port()
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
 
