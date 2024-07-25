@@ -244,6 +244,8 @@ class Reader(Device):
                 )
             )
 
+        self.failure_process_started = False
+
         Global.logger.info("Initialized Reader")
 
     @property
@@ -358,6 +360,8 @@ class Reader(Device):
         else:
             self.session.generate_ephemeral_key(self.ephemeral_key_list.pop(0))
 
+        self.failure_process_started = False
+
     def end_session(self) -> None:
         """
         End the current reader session.
@@ -372,6 +376,11 @@ class Reader(Device):
         If transport protocol is NFC, a control_flow command indicating failure is send.
         If transport protocol is BLE, a failure event message is send.
         """
+        if self.failure_process_started:
+            # we are already handling a failure, don't send another failure message
+            return
+        self.failure_process_started = True
+
         if (
             self.transport_protocol_type == TransportProtocol.NFC
             or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
