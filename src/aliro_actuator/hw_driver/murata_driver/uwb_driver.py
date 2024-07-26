@@ -495,6 +495,22 @@ class MurataUWBDriver(MurataBaseDriver):
         # TODO
         pass
 
+    async def get_sync_code_index(self) -> int:
+        data = uci.get_vendor_config(
+            self.dh,
+            config=uci.VENDOR_APP_CFG.PREAMBLE_CODE_INDEX,
+            session_id=self.session_handle_dh,
+        )
+        return data.fields["PREAMBLE_CODE_INDEX"].val
+
+    async def set_sync_code_index(self, sync_code: int) -> None:
+        uci.set_vendor_app_config(
+            self.dh,
+            config=uci.VENDOR_APP_CFG.PREAMBLE_CODE_INDEX,
+            value=sync_code,
+            session_id=self.session_handle_dh,
+        )
+
     async def start_ranging(self) -> None:
         uci.rng_start(self.dh, session_id=self.session_handle_dh)
 

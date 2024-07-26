@@ -294,3 +294,9 @@ class BLEUWB(TransportProtocolBase):
 
     async def get_ranging_data(self) -> int:
         return await self.driver.get_ranging_data()
+
+    async def get_sync_code_index(self) -> int:
+        return await self.driver.get_sync_code_index()
+
+    async def set_sync_code_index(self, sync_code_index: int) -> None:
+        await self.driver.set_sync_code_index(sync_code_index)

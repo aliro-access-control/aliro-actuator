@@ -594,7 +594,7 @@ class UserDevice(Device):
         sts_index0 = await self.transport_protocol.get_sts_index0()
         uwb_time0 = await self.transport_protocol.get_uwb_time0()
         hop_mode_key = await self.transport_protocol.get_hop_mode_key()
-        sync_code_index = self.transport_protocol.get_sync_code_bitmask() & 0xFF
+        sync_code_index = self.transport_protocol.get_sync_code_index()
 
         message = BleMessage.create_ranging_session_setup_m4(
             sts_index0,
