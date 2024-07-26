@@ -410,10 +410,6 @@ class MurataUWBDriver(MurataBaseDriver):
     def get_sync_code_bitmask(self) -> int:
         return self.sync_code_index_bitmask
 
-    async def set_sync_code_bitmask(self, sync_code_bitmask: int) -> None:
-        # TODO
-        pass
-
     def get_hopping_config_bitmask(self) -> int:
         return self.hopping_config_bitmask
 
@@ -496,19 +492,15 @@ class MurataUWBDriver(MurataBaseDriver):
         pass
 
     async def get_sync_code_index(self) -> int:
-        data = uci.get_vendor_config(
-            self.dh,
-            config=uci.VENDOR_APP_CFG.PREAMBLE_CODE_INDEX,
-            session_id=self.session_handle_dh,
+        data = await self.get_config(
+            config=uci.APP_CFG.PREAMBLE_CODE_INDEX,
         )
         return data.fields["PREAMBLE_CODE_INDEX"].val
 
     async def set_sync_code_index(self, sync_code: int) -> None:
-        uci.set_vendor_app_config(
-            self.dh,
-            config=uci.VENDOR_APP_CFG.PREAMBLE_CODE_INDEX,
+        await self.set_config(
+            config=uci.APP_CFG.PREAMBLE_CODE_INDEX,
             value=sync_code,
-            session_id=self.session_handle_dh,
         )
 
     async def start_ranging(self) -> None:

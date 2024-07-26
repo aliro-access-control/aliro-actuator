@@ -435,14 +435,24 @@ class UserDevice(Device):
         slot_duration = (
             int.from_bytes(message.number_chaps_per_slot.value, "big") / 3 * 1200
         )
-        await self.transport_protocol.set_slot_duration(slot_duration)
-        await self.transport_protocol.set_number_responders(int.from_bytes(message.number_responder_nodes.value. "big"))
-        await self.transport_protocol.set_slots_per_round(int.from_bytes(message.number_slots_per_round.value. "big"))
-        await self.transport_protocol.set_sync_code_bitmask(int.from_bytes(message.sync_code_index_bitmask.value. "big"))
-        hopping_config = int.from_bytes(message.hopping_configuration_bitmask.value. "big") 
-        await self.transport_protocol.set_hopping_mode(0) # TODO
-        await self.transport_protocol.set_mac_mode(0) # TODO
-    
+        await self.transport_protocol.set_slot_duration(int(slot_duration))
+        await self.transport_protocol.set_number_responders(
+            int.from_bytes(message.number_responder_nodes.value, "big")
+        )
+        await self.transport_protocol.set_slots_per_round(
+            int.from_bytes(message.number_slots_per_round.value, "big")
+        )
+
+        # Select the first sync_code_index from the bitmask value
+        await self.transport_protocol.set_sync_code_index(
+            int.from_bytes(message.sync_code_index_bitmask.value, "big") & 0xFF
+        )
+        hopping_config = int.from_bytes(
+            message.hopping_configuration_bitmask.value, "big"
+        )
+        await self.transport_protocol.set_hopping_mode(0)  # TODO
+        await self.transport_protocol.set_mac_mode(0)  # TODO
+
         await self.send_ranging_session_setup_m4()
 
     async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
@@ -594,7 +604,7 @@ class UserDevice(Device):
         sts_index0 = await self.transport_protocol.get_sts_index0()
         uwb_time0 = await self.transport_protocol.get_uwb_time0()
         hop_mode_key = await self.transport_protocol.get_hop_mode_key()
-        sync_code_index = self.transport_protocol.get_sync_code_index()
+        sync_code_index = await self.transport_protocol.get_sync_code_index()
 
         message = BleMessage.create_ranging_session_setup_m4(
             sts_index0,

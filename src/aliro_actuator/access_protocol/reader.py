@@ -1355,12 +1355,12 @@ class Reader(Device):
         await self.transport_protocol.set_ran_multiplier(
             int.from_bytes(message.ran_multiplier.value, "big")
         )
-        await self.transport_protocol.set_sync_code_bitmask(
-            int.from_bytes(message.sync_code_index_bitmask.value, "big")
+
+        self.received_sync_code_bitmask = int.from_bytes(
+            message.sync_code_index_bitmask.value, "big"
         )
-        await self.transport_protocol.set_hopping_config_bitmask(
-            int.from_bytes(message.hopping_configuration_bitmask.value, "big")
-        )
+
+        await self.transport_protocol.set_hopping_mode(0)  # TODO
         await self.transport_protocol.set_mac_mode(0)  # TODO
         await self.send_ranging_session_setup_m3()
 
@@ -1446,7 +1446,10 @@ class Reader(Device):
         num_chaps_per_slot = await self.transport_protocol.get_num_chaps_per_slot()
         number_responder_nodes = await self.transport_protocol.get_number_responders()
         number_slots_per_round = await self.transport_protocol.get_slots_per_round()
-        sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
+        sync_code_index_bitmask = (
+            self.transport_protocol.get_sync_code_bitmask()
+            & self.received_sync_code_bitmask
+        )
         hopping_conf_bitmask = self.transport_protocol.get_hopping_config_bitmask()
         mac_mode = await self.transport_protocol.get_mac_mode()
         vendor_specific = 0xFF

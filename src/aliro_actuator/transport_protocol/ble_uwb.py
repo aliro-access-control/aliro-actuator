@@ -245,9 +245,6 @@ class BLEUWB(TransportProtocolBase):
     def get_sync_code_bitmask(self) -> int:
         return self.driver.get_sync_code_bitmask()
 
-    async def set_sync_code_bitmask(self, sync_code_bitmask) -> None:
-        return await self.driver.set_sync_code_bitmask(sync_code_bitmask)
-
     async def get_ran_multiplier(self) -> int:
         return await self.driver.get_ran_multiplier()
 
