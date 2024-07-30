@@ -653,17 +653,17 @@ class Reader(Device):
                     )
                 )
                 Global.logger.info(
-                    "decrypted cryptogram: {!r}".format(hexlify(decrypted cryptogram))
+                    "decrypted cryptogram: {!r}".format(hexlify(decrypted_cryptogram))
                 )
-                self.session.set_cryptogram_info(TLV.from_bytes(decrypted cryptogram))
-                self.session.set_credential_public_key(entry.access_crede tial)
+                self.session.set_cryptogram_info(TLV.from_bytes(decrypted_cryptogram))
+                self.session.set_credential_public_key(entry.access_credential)
                 self.session.create_encryption_engine_expedited()
                 if self.transport_protocol_type in [
                     TransportProtocol.BLE_UWB,
                     TransportProtocol.SOCKET_BLE,
                 ]:
                     Global.logger.info("Setting up BLE encryption")
-                    self.session.set_ble_encryption(self.transport_protoc l)
+                    self.session.set_ble_encryption(self.transport_protocol)
                 return
             except VerificationError:
                 Global.logger.info("decryption failed, trying next key in storage")
@@ -1274,6 +1274,40 @@ class Reader(Device):
 
         return response
 
+    async def wait_for_ble_message(
+        self,
+        encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        """
+        Waits until a ble message is received.
+
+        Args:
+            encryption (EncryptionEngine | None, optional): Used for decrypting
+            messages.
+            Not required for every command. Defaults to None.
+
+        Raises:
+            AccessProtocolError: When receiving an unexpected message.
+
+        Returns:
+            BleMessage: the received ble message.
+        """
+        Global.logger.info("Waiting for ble message")
+        command_str, header, id = await self.transport_protocol.get_message()
+        if header is not None and id is not None:
+            Global.logger.info(
+                "Received BLE message with header: 0x{:02x} and id: 0x{:02x}".format(
+                    header, id
+                )
+            )
+            message = BleMessage(header, id, command_str)
+        else:
+            raise AccessProtocolError(
+                "Received unexpected message while waiting for BLE message : "
+                "{!r}".format(hexlify(message.to_bytes()))
+            )
+        return message
+
     async def ranging_loop(self) -> None:
         while True:
             try:
@@ -1382,7 +1416,6 @@ class Reader(Device):
         await self.transport_protocol.set_sync_code_index(
             int.from_bytes(message.sync_code_index.value, "big")
         )
-        message.parse_payload()
 
     async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session suspend request")

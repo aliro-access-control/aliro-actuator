@@ -36,6 +36,7 @@ class UWB_RangingService_ID(IntEnum):
     RANGING_SESSION_RESUME_REQUEST = 0x06
     RANGING_SESSION_RESUME_RESPONSE = 0x07
 
+
 class Supplementary_Service_ID(IntEnum):
     TIME_SYNC = 0
 

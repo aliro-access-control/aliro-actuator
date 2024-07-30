@@ -404,7 +404,13 @@ class MurataUWBDriver(MurataBaseDriver):
             config=uci.APP_CFG.SLOT_DURATION,
         )
         val = data.fields["SLOT_DURATION"].val
-        number_of_chaps = int(val / 1200 * 3)
+
+        # Check if slot duration is higher than 0
+        if val == 0:
+            number_of_chaps = 6
+            await self.set_slot_duration(2400)
+        else:
+            number_of_chaps = int(val / 1200 * 3)
         return number_of_chaps
 
     def get_sync_code_bitmask(self) -> int:
@@ -480,7 +486,7 @@ class MurataUWBDriver(MurataBaseDriver):
         )
 
     async def get_mac_mode(self) -> int:
-        data = uci.get_config(
+        data = uci.get_vendor_config(
             self.dh,
             config=uci.VENDOR_APP_CFG.CSA_MAC_MODE,
             session_id=self.session_handle_dh,
@@ -488,8 +494,12 @@ class MurataUWBDriver(MurataBaseDriver):
         return data.fields["CSA_MAC_MODE"].val
 
     async def set_mac_mode(self, mac_mode: int) -> None:
-        # TODO
-        pass
+        uci.set_vendor_app_config(
+            self.dh,
+            config=uci.VENDOR_APP_CFG.CSA_MAC_MODE,
+            value=mac_mode,
+            session_id=self.session_handle_dh,
+        )
 
     async def get_sync_code_index(self) -> int:
         data = await self.get_config(
