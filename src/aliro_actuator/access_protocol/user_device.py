@@ -85,7 +85,7 @@ from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 
 class UserMode(Enum):
     TEST = 0  # Every error raises an Exception
-    USER = 0  # Strictly follows spec, may ignore errors if so noted in the spec
+    USER = 1  # Strictly follows spec, may ignore errors if so noted in the spec
 
 
 class UserStorage:

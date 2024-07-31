@@ -82,6 +82,12 @@ class ReaderState(Enum):
     STEPUP = 2
 
 
+class ReaderMode(Enum):
+    TEST = 0  # Every error raises an Exception
+    READER = 1  # Strictly follows spec, may ignore errors if so noted in the spec, and
+    # sends failure messages
+
+
 class ReaderStorage:
     """
     Cross-session storage for Expedited Fast cached data
@@ -174,6 +180,7 @@ class Reader(Device):
         transaction_identifier_list: list[bytes] | None = None,
         ephemeral_key_list: list[KeyPair] | None = None,
         key_slot_list: list[PublicKey] = [],
+        mode: ReaderMode = ReaderMode.TEST,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -245,6 +252,7 @@ class Reader(Device):
             )
 
         self.failure_process_started = False
+        self.mode = mode
 
         Global.logger.info("Initialized Reader")
 
@@ -381,21 +389,24 @@ class Reader(Device):
             return
         self.failure_process_started = True
 
-        if (
-            self.transport_protocol_type == TransportProtocol.NFC
-            or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
-        ):
-            if self.session is None or self.session.encryption_expedited is None:
-                s2 = S2(error_code)
-                await self.handle_control_flow(s2)
-            else:
-                await self.handle_exchange(False, reader_status=error_code)
-        if (
-            self.transport_protocol_type == TransportProtocol.BLE_UWB
-            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
-        ):
-            await self.handle_error_event_ble_message(GeneralError_Values.UNKNOWN_ERROR)
-            pass
+        if self.mode == ReaderMode.READER:
+            if (
+                self.transport_protocol_type == TransportProtocol.NFC
+                or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
+            ):
+                if self.session is None or self.session.encryption_expedited is None:
+                    s2 = S2(error_code)
+                    await self.handle_control_flow(s2)
+                else:
+                    await self.handle_exchange(False, reader_status=error_code)
+            if (
+                self.transport_protocol_type == TransportProtocol.BLE_UWB
+                or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+            ):
+                await self.handle_error_event_ble_message(
+                    GeneralError_Values.UNKNOWN_ERROR
+                )
+                pass
 
         await self.transaction_termination()
 
