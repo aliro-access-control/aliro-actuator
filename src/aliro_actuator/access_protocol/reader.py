@@ -986,6 +986,13 @@ class Reader(Device):
             raise error
 
         Global.logger.info("Handling EXCHANGE response")
+        if len(response.status_code) != 4:
+            await self.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            raise AccessProtocolError(
+                "EXCHANGE payload status has invalid length: {!r}".format(
+                    response.status_code
+                )
+            )
         if response.status_code != bytes.fromhex("00020000"):
             await self.failure_process(ReaderStatus.STATUS_WORD_ERROR)
             raise AccessProtocolError(
