@@ -286,7 +286,53 @@ class UserDevice(Device):
         """
 
         while True:
-            await self.single_transaction()
+            await self.transaction_initiation()
+            while True:
+                try:
+                    if self.session is None:
+                        raise SessionError("starting session failed")
+                    message = await self.wait_for_message()
+                except (InvalidCommandError, VerificationError):
+                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
+                except NoDeviceConnectedError:
+                    # try to reconnect in outer loop
+                    break
+                try:
+                    if isinstance(message, Command):
+                        match message.ins:
+                            case INS.SELECT:
+                                await self.handle_select(message)
+                            case INS.AUTH0:
+                                await self.handle_auth0(message)
+                            case INS.AUTH1:
+                                await self.handle_auth1(message)
+                            case INS.LOAD_CERT:
+                                await self.handle_load_cert(message)
+                            case INS.CONTROL_FLOW:
+                                await self.handle_control_flow(message)
+                                await self.transaction_termination()
+                                break
+                            case INS.EXCHANGE:
+                                await self.handle_exchange(message)
+                            case INS.ENVELOPE:
+                                await self.handle_envelope(message)
+                            case _:
+                                raise NotImplementedError(
+                                    "command: {} not implemented".format(message.ins)
+                                )
+                    else:
+                        self.handle_ble_messages(message)
+                except AccessProtocolError as error:
+                    Global.logger.error(
+                        "restarting session because of error: {}".format(repr(error))
+                    )
+                    # main loop should continue even when commands are not valid
+                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
+                except NoDeviceConnectedError:
+                    # try to reconnect in outer loop
+                    break
 
     async def ranging_loop(self) -> None:
         while True:
