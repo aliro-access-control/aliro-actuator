@@ -4,8 +4,7 @@ from binascii import hexlify
 from enum import IntEnum
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.apdu import AUTHENTICATION_TAG_SIZE
-from aliro_actuator.access_protocol.defines import Select
+from aliro_actuator.access_protocol.defines import AUTHENTICATION_TAG_SIZE, Select
 from aliro_actuator.access_protocol.encryption import EncryptionEngine
 from aliro_actuator.access_protocol.tlv import TLV, TlvError
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness

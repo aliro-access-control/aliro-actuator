@@ -19,6 +19,7 @@ from enum import IntEnum
 
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.defines import (
+    AUTHENTICATION_TAG_SIZE,
     Auth0,
     Auth1,
     ControlFlow,
@@ -55,8 +56,6 @@ APDU_RESPONSE_MAX_DATA_LENGTH = 256
 
 MAX_VALUE_BYTE = 0xFF
 MAX_VALUE_2_BYTES = 0xFFFF
-
-AUTHENTICATION_TAG_SIZE = 16  # TODO check value
 
 
 class INS(IntEnum):

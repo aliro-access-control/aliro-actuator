@@ -19,7 +19,6 @@ from enum import Enum
 
 from aliro_actuator import READER_GROUP_ID_LENGTH, READER_GROUP_SUB_ID_LENGTH, Global
 from aliro_actuator.access_protocol.apdu import (
-    AUTHENTICATION_TAG_SIZE,
     INS,
     S1,
     S2,
@@ -39,6 +38,7 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
     STEPUP_PHASE_AID,
+    AUTHENTICATION_TAG_SIZE
     Auth1,
     Exchange,
     TransportProtocol,
