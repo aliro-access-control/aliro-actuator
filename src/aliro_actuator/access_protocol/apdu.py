@@ -281,10 +281,20 @@ class Command(APDUMessage):
         message.append(p2)
 
         if len(data) > 0:
-            message.append(len(data))
-            message.extend(data)
+            if len(data) < 256:
+                message.append(len(data))
+                message.extend(data)
+            else:
+                message.extend(len(data).to_bytes(3, "big"))
+                message.extend(data)
         if le is not None:
-            message.append(le)
+            if le < 256:
+                le_len = 1
+            elif len(data) == 0:
+                le_len = 3
+            else:
+                le_len = 2
+            message.extend(le.to_bytes(le_len, "big"))
 
         new_command.as_bytes = bytes(message)
 
