@@ -34,11 +34,11 @@ from aliro_actuator.access_protocol.authentication import (
     create_user_device_authentication,
 )
 from aliro_actuator.access_protocol.defines import (
+    AUTHENTICATION_TAG_SIZE,
     CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
     STEPUP_PHASE_AID,
-    AUTHENTICATION_TAG_SIZE
     Auth1,
     Exchange,
     TransportProtocol,
