@@ -1162,8 +1162,6 @@ class APDU:
         commands: list[Command],
         transport_layer: TransportProtocolBase,
     ) -> Response:
-        total_response_data = bytearray()
-
         if len(commands) == 1:
             Global.logger.debug("Command fits in one message, no chaining required")
             Global.logger.info("Sending {} command".format(command_name))
@@ -1174,9 +1172,6 @@ class APDU:
             self.check_ble_message_type_for_response(header, id)
             Global.logger.info("Received response")
             response = Response.create_from_bytestring(response_str)
-            if response.data is not None:
-                total_response_data.extend(response.data)
-            chaining_remaining = self.check_chaining_response(response)
         else:
             Global.logger.debug("Command chaining required")
             for command in commands:
@@ -1188,9 +1183,11 @@ class APDU:
                 self.check_ble_message_type_for_response(header, id)
                 Global.logger.info("Received response")
                 response = Response.create_from_bytestring(response_str)
-                if response.data is not None:
-                    total_response_data.extend(response.data)
-                chaining_remaining = self.check_chaining_response(response)
+
+        total_response_data = bytearray()
+        if response.data is not None:
+            total_response_data.extend(response.data)
+        chaining_remaining = self.check_chaining_response(response)
 
         # response chaining
         while chaining_remaining is not None:
@@ -1363,14 +1360,16 @@ class APDU:
 
     def parse_response(
         self,
-        response_as_bytes: bytes,
+        response: bytes | Response,
         ins: INS,
         encryption: EncryptionEngine | None = None,
     ) -> Response:
         """
         Parse a response bytestring. Used to extract info from a received response.
         """
-        response = Response.create_from_bytestring(response_as_bytes)
+
+        if isinstance(response, bytes):
+            response = Response.create_from_bytestring(response)
 
         match ins:
             case INS.SELECT:
