@@ -1701,12 +1701,16 @@ class APDU:
         payload = encrypted_payload + tag
         return self.create_response(payload, status)
 
-    def create_envelope_command(self, payload: bytes, chain: bool) -> list[Command]:
+    def create_envelope_command(
+        self, payload: bytes, encryption: EncryptionEngine
+    ) -> list[Command]:
         Global.logger.info("Creating ENVELOPE command")
 
-        cla = 0x00
-        if chain:
-            cla |= 0x10
+        Global.logger.info("encrypting EXCHANGE command payload")
+        encrypted_payload, tag = encryption.encrypt(
+            payload,
+        )
+        payload = encrypted_payload + tag
 
         return self.create_command(
             cla=0x00,
@@ -1718,9 +1722,18 @@ class APDU:
         )
 
     def create_envelope_response(
-        self, payload: bytes | None = None, status: int = StatusBytes.SUCCESS
+        self,
+        payload: bytes,
+        encryption: EncryptionEngine,
+        status: int = StatusBytes.SUCCESS,
     ) -> list[Response]:
         Global.logger.info("Creating ENVELOPE response")
+        Global.logger.info("encrypting ENVELOPE response payload")
+        encrypted_payload, tag = encryption.encrypt(
+            payload,
+        )
+
+        payload = encrypted_payload + tag
         return self.create_response(payload, status)
 
     def create_get_response_command(self, expected_response_size: int) -> list[Command]:

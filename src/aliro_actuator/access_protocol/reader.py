@@ -1180,7 +1180,11 @@ class Reader(Device):
 
         return response
 
-    async def command_envelope(self, request: bytes) -> Response:
+    async def command_envelope(
+        self,
+        request: bytes,
+        encryption: EncryptionEngine | None = None,
+    ) -> Response:
         """
         Create and send a ENVELOPE command, and wait for a response.
 
@@ -1190,7 +1194,7 @@ class Reader(Device):
         Returns:
             Response: Response containing the received data.
         """
-        command = self.apdu.create_envelope_command(request, False)
+        command = self.apdu.create_envelope_command(request, encryption)
 
         response = await self.apdu.handle_chaining_send_command(
             "ENVELOPE", command, self.transport_protocol

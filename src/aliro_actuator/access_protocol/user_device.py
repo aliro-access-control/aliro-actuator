@@ -1600,11 +1600,19 @@ class UserDevice(Device):
             select_response, self.transport_protocol
         )
 
-    def response_envelope(self) -> None:
-        raise NotImplementedError
-
-    def response_get_response(self) -> None:
-        raise NotImplementedError
+    async def response_envelope(
+        self,
+        document: bytes,
+        encryption: EncryptionEngine,
+    ) -> None:
+        """
+        Create and send a envelope response.
+        """
+        envelope_response = self.apdu.create_envelope_response(document, encryption)
+        Global.logger.info("Sending ENVELOPE response")
+        await self.apdu.handle_chaining_send_response(
+            envelope_response, self.transport_protocol
+        )
 
     async def response_load_cert(self) -> None:
         """
