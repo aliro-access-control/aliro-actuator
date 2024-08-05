@@ -1391,7 +1391,7 @@ class APDU:
 
         return response
 
-    def create_select_command(self, aid: bytes) -> Command:
+    def create_select_command(self, aid: bytes) -> list[Command]:
         Global.logger.info("Creating SELECT command")
         if len(aid) > 0x10:
             raise ValueError
@@ -1447,7 +1447,7 @@ class APDU:
         transaction_identifier: bytes,
         reader_identifier: bytes,
         vendor_extension: bytes | None = None,
-    ) -> Command:
+    ) -> list[Command]:
         Global.logger.info("Creating AUTH0 command")
         data_tlv: list[tuple[int, bytes | list]] = [
             (Auth0.COMMAND_TAG, transaction_type.to_bytes(1, "big")),
@@ -1489,7 +1489,7 @@ class APDU:
         )
         return self.create_response(data_bytes.to_bytes(), status)
 
-    def create_load_cert_command(self, compressed_reader_cert: bytes) -> Command:
+    def create_load_cert_command(self, compressed_reader_cert: bytes) -> list[Command]:
         Global.logger.info("Creating LOAD CERT command")
         return self.create_command(
             cla=0x80,
@@ -1509,7 +1509,7 @@ class APDU:
         response: Auth1Response,
         reader_sig: bytes,
         certificate_data: bytes | None = None,
-    ) -> Command:
+    ) -> list[Command]:
         Global.logger.info("Creating AUTH1 command")
         if len(reader_sig) != 64:
             raise ValueError
@@ -1634,7 +1634,7 @@ class APDU:
 
     def create_control_flow_command(
         self, S1: int, S2: int, domain_specific_data: bytes | None = None
-    ) -> Command:
+    ) -> list[Command]:
         Global.logger.info("Creating CONTROL FLOW command")
         if domain_specific_data is not None and len(domain_specific_data) > 250:
             raise ValueError
@@ -1666,7 +1666,7 @@ class APDU:
 
     def create_exchange_command(
         self, atomic_session: bool, payload_tlv: TLV, encryption: EncryptionEngine
-    ) -> Command:
+    ) -> list[Command]:
         Global.logger.info("Creating EXCHANGE command")
         Global.logger.debug(
             "Command contains TLV structure: {}".format(payload_tlv.to_print())
@@ -1701,7 +1701,7 @@ class APDU:
         payload = encrypted_payload + tag
         return self.create_response(payload, status)
 
-    def create_envelope_command(self, payload: bytes, chain: bool) -> Command:
+    def create_envelope_command(self, payload: bytes, chain: bool) -> list[Command]:
         Global.logger.info("Creating ENVELOPE command")
 
         cla = 0x00
@@ -1723,7 +1723,7 @@ class APDU:
         Global.logger.info("Creating ENVELOPE response")
         return self.create_response(payload, status)
 
-    def create_get_response_command(self, expected_response_size: int) -> Command:
+    def create_get_response_command(self, expected_response_size: int) -> list[Command]:
         Global.logger.info("Creating GET RESPONSE command")
         return self.create_command(
             cla=0x00,
@@ -1736,23 +1736,27 @@ class APDU:
 
     def create_command(
         self, cla: int, ins: int, p1: int, p2: int, data: bytes, le: int | None
-    ) -> Command:
+    ) -> list[Command]:
         """
         Create a command. (the other more specific functions are recommended)
         """
 
         if (
             not self.support_extended_length_apdu
-            and len(data) > APDU_COMMAND_MAX_DATA_LENGTH
-        ):
-            raise MessageTooLongError
-        if (
-            not self.support_extended_length_apdu
             and le is not None
             and le > APDU_RESPONSE_MAX_DATA_LENGTH
         ):
-            raise MessageTooLongError
-        if self.support_extended_length_apdu:
+            raise MessageTooLongError("requested response longer than allowed")
+
+        data_list: list[bytes] = []
+
+        if not self.support_extended_length_apdu:
+            while len(data) > APDU_COMMAND_MAX_DATA_LENGTH:
+                data_list.append(data[:APDU_COMMAND_MAX_DATA_LENGTH])
+                data = data[APDU_COMMAND_MAX_DATA_LENGTH:]
+            data_list.append(data)
+
+        else:
             if len(data) == 0:
                 lc_len = 0
             elif len(data) < 256:
@@ -1771,11 +1775,27 @@ class APDU:
             else:
                 le_len = 2
 
-            total_length = 4 + lc_len + len(data) + le_len
-            if total_length > self.maximum_command_apdu:
-                raise MessageTooLongError
+            max_data_length = self.maximum_command_apdu - 4 - lc_len - le_len
+            while len(data) > max_data_length:
+                data_list.append(data[:max_data_length])
+                data = data[max_data_length:]
+            data_list.append(data)
 
-        return Command.create_from_parameters(cla, ins, p1, p2, data, le)
+        command_list: list[Command] = []
+        no_commands = len(data_list)
+        for index, data_part in enumerate(data_list):
+            if index == no_commands - 1:
+                # last command has chainging bit not set
+                cla_chaining_adjusted = cla
+            else:
+                cla_chaining_adjusted = cla | 0x10
+
+            command_list.append(
+                Command.create_from_parameters(
+                    cla_chaining_adjusted, ins, p1, p2, data_part, le
+                )
+            )
+        return command_list
 
     def create_response(
         self, data: bytes | None = None, status: int = StatusBytes.SUCCESS

@@ -1107,7 +1107,7 @@ class Reader(Device):
 
         Global.logger.info("Sending AUTH0 command")
         response = await self.apdu.handle_chaining_send_command(
-            "AUTH0", [command], self.transport_protocol
+            "AUTH0", command, self.transport_protocol
         )
 
         Global.logger.info("Received response")
@@ -1151,7 +1151,7 @@ class Reader(Device):
         command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
         response = await self.apdu.handle_chaining_send_command(
-            "AUTH1", [command], self.transport_protocol
+            "AUTH1", command, self.transport_protocol
         )
 
         Global.logger.info("Received response")
@@ -1172,7 +1172,7 @@ class Reader(Device):
         command = self.apdu.create_select_command(aid)
 
         response = await self.apdu.handle_chaining_send_command(
-            "SELECT", [command], self.transport_protocol
+            "SELECT", command, self.transport_protocol
         )
 
         Global.logger.info("Received response")
@@ -1180,8 +1180,26 @@ class Reader(Device):
 
         return response
 
-    def command_envelope(self) -> None:
-        raise NotImplementedError
+    async def command_envelope(self, request: bytes) -> Response:
+        """
+        Create and send a ENVELOPE command, and wait for a response.
+
+        Args:
+            request (bytes): request to be send.
+
+        Returns:
+            Response: Response containing the received data.
+        """
+        command = self.apdu.create_envelope_command(request, False)
+
+        response = await self.apdu.handle_chaining_send_command(
+            "ENVELOPE", command, self.transport_protocol
+        )
+
+        Global.logger.info("Received response")
+        response = self.apdu.parse_response(response, INS.ENVELOPE)
+
+        return response
 
     async def command_load_cert(self, compressed_cert: bytes) -> Response:
         """
@@ -1196,7 +1214,7 @@ class Reader(Device):
         command = self.apdu.create_load_cert_command(compressed_cert)
 
         response = await self.apdu.handle_chaining_send_command(
-            "LOAD CERT", [command], self.transport_protocol
+            "LOAD CERT", command, self.transport_protocol
         )
 
         Global.logger.info("Received response")
@@ -1222,7 +1240,7 @@ class Reader(Device):
         command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
 
         response = await self.apdu.handle_chaining_send_command(
-            "EXCHANGE", [command], self.transport_protocol
+            "EXCHANGE", command, self.transport_protocol
         )
 
         Global.logger.info("Received response")
@@ -1247,7 +1265,7 @@ class Reader(Device):
         command = self.apdu.create_control_flow_command(s1, s2, domain_specific_data)
 
         response = await self.apdu.handle_chaining_send_command(
-            "CONTROL FLOW", [command], self.transport_protocol
+            "CONTROL FLOW", command, self.transport_protocol
         )
 
         Global.logger.info("Received response")
