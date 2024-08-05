@@ -464,7 +464,7 @@ class Command(APDUMessage):
         self._check_le()
         Global.logger.info("Done parsing SELECT command")
 
-    def parse_as_envelope(self) -> None:
+    def parse_as_envelope(self, encryption: EncryptionEngine | None = None) -> None:
         """
         Parse this command as a Envelope command.
 
@@ -475,7 +475,28 @@ class Command(APDUMessage):
         self._check_cla(True)
         self._check_ins(INS.ENVELOPE)
         self._check_parameters(0x00, 0x00)
-        self._parse_tlv()
+
+        if self.data is None:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command received without data"
+            )
+        self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
+        self.authentication_tag = self.data[-AUTHENTICATION_TAG_SIZE:]
+
+        Global.logger.debug(
+            "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
+        )
+        Global.logger.debug(
+            "authentication tag: {!r}".format(hexlify(self.authentication_tag))
+        )
+
+        if encryption is not None:
+            self.decrypted_payload = encryption.decrypt(
+                self.encrypted_payload, self.authentication_tag
+            )
+            Global.logger.debug(
+                "decrypted payload: {!r}".format(hexlify(self.decrypted_payload))
+            )
         Global.logger.info("Done parsing ENVELOPE command")
 
     def parse_as_get_response(self) -> None:
