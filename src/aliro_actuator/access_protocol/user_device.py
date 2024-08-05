@@ -143,7 +143,7 @@ class UserDevice(Device):
         transport_override: TransportProtocolBase | None = None,
         access_credentials: list[AccessCredential] = [],
         supported_versions: list[int] = [PROTOCOL_VERSION],
-        access_document: AccessDocument | None = None,
+        access_document: bytes | None = None,
         revocation_document: RevocationDocument | None = None,
         mailbox: int | list[tuple[bytes, int, bytes]] | None = None,
         mailbox_read: bool = True,
@@ -1331,13 +1331,38 @@ class UserDevice(Device):
 
         Global.logger.info("Handling CONTROL FLOW command done")
 
-    def handle_reader_status_changed_message(self, message: BleMessage) -> None:
-        Global.logger.info("Handling Reader Status Changed message")
-        message.check_header_and_id(
-            ProtocolType.NOTIFICATION,
-            Notification_ID.READER_STATUS_CHANGED,
+    async def handle_envelope(self, envelope_command: Command) -> None:
+        """
+        Parse an envelope command and send the appropriate response.
+
+        Args:
+            envelope_command (Command): The command to respond to.
+
+        Raises:
+            SessionError: Raised when the session is missing or in an invalid state.
+        """
+        if envelope_command.ins != INS.ENVELOPE:
+            raise AccessProtocolError(
+                "Tried to handle envelope command, "
+                "but received command is not a envelope command"
+            )
+
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Handling ENVELOPE Command")
+
+        if self.session.encryption_stepup is None:
+            raise AccessProtocolError("no encryption engine (step up) found")
+
+        if self.access_document is None:
+            raise AccessProtocolError("no access document found")
+
+        await self.response_envelope(
+            self.access_document, self.session.encryption_stepup
         )
-        message.parse_payload(self.session.get_ble_encryption())
+
+        Global.logger.info("Handling ENVELOPE command done")
 
     def handle_reader_status_access_protocol_completed_message(
         self, message: BleMessage

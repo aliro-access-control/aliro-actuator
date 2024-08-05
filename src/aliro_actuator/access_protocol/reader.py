@@ -1018,23 +1018,38 @@ class Reader(Device):
 
         return read_data
 
-    async def reader_status_status_changed(
-        self, operation_source_information: int, reader_status_information: int
-    ) -> None:
+    async def handle_envelope(self, request: bytes) -> bytes:
         """
-        Send the BLE message Reader Status Changed.
+        Create and send a envelope command.
+        Required data from is retrieved from the Reader (self) and the session.
+        The data contained in the response is stored in the session.
+
+        Args:
+            request (bytes): the Access document or Revocation document request
+
+        Raises:
+            SessionError: Raised if no session is found.
+
+        Returns:
+            bytes: The received Access document or Revocation document.
         """
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("Sending Reader Status Changed BLE message")
-
-        message = BleMessage.create_reader_status_changed(
-            operation_source_information,
-            reader_status_information,
-            self.session.get_ble_encryption(),
+        Global.logger.info(
+            "Start handling ENVELOPE with atomic session: {}".format(atomic_session)
         )
-        await self.transport_protocol.send_message(message)
+
+        try:
+            response = await self.command_envelope(
+                request, self.session.encryption_stepup
+            )
+        except (InvalidResponseError, VerificationError) as error:
+            await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+            raise error
+
+        Global.logger.info("Handling ENVELOPE response done")
+        return response.decrypted_payload
 
     async def reader_status_access_protocol_completed(
         self, unsolicited_reader_status_reporting: int, reader_status_information: int

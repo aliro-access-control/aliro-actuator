@@ -929,12 +929,35 @@ class Response(APDUMessage):
         )
         Global.logger.info("Done parsing SELECT response")
 
-    def parse_as_envelope(self) -> None:
+    def parse_as_envelope(self, encryption: EncryptionEngine | None = None) -> None:
         """
         Parse this response as a envelope response.
         """
         Global.logger.debug("Parsing ENVELOPE response:")
         self._check_status()
+
+        if self.data is None:
+            raise InvalidResponseDataError(self.as_bytes, "No data available")
+        self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
+        Global.logger.debug(
+            "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
+        )
+
+        self.authentication_tag = self.data[-AUTHENTICATION_TAG_SIZE:]
+        Global.logger.debug(
+            "authentication tag: {!r}".format(hexlify(self.authentication_tag))
+        )
+
+        if encryption is None:
+            Global.logger.debug("No EncryptionEngine available, cannot decrypt payload")
+            return
+
+        self.decrypted_payload = encryption.decrypt(
+            self.encrypted_payload, self.authentication_tag
+        )
+        Global.logger.debug(
+            "decrypted payload: {!r}".format(hexlify(self.decrypted_payload))
+        )
         Global.logger.info("Done parsing ENVELOPE response")
 
     def parse_as_get_response(self) -> None:
