@@ -1037,7 +1037,7 @@ class Reader(Device):
             raise SessionError("No Session")
 
         Global.logger.info(
-            "Start handling ENVELOPE with atomic session: {}".format(atomic_session)
+            "Start handling ENVELOPE with request: {!r}".format(hexlify(request))
         )
 
         try:
