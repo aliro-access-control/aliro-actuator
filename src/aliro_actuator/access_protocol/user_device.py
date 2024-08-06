@@ -1566,12 +1566,13 @@ class UserDevice(Device):
             [
                 UserSessionState.AUTH0_STD_DONE,
                 UserSessionState.AUTH0_FAST_DONE,
-                UserSessionState.AUTH1_DONE,
             ]
         ):
             encryption = self.session.encryption_expedited
         elif (
-            self.session.state_valid(UserSessionState.EXCHANGE_DONE)
+            self.session.state_valid(
+                [UserSessionState.EXCHANGE_DONE, UserSessionState.AUTH1_DONE]
+            )
             and command.ins == INS.EXCHANGE
         ):
             encryption = self.session.encryption_expedited
