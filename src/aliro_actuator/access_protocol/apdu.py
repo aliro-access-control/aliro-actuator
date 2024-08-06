@@ -1368,7 +1368,7 @@ class APDU:
             case INS.SELECT:
                 command.parse_as_select()
             case INS.ENVELOPE:
-                command.parse_as_envelope()
+                command.parse_as_envelope(encryption)
             case INS.GET_RESPONSE:
                 command.parse_as_get_response()
             case INS.AUTH0:
@@ -1433,7 +1433,7 @@ class APDU:
             case INS.SELECT:
                 response.parse_as_select()
             case INS.ENVELOPE:
-                response.parse_as_envelope()
+                response.parse_as_envelope(encryption)
             case INS.GET_RESPONSE:
                 response.parse_as_get_response()
             case INS.AUTH0:
