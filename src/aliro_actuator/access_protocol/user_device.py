@@ -1149,7 +1149,7 @@ class UserDevice(Device):
                 UserSessionState.AUTH0_FAST_DONE,
                 UserSessionState.AUTH1_DONE,
                 UserSessionState.EXCHANGE_DONE,
-                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.ENVELOPE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
         ):
@@ -1162,7 +1162,7 @@ class UserDevice(Device):
         Global.logger.info("Handling EXCHANGE Command")
         if self.session.state_valid(
             [
-                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.ENVELOPE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
         ):
@@ -1179,7 +1179,7 @@ class UserDevice(Device):
 
         if self.session.state_valid(
             [
-                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.ENVELOPE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
         ):
@@ -1218,7 +1218,7 @@ class UserDevice(Device):
                 )
 
             if (
-                self.session.state_valid(UserSessionState.GET_RESPONSE_DONE)
+                self.session.state_valid(UserSessionState.ENVELOPE_DONE)
                 and not self.mailbox.step_up_permission
             ):
                 raise AccessProtocolError(
@@ -1395,6 +1395,14 @@ class UserDevice(Device):
 
         if self.session is None:
             raise SessionError("No Session")
+        if not self.session.state_valid(
+            [UserSessionState.EXCHANGE_DONE, UserSessionState.ENVELOPE_DONE]
+        ):
+            state = self.session.state
+            await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError(
+                "unexpected state for envelope command: {}".format(state)
+            )
 
         Global.logger.info("Handling ENVELOPE Command")
 
@@ -1407,6 +1415,8 @@ class UserDevice(Device):
         await self.response_envelope(
             self.access_document, self.session.encryption_stepup
         )
+
+        self.session.update_state(UserSessionState.ENVELOPE_DONE)
 
         Global.logger.info("Handling ENVELOPE command done")
 
@@ -1551,10 +1561,34 @@ class UserDevice(Device):
         command = await self.apdu.handle_chaining_receive_command(
             command_str, self.transport_protocol
         )
+
+        if self.session.state_valid(
+            [
+                UserSessionState.AUTH0_STD_DONE,
+                UserSessionState.AUTH0_FAST_DONE,
+                UserSessionState.AUTH1_DONE,
+            ]
+        ):
+            encryption = self.session.encryption_expedited
+        elif (
+            self.session.state_valid(UserSessionState.EXCHANGE_DONE)
+            and command.ins == INS.EXCHANGE
+        ):
+            encryption = self.session.encryption_expedited
+        elif self.session.state_valid(
+            [
+                UserSessionState.EXCHANGE_DONE,
+                UserSessionState.SELECT_STEP_UP_DONE,
+                UserSessionState.ENVELOPE_DONE,
+                UserSessionState.STEPUP_EXCHANGE_DONE,
+            ]
+        ):
+            encryption = self.session.encryption_stepup
+        else:
+            encryption = None
+
         try:
-            command = self.apdu.parse_command(
-                command_str, self.session.encryption_expedited
-            )
+            command = self.apdu.parse_command(command, encryption)
         except InvalidCLAError as error:
             await self.failure_process(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
             raise error
@@ -1736,7 +1770,7 @@ class UserSessionState(Enum):
     AUTH1_DONE = 5
     EXCHANGE_DONE = 6
     SELECT_STEP_UP_DONE = 7
-    GET_RESPONSE_DONE = 8
+    ENVELOPE_DONE = 8
     STEPUP_EXCHANGE_DONE = 9
     TRANSACTION_COMPLETE = 10
 
