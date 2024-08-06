@@ -52,7 +52,7 @@ from aliro_actuator.transport_protocol.message import Message
 
 # See Aliro spec 8.3
 APDU_COMMAND_MAX_DATA_LENGTH = 255
-APDU_RESPONSE_MAX_DATA_LENGTH = 256
+APDU_RESPONSE_MAX_DATA_LENGTH = 254
 
 MAX_VALUE_BYTE = 0xFF
 MAX_VALUE_2_BYTES = 0xFFFF
@@ -1237,19 +1237,24 @@ class APDU:
                 Global.logger.info("Received response")
                 response = Response.create_from_bytestring(response_str)
 
+        Global.logger.debug("All parts of the command chain are send")
         total_response_data = bytearray()
         if response.data is not None:
             total_response_data.extend(response.data)
+        Global.logger.info("Check if response chaining is required")
         chaining_remaining = self.check_chaining_response(response)
 
         # response chaining
+        if chaining_remaining is None:
+            Global.logger.info("No response chaining required")
         while chaining_remaining is not None:
+            Global.logger.info("Response chaining is required")
             expected_response_size = chaining_remaining
             if self.support_extended_length_apdu:
                 expected_response_size = self.maximum_response_apdu
             get_response = self.create_get_response_command(expected_response_size)
             Global.logger.info("Sending GET RESPONSE command")
-            await transport_layer.send_message(get_response)
+            await transport_layer.send_message(get_response[0])
 
             Global.logger.info("Waiting for GET RESPONSE response")
             response_str, header, id = await transport_layer.get_message()
