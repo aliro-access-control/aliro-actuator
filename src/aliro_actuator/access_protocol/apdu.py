@@ -1764,7 +1764,7 @@ class APDU:
     ) -> list[Command]:
         Global.logger.info("Creating ENVELOPE command")
 
-        Global.logger.info("encrypting EXCHANGE command payload")
+        Global.logger.info("encrypting ENVELOPE command payload")
         encrypted_payload, tag = encryption.encrypt(
             payload,
         )
