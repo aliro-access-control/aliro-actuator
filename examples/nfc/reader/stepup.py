@@ -8,7 +8,7 @@ import asyncio
 
 from aliro_actuator.access_protocol.apdu import AuthenticationPolicy, ReaderStatus
 from aliro_actuator.access_protocol.defines import TransportProtocol
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderState
 from aliro_actuator.trust_framework.key import KeyPair
 from examples.nfc.common import READER_GROUP_IDENTIFIER, READER_SUB_GROUP_IDENTIFIER
 
@@ -40,7 +40,9 @@ async def main():
     )
     await reader.handle_envelope(request)
     await reader.handle_exchange(
-        False, reader_status=ReaderStatus.READER_STATE_UNSECURED
+        False,
+        reader_status=ReaderStatus.READER_STATE_UNSECURED,
+        reader_state=ReaderState.STEPUP,
     )
     await reader.transaction_termination()
 
