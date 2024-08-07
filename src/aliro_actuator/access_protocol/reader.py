@@ -1216,7 +1216,7 @@ class Reader(Device):
         )
 
         Global.logger.info("Received response")
-        response = self.apdu.parse_response(response, INS.ENVELOPE)
+        response = self.apdu.parse_response(response, INS.ENVELOPE, encryption)
 
         return response
 
