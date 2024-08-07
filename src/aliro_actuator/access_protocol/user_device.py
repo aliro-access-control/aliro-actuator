@@ -1396,7 +1396,11 @@ class UserDevice(Device):
         if self.session is None:
             raise SessionError("No Session")
         if not self.session.state_valid(
-            [UserSessionState.EXCHANGE_DONE, UserSessionState.ENVELOPE_DONE]
+            [
+                UserSessionState.AUTH1_DONE,
+                UserSessionState.EXCHANGE_DONE,
+                UserSessionState.ENVELOPE_DONE,
+            ]
         ):
             state = self.session.state
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
@@ -1578,6 +1582,7 @@ class UserDevice(Device):
             encryption = self.session.encryption_expedited
         elif self.session.state_valid(
             [
+                UserSessionState.AUTH1_DONE,
                 UserSessionState.EXCHANGE_DONE,
                 UserSessionState.SELECT_STEP_UP_DONE,
                 UserSessionState.ENVELOPE_DONE,
