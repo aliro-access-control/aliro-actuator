@@ -1524,8 +1524,8 @@ class Reader(Device):
             self.session.get_ble_encryption(),
         )
 
-        await self.transport_protocol.send_message(message)
         await self.transport_protocol.stop_ranging()
+        await self.transport_protocol.send_message(message)
 
     async def send_ranging_session_resume_request(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -1554,8 +1554,8 @@ class Reader(Device):
             self.session.get_ble_encryption(),
         )
 
-        await self.transport_protocol.send_message(message)
         await self.transport_protocol.start_ranging()
+        await self.transport_protocol.send_message(message)
 
 
 class ReaderSession:
