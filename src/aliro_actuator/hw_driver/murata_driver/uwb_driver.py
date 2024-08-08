@@ -341,9 +341,6 @@ class MurataUWBDriver(MurataBaseDriver):
         return self.pulseshape_combo
 
     async def set_pulse_shape_combination(self, pulse_shape_combo: int) -> None:
-        # TODO - compare pulshape combo and select apropiate one
-        pulse_shape_combo &= 0x0  # select mandatory combo
-
         await self.set_config(
             config=uci.APP_CFG.PULSESHAPE_COMBO,
             value=pulse_shape_combo,

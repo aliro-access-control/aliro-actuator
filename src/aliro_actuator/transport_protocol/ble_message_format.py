@@ -374,9 +374,11 @@ class BleMessage(Message):
         )
         offset = self.uwb_configuration_id.length
 
-        self.pulse_shape_combo = BleAttribute.from_bytes(self.payload[offset:None])
-        self.pulse_shape_combo.check_tag(UWB_AttributeID.PULSE_SHAPE_COMBO)
-        offset += self.pulse_shape_combo.length
+        self.user_device_pulse_shape_combo = BleAttribute.from_bytes(
+            self.payload[offset:None]
+        )
+        self.user_device_pulse_shape_combo.check_tag(UWB_AttributeID.PULSE_SHAPE_COMBO)
+        offset += self.user_device_pulse_shape_combo.length
 
         self.channel_bitmask = BleAttribute.from_bytes(self.payload[offset:None])
         self.channel_bitmask.check_tag(UWB_AttributeID.CHANNEL_BITMASK)
@@ -727,7 +729,7 @@ class BleMessage(Message):
     @staticmethod
     def create_ranging_session_setup_m2(
         uwb_configuration_id: int,
-        pulse_shape_combination: int,
+        selected_pulse_shape_combination: int,
         channel_bitmask: int,
         sync_code_index_bitmask: int,
         ran_multiplier: int,
@@ -740,8 +742,8 @@ class BleMessage(Message):
         uwb_configuration_id_attr = BleAttribute(
             UWB_AttributeID.UWB_CONFIGURATION_IDENTIFIER, data
         )
-        data = pulse_shape_combination.to_bytes(3, "big")
-        pulse_shape_combination_attr = BleAttribute(
+        data = selected_pulse_shape_combination.to_bytes(1, "big")
+        selected_pulse_shape_combination_attr = BleAttribute(
             UWB_AttributeID.PULSE_SHAPE_COMBO, data
         )
         data = channel_bitmask.to_bytes(1, "big")
@@ -765,7 +767,7 @@ class BleMessage(Message):
 
         payload = bytearray()
         payload.extend(uwb_configuration_id_attr.to_bytes())
-        payload.extend(pulse_shape_combination_attr.to_bytes())
+        payload.extend(selected_pulse_shape_combination_attr.to_bytes())
         payload.extend(channel_bitmask_attr.to_bytes())
         payload.extend(sync_code_index_bitmask_attr.to_bytes())
         payload.extend(ran_multiplier_attr.to_bytes())

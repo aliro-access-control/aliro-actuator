@@ -424,12 +424,36 @@ class UserDevice(Device):
             )
         return False
 
+    def select_pulseshape_combo(
+        self, pulseshape_received: bytes, pulseshape_capability: bytes
+    ) -> int | None:
+        # convert bytes to sets of unique bytes
+        set1 = set(pulseshape_received)
+        set2 = set(pulseshape_capability)
+
+        # Find common intersection of two sets
+        common_bytes = set1.intersection(set2)
+
+        # Return the first common byte found in the order of pulseshape_received
+        for byte in pulseshape_received:
+            if byte in common_bytes:
+                return byte
+
+        return None
+
     async def handle_ranging_setup_m1(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M1")
         message.parse_payload(self.session.get_ble_encryption())
-        await self.transport_protocol.set_pulseshape_combo(
-            int.from_bytes(message.pulse_shape_combo.value, "big")
+
+        # Configure selected pulse shape combo for the user device
+        self.selected_pulse_shape_combination = self.select_pulseshape_combo(
+            message.pulse_shape_combo.to_bytes(),
+            self.transport_protocol.get_pulseshape_combo().to_bytes(3, "big"),
         )
+        if self.selected_pulse_shape_combination is not None:
+            await self.transport_protocol.set_pulseshape_combo(
+                self.selected_pulse_shape_combination
+            )
         await self.transport_protocol.set_uwb_config_id(
             int.from_bytes(message.uwb_configuration_id.value, "big")
         )
@@ -588,7 +612,6 @@ class UserDevice(Device):
         Global.logger.info("Sending ranging session setup M2 ble message")
 
         uwb_configuration_id = await self.transport_protocol.get_uwb_config_id()
-        pulse_shape_combination = self.transport_protocol.get_pulseshape_combo()
         channel_bitmask = self.transport_protocol.get_channel_bitmask()
         sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
         ran_multiplier = await self.transport_protocol.get_ran_multiplier()
@@ -598,7 +621,7 @@ class UserDevice(Device):
 
         message = BleMessage.create_ranging_session_setup_m2(
             uwb_configuration_id,
-            pulse_shape_combination,
+            self.selected_pulse_shape_combination,
             channel_bitmask,
             sync_code_index_bitmask,
             ran_multiplier,
