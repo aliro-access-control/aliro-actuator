@@ -316,14 +316,14 @@ class MurataUWBDriver(MurataBaseDriver):
         self.hopping_config_bitmask = data.fields["HOPPING_CONFIG_BITMASK"].val
         self.channel_bitmask = data.fields["CHANNEL_BITMASK"].val
         self.protocol_versions = data.fields["SUPPORTED_PROTOCOL_VERSION"].val
-        self.uwb_config_id = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
-        self.pulseshape_combo = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
+        self.uwb_config_id_support = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
+        self.pulseshape_combo_support = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
 
     def get_uwb_session_id(self) -> int:
         return self.session_id
 
-    def get_uwb_config_id_capability(self) -> int:
-        return self.uwb_config_id
+    def get_uwb_config_id_support(self) -> int:
+        return self.uwb_config_id_support
 
     async def get_uwb_config_id(self) -> int:
         data = await self.get_config(
@@ -337,8 +337,14 @@ class MurataUWBDriver(MurataBaseDriver):
             value=uwb_config_id,
         )
 
-    def get_pulse_shape_combination(self) -> int:
-        return self.pulseshape_combo
+    def get_pulse_shape_combination_support(self) -> int:
+        return self.pulseshape_combo_support
+
+    async def get_pulse_shape_combination(self) -> int:
+        data = await self.get_config(
+            config=uci.APP_CFG.PULSESHAPE_COMBO,
+        )
+        return data.fields["PULSESHAPE_COMBO"].val
 
     async def set_pulse_shape_combination(self, pulse_shape_combo: int) -> None:
         await self.set_config(

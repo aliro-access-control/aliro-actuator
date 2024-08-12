@@ -448,10 +448,12 @@ class UserDevice(Device):
         # Configure selected pulse shape combo for the user device
         self.selected_pulse_shape_combination = self.select_pulseshape_combo(
             message.pulse_shape_combo.to_bytes(),
-            self.transport_protocol.get_pulseshape_combo().to_bytes(3, "big"),
+            self.transport_protocol.get_pulse_shape_combination_support().to_bytes(
+                3, "big"
+            ),
         )
         if self.selected_pulse_shape_combination is not None:
-            await self.transport_protocol.set_pulseshape_combo(
+            await self.transport_protocol.set_pulse_shape_combination(
                 self.selected_pulse_shape_combination
             )
         await self.transport_protocol.set_uwb_config_id(
