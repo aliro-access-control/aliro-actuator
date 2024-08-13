@@ -69,9 +69,14 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     Event_AttributeID,
     Notification_ID,
     ProtocolType,
+    UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
-from aliro_actuator.transport_protocol.errors import NoDeviceConnectedError
+from aliro_actuator.transport_protocol.errors import (
+    InvalidProtocolTypeError,
+    NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
+)
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import (
@@ -281,70 +286,237 @@ class UserDevice(Device):
         """
 
         while True:
-            await self.transaction_initiation()
-            while True:
-                try:
-                    if self.session is None:
-                        raise SessionError("starting session failed")
-                    message = await self.wait_for_message()
-                except (InvalidCommandError, VerificationError):
-                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
-                    break
-                except NoDeviceConnectedError:
-                    # try to reconnect in outer loop
-                    break
-                try:
-                    if isinstance(message, Command):
-                        match message.ins:
-                            case INS.SELECT:
-                                await self.handle_select(message)
-                            case INS.AUTH0:
-                                await self.handle_auth0(message)
-                            case INS.AUTH1:
-                                await self.handle_auth1(message)
-                            case INS.LOAD_CERT:
-                                await self.handle_load_cert(message)
-                            case INS.CONTROL_FLOW:
-                                await self.handle_control_flow(message)
-                                await self.transaction_termination()
-                                break
-                            case INS.EXCHANGE:
-                                await self.handle_exchange(message)
-                            case _:
-                                raise NotImplementedError(
-                                    "command: {} not implemented".format(message.ins)
-                                )
-                    else:
-                        self.handle_ble_messages(message)
-                except AccessProtocolError as error:
-                    Global.logger.error(
-                        "restarting session because of error: {}".format(repr(error))
-                    )
-                    # main loop should continue even when commands are not valid
-                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
-                    break
-                except NoDeviceConnectedError:
-                    # try to reconnect in outer loop
-                    break
+            await self.single_transaction()
 
-    def handle_ble_messages(self, message: BleMessage) -> None:
+    async def ranging_loop(self) -> None:
+        while True:
+            try:
+                Global.logger.info("Waiting for ranging session setup")
+                payload, header, id = await self.transport_protocol.get_message()
+                if header is not None and id is not None:
+                    message = BleMessage(header, id, payload)
+                else:
+                    raise UnexpectedMessageTypeError
+            except NoDeviceConnectedError:
+                break
+            # await self.transport_protocol.start_ranging()
+            await self.handle_ble_messages(message)
+
+    async def single_transaction(self, terminate_at_end: bool = True) -> None:
+        """
+        Handles a single transaction.
+        Returns when completed or an error occurred.
+        """
+        await self.transaction_initiation()
+        while True:
+            try:
+                if self.session is None:
+                    raise SessionError("starting session failed")
+                message = await self.wait_for_message()
+            except (InvalidCommandError, VerificationError):
+                await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                return
+            except NoDeviceConnectedError:
+                return
+            try:
+                if isinstance(message, Command):
+                    match message.ins:
+                        case INS.SELECT:
+                            await self.handle_select(message)
+                        case INS.AUTH0:
+                            await self.handle_auth0(message)
+                        case INS.AUTH1:
+                            await self.handle_auth1(message)
+                        case INS.LOAD_CERT:
+                            await self.handle_load_cert(message)
+                        case INS.CONTROL_FLOW:
+                            await self.handle_control_flow(message)
+                            if terminate_at_end:
+                                await self.transaction_termination()
+                            return
+                        case INS.EXCHANGE:
+                            await self.handle_exchange(message)
+                        case _:
+                            raise NotImplementedError(
+                                "command: {} not implemented".format(message.ins)
+                            )
+                else:
+                    completed = await self.handle_ble_messages(message)
+                    if completed:
+                        if terminate_at_end:
+                            await self.transaction_termination()
+                        return
+            except AccessProtocolError as error:
+                Global.logger.error(
+                    "restarting session because of error: {}".format(repr(error))
+                )
+                await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                return
+            except NoDeviceConnectedError:
+                return
+
+    async def handle_ble_messages(self, message: BleMessage) -> bool:
+        """Handles ble messages
+
+        Args:
+            message (BleMessage): The message to handle
+
+        Raises:
+            UnexpectedBLEMessageError: raised when the messages is unknown
+
+        Returns:
+            bool: True when the access protocol is completed, else False
+        """
         Global.logger.info("Handling (non command) ble message")
         if (
+            message.header == ProtocolType.NOTIFICATION
+            and message.id == Notification_ID.READER_STATUS_CHANGED
+        ):
+            self.handle_reader_status_changed_message(message)
+            return True
+        elif (
             message.header == ProtocolType.NOTIFICATION
             and message.id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
         ):
             self.handle_reader_status_access_protocol_completed_message(message)
+            return True
         elif (
             message.header == ProtocolType.NOTIFICATION
             and message.id == Notification_ID.EVENT
         ):
             self.handle_event_message(message)
+        elif (
+            message.header == ProtocolType.UWB_RANGING_SERVICE
+            and message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M1
+        ):
+            await self.handle_ranging_setup_m1(message)
+        elif (
+            message.header == ProtocolType.UWB_RANGING_SERVICE
+            and message.id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M3
+        ):
+            await self.handle_ranging_setup_m3(message)
+            await self.transport_protocol.start_ranging()
+        elif (
+            message.header == ProtocolType.UWB_RANGING_SERVICE
+            and message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST
+        ):
+            await self.handle_ranging_session_suspend_request(message)
+        elif (
+            message.header == ProtocolType.UWB_RANGING_SERVICE
+            and message.id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE
+        ):
+            await self.handle_ranging_session_suspend_response(message)
+        elif (
+            message.header == ProtocolType.UWB_RANGING_SERVICE
+            and message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST
+        ):
+            await self.handle_ranging_session_resume_request(message)
+        elif (
+            message.header == ProtocolType.UWB_RANGING_SERVICE
+            and message.id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE
+        ):
+            await self.handle_ranging_session_resume_response(message)
         else:
             raise UnexpectedBLEMessageError(
                 "Received unhandleable ble message",
                 message.header,
                 message.id,
             )
+        return False
+
+    def select_pulseshape_combo(
+        self, pulseshape_received: bytes, pulseshape_capability: bytes
+    ) -> int | None:
+        # convert bytes to sets of unique bytes
+        set1 = set(pulseshape_received)
+        set2 = set(pulseshape_capability)
+
+        # Find common intersection of two sets
+        common_bytes = set1.intersection(set2)
+
+        # Return the first common byte found in the order of pulseshape_received
+        for byte in pulseshape_received:
+            if byte in common_bytes:
+                return byte
+
+        return None
+
+    async def handle_ranging_setup_m1(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session setup message M1")
+        message.parse_payload(self.session.get_ble_encryption())
+
+        # Configure selected pulse shape combo for the user device
+        self.selected_pulse_shape_combination = self.select_pulseshape_combo(
+            message.pulse_shape_combo.to_bytes(),
+            self.transport_protocol.get_pulse_shape_combination_support().to_bytes(
+                3, "big"
+            ),
+        )
+        if self.selected_pulse_shape_combination is not None:
+            await self.transport_protocol.set_pulse_shape_combination(
+                self.selected_pulse_shape_combination
+            )
+        await self.transport_protocol.set_uwb_config_id(
+            int.from_bytes(message.uwb_configuration_id.value, "big")
+        )
+
+        await self.transport_protocol.set_channel_bitmask(
+            int.from_bytes(message.channel_bitmask.value, "big")
+        )
+        await self.send_ranging_session_setup_m2()
+
+    async def handle_ranging_setup_m3(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session setup message M3")
+        message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.set_ran_multiplier(
+            int.from_bytes(message.ran_multiplier.value, "big")
+        )
+        slot_duration = (
+            int.from_bytes(message.number_chaps_per_slot.value, "big") / 3 * 1200
+        )
+        await self.transport_protocol.set_slot_duration(int(slot_duration))
+        await self.transport_protocol.set_number_responders(
+            int.from_bytes(message.number_responder_nodes.value, "big")
+        )
+        await self.transport_protocol.set_slots_per_round(
+            int.from_bytes(message.number_slots_per_round.value, "big")
+        )
+
+        # Select the first sync_code_index from the bitmask value
+        await self.transport_protocol.set_sync_code_index(
+            int.from_bytes(message.sync_code_index_bitmask.value, "big") & 0xFF
+        )
+        hopping_config = int.from_bytes(
+            message.hopping_configuration_bitmask.value, "big"
+        )
+        await self.transport_protocol.set_hopping_mode(0)  # TODO
+        await self.transport_protocol.set_mac_mode(0)  # TODO
+
+        await self.send_ranging_session_setup_m4()
+
+    async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session suspend request")
+        message.parse_payload(self.session.get_ble_encryption())
+
+        await self.send_ranging_session_suspend_response()
+
+    async def handle_ranging_session_suspend_response(
+        self, message: BleMessage
+    ) -> None:
+        Global.logger.info("Handling ranging session suspend response")
+        message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.stop_ranging()
+
+    async def handle_ranging_session_resume_request(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session resume request")
+        message.parse_payload(self.session.get_ble_encryption())
+
+        await self.send_ranging_session_resume_response()
+
+    async def handle_ranging_session_resume_response(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session resume response")
+        message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.start_ranging()
 
     def start_new_session(self) -> None:
         """
@@ -387,6 +559,155 @@ class UserDevice(Device):
             self.supported_versions,
         )
         message = BleMessage.create_initiate_access_protocol(proprietary.to_bytes())
+        await self.transport_protocol.send_message(message)
+
+    async def send_timesync(self) -> None:
+        """
+        This message is used by device to provide Bluetooth LE Timesync payload which
+        includes, the 13 DeviceEventCount, the UWB Device Time timestamp and the UWB
+        Device Time uncertainty.
+        """
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending time sync ble message")
+
+        # Some values have been set to a default value,
+        # and will need further investigation
+        data_event_count = 0xFFFFFFFFFFFFFFFF
+        uwb_dev_time = await self.transport_protocol.get_uwb_time0()
+        uwb_dev_time_uncertainty = 0
+        uwb_clk_skew_measurement_available = 0
+        dev_ppm = 0
+        success = 0
+        retry_delay = 500
+        message = BleMessage.create_time_sync(
+            data_event_count,
+            uwb_dev_time,
+            uwb_dev_time_uncertainty,
+            uwb_clk_skew_measurement_available,
+            dev_ppm,
+            success,
+            retry_delay,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_initiate_ranging(self) -> None:
+        """
+        Used to trigger the Reader to initiate a new UWB ranging session
+        """
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending initiate ranging ble message")
+
+        message = BleMessage.create_initiate_ranging_session(
+            self.session.get_ble_encryption()
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_setup_m2(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session setup M2 ble message")
+
+        uwb_configuration_id = await self.transport_protocol.get_uwb_config_id()
+        channel_bitmask = self.transport_protocol.get_channel_bitmask()
+        sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
+        ran_multiplier = await self.transport_protocol.get_ran_multiplier()
+        slot_bitmask = self.transport_protocol.get_slot_bitmask()
+        hopping_conf_bitmask = self.transport_protocol.get_hopping_config_bitmask()
+        vendor_specific = 0xFF
+
+        message = BleMessage.create_ranging_session_setup_m2(
+            uwb_configuration_id,
+            self.selected_pulse_shape_combination,
+            channel_bitmask,
+            sync_code_index_bitmask,
+            ran_multiplier,
+            slot_bitmask,
+            hopping_conf_bitmask,
+            vendor_specific,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_setup_m4(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session setup M4 ble message")
+        sts_index0 = await self.transport_protocol.get_sts_index0()
+        uwb_time0 = await self.transport_protocol.get_uwb_time0()
+        hop_mode_key = await self.transport_protocol.get_hop_mode_key()
+        sync_code_index = await self.transport_protocol.get_sync_code_index()
+
+        message = BleMessage.create_ranging_session_setup_m4(
+            sts_index0,
+            uwb_time0,
+            hop_mode_key,
+            sync_code_index,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_suspend_request(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session suspend request ble message")
+        uwb_session_id = self.transport_protocol.get_uwb_session_id()
+
+        message = BleMessage.create_ranging_session_suspend_request(
+            uwb_session_id,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_suspend_response(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session suspend response ble message")
+        status = 1
+        message = BleMessage.create_ranging_session_suspend_response(
+            status,
+            self.session.get_ble_encryption(),
+        )
+
+        await self.transport_protocol.stop_ranging()
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_resume_request(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session resume request ble message")
+        uwb_session_id = self.transport_protocol.get_uwb_session_id()
+
+        message = BleMessage.create_ranging_session_resume_request(
+            uwb_session_id,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_resume_response(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session resume response ble message")
+        sts_index0 = await self.transport_protocol.get_sts_index0()
+        uwb_time0 = await self.transport_protocol.get_uwb_time0()
+
+        message = BleMessage.create_ranging_session_resume_response(
+            sts_index0,
+            uwb_time0,
+            self.session.get_ble_encryption(),
+        )
+
+        await self.transport_protocol.start_ranging()
         await self.transport_protocol.send_message(message)
 
     async def handle_select(self, select_command: Command) -> bytes:
@@ -1009,6 +1330,14 @@ class UserDevice(Device):
         await self.response_control_flow()
 
         Global.logger.info("Handling CONTROL FLOW command done")
+
+    def handle_reader_status_changed_message(self, message: BleMessage) -> None:
+        Global.logger.info("Handling Reader Status Changed message")
+        message.check_header_and_id(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.READER_STATUS_CHANGED,
+        )
+        message.parse_payload(self.session.get_ble_encryption())
 
     def handle_reader_status_access_protocol_completed_message(
         self, message: BleMessage

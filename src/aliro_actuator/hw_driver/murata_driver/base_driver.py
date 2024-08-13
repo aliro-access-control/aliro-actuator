@@ -2,6 +2,7 @@ import asyncio
 from binascii import hexlify
 
 import serial
+import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import Global
 from aliro_actuator.hw_driver.murata_driver.errors import (
@@ -26,25 +27,32 @@ TIMEOUT_LOW = 0.2  # seconds, for polling (lower so other processes can still ru
 
 
 class MurataBaseDriver:
-    def __init__(self, com_port: str):
+    def __init__(self, com_port: str, baudrate: int):
         self.com_port = com_port
-        self.open()
+        self.baudrate = baudrate
+        self.dh = uci.UciHost(
+            port=self.com_port, id="master", ser_props={"baudrate": self.baudrate}
+        )
+        # serial should ALWAYS map to serial from uciTool
+        self.serial = self.dh.device.ser
+        self.dh.device.flush_port()
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
 
     def open(self) -> None:
-        self.serial = serial.Serial(self.com_port, 115200, timeout=0.1)
+        if not self.serial.isOpen:
+            self.serial = serial.Serial(self.com_port, self.baudrate, timeout=0.1)
 
-        Global.logger.debug(
-            "cleaning serial buffer (if this takes too long, make sure "
-            "the murata has been reset by pressing switch SW1)"
-        )
-        while True:
-            data = self.serial.read(1)
-            if len(data) == 0:
-                break
+            Global.logger.debug(
+                "cleaning serial buffer (if this takes too long, make sure "
+                "the murata has been reset by pressing switch SW1)"
+            )
+            while True:
+                data = self.serial.read(1)
+                if len(data) == 0:
+                    break
 
-        self.serial.timeout = TIMEOUT
+            self.serial.timeout = TIMEOUT
 
     def close(self) -> None:
         self.serial.close()
@@ -56,15 +64,19 @@ class MurataBaseDriver:
         self.serial.timeout = TIMEOUT
 
     async def read(self) -> Message:
-        header = await asyncio.to_thread(self.serial.read, 5)
-        if len(header) == 0:
+        packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
+        while packet is None:
+            packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
+        if len(packet) == 0:
             raise NoResponseError
-        if header[0] != 0x02:
+        if int.from_bytes(packet[0], "little") != 0x02:
             raise STXError
-        data = await asyncio.to_thread(self.serial.read, get_length_from_header(header))
-        checksum = await asyncio.to_thread(self.serial.read, 1)
         message = Message(
-            header[1], header[2], get_length_from_header(header), data, checksum
+            packet[1],
+            packet[2],
+            get_length_from_header(packet[:5]),
+            bytes(packet[5 : 5 + get_length_from_header(packet[:5])]),
+            packet[-1].to_bytes(1, "little"),
         )
         return message
 

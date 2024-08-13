@@ -67,9 +67,18 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     BleMessage,
     GeneralError_Values,
     Notification_ID,
+    OperationSourceInformation_Values,
     ProtocolType,
+    ReaderStatusInformation_Values,
+    Supplementary_Service_ID,
+    UWB_RangingService_ID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
+from aliro_actuator.transport_protocol.errors import (
+    InvalidProtocolTypeError,
+    NoDeviceConnectedError,
+    UnexpectedMessageTypeError,
+)
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
@@ -1009,6 +1018,24 @@ class Reader(Device):
 
         return read_data
 
+    async def reader_status_status_changed(
+        self, operation_source_information: int, reader_status_information: int
+    ) -> None:
+        """
+        Send the BLE message Reader Status Changed.
+        """
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Sending Reader Status Changed BLE message")
+
+        message = BleMessage.create_reader_status_changed(
+            operation_source_information,
+            reader_status_information,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
     async def reader_status_access_protocol_completed(
         self, unsolicited_reader_status_reporting: int, reader_status_information: int
     ) -> None:
@@ -1246,6 +1273,291 @@ class Reader(Device):
         response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
 
         return response
+
+    async def wait_for_ble_message(
+        self,
+        encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        """
+        Waits until a ble message is received.
+
+        Args:
+            encryption (EncryptionEngine | None, optional): Used for decrypting
+            messages.
+            Not required for every command. Defaults to None.
+
+        Raises:
+            AccessProtocolError: When receiving an unexpected message.
+
+        Returns:
+            BleMessage: the received ble message.
+        """
+        Global.logger.info("Waiting for ble message")
+        command_str, header, id = await self.transport_protocol.get_message()
+        if header is not None and id is not None:
+            Global.logger.info(
+                "Received BLE message with header: 0x{:02x} and id: 0x{:02x}".format(
+                    header, id
+                )
+            )
+            message = BleMessage(header, id, command_str)
+        else:
+            raise AccessProtocolError(
+                "Received unexpected message while waiting for BLE message : "
+                "{!r}".format(hexlify(message.to_bytes()))
+            )
+        return message
+
+    async def ranging_loop(self) -> None:
+        while True:
+            try:
+                Global.logger.info("Waiting for ranging session setup")
+                payload, header, id = await self.transport_protocol.get_message()
+                if header is not None and id is not None:
+                    message = BleMessage(header, id, payload)
+                else:
+                    raise UnexpectedMessageTypeError
+            except NoDeviceConnectedError:
+                break
+            if (
+                header == ProtocolType.SUPPLEMENTARY_SERVICE
+                and id == Supplementary_Service_ID.TIME_SYNC
+            ):
+                self.handle_timesync(message)
+            elif header == ProtocolType.NOTIFICATION and id == Notification_ID.RANGING:
+                await self.handle_initiate_ranging(message)
+            elif (
+                header == ProtocolType.UWB_RANGING_SERVICE
+                and id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M2
+            ):
+                await self.handle_ranging_setup_m2(message)
+            elif (
+                header == ProtocolType.UWB_RANGING_SERVICE
+                and id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M4
+            ):
+                await self.handle_ranging_setup_m4(message)
+                await self.transport_protocol.start_ranging()
+
+                val = await self.transport_protocol.get_ranging_data()
+                Global.logger.info(f"Ranging distance: {val}")
+                await self.send_ranging_session_suspend_request()
+                await self.reader_status_status_changed(
+                    ReaderStatusInformation_Values.UNSECURED,
+                    OperationSourceInformation_Values.UNSPECIFIED,
+                )
+            elif (
+                header == ProtocolType.UWB_RANGING_SERVICE
+                and id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST
+            ):
+                await self.handle_ranging_session_suspend_request(message)
+            elif (
+                header == ProtocolType.UWB_RANGING_SERVICE
+                and id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_RESPONSE
+            ):
+                await self.handle_ranging_session_suspend_response(message)
+            elif (
+                header == ProtocolType.UWB_RANGING_SERVICE
+                and id == UWB_RangingService_ID.RANGING_SESSION_RESUME_REQUEST
+            ):
+                await self.handle_ranging_session_resume_request(message)
+            elif (
+                header == ProtocolType.UWB_RANGING_SERVICE
+                and id == UWB_RangingService_ID.RANGING_SESSION_RESUME_RESPONSE
+            ):
+                await self.handle_ranging_session_resume_response(message)
+            else:
+                raise UnexpectedBLEMessageError(
+                    "Received unexpected ble message while waiting for "
+                    "Ranging session setup sequence",
+                    header,
+                    id,
+                )
+
+    def handle_timesync(self, message: BleMessage) -> None:
+        Global.logger.info("Handling time sync message")
+        message.parse_payload(self.session.get_ble_encryption())
+
+    async def handle_initiate_ranging(self, message: BleMessage) -> None:
+        Global.logger.info("Handling initiate ranging message")
+        message.parse_payload(self.session.get_ble_encryption())
+        await self.send_ranging_session_setup_m1()
+
+    async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session setup message M2")
+        message.parse_payload(self.session.get_ble_encryption())
+        # TODO: Number Chaps per Slot, Number Responder Nodes, Number Slots per Round,
+        await self.transport_protocol.set_ran_multiplier(
+            int.from_bytes(message.ran_multiplier.value, "big")
+        )
+
+        self.received_sync_code_bitmask = int.from_bytes(
+            message.sync_code_index_bitmask.value, "big"
+        )
+
+        await self.transport_protocol.set_hopping_mode(0)  # TODO
+        await self.transport_protocol.set_mac_mode(0)  # TODO
+        await self.send_ranging_session_setup_m3()
+
+    async def handle_ranging_setup_m4(self, message: BleMessage) -> None:
+        """
+        Finish setting up the ranging session and collect distance measurement
+        """
+        Global.logger.info("Handling ranging session setup message M4")
+        message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.set_sts_index0(
+            int.from_bytes(message.sts_index0.value, "big")
+        )
+        await self.transport_protocol.set_uwb_time0(
+            int.from_bytes(message.uwb_time0.value, "big")
+        )
+        await self.transport_protocol.set_hop_mode_key(
+            int.from_bytes(message.hop_mode_key.value, "big")
+        )
+        await self.transport_protocol.set_sync_code_index(
+            int.from_bytes(message.sync_code_index.value, "big")
+        )
+
+    async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session suspend request")
+        message.parse_payload(self.session.get_ble_encryption())
+
+        await self.send_ranging_session_suspend_response()
+
+    async def handle_ranging_session_suspend_response(
+        self, message: BleMessage
+    ) -> None:
+        Global.logger.info("Handling ranging session suspend response")
+        message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.stop_ranging()
+
+    async def handle_ranging_session_resume_request(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session resume request")
+        message.parse_payload(self.session.get_ble_encryption())
+
+        await self.send_ranging_session_resume_response()
+
+    async def handle_ranging_session_resume_response(self, message: BleMessage) -> None:
+        Global.logger.info("Handling ranging session resume response")
+        message.parse_payload(self.session.get_ble_encryption())
+        await self.transport_protocol.start_ranging()
+
+    async def send_ranging_session_setup_m1(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Sending ranging session setup M1 ble message")
+
+        uwb_configuration_id = self.transport_protocol.get_uwb_config_id_support()
+        pulse_shape_combination = (
+            self.transport_protocol.get_pulse_shape_combination_support()
+        )
+        channel_bitmask = self.transport_protocol.get_channel_bitmask()
+        uwb_session_id = self.transport_protocol.get_uwb_session_id()
+        vendor_specific = 0xFF
+
+        message = BleMessage.create_ranging_session_setup_m1(
+            uwb_configuration_id,
+            pulse_shape_combination,
+            channel_bitmask,
+            uwb_session_id,
+            vendor_specific,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_setup_m3(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Sending ranging session setup M3 ble message")
+
+        ran_multiplier = await self.transport_protocol.get_ran_multiplier()
+        num_chaps_per_slot = await self.transport_protocol.get_num_chaps_per_slot()
+        number_responder_nodes = await self.transport_protocol.get_number_responders()
+        number_slots_per_round = await self.transport_protocol.get_slots_per_round()
+        sync_code_index_bitmask = (
+            self.transport_protocol.get_sync_code_bitmask()
+            & self.received_sync_code_bitmask
+        )
+        hopping_conf_bitmask = self.transport_protocol.get_hopping_config_bitmask()
+        mac_mode = await self.transport_protocol.get_mac_mode()
+        vendor_specific = 0xFF
+
+        message = BleMessage.create_ranging_session_setup_m3(
+            ran_multiplier,
+            num_chaps_per_slot,
+            number_responder_nodes,
+            number_slots_per_round,
+            sync_code_index_bitmask,
+            hopping_conf_bitmask,
+            mac_mode,
+            vendor_specific,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_suspend_request(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session suspend request ble message")
+        uwb_session_id = self.transport_protocol.get_uwb_session_id()
+
+        message = BleMessage.create_ranging_session_suspend_request(
+            uwb_session_id,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_suspend_response(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session suspend response ble message")
+        status = 1
+        message = BleMessage.create_ranging_session_suspend_response(
+            status,
+            self.session.get_ble_encryption(),
+        )
+
+        await self.transport_protocol.stop_ranging()
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_resume_request(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session resume request ble message")
+        uwb_session_id = self.transport_protocol.get_uwb_session_id()
+
+        message = BleMessage.create_ranging_session_resume_request(
+            uwb_session_id,
+            self.session.get_ble_encryption(),
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_ranging_session_resume_response(self) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging session resume response ble message")
+        sts_index0 = await self.transport_protocol.get_sts_index0()
+        uwb_time0 = await self.transport_protocol.get_uwb_time0()
+
+        message = BleMessage.create_ranging_session_resume_response(
+            sts_index0,
+            uwb_time0,
+            self.session.get_ble_encryption(),
+        )
+
+        await self.transport_protocol.start_ranging()
+        await self.transport_protocol.send_message(message)
 
 
 class ReaderSession:
