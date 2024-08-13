@@ -540,18 +540,18 @@ class MurataUWBDriver(MurataBaseDriver):
         self.dh.device.close()
 
     async def get_uwb_configuration(self) -> dict:
-        config_id = await get_uwb_config_id()
-        pulseshape_combo = await get_pulse_shape_combination()
-        channel_bitmask = get_channel_bitmask()
-        ran_multiplier = await get_ran_multiplier()
-        num_chaps_per_slot = await get_num_chaps_per_slot()
-        num_responders = await get_number_responders()
-        number_slots_per_round = await get_slots_per_round()
-        sync_code_index = await get_sync_code_index()
-        hopping_config = await get_hopping_mode()
-        sts_index0 = await get_sts_index0()
-        uwb_time0 = await get_uwb_time0()
-        hop_mode_key = await get_hop_mode_key()
+        config_id = await self.get_uwb_config_id()
+        pulseshape_combo = await self.get_pulse_shape_combination()
+        channel_bitmask = self.get_channel_bitmask()
+        ran_multiplier = await self.get_ran_multiplier()
+        num_chaps_per_slot = await self.get_num_chaps_per_slot()
+        num_responders = await self.get_number_responders()
+        number_slots_per_round = await self.get_slots_per_round()
+        sync_code_index = await self.get_sync_code_index()
+        hopping_config = await self.get_hopping_mode()
+        sts_index0 = await self.get_sts_index0()
+        uwb_time0 = await self.get_uwb_time0()
+        hop_mode_key = await self.get_hop_mode_key()
 
         uwb_config = {
             "config_id": config_id,
