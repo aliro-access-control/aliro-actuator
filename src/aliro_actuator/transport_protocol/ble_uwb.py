@@ -217,13 +217,13 @@ class BLEUWB(TransportProtocolBase):
     async def set_uwb_config_id(self, uwb_config_id: int) -> None:
         await self.driver.set_uwb_config_id(uwb_config_id)
 
-    async def get_pulseshape_combination(self) -> int:
+    async def get_pulse_shape_combination(self) -> int:
         return await self.driver.get_pulse_shape_combination()
 
     def get_pulse_shape_combination_support(self) -> int:
-        return self.driver.get_pulse_shape_combination()
+        return self.driver.get_pulse_shape_combination_support()
 
-    async def set_pulseshape_combination(self, pulseshape_combo: int) -> None:
+    async def set_pulse_shape_combination(self, pulseshape_combo: int) -> None:
         await self.driver.set_pulse_shape_combination(pulseshape_combo)
 
     def get_channel_bitmask(self) -> int:

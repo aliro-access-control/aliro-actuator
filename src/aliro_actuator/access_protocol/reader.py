@@ -1450,7 +1450,7 @@ class Reader(Device):
 
         Global.logger.info("Sending ranging session setup M1 ble message")
 
-        uwb_configuration_id = self.transport_protocol.get_uwb_config_id_capability()
+        uwb_configuration_id = self.transport_protocol.get_uwb_config_id_support()
         pulse_shape_combination = (
             self.transport_protocol.get_pulse_shape_combination_support()
         )
