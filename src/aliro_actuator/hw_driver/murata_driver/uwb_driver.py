@@ -428,6 +428,12 @@ class MurataUWBDriver(MurataBaseDriver):
             value=hopping_mode,
         )
 
+    async def get_hopping_mode(self) -> int:
+        data = await self.get_config(
+            config=uci.APP_CFG.HOPPING_MODE,
+        )
+        return data.fields["HOPPING_MODE"].val
+
     async def get_number_responders(self) -> int:
         data = await self.get_config(
             config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
@@ -532,3 +538,33 @@ class MurataUWBDriver(MurataBaseDriver):
             uci.session_de_init, self.dh, session_id=self.session_handle_dh
         )
         self.dh.device.close()
+
+    async def get_uwb_configuration(self) -> dict:
+        config_id = await get_uwb_config_id()
+        pulseshape_combo = await get_pulse_shape_combination()
+        channel_bitmask = get_channel_bitmask()
+        ran_multiplier = await get_ran_multiplier()
+        num_chaps_per_slot = await get_num_chaps_per_slot()
+        num_responders = await get_number_responders()
+        number_slots_per_round = await get_slots_per_round()
+        sync_code_index = await get_sync_code_index()
+        hopping_config = await get_hopping_mode()
+        sts_index0 = await get_sts_index0()
+        uwb_time0 = await get_uwb_time0()
+        hop_mode_key = await get_hop_mode_key()
+
+        uwb_config = {
+            "config_id": config_id,
+            "pulseshape_combo": pulseshape_combo,
+            "channel_bitmask": channel_bitmask,
+            "ran_multiplier": ran_multiplier,
+            "num_chaps_per_slot": num_chaps_per_slot,
+            "num_responders": num_responders,
+            "number_slots_per_round": number_slots_per_round,
+            "sync_code_index": sync_code_index,
+            "hopping_config": hopping_config,
+            "sts_index0": sts_index0,
+            "uwb_time0": uwb_time0,
+            "hop_mode_key": hop_mode_key,
+        }
+        return uwb_config

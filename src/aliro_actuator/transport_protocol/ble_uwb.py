@@ -301,3 +301,6 @@ class BLEUWB(TransportProtocolBase):
 
     async def set_sync_code_index(self, sync_code_index: int) -> None:
         await self.driver.set_sync_code_index(sync_code_index)
+
+    async def get_uwb_configuration(self) -> dict:
+        return await self.driver.get_uwb_configuration()
