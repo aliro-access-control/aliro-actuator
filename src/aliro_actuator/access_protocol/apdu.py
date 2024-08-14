@@ -865,19 +865,22 @@ class Response(APDUMessage):
             "Type", Select.TYPE_TAG, Select.TYPE_LEN, tlv_data=self.proprietary_tlv
         )
 
-        etspv_bytes = self._get_bytes_from_TLV(
+        etspv_bytes = self._get_optional_bytes_from_TLV(
             "Expedited phase supported protocol versions",
             Select.ETSPV_TAG,
             tlv_data=self.proprietary_tlv,
         )
-        if (len(etspv_bytes) % 2) == 1:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "Expedited phase supported protocol versions has invalid length",
-            )
-        self.expedited_phase_supported_protocol_versions = self._data_to_2byte_list(
-            etspv_bytes
-        )
+        if etspv_bytes is not None:
+            if (len(etspv_bytes) % 2) == 1:
+                raise InvalidResponseDataError(
+                    self.as_bytes,
+                    "Expedited phase supported protocol versions has invalid length",
+                )
+            self.expedited_phase_supported_protocol_versions: list[
+                int
+            ] | None = self._data_to_2byte_list(etspv_bytes)
+        else:
+            self.expedited_phase_supported_protocol_versions = None
 
         extended_length = self._get_optional_TLV_from_TLV(
             "Extended Length Information",

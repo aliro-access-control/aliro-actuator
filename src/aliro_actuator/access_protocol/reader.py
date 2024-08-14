@@ -511,21 +511,43 @@ class Reader(Device):
                 )
             )
 
-        if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
-            await self.failure_process(S2.PROTOCOL_VERSION_NOT_SUPPORTED)
-            raise AccessProtocolError(
-                "User does not support protocol version used by reader"
-            )
-        else:
-            Global.logger.info(
-                "Protocol versions ({}) contains valid version: 0x{:04x}".format(
-                    ", ".join(
-                        str(hex(x))
-                        for x in response.expedited_phase_supported_protocol_versions
-                    ),
-                    PROTOCOL_VERSION,
+        if aid == EXPEDITED_PHASE_AID:
+            if response.expedited_phase_supported_protocol_versions is None:
+                await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+                raise AccessProtocolError(
+                    "Expedited transaction protocol versions not send, while AID does "
+                    "request expedited transaction"
                 )
-            )
+
+            if (
+                PROTOCOL_VERSION
+                not in response.expedited_phase_supported_protocol_versions
+            ):
+                await self.failure_process(S2.PROTOCOL_VERSION_NOT_SUPPORTED)
+                raise AccessProtocolError(
+                    "User does not support protocol version used by reader"
+                )
+            else:
+                Global.logger.info(
+                    "Protocol versions ({}) contains valid version: 0x{:04x}".format(
+                        ", ".join(
+                            str(hex(x))
+                            for x in response.expedited_phase_supported_protocol_versions
+                        ),
+                        PROTOCOL_VERSION,
+                    )
+                )
+        else:
+            if response.expedited_phase_supported_protocol_versions is not None:
+                await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+                raise AccessProtocolError(
+                    "Expedited transaction protocol versions send, while AID does not "
+                    "request expedited transaction"
+                )
+            else:
+                Global.logger.info(
+                    "No Expedited transaction protocol versions found (as expected)"
+                )
 
         self.session.set_select_info(response)
         Global.logger.info("Handling SELECT response done")
