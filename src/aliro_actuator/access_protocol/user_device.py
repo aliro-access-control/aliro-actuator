@@ -307,7 +307,13 @@ class UserDevice(Device):
         Handles a single transaction.
         Returns when completed or an error occurred.
         """
-        await self.transaction_initiation()
+        try:
+            await self.transaction_initiation()
+        except AccessProtocolError as error:
+            Global.logger.error(
+                "Error occurred during transaction initiation: {}".format(repr(error))
+            )
+            return
         while True:
             try:
                 if self.session is None:
