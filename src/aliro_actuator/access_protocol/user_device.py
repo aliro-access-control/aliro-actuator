@@ -745,6 +745,7 @@ class UserDevice(Device):
             if not self.session.state_valid(
                 [UserSessionState.AUTH1_DONE, UserSessionState.EXCHANGE_DONE]
             ):
+                await self.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
                 raise AccessProtocolError(
                     "Step up phase can only be requested after standard expedited phase"
                 )
