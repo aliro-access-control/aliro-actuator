@@ -744,6 +744,7 @@ class UserDevice(Device):
                 )
             )
             self.session.update_state(UserSessionState.SELECT_DONE)
+            supported_versions = self.supported_versions
         elif select_command.aid == STEPUP_PHASE_AID:
             Global.logger.info(
                 "AID valid for step-up phase: {!r}".format(hexlify(select_command.aid))
@@ -756,6 +757,7 @@ class UserDevice(Device):
                     "Step up phase can only be requested after standard expedited phase"
                 )
             self.session.update_state(UserSessionState.SELECT_STEP_UP_DONE)
+            supported_versions = None
         else:
             Global.logger.warning("Invalid AID")
             await self.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
@@ -764,7 +766,7 @@ class UserDevice(Device):
         await self.response_select(
             select_command.aid,
             CSA_APPLICATION_TYPE,
-            self.supported_versions,
+            supported_versions,
         )
         Global.logger.info("Handling SELECT command done")
 
@@ -1573,7 +1575,7 @@ class UserDevice(Device):
         self,
         aid: bytes,
         type: int,
-        protocol_versions: list[int],
+        protocol_versions: list[int] | None = None,
         maximum_command_apdu: int | None = None,
         maximum_response_apdu: int | None = None,
         vendor_specific_tlv: TLV | None = None,

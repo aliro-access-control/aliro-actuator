@@ -1210,7 +1210,7 @@ class APDU:
         self,
         AID: bytes,
         type: int,
-        expedited_phase_supported_protocol_versions: list[int],
+        expedited_phase_supported_protocol_versions: list[int] | None = None,
         maximum_command_apdu: int | None = None,
         maximum_response_apdu: int | None = None,
         vendor_specific_tlv: TLV | None = None,

@@ -225,7 +225,7 @@ def create_salt(
 
 def create_proprietary_information(
     type: int,
-    expedited_phase_supported_protocol_versions: list[int],
+    expedited_phase_supported_protocol_versions: list[int] | None = None,
     maximum_command_apdu: int | None = None,
     maximum_response_apdu: int | None = None,
     vendor_specific_tlv: TLV | None = None,
@@ -245,15 +245,16 @@ def create_proprietary_information(
     Returns:
         TLV: Proprietary information (as TLV)
     """
-    etspv_bytes = bytearray()
-    for value in expedited_phase_supported_protocol_versions:
-        etspv_bytes.extend(value.to_bytes(2, "big"))
-    etspv_bytes_imm = bytes(etspv_bytes)
-
     proprietary_tlv: list[tuple[int, bytes | list]] = [
         (Select.TYPE_TAG, type.to_bytes(2, "big")),
-        (Select.ETSPV_TAG, etspv_bytes_imm),
     ]
+
+    if expedited_phase_supported_protocol_versions is not None:
+        etspv_bytes = bytearray()
+        for value in expedited_phase_supported_protocol_versions:
+            etspv_bytes.extend(value.to_bytes(2, "big"))
+        etspv_bytes_imm = bytes(etspv_bytes)
+        proprietary_tlv.append((Select.ETSPV_TAG, etspv_bytes_imm))
 
     if maximum_command_apdu is not None and maximum_response_apdu is not None:
         extended_length_tlv: list[tuple[int, bytes | list]] = [
