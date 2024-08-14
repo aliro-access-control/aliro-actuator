@@ -1110,6 +1110,7 @@ class UserDevice(Device):
                 UserSessionState.AUTH0_FAST_DONE,
                 UserSessionState.AUTH1_DONE,
                 UserSessionState.EXCHANGE_DONE,
+                UserSessionState.SELECT_STEP_UP_DONE,
                 UserSessionState.GET_RESPONSE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
@@ -1123,6 +1124,7 @@ class UserDevice(Device):
         Global.logger.info("Handling EXCHANGE Command")
         if self.session.state_valid(
             [
+                UserSessionState.SELECT_STEP_UP_DONE,
                 UserSessionState.GET_RESPONSE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
@@ -1140,6 +1142,7 @@ class UserDevice(Device):
 
         if self.session.state_valid(
             [
+                UserSessionState.SELECT_STEP_UP_DONE,
                 UserSessionState.GET_RESPONSE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
