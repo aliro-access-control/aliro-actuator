@@ -27,6 +27,7 @@ from aliro_actuator.access_protocol.defines import (
 )
 from aliro_actuator.access_protocol.encryption import (
     EncryptionEngine,
+    EncryptionMissingError,
     create_proprietary_information,
 )
 from aliro_actuator.access_protocol.errors import (
@@ -1465,13 +1466,44 @@ class APDU:
         return Response.create_from_parameters(status=status)
 
     def create_exchange_command(
-        self, atomic_session: bool, payload_tlv: TLV, encryption: EncryptionEngine
+        self,
+        mailbox_commands: bytes | None = None,
+        notify: bytes | None = None,
+        reader_status: int | None = None,
+        ursk: bool = False,
+        update_doc: bytes | None = None,
+        encryption: EncryptionEngine | None = None,
     ) -> Command:
         Global.logger.info("Creating EXCHANGE command")
+        if encryption is None:
+            raise EncryptionMissingError
+
+        Global.logger.debug("Creating TLV")
+        payload_list: list[tuple[int, bytes | list]] = []
+        if mailbox_commands is not None:
+            Global.logger.debug("Adding mailbox commands")
+            payload_list.append((Exchange.MAILBOX_TAG, mailbox_commands))
+        if notify is not None:
+            Global.logger.debug("Adding notify")
+            payload_list.append((Exchange.NOTIFY_TAG, notify))
+        if reader_status is not None:
+            Global.logger.debug("Adding reader status: 0x{:04x}".format(reader_status))
+            payload_list.append(
+                (Exchange.READER_STATUS_TAG, reader_status.to_bytes(2, "big"))
+            )
+        if ursk:
+            Global.logger.debug("Adding URSK")
+            payload_list.append((Exchange.URSK_TAG, bytes()))
+        if update_doc is not None:
+            Global.logger.debug("Adding update doc")
+            payload_list.append((Exchange.UPDATE_DOC_TAG, update_doc))
+
+        payload_tlv = TLV(payload_list)
+
         Global.logger.debug(
             "Command contains TLV structure: {}".format(payload_tlv.to_print())
         )
-        payload = atomic_session.to_bytes(1, "big") + payload_tlv.to_bytes()
+        payload = payload_tlv.to_bytes()
         Global.logger.debug("Payload: {!r}".format(hexlify(payload)))
 
         Global.logger.info("encrypting EXCHANGE command payload")

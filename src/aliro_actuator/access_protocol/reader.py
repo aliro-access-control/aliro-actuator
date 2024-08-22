@@ -931,11 +931,11 @@ class Reader(Device):
         )
 
         Global.logger.debug("Creating payload")
-        payload: list[tuple[int, bytes | list]] = []
+        mailbox_commands_list: list[tuple[int, bytes | list]] = []
         if read_requests is not None:
             Global.logger.debug("Adding read requests")
             for read_request in read_requests:
-                payload.append(
+                mailbox_commands_list.append(
                     (
                         Exchange.READ_TAG,
                         read_request[0].to_bytes(2, "big")
@@ -944,7 +944,7 @@ class Reader(Device):
                 )
         if write_requests is not None:
             for write_request in write_requests:
-                payload.append(
+                mailbox_commands_list.append(
                     (
                         Exchange.WRITE_TAG,
                         write_request[0].to_bytes(2, "big") + write_request[1],
@@ -953,7 +953,7 @@ class Reader(Device):
         if set_requests is not None:
             Global.logger.debug("Adding set requests")
             for set_request in set_requests:
-                payload.append(
+                mailbox_commands_list.append(
                     (
                         Exchange.SET_TAG,
                         set_request[0].to_bytes(2, "big")
@@ -961,34 +961,29 @@ class Reader(Device):
                         + set_request[2].to_bytes(1, "big"),
                     )
                 )
-        if notify is not None:
-            Global.logger.debug("Adding notify")
-            payload.append((Exchange.NOTIFY_TAG, notify.to_bytes()))
-        if ursk:
-            Global.logger.debug("Adding URSK")
-            payload.append((Exchange.URSK_TAG, bytes()))
-        if update_doc is not None:
-            Global.logger.debug("Adding update doc")
-            payload.append((Exchange.UPDATE_DOC_TAG, update_doc))
-
-        if reader_status is not None:
-            Global.logger.debug("Adding reader status: 0x{:04x}".format(reader_status))
-            payload.append(
-                (Exchange.READER_STATUS_TAG, reader_status.to_bytes(2, "big"))
-            )
-
-        payload_tlv = TLV(payload)
+        mailbox_commands_tlv = TLV(mailbox_commands_list)
+        mailbox_commands = (
+            atomic_session.to_bytes(1, "big") + mailbox_commands_tlv.to_bytes()
+        )
 
         if reader_state == ReaderState.EXPEDITED:
             encryption = self.session.encryption_expedited
         elif reader_state == ReaderState.STEPUP:
             encryption = self.session.encryption_stepup
-        if encryption is None:
-            raise AccessProtocolError("no encryption engine found")
+
+        if notify is not None:
+            notify_bytes = notify.to_bytes()
+        else:
+            notify_bytes = None
 
         try:
             response = await self.command_exchange(
-                atomic_session, payload_tlv, encryption
+                mailbox_commands=mailbox_commands,
+                notify=notify_bytes,
+                reader_status=reader_status,
+                ursk=ursk,
+                update_doc=update_doc,
+                encryption=encryption,
             )
         except (InvalidResponseError, VerificationError) as error:
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -1238,7 +1233,13 @@ class Reader(Device):
         return response
 
     async def command_exchange(
-        self, atomic_session: bool, payload: TLV, encryption: EncryptionEngine
+        self,
+        mailbox_commands: bytes | None = None,
+        notify: bytes | None = None,
+        reader_status: int | None = None,
+        ursk: bool = False,
+        update_doc: bytes | None = None,
+        encryption: EncryptionEngine | None = None,
     ) -> Response:
         """
         Create and send a exchange command, and wait for a response.
@@ -1252,7 +1253,14 @@ class Reader(Device):
         Returns:
             Response: Response containing the received data.
         """
-        command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
+        command = self.apdu.create_exchange_command(
+            mailbox_commands=mailbox_commands,
+            notify=notify,
+            reader_status=reader_status,
+            ursk=ursk,
+            update_doc=update_doc,
+            encryption=encryption,
+        )
 
         Global.logger.info("Sending EXCHANGE command")
         await self.transport_protocol.send_message(command)

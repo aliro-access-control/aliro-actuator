@@ -515,11 +515,10 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         encryption = EncryptionEngine(
             DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
-        data = TLV(data=[])
 
         apdu = APDU()
         mock_nfc.get_message.return_value = (
-            apdu.create_exchange_command(False, data, encryption).to_bytes(),
+            apdu.create_exchange_command(encryption=encryption).to_bytes(),
             None,
             None,
         )
@@ -546,7 +545,10 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
 
         apdu = APDU()
         mock_nfc.get_message.return_value = (
-            apdu.create_exchange_command(False, commands, encryption).to_bytes(),
+            apdu.create_exchange_command(
+                mailbox_commands=False.to_bytes(1, "big") + commands.to_bytes(),
+                encryption=encryption,
+            ).to_bytes(),
             None,
             None,
         )

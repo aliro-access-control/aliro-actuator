@@ -118,6 +118,7 @@ class Exchange:
     READ_TAG = 0x87
     WRITE_TAG = 0x8A
     SET_TAG = 0x95
+    MAILBOX_TAG = 0xB9
     NOTIFY_TAG = 0xAE
     READER_STATUS_TAG = 0x97
     URSK_TAG = 0x98

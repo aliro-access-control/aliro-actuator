@@ -27,6 +27,7 @@ from aliro_actuator.access_protocol.apdu import (
     Command,
     Transaction,
 )
+from aliro_actuator.access_protocol.defines import Exchange
 from aliro_actuator.access_protocol.encryption import DeviceType, EncryptionEngine
 from aliro_actuator.access_protocol.errors import (
     InvalidCLAError,
@@ -369,12 +370,20 @@ class Test_apdu(unittest.TestCase):
         encryption_2 = EncryptionEngine(
             DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
-        payload = TLV([(0x87, os.urandom(4)), (0x95, os.urandom(5))])
-        message = self.apdu.create_exchange_command(False, payload, encryption_1)
 
-        encrypted_payload, authentication_tag = encryption_2.encrypt(
-            False.to_bytes(1, "big") + payload.to_bytes()
+        notify = os.urandom(4)
+        update_doc = os.urandom(5)
+        payload = TLV(
+            [
+                (Exchange.NOTIFY_TAG, notify),
+                (Exchange.UPDATE_DOC_TAG, update_doc),
+            ]
         )
+        message = self.apdu.create_exchange_command(
+            notify=notify, update_doc=update_doc, encryption=encryption_1
+        )
+
+        encrypted_payload, authentication_tag = encryption_2.encrypt(payload.to_bytes())
         self.assertEqual(
             message.to_bytes(),
             bytes(

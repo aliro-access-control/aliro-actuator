@@ -32,6 +32,14 @@ class VerificationError(AccessProtocolError):
     pass
 
 
+class EncryptionMissingError(AccessProtocolError):
+    """
+    Raised when the encryption engine is not available.
+    """
+
+    pass
+
+
 class DeviceType(Enum):
     """
     Enumerator, used by the EncryptionEngine, to indicate if the device is a reader or user.
