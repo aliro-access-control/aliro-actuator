@@ -699,7 +699,10 @@ class Command(APDUMessage):
             )
 
             self.ursk = self._get_optional_bytes_from_TLV(
-                "URSK", Exchange.URSK_TAG, tlv_data=self.payload_tlv
+                "URSK",
+                Exchange.URSK_TAG,
+                length=Exchange.URSK_LEN,
+                tlv_data=self.payload_tlv,
             )
 
             self.update_doc = self._get_optional_bytes_from_TLV(

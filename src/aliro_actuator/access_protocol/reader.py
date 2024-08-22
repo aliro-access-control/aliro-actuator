@@ -898,7 +898,7 @@ class Reader(Device):
         write_requests: list[tuple[int, bytes]] | None = None,
         set_requests: list[tuple[int, int, int]] | None = None,
         notify: TLV | None = None,
-        ursk: bytes | None = None,
+        ursk: bool = False,
         update_doc: bytes | None = None,
         reader_status: int | None = None,
         reader_state: ReaderState = ReaderState.EXPEDITED,
@@ -964,9 +964,9 @@ class Reader(Device):
         if notify is not None:
             Global.logger.debug("Adding notify")
             payload.append((Exchange.NOTIFY_TAG, notify.to_bytes()))
-        if ursk is not None:
+        if ursk:
             Global.logger.debug("Adding URSK")
-            payload.append((Exchange.URSK_TAG, ursk))
+            payload.append((Exchange.URSK_TAG, bytes()))
         if update_doc is not None:
             Global.logger.debug("Adding update doc")
             payload.append((Exchange.UPDATE_DOC_TAG, update_doc))
