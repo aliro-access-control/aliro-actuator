@@ -65,7 +65,9 @@ class Mailbox:
         """
         self.read_permission = read_permission
         self.write_permission = write_permission
-        self.step_up_permission = step_up_permission
+        self.step_up_permission = (
+            False  # current spec does not allow step up mailbox usage
+        )
         self.index: list[tuple[bytes, int, int]] = []
         self.data_set = False
         if initial_data is None:
