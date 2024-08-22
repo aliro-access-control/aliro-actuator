@@ -91,6 +91,11 @@ class ReaderState(Enum):
     STEPUP = 2
 
 
+class FastTransactionHandling(Enum):
+    CONTINUE_WITH_STANDARD = 0
+    ABORT_TRANSACTION = 1
+
+
 class ReaderStorage:
     """
     Cross-session storage for Expedited Fast cached data
@@ -162,6 +167,8 @@ class Reader(Device):
         to be used by the reader. first transaction uses index 0, second
         transaction uses index 1, etc. Ephemeral keys are randomly generated if
         this is set to None. Defaults to None.
+        fast_transaction_handling (FastTransactionHandling): how to handle a failed
+        fast transaction
 
     Raises:
         AccessProtocolError: Raised when arguments have invalid format.
@@ -183,6 +190,7 @@ class Reader(Device):
         transaction_identifier_list: list[bytes] | None = None,
         ephemeral_key_list: list[KeyPair] | None = None,
         key_slot_list: list[PublicKey] = [],
+        fast_transaction_handling: FastTransactionHandling = FastTransactionHandling.CONTINUE_WITH_STANDARD,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -253,6 +261,8 @@ class Reader(Device):
                 )
             )
 
+        self.fast_transaction_handling = fast_transaction_handling
+
         Global.logger.info("Initialized Reader")
 
     @property
@@ -316,7 +326,16 @@ class Reader(Device):
         self, authentication_policy: AuthenticationPolicy
     ) -> None:
         Global.logger.info("Start Expedited Transaction (fast)")
-        await self.handle_auth0(Transaction.FAST, authentication_policy)
+        try:
+            await self.handle_auth0(Transaction.FAST, authentication_policy)
+        except CryptogramNotFound as error:
+            if (
+                self.fast_transaction_handling
+                == FastTransactionHandling.CONTINUE_WITH_STANDARD
+            ):
+                await self.handle_auth1()
+            else:
+                raise error
         Global.logger.info("Expedited Transaction (fast) Done")
 
     async def expedited_transaction_standard(
@@ -669,7 +688,8 @@ class Reader(Device):
                 Global.logger.info("decryption failed, trying next key in storage")
                 pass
 
-        await self.failure_process(S2.NONE)
+        if self.fast_transaction_handling == FastTransactionHandling.ABORT_TRANSACTION:
+            await self.failure_process(S2.NONE)
         raise CryptogramNotFound("Matching Cryptogram not found")
 
     async def handle_load_cert(self) -> None:
