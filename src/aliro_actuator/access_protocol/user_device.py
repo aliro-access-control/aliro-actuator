@@ -320,6 +320,15 @@ class UserDevice(Device):
                 return
             try:
                 if isinstance(message, Command):
+                    if (
+                        self.mailbox_session.is_started()
+                        and message.ins != INS.EXCHANGE
+                    ):
+                        await self.failure_process(StatusBytes.COMMAND_NOT_ALLOWED)
+                        raise AccessProtocolError(
+                            "received non-EXCHANGE command while an atomic session was "
+                            "open"
+                        )
                     match message.ins:
                         case INS.SELECT:
                             await self.handle_select(message)
