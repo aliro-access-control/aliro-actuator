@@ -1249,7 +1249,7 @@ class UserDevice(Device):
                 read_data.append((len(mailbox_read), mailbox_read))
 
         Global.logger.info("Handling write and set requests")
-        if self.mailbox is not None:
+        if self.mailbox is not None and exchange_command.atomic_session is not None:
             if exchange_command.atomic_session:
                 self.mailbox_session.start()
 

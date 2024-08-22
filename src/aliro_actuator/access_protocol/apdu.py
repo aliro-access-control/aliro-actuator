@@ -652,33 +652,50 @@ class Command(APDUMessage):
             )
 
             Global.logger.debug("Data needs to be verified during handling")
-            self.atomic_session = self.decrypted_payload[0] == 0x01
-            Global.logger.debug("atomic session: {}".format(self.atomic_session))
 
-            self.payload_tlv = TLV.from_bytes(self.decrypted_payload[1:])
+            self.payload_tlv = TLV.from_bytes(self.decrypted_payload)
             Global.logger.debug(
                 "Data contains TLV structure: {}".format(self.payload_tlv.to_print())
             )
 
-            self.read_requests = self._get_multiple_optional_bytes_from_TLV(
-                "Read_request",
-                Exchange.READ_TAG,
-                Exchange.READ_LEN,
-                tlv_data=self.payload_tlv,
+            self.mailbox_commands = self._get_optional_bytes_from_TLV(
+                "mailbox_commands", Exchange.MAILBOX_TAG, tlv_data=self.payload_tlv
             )
 
-            self.write_requests = self._get_multiple_optional_bytes_from_TLV(
-                "Write_request",
-                Exchange.WRITE_TAG,
-                tlv_data=self.payload_tlv,
-            )
+            if self.mailbox_commands is not None:
+                self.atomic_session: bool | None = self.mailbox_commands[0] == 0x01
+                Global.logger.debug("atomic session: {}".format(self.atomic_session))
 
-            self.set_requests = self._get_multiple_optional_bytes_from_TLV(
-                "Set_request",
-                Exchange.SET_TAG,
-                Exchange.SET_LEN,
-                tlv_data=self.payload_tlv,
-            )
+                self.mailbox_commands_tlv = TLV.from_bytes(self.mailbox_commands[1:])
+                Global.logger.debug(
+                    "mailbox_commands contains TLV structure: {}".format(
+                        self.payload_tlv.to_print()
+                    )
+                )
+                self.read_requests = self._get_multiple_optional_bytes_from_TLV(
+                    "Read_request",
+                    Exchange.READ_TAG,
+                    Exchange.READ_LEN,
+                    tlv_data=self.mailbox_commands_tlv,
+                )
+
+                self.write_requests = self._get_multiple_optional_bytes_from_TLV(
+                    "Write_request",
+                    Exchange.WRITE_TAG,
+                    tlv_data=self.mailbox_commands_tlv,
+                )
+
+                self.set_requests = self._get_multiple_optional_bytes_from_TLV(
+                    "Set_request",
+                    Exchange.SET_TAG,
+                    Exchange.SET_LEN,
+                    tlv_data=self.mailbox_commands_tlv,
+                )
+            else:
+                self.atomic_session = None
+                self.read_requests = []
+                self.write_requests = []
+                self.set_requests = []
 
             reader_status_bytes = self._get_optional_bytes_from_TLV(
                 "Reader Status",
