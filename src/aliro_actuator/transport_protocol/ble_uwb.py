@@ -26,7 +26,11 @@ from aliro_actuator.hw_driver.murata_driver.errors import (
     DeviceDisconnectedError,
     DeviceNotFoundError,
 )
-from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
+from aliro_actuator.transport_protocol import (
+    ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION,
+    Mode,
+    TransportProtocolBase,
+)
 from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
@@ -64,6 +68,9 @@ class BLEUWB(TransportProtocolBase):
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         reader_group_identifier_list: list = [],
         spsm: bytes = bytes.fromhex("0080"),
+        notification: int = 0x00,
+        BLE_UWB_supported: bool = True,
+        BLE_only_supported: bool = False,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
@@ -84,6 +91,10 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
+                advertisement_version=ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION,
+                notification=notification,
+                BLE_UWB_supported=BLE_UWB_supported,
+                BLE_only_supported=BLE_only_supported,
             )
 
         elif self.mode == Mode.USER_DEVICE:

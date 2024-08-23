@@ -66,8 +66,17 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         reader_group_sub_identifier: bytes,
         dynamic_tag_timestamp: bytes,
         dynamic_tag: bytes,
+        BLE_UWB_supported: bool = True,
+        BLE_only_supported: bool = True,
     ) -> None:
         Global.logger.debug("Setting advertising data")
+
+        byte_7 = advertisement_version & 0x07
+        byte_7 |= (notification & 0x3) << 3
+        if BLE_UWB_supported:
+            byte_7 |= 1 << 6
+        if BLE_only_supported:
+            byte_7 |= 1 << 7
 
         data = bytearray()
         data.append(0x01)  # advertising data included
@@ -81,7 +90,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         data.append(0x1A)  # length (-1)
         data.append(0x16)  # Type (Service data (16 bit UUID))
         data.extend(change_endianness(service_uuid))  # Aliro service UUID
-        data.append((notification << 3) | (advertisement_version & 0x07))
+        data.append(byte_7)
         data.append(tx_power)
         data.extend(reader_group_identifier[:8])
         data.extend(reader_group_sub_identifier[:2])

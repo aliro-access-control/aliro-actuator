@@ -206,6 +206,10 @@ class ReaderMurataDriver(
         reader_group_sub_identifier: bytes,
         group_resolving_key: bytes,
         expiry_timestamp: bytes = bytes.fromhex("7a4b8500"),
+        notification: int = 0x00,
+        advertisement_version: int = 0x00,
+        BLE_UWB_supported: bool = True,
+        BLE_only_supported: bool = True,
     ) -> None:
         Global.logger.info("setup ble connection")
         advertising_address = await self.read_public_device_address()
@@ -215,13 +219,15 @@ class ReaderMurataDriver(
         await self.set_advertising_parameters()
         await self.set_advertising_data(
             ALIRO_SERVICE_UUID,
-            notification=0x00,
-            advertisement_version=0x00,
+            notification=notification,
+            advertisement_version=advertisement_version,
             tx_power=0x00,
             reader_group_identifier=reader_group_identifier,
             reader_group_sub_identifier=reader_group_sub_identifier,
             dynamic_tag_timestamp=expiry_timestamp,
             dynamic_tag=dynamic_tag,
+            BLE_only_supported=BLE_only_supported,
+            BLE_UWB_supported=BLE_UWB_supported,
         )
         await self.set_tx_power_level(0, 0)
         await self.start_advertising()
