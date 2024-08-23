@@ -34,6 +34,7 @@ from aliro_actuator.transport_protocol import (
 from aliro_actuator.transport_protocol.ble_message_format import BleMessage
 from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
+    TransportProtocolError,
     UnexpectedMessageTypeError,
     UnknownVersionRequestedError,
 )
@@ -117,8 +118,8 @@ class BLEUWB(TransportProtocolBase):
         await self.driver.close_uci()
 
     async def wait_for_connection(self) -> None:
-        await self.driver.wait_for_connection()
         if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
+            await self.driver.wait_for_connection()
             self.ble_version = await self.driver.wait_for_write()
             Global.logger.info(
                 "Checking ble version requested by User Device: 0x{:4x}".format(
@@ -131,6 +132,14 @@ class BLEUWB(TransportProtocolBase):
         if self.mode == Mode.USER_DEVICE and isinstance(
             self.driver, UserDeviceMurataDriver
         ):
+            (
+                advertisement_version,
+                self.notification,
+                self.BLE_UWB_supported,
+                self.BLE_only_supported,
+            ) = await self.driver.wait_for_connection()
+            if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
+                raise TransportProtocolError("Invalid BLE advertisement version")
             self.ble_version = CURRENT_VERSION
             (
                 self.spsm,

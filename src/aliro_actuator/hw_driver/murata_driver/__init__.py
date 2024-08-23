@@ -39,7 +39,7 @@ class UserDeviceMurataDriver(
         await self.stop_scanning(False)
         await self.start_scanning()
 
-    async def wait_for_connection(self) -> None:
+    async def wait_for_connection(self) -> tuple[int, int, bool, bool]:
         Global.logger.info("wait for ble connection")
         Global.logger.debug(
             "Looking for devices with aliro service uuid: {!r}".format(
@@ -56,18 +56,24 @@ class UserDeviceMurataDriver(
                 ", ".join(str(hexlify(x)) for x in self.reader_group_identifier_list)
             )
         )
-        (
-            address_type,
-            address,
-            advertising_address_resolved,
-        ) = await self.search_for_device(
+        advertisement_info = await self.search_for_device(
             ALIRO_SERVICE_UUID,
             True,
             self.group_resolving_key,
             self.reader_group_identifier_list,
         )
         await self.stop_scanning()
-        await self.connect(address_type, address, advertising_address_resolved)
+        await self.connect(
+            advertisement_info.address_type,
+            advertisement_info.address,
+            advertisement_info.advertising_address_resolved,
+        )
+        return (
+            advertisement_info.advertisement_version,
+            advertisement_info.notification,
+            advertisement_info.BLE_UWB_sepported,
+            advertisement_info.BLE_only_supported,
+        )
 
     async def handle_GATT_layer(self, version: int) -> tuple[bytes, list[int]]:
         Global.logger.info("handle GATT layer")

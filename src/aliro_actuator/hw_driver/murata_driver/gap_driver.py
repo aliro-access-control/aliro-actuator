@@ -9,7 +9,11 @@ from aliro_actuator.hw_driver.murata_driver.errors import (
     DeviceDisconnectedError,
     NoResponseError,
 )
-from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
+from aliro_actuator.hw_driver.murata_driver.fsci import (
+    AdvertisementInfo,
+    ConfirmStatus,
+    Message,
+)
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
 
 
@@ -271,13 +275,13 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         check_dynamic_tag: bool = False,
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         reader_group_id: list | None = None,
-    ) -> tuple[int, bytes, int]:
+    ) -> AdvertisementInfo:
         while True:
             message = await self.wait_for_message(
                 OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
             )
             advertising_data = message.get_advertising_data()
-            _, address, _ = message.get_address()
+            address = message.get_address()
             Global.logger.debug(
                 "Scanned device with address: {!r} and data: {!r}".format(
                     hexlify(address), hexlify(advertising_data)
@@ -328,4 +332,4 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                 )
             else:
                 Global.logger.info("Device Found!")
-                return message.get_address()
+                return message.get_advertisement_info()
