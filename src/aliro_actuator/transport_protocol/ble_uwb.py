@@ -72,6 +72,9 @@ class BLEUWB(TransportProtocolBase):
         notification: int = 0x00,
         BLE_UWB_supported: bool = True,
         BLE_only_supported: bool = False,
+        time_sync_0: bool = True,
+        time_sync_1: bool = True,
+        LE_coded_phy: bool = True,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
@@ -87,7 +90,13 @@ class BLEUWB(TransportProtocolBase):
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
             )
-            await self.driver.setup_gatt_database(self.spsm, self.supported_versions)
+            await self.driver.setup_gatt_database(
+                self.spsm,
+                self.supported_versions,
+                time_sync_0,
+                time_sync_1,
+                LE_coded_phy,
+            )
             await self.driver.setup_connection(
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
@@ -117,6 +126,38 @@ class BLEUWB(TransportProtocolBase):
         await self.driver.disconnect(self.driver.connected_devices[0])
         await self.driver.close_uci()
 
+    async def handle_GATT_layer(self, version: int) -> None:
+        if self.mode == Mode.USER_DEVICE and isinstance(
+            self.driver, UserDeviceMurataDriver
+        ):
+            Global.logger.info("handle GATT layer")
+            await self.driver.handle_GATT_layer_setup()
+            primary_service = await self.driver.handle_GATT_layer_get_primary_service()
+            (
+                self.spsm,
+                self.supported_versions,
+                features,
+            ) = await self.driver.handle_GATT_layer_read_characteristic(primary_service)
+            Global.logger.debug(
+                "Read SPSM from reader: {!r}".format(hexlify(self.spsm))
+            )
+            Global.logger.debug(
+                "Read BLE UWB Protocol versions: {}".format(
+                    ", ".join(str(hex(version)) for version in self.supported_versions)
+                )
+            )
+            Global.logger.debug(
+                "Read features from reader: {!r}".format(hexlify(features))
+            )
+            self.time_sync_0 = (features[0] & 0x01) == 0x01
+            self.time_sync_1 = (features[0] & 0x02) == 0x02
+            self.LE_coded_phy = (features[0] & 0x04) == 0x04
+            await self.driver.handle_GATT_layer_write_characteristic(
+                primary_service, version
+            )
+            return
+        raise TransportProtocolError
+
     async def wait_for_connection(self) -> None:
         if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
             await self.driver.wait_for_connection()
@@ -141,10 +182,7 @@ class BLEUWB(TransportProtocolBase):
             if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
                 raise TransportProtocolError("Invalid BLE advertisement version")
             self.ble_version = CURRENT_VERSION
-            (
-                self.spsm,
-                self.supported_versions,
-            ) = await self.driver.handle_GATT_layer(self.ble_version)
+            await self.handle_GATT_layer(self.ble_version)
 
         if self.mode == Mode.USER_DEVICE:
             await self.driver.setup_l2cap_connection_user(self.spsm)
