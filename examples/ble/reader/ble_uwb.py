@@ -41,7 +41,7 @@ async def main():
     await reader.expedited_transaction_standard(
         AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
-    await reader.reader_status_access_protocol_completed(0, 0)
+    await reader.reader_status_access_protocol_completed(1, 0)
 
     await reader.ranging_loop()
 
