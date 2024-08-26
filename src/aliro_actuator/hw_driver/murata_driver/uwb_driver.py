@@ -523,9 +523,11 @@ class MurataUWBDriver(MurataBaseDriver):
         )
 
     async def start_ranging(self) -> None:
+        Global.logger.info("Start ranging")
         uci.rng_start(self.dh, session_id=self.session_handle_dh)
 
     async def stop_ranging(self) -> None:
+        Global.logger.info("Stop ranging")
         uci.rng_stop(self.dh, session_id=self.session_handle_dh)
 
     async def get_ranging_data(self) -> int:
