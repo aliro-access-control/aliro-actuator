@@ -252,6 +252,12 @@ class BleMessage(Message):
                 "Invalid attribute in ble message: 0x{:02x}".format(self.id),
             )
 
+        if self.attribute.value is None or len(self.attribute.value) != 2:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute length in ble message",
+            )
+
         Global.logger.info("Parsing attribute: Reader information")
         self.unsolicited_reader_status_reporting = self._get_bits_and_enumerate(
             "unsolicited reader status reporting",
@@ -1015,7 +1021,6 @@ class OperationSourceInformation_Values(IntEnum):
 
 
 class UnsolicitedReaderStatusReporting_Values(IntEnum):
-    DO_NOT_SEND = 0
     SEND_TO_EACH_CONNECTED = 1
     SEND_ONLY_TO_THIS = 2
 
