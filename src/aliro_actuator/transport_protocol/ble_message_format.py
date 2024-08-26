@@ -289,30 +289,30 @@ class BleMessage(Message):
             )
 
         try:
-            self.proprietary_tlv = TLV.from_bytes(self.attribute.value)
+            proprietary_tlv = TLV.from_bytes(self.attribute.value)
         except TlvError as error:
             raise BLEMessageError(
                 self.to_bytes(),
                 "Proprietary information is not a valid TLV",
             ) from error
 
-        self.proprietary_tlv_content = self._get_TLV_from_TLV(
+        self.proprietary_tlv = self._get_TLV_from_TLV(
             "Proprietary",
             Select.PROPRIETARY_TAG,
-            tlv_data=self.proprietary_tlv,
+            tlv_data=proprietary_tlv,
         )
 
         self.application_type = self._get_int_from_TLV(
             "Type",
             Select.TYPE_TAG,
             Select.TYPE_LEN,
-            tlv_data=self.proprietary_tlv_content,
+            tlv_data=self.proprietary_tlv,
         )
 
         etspv_bytes = self._get_bytes_from_TLV(
             "expedited_phase_supported_protocol_versions",
             Select.ETSPV_TAG,
-            tlv_data=self.proprietary_tlv_content,
+            tlv_data=self.proprietary_tlv,
         )
         if (len(etspv_bytes) % 2) == 1:
             raise BLEMessageError(
@@ -327,7 +327,7 @@ class BleMessage(Message):
             "Extended Length Information",
             Select.EXTENDED_INFO_TAG,
             Select.EXTENDED_INFO_LEN,
-            tlv_data=self.proprietary_tlv_content,
+            tlv_data=self.proprietary_tlv,
         )
         if extended_length is None:
             self.maximum_command_apdu = None
@@ -351,7 +351,7 @@ class BleMessage(Message):
         self.vendor_specific_extensions = self._get_optional_TLV_from_TLV(
             "Vendor specific extensions",
             Select.VENDOR_SPECIFIC_TAG,
-            tlv_data=self.proprietary_tlv_content,
+            tlv_data=self.proprietary_tlv,
         )
         Global.logger.info("Parsing Initiate Access Protocol done")
 
