@@ -1008,7 +1008,10 @@ class OperationSourceInformation_Values(IntEnum):
     MANUAL = 1
     AUTO = 2
     SCHEDULE = 3
-    THIS_USER_DEVICE = 4
+    THIS_USER_BLE_UWB = 4
+    THIS_USER_NFC = 5
+    THIS_USER_BLE_ONLY = 6
+    MATTER = 7
 
 
 class UnsolicitedReaderStatusReporting_Values(IntEnum):
@@ -1021,6 +1024,7 @@ class ReaderStatusInformation_Values(IntEnum):
     SECURED = 0
     UNSECURED = 1
     JAMMED = 2
+    UNKNOWN = 3
 
 
 class SupplementaryService_AttributeID(IntEnum):
