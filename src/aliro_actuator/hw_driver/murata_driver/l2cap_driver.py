@@ -177,7 +177,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
             raise DeviceNotFoundError
 
         if len(self.message_queue) > 0:
-            return self.message_queue.pop(0)
+            data = self.message_queue.pop(0)
+            Global.logger.debug("Received data: {!r}".format(hexlify(data)))
+            return data
 
         while True:
             message = await self.wait_for_message(OpGroup.L2CAP, OpCodeL2CAP.LE_CB_DATA)
