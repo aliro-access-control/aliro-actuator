@@ -38,6 +38,7 @@ from aliro_actuator.access_protocol.defines import (
     PROTOCOL_VERSION,
     STEPUP_PHASE_AID,
     Auth0,
+    Select,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.device import Device
@@ -567,7 +568,11 @@ class UserDevice(Device):
             CSA_APPLICATION_TYPE,
             self.supported_versions,
         )
-        message = BleMessage.create_initiate_access_protocol(proprietary.to_bytes())
+        proprietary_list: list[tuple[int, bytes | list]] = [
+            (Select.PROPRIETARY_TAG, proprietary.to_bytes())
+        ]
+        proprietary_tlv = TLV(proprietary_list)
+        message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes())
         await self.transport_protocol.send_message(message)
 
     async def send_timesync(self) -> None:
