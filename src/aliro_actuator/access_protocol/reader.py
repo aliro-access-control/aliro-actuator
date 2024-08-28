@@ -893,7 +893,7 @@ class Reader(Device):
 
     async def handle_exchange(
         self,
-        atomic_session: bool,
+        atomic_session: bool = False,
         read_requests: list[tuple[int, int]] | None = None,
         write_requests: list[tuple[int, bytes]] | None = None,
         set_requests: list[tuple[int, int, int]] | None = None,
@@ -926,11 +926,9 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info(
-            "Start handling EXCHANGE with atomic session: {}".format(atomic_session)
-        )
+        Global.logger.info("Start handling EXCHANGE")
 
-        Global.logger.debug("Creating payload")
+        Global.logger.debug("Creating mailbox commands TLV")
         mailbox_commands_list: list[tuple[int, bytes | list]] = []
         if read_requests is not None:
             Global.logger.debug("Adding read requests")
@@ -962,13 +960,25 @@ class Reader(Device):
                     )
                 )
         mailbox_commands_tlv = TLV(mailbox_commands_list)
-        mailbox_commands = (
-            atomic_session.to_bytes(1, "big") + mailbox_commands_tlv.to_bytes()
-        )
+        if len(mailbox_commands_tlv.to_data()) > 0:
+            Global.logger.info(
+                "mailbox commands are part of an atomic session: {}".format(
+                    atomic_session
+                )
+            )
+            mailbox_commands = (
+                atomic_session.to_bytes(1, "big") + mailbox_commands_tlv.to_bytes()
+            )
+            Global.logger.debug("Creating mailbox commands TLV Done")
+        else:
+            mailbox_commands = None
+            Global.logger.debug("No mailbox commands in this EXCHANGE")
 
         if reader_state == ReaderState.EXPEDITED:
+            Global.logger.debug("Using expedited encryption key")
             encryption = self.session.encryption_expedited
         elif reader_state == ReaderState.STEPUP:
+            Global.logger.debug("Using step up encryption key")
             encryption = self.session.encryption_stepup
 
         if notify is not None:
