@@ -1377,7 +1377,7 @@ class UserDevice(Device):
 
         Global.logger.info("Handling CONTROL FLOW command done")
 
-    async def handle_envelope(self, envelope_command: Command) -> None:
+    async def handle_envelope(self, envelope_command: Command) -> bytes:
         """
         Parse an envelope command and send the appropriate response.
 
@@ -1423,6 +1423,7 @@ class UserDevice(Device):
         self.session.update_state(UserSessionState.ENVELOPE_DONE)
 
         Global.logger.info("Handling ENVELOPE command done")
+        return envelope_command.decrypted_payload
 
     def handle_reader_status_access_protocol_completed_message(
         self, message: BleMessage
