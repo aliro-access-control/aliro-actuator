@@ -1765,7 +1765,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Volatile****",
-            reader_public_key=self.get_reader_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -1813,7 +1813,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"VolatileFast",
-            reader_public_key=self.get_reader_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -1857,7 +1857,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Persistent**",
-            reader_public_key=self.get_reader_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -1950,6 +1950,46 @@ class UserSession:
                 hexlify(self.reader_group_identifier)
             )
         )
+
+    def get_reader_group_identifier_key(self) -> PublicKey:
+        Global.logger.debug("Looking for reader group identifier key")
+
+        if hasattr(self, "access_credential"):
+            Global.logger.info("Checking Access Credential")
+            if self.access_credential.has_identifier(self.reader_group_identifier):
+                try:
+                    reader_public_key = self.access_credential.get_reader_public_key(
+                        self.reader_group_identifier
+                    )
+                    Global.logger.debug(
+                        "reader_group_identifier_key set to "
+                        "reader public key: {!r}".format(
+                            hexlify(reader_public_key.as_bytes())
+                        )
+                    )
+                    return reader_public_key
+                except KeyLookupFailed:
+                    pass
+
+                try:
+                    reader_issuer_public_key = (
+                        self.access_credential.get_issuer_public_key(
+                            self.reader_group_identifier
+                        )
+                    )
+                    Global.logger.info(
+                        "reader_group_identifier_key set to "
+                        "public key of the reader system issuer CA: {!r}".format(
+                            hexlify(reader_issuer_public_key.as_bytes())
+                        )
+                    )
+                    return reader_issuer_public_key
+                except KeyLookupFailed:
+                    pass
+            raise KeyLookupFailed(
+                "reader group identifier not found in access credential"
+            )
+        raise KeyLookupFailed("No access credential set")
 
     def get_reader_issuer_certificate_public_key(self) -> PublicKey:
         if hasattr(self, "access_credential"):
