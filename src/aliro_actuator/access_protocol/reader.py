@@ -191,6 +191,7 @@ class Reader(Device):
         ephemeral_key_list: list[KeyPair] | None = None,
         key_slot_list: list[PublicKey] = [],
         fast_transaction_handling: FastTransactionHandling = FastTransactionHandling.CONTINUE_WITH_STANDARD,
+        reader_system_issuer_ca: PublicKey | None = None,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -217,6 +218,7 @@ class Reader(Device):
         else:
             self.reader_cert = None
             Global.logger.info("no reader certificate set")
+        self.reader_system_issuer_ca = reader_system_issuer_ca
 
         # generate identifiers if None is passed
         if reader_group_identifier is None:
@@ -1617,6 +1619,7 @@ class ReaderSession:
         self.encryption_expedited: EncryptionEngine | None = None
         self.encryption_stepup: EncryptionEngine | None = None
         self.ble_encryption_engine: EncryptionEngine | None = None
+        self.reader_system_issuer_ca = reader_system_issuer_ca
 
     @property
     def reader_identifier(self) -> bytes:
@@ -1633,6 +1636,12 @@ class ReaderSession:
     @property
     def reader_group_sub_identifier(self) -> bytes:
         return self._reader_identifier.get_group_sub()
+
+    def get_reader_group_identifier_key(self) -> PublicKey:
+        if self.reader_system_issuer_ca is not None:
+            return self.reader_system_issuer_ca
+        else:
+            return self.reader_key.get_public_key()
 
     def set_select_info(self, select_response: Response) -> None:
         self.compl_aid = select_response.compl_aid
@@ -1780,7 +1789,7 @@ class ReaderSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Volatile****",
-            reader_public_key=self.reader_key.get_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_ephemeral.get_public_key(),
             reader_identifier=self.reader_identifier,
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
@@ -1824,7 +1833,7 @@ class ReaderSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"VolatileFast",
-            reader_public_key=self.reader_key.get_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_ephemeral.get_public_key(),
             reader_identifier=self.reader_identifier,
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
@@ -1863,7 +1872,7 @@ class ReaderSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Persistent**",
-            reader_public_key=self.reader_key.get_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_ephemeral.get_public_key(),
             reader_identifier=self.reader_identifier,
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
