@@ -764,10 +764,6 @@ class Reader(Device):
         Global.logger.info("Save AUTH1 response data to session")
         self.session.set_auth1_info(auth1_response)
 
-        if self.session.step_up_aid_select_required():
-            Global.logger.info("Step-up AID SELECT command required")
-            await self.handle_select(STEPUP_PHASE_AID)
-
         Global.logger.info("Handling AUTH1 response done")
 
     def create_shared_keys(self) -> None:
