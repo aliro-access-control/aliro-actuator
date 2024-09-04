@@ -22,7 +22,8 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     TransportProtocol,
 )
-from aliro_actuator.access_protocol.reader import Reader, ReaderSession
+from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.trust_framework.key import KeyPair
 
 
 class Test_reader(unittest.IsolatedAsyncioTestCase):
@@ -44,10 +45,15 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
         await reader.transaction_initiation()
 
     async def test_auth0(self) -> None:
+        private_file = open("tests/access_protocol/testvector_lock_private.pem", "rt")
+        public_file = open("tests/access_protocol/testvector_lock_public.pem", "rt")
+        reader_keypair = KeyPair(private_file.read(), public_file.read())
+
         reader = Reader(
             TransportProtocol.SOCKET_NFC,
             reader_group_identifier=b"test_readergroup",
             reader_group_sub_identifier=b"sub_reader_group",
+            reader_key=reader_keypair,
         )
         await reader.transaction_initiation()
 
