@@ -42,7 +42,6 @@ async def main() -> None:
         AccessCredential(
             user_key,
             [(READER_GROUP_IDENTIFIER, reader_public_key)],
-            [(READER_GROUP_IDENTIFIER, reader_public_key)],
         )
     ]
     card = UserDevice(

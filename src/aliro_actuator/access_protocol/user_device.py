@@ -843,16 +843,6 @@ class UserDevice(Device):
                     )
                 except KeyLookupFailed:
                     pass
-                try:
-                    key = access_credential.get_issuer_public_key(
-                        self.session.reader_group_identifier
-                    ).as_bytes()
-                    Global.logger.info(
-                        "Issuer CA Certificate public key in access credential"
-                        ": {!r}".format(hexlify(key))
-                    )
-                except KeyLookupFailed:
-                    pass
 
                 break
         else:
@@ -944,9 +934,7 @@ class UserDevice(Device):
         Global.logger.info("Handling LOAD CERT Command")
         Global.logger.info("Decompressing and verifying certificate")
         try:
-            reader_issuer_public_key = (
-                self.session.get_reader_issuer_certificate_public_key()
-            )
+            reader_issuer_public_key = self.session.get_reader_group_identifier_key()
             verified = self.session.set_cert_and_verify(
                 load_cert_command.reader_cert, reader_issuer_public_key
             )
@@ -992,7 +980,7 @@ class UserDevice(Device):
             Global.logger.info("AUTH1 Command contains certificate")
             try:
                 reader_issuer_public_key = (
-                    self.session.get_reader_issuer_certificate_public_key()
+                    self.session.get_reader_group_identifier_key()
                 )
                 verified = self.session.set_cert_and_verify(
                     auth1_command.certificate_data, reader_issuer_public_key
@@ -1971,33 +1959,10 @@ class UserSession:
                 except KeyLookupFailed:
                     pass
 
-                try:
-                    reader_issuer_public_key = (
-                        self.access_credential.get_issuer_public_key(
-                            self.reader_group_identifier
-                        )
-                    )
-                    Global.logger.info(
-                        "reader_group_identifier_key set to "
-                        "public key of the reader system issuer CA: {!r}".format(
-                            hexlify(reader_issuer_public_key.as_bytes())
-                        )
-                    )
-                    return reader_issuer_public_key
-                except KeyLookupFailed:
-                    pass
             raise KeyLookupFailed(
                 "reader group identifier not found in access credential"
             )
         raise KeyLookupFailed("No access credential set")
-
-    def get_reader_issuer_certificate_public_key(self) -> PublicKey:
-        if hasattr(self, "access_credential"):
-            return self.access_credential.get_issuer_public_key(
-                self.reader_group_identifier
-            )
-        else:
-            raise AccessProtocolError("No access credential set")
 
     def set_ursk(self) -> None:
         if self.ursk_available:
