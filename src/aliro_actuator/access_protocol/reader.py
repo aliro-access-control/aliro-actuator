@@ -96,6 +96,12 @@ class FastTransactionHandling(Enum):
     ABORT_TRANSACTION = 1
 
 
+class ReaderMode(Enum):
+    TEST = 0  # Every error raises an Exception
+    READER = 1  # Strictly follows spec, may ignore errors if so noted in the spec, and
+    # sends failure messages
+
+
 class ReaderStorage:
     """
     Cross-session storage for Expedited Fast cached data
@@ -192,6 +198,7 @@ class Reader(Device):
         key_slot_list: list[PublicKey] = [],
         fast_transaction_handling: FastTransactionHandling = FastTransactionHandling.CONTINUE_WITH_STANDARD,
         reader_system_issuer_ca: PublicKey | None = None,
+        mode: ReaderMode = ReaderMode.TEST,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -264,6 +271,8 @@ class Reader(Device):
             )
 
         self.fast_transaction_handling = fast_transaction_handling
+        self.failure_process_started = False
+        self.mode = mode
 
         Global.logger.info("Initialized Reader")
 
@@ -388,6 +397,8 @@ class Reader(Device):
         else:
             self.session.generate_ephemeral_key(self.ephemeral_key_list.pop(0))
 
+        self.failure_process_started = False
+
     def end_session(self) -> None:
         """
         End the current reader session.
@@ -402,21 +413,29 @@ class Reader(Device):
         If transport protocol is NFC, a control_flow command indicating failure is send.
         If transport protocol is BLE, a failure event message is send.
         """
-        if (
-            self.transport_protocol_type == TransportProtocol.NFC
-            or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
-        ):
-            if self.session is None or self.session.encryption_expedited is None:
-                s2 = S2(error_code)
-                await self.handle_control_flow(s2)
-            else:
-                await self.handle_exchange(False, reader_status=error_code)
-        if (
-            self.transport_protocol_type == TransportProtocol.BLE_UWB
-            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
-        ):
-            await self.handle_error_event_ble_message(GeneralError_Values.UNKNOWN_ERROR)
-            pass
+        if self.failure_process_started:
+            # we are already handling a failure, don't send another failure message
+            return
+        self.failure_process_started = True
+
+        if self.mode == ReaderMode.READER:
+            if (
+                self.transport_protocol_type == TransportProtocol.NFC
+                or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
+            ):
+                if self.session is None or self.session.encryption_expedited is None:
+                    s2 = S2(error_code)
+                    await self.handle_control_flow(s2)
+                else:
+                    await self.handle_exchange(False, reader_status=error_code)
+            if (
+                self.transport_protocol_type == TransportProtocol.BLE_UWB
+                or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+            ):
+                await self.handle_error_event_ble_message(
+                    GeneralError_Values.UNKNOWN_ERROR
+                )
+                pass
 
         await self.transaction_termination()
 
@@ -1002,6 +1021,13 @@ class Reader(Device):
             raise error
 
         Global.logger.info("Handling EXCHANGE response")
+        if len(response.status_code) != 4:
+            await self.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            raise AccessProtocolError(
+                "EXCHANGE payload status has invalid length: {!r}".format(
+                    response.status_code
+                )
+            )
         if response.status_code != bytes.fromhex("00020000"):
             await self.failure_process(ReaderStatus.STATUS_WORD_ERROR)
             raise AccessProtocolError(

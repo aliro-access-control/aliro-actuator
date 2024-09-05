@@ -22,7 +22,7 @@ import asyncio
 
 from aliro_actuator.access_protocol.apdu import AuthenticationPolicy, ReaderStatus
 from aliro_actuator.access_protocol.defines import TransportProtocol
-from aliro_actuator.access_protocol.reader import Reader
+from aliro_actuator.access_protocol.reader import Reader, ReaderMode
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.key import KeyPair
 from examples.nfc.common import READER_GROUP_IDENTIFIER, READER_SUB_GROUP_IDENTIFIER
@@ -56,6 +56,7 @@ async def main():
         reader_key=reader_keypair,
         reader_cert=out,
         reader_system_issuer_ca=reader_keypair.get_public_key(),
+        mode=ReaderMode.READER,
     )
     await reader.transaction_initiation()
     await reader.expedited_transaction_standard(
