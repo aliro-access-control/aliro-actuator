@@ -226,6 +226,12 @@ class Reader(Device):
             self.reader_cert = None
             Global.logger.info("no reader certificate set")
         self.reader_system_issuer_ca = reader_system_issuer_ca
+        if self.reader_system_issuer_ca is not None:
+            Global.logger.info(
+                "reader system issuer ca set to: {!r}".format(
+                    hexlify(self.reader_system_issuer_ca.as_bytes())
+                )
+            )
 
         # generate identifiers if None is passed
         if reader_group_identifier is None:
@@ -380,7 +386,10 @@ class Reader(Device):
         """
         Global.logger.info("Starting new session")
         self.session = ReaderSession(
-            self.reader_key, self.reader_identifier, self.vendor_extension
+            self.reader_key,
+            self.reader_identifier,
+            self.vendor_extension,
+            self.reader_system_issuer_ca,
         )
         if (
             self.transaction_identifier_list is None
@@ -417,6 +426,7 @@ class Reader(Device):
             # we are already handling a failure, don't send another failure message
             return
         self.failure_process_started = True
+        Global.logger.info("Failure Process started")
 
         if self.mode == ReaderMode.READER:
             if (
@@ -523,6 +533,7 @@ class Reader(Device):
             await self.failure_process(S2.NONE)
             raise error
         except InvalidResponseError as error:
+            Global.logger.error("SELECT response format invalid")
             await self.failure_process(S2.NONE)
             raise error
 
@@ -612,6 +623,7 @@ class Reader(Device):
                 vendor_extension=self.vendor_extension,
             )
         except InvalidResponseError as error:
+            Global.logger.error("AUTH0 response format invalid")
             await self.failure_process(S2.NONE)
             raise error
 
@@ -734,6 +746,7 @@ class Reader(Device):
         try:
             await self.command_load_cert(self.reader_cert.encode_compressed())
         except InvalidResponseError as error:
+            Global.logger.error("LOAD CERT response format invalid")
             await self.failure_process(S2.NONE)
             raise error
 
@@ -771,8 +784,13 @@ class Reader(Device):
                 transaction_identifier=self.session.transaction_identifier,
                 encryption=self.session.encryption_expedited,
             )
-        except (InvalidResponseError, VerificationError) as error:
+        except InvalidResponseError as error:
+            Global.logger.error("AUTH1 response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+            raise error
+        except VerificationError as error:
+            Global.logger.error("AUTH1 response decryption failed")
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
             raise error
 
         Global.logger.info("Handling AUTH1 response")
@@ -905,6 +923,7 @@ class Reader(Device):
         try:
             await self.command_control_flow(s1, s2)
         except (InvalidResponseError, VerificationError) as error:
+            Global.logger.error("CONTROL FLOW response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
 
@@ -1016,8 +1035,13 @@ class Reader(Device):
                 update_doc=update_doc,
                 encryption=encryption,
             )
-        except (InvalidResponseError, VerificationError) as error:
+        except InvalidResponseError as error:
+            Global.logger.error("EXCHANGE response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+            raise error
+        except VerificationError as error:
+            Global.logger.error("EXCHANGE response decryption failed")
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
             raise error
 
         Global.logger.info("Handling EXCHANGE response")
@@ -1665,8 +1689,10 @@ class ReaderSession:
 
     def get_reader_group_identifier_key(self) -> PublicKey:
         if self.reader_system_issuer_ca is not None:
+            Global.logger.debug("Use reader system issuer ca key")
             return self.reader_system_issuer_ca
         else:
+            Global.logger.debug("Use reader public key")
             return self.reader_key.get_public_key()
 
     def set_select_info(self, select_response: Response) -> None:

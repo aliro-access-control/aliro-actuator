@@ -161,6 +161,7 @@ class EncryptionEngine:
         try:
             cipher.verify(authentication_tag)
         except ValueError:
+            Global.logger.debug("Verification failed")
             self.decryption_counter += 1
             raise VerificationError
         self.decryption_counter += 1
