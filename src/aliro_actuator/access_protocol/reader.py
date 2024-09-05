@@ -530,6 +530,11 @@ class Reader(Device):
         except InvalidStatusError as error:
             if error.status == StatusBytes.FILE_OR_APP_NOT_FOUND:
                 Global.logger.error("User does not recognize AID")
+            else:
+                Global.logger.error(
+                    "Response status does not indicate success, "
+                    "status: 0x{:04x}".format(error.status)
+                )
             await self.failure_process(S2.NONE)
             raise error
         except InvalidResponseError as error:
@@ -622,6 +627,13 @@ class Reader(Device):
                 reader_identifier=self.reader_identifier,
                 vendor_extension=self.vendor_extension,
             )
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(S2.NONE)
+            raise error
         except InvalidResponseError as error:
             Global.logger.error("AUTH0 response format invalid")
             await self.failure_process(S2.NONE)
@@ -745,6 +757,13 @@ class Reader(Device):
         Global.logger.info("Start handling LOAD CERT")
         try:
             await self.command_load_cert(self.reader_cert.encode_compressed())
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(S2.NONE)
+            raise error
         except InvalidResponseError as error:
             Global.logger.error("LOAD CERT response format invalid")
             await self.failure_process(S2.NONE)
@@ -784,6 +803,13 @@ class Reader(Device):
                 transaction_identifier=self.session.transaction_identifier,
                 encryption=self.session.encryption_expedited,
             )
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            raise error
         except InvalidResponseError as error:
             Global.logger.error("AUTH1 response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -922,6 +948,13 @@ class Reader(Device):
         )
         try:
             await self.command_control_flow(s1, s2)
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            raise error
         except (InvalidResponseError, VerificationError) as error:
             Global.logger.error("CONTROL FLOW response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
@@ -1035,6 +1068,13 @@ class Reader(Device):
                 update_doc=update_doc,
                 encryption=encryption,
             )
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            raise error
         except InvalidResponseError as error:
             Global.logger.error("EXCHANGE response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
