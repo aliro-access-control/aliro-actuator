@@ -27,7 +27,7 @@ from aliro_actuator.access_protocol.apdu import (
     Transaction,
 )
 from aliro_actuator.access_protocol.defines import TransportProtocol
-from aliro_actuator.access_protocol.reader import Reader, ReaderMode
+from aliro_actuator.access_protocol.reader import Reader
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from examples.nfc.common import READER_GROUP_IDENTIFIER, READER_SUB_GROUP_IDENTIFIER
 
@@ -46,7 +46,6 @@ async def main():
         reader_group_sub_identifier=READER_SUB_GROUP_IDENTIFIER,
         reader_key=reader_keypair,
         key_slot_list=[credential_public_key],
-        mode=ReaderMode.READER,
     )
     await reader.transaction_initiation()
     Global.logger.info("Start Expedited Transaction (standard)")
