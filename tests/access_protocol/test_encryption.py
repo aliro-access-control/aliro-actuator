@@ -21,7 +21,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
-from aliro_actuator.access_protocol.apdu import AUTHENTICATION_TAG_SIZE
+from aliro_actuator.access_protocol.defines import AUTHENTICATION_TAG_SIZE
 from aliro_actuator.access_protocol.encryption import (
     compute_cryptogram,
     decrypt_cryptogram,

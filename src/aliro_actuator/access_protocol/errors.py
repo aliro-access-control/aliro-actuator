@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from binascii import hexlify
+
 from aliro_actuator.access_protocol.defines import EXPEDITED_PHASE_AID, STEPUP_PHASE_AID
 
 
@@ -34,9 +36,9 @@ class SessionError(AccessProtocolError):
 class UnexpectedNotificationDataError(AccessProtocolError):
     def __init__(self, response: bytes, other_info: str = ""):
         if other_info != "":
-            message = "{}, Data: {!r}".format(other_info, response)
+            message = "{}, Data: {!r}".format(other_info, hexlify(response))
         else:
-            message = "Data: {!r}".format(response)
+            message = "Data: {!r}".format(hexlify(response))
         AccessProtocolError.__init__(self, message)
 
 
@@ -102,7 +104,7 @@ class InvalidCommandError(AccessProtocolError):
     """
 
     def __init__(self, command: bytes) -> None:
-        message = "command: {!r}".format(command)
+        message = "command: {!r}".format(hexlify(command))
         super().__init__(message)
 
 
@@ -153,9 +155,9 @@ class InvalidCommandDataError(InvalidCommandError):
 
     def __init__(self, command: bytes, message: str | None = None) -> None:
         if message is not None:
-            message += ", command: {!r}".format(command)
+            message += ", command: {!r}".format(hexlify(command))
         else:
-            message = "command: {!r}".format(command)
+            message = "command: {!r}".format(hexlify(command))
         AccessProtocolError.__init__(self, message)
 
 
@@ -168,7 +170,7 @@ class InvalidAIDError(InvalidCommandDataError):
         message = "invalid AID received: {!r}, expected one of: {!r}".format(
             aid, [EXPEDITED_PHASE_AID, STEPUP_PHASE_AID]
         )
-        message += ", full command: {!r}".format(command)
+        message += ", full command: {!r}".format(hexlify(command))
         AccessProtocolError.__init__(self, message)
 
 
@@ -178,7 +180,7 @@ class InvalidResponseError(AccessProtocolError):
     """
 
     def __init__(self, response: bytes):
-        message = "response: {!r}".format(response)
+        message = "response: {!r}".format(hexlify(response))
         super().__init__(message)
 
 
@@ -187,11 +189,13 @@ class InvalidStatusError(InvalidResponseError):
     Raised when the received Response has an invalid status.
     """
 
-    def __init__(self, response: bytes, status: int):
+    def __init__(self, response: bytes, status: int, additional_message: str = ""):
         self.status = status
         message = "invalid status found: 0x{:04x}, complete response: {!r}".format(
-            status, response
+            status, hexlify(response)
         )
+        if additional_message != "":
+            message += ", " + additional_message
         AccessProtocolError.__init__(self, message)
 
 
@@ -202,7 +206,7 @@ class InvalidResponseDataError(InvalidResponseError):
 
     def __init__(self, response: bytes, other_info: str = ""):
         if other_info != "":
-            message = "{}, response: {!r}".format(other_info, response)
+            message = "{}, response: {!r}".format(other_info, hexlify(response))
         else:
-            message = "response: {!r}".format(response)
+            message = "response: {!r}".format(hexlify(response))
         AccessProtocolError.__init__(self, message)

@@ -19,7 +19,6 @@ from enum import Enum
 
 from aliro_actuator import READER_GROUP_ID_LENGTH, READER_GROUP_SUB_ID_LENGTH, Global
 from aliro_actuator.access_protocol.apdu import (
-    AUTHENTICATION_TAG_SIZE,
     INS,
     S1,
     S2,
@@ -35,6 +34,7 @@ from aliro_actuator.access_protocol.authentication import (
     create_user_device_authentication,
 )
 from aliro_actuator.access_protocol.defines import (
+    AUTHENTICATION_TAG_SIZE,
     CSA_APPLICATION_TYPE,
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
@@ -1018,23 +1018,38 @@ class Reader(Device):
 
         return read_data
 
-    async def reader_status_status_changed(
-        self, operation_source_information: int, reader_status_information: int
-    ) -> None:
+    async def handle_envelope(self, request: bytes) -> bytes:
         """
-        Send the BLE message Reader Status Changed.
+        Create and send a envelope command.
+        Required data from is retrieved from the Reader (self) and the session.
+        The data contained in the response is stored in the session.
+
+        Args:
+            request (bytes): the Access document or Revocation document request
+
+        Raises:
+            SessionError: Raised if no session is found.
+
+        Returns:
+            bytes: The received Access document or Revocation document.
         """
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info("Sending Reader Status Changed BLE message")
-
-        message = BleMessage.create_reader_status_changed(
-            operation_source_information,
-            reader_status_information,
-            self.session.get_ble_encryption(),
+        Global.logger.info(
+            "Start handling ENVELOPE with request: {!r}".format(hexlify(request))
         )
-        await self.transport_protocol.send_message(message)
+
+        try:
+            response = await self.command_envelope(
+                request, self.session.encryption_stepup
+            )
+        except (InvalidResponseError, VerificationError) as error:
+            await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+            raise error
+
+        Global.logger.info("Handling ENVELOPE response done")
+        return response.decrypted_payload
 
     async def reader_status_access_protocol_completed(
         self, unsolicited_reader_status_reporting: int, reader_status_information: int
@@ -1106,13 +1121,12 @@ class Reader(Device):
         )
 
         Global.logger.info("Sending AUTH0 command")
-        await self.transport_protocol.send_message(command)
+        response = await self.apdu.handle_chaining_send_command(
+            "AUTH0", command, self.transport_protocol
+        )
 
-        Global.logger.info("Waiting for AUTH0 response")
-        response_str, header, id = await self.transport_protocol.get_message()
-        self.check_ble_message_type_for_response(header, id)
         Global.logger.info("Received response")
-        response = self.apdu.parse_response(response_str, INS.AUTH0)
+        response = self.apdu.parse_response(response, INS.AUTH0)
 
         return response
 
@@ -1151,15 +1165,12 @@ class Reader(Device):
         )
         command = self.apdu.create_auth1_command(expected_response, reader_sig)
 
-        Global.logger.info("Sending AUTH1 command")
-        await self.transport_protocol.send_message(command)
-
-        Global.logger.info("Waiting for AUTH1 response")
-        response_str, header, id = await self.transport_protocol.get_message()
-        self.check_ble_message_type_for_response(header, id)
+        response = await self.apdu.handle_chaining_send_command(
+            "AUTH1", command, self.transport_protocol
+        )
 
         Global.logger.info("Received response")
-        response = self.apdu.parse_response(response_str, INS.AUTH1, encryption)
+        response = self.apdu.parse_response(response, INS.AUTH1, encryption)
 
         return response
 
@@ -1175,23 +1186,39 @@ class Reader(Device):
         """
         command = self.apdu.create_select_command(aid)
 
-        Global.logger.info("Sending SELECT command")
-        await self.transport_protocol.send_message(command)
-
-        Global.logger.info("Waiting for SELECT response")
-        response_str, header, id = await self.transport_protocol.get_message()
-        self.check_ble_message_type_for_response(header, id)
+        response = await self.apdu.handle_chaining_send_command(
+            "SELECT", command, self.transport_protocol
+        )
 
         Global.logger.info("Received response")
-        response = self.apdu.parse_response(response_str, INS.SELECT)
+        response = self.apdu.parse_response(response, INS.SELECT)
 
         return response
 
-    def command_envelope(self) -> None:
-        raise NotImplementedError
+    async def command_envelope(
+        self,
+        request: bytes,
+        encryption: EncryptionEngine | None = None,
+    ) -> Response:
+        """
+        Create and send a ENVELOPE command, and wait for a response.
 
-    def command_get_response(self) -> None:
-        raise NotImplementedError
+        Args:
+            request (bytes): request to be send.
+
+        Returns:
+            Response: Response containing the received data.
+        """
+        command = self.apdu.create_envelope_command(request, encryption)
+
+        response = await self.apdu.handle_chaining_send_command(
+            "ENVELOPE", command, self.transport_protocol
+        )
+
+        Global.logger.info("Received response")
+        response = self.apdu.parse_response(response, INS.ENVELOPE, encryption)
+
+        return response
 
     async def command_load_cert(self, compressed_cert: bytes) -> Response:
         """
@@ -1205,15 +1232,12 @@ class Reader(Device):
         """
         command = self.apdu.create_load_cert_command(compressed_cert)
 
-        Global.logger.info("Sending LOAD CERT command")
-        await self.transport_protocol.send_message(command)
-
-        Global.logger.info("Waiting for LOAD CERT response")
-        response_str, header, id = await self.transport_protocol.get_message()
-        self.check_ble_message_type_for_response(header, id)
+        response = await self.apdu.handle_chaining_send_command(
+            "LOAD CERT", command, self.transport_protocol
+        )
 
         Global.logger.info("Received response")
-        response = self.apdu.parse_response(response_str, INS.LOAD_CERT)
+        response = self.apdu.parse_response(response, INS.LOAD_CERT)
 
         return response
 
@@ -1234,15 +1258,12 @@ class Reader(Device):
         """
         command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
 
-        Global.logger.info("Sending EXCHANGE command")
-        await self.transport_protocol.send_message(command)
-
-        Global.logger.info("Waiting for EXCHANGE response")
-        response_str, header, id = await self.transport_protocol.get_message()
-        self.check_ble_message_type_for_response(header, id)
+        response = await self.apdu.handle_chaining_send_command(
+            "EXCHANGE", command, self.transport_protocol
+        )
 
         Global.logger.info("Received response")
-        response = self.apdu.parse_response(response_str, INS.EXCHANGE, encryption)
+        response = self.apdu.parse_response(response, INS.EXCHANGE, encryption)
 
         return response
 
@@ -1262,15 +1283,12 @@ class Reader(Device):
         """
         command = self.apdu.create_control_flow_command(s1, s2, domain_specific_data)
 
-        Global.logger.info("Sending CONTROL FLOW command")
-        await self.transport_protocol.send_message(command)
-
-        Global.logger.info("Waiting for CONTROL FLOW response")
-        response_str, header, id = await self.transport_protocol.get_message()
-        self.check_ble_message_type_for_response(header, id)
+        response = await self.apdu.handle_chaining_send_command(
+            "CONTROL FLOW", command, self.transport_protocol
+        )
 
         Global.logger.info("Received response")
-        response = self.apdu.parse_response(response_str, INS.CONTROL_FLOW)
+        response = self.apdu.parse_response(response, INS.CONTROL_FLOW)
 
         return response
 
