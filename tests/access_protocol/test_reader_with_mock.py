@@ -52,7 +52,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
     async def test_control_flow_command(self, mock_nfc: AsyncMock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
-            apdu.create_control_flow_response(StatusBytes.SUCCESS).to_bytes(),
+            apdu.create_control_flow_response(StatusBytes.SUCCESS)[0].to_bytes(),
             None,
             None,
         )
@@ -71,7 +71,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                 0x0000,
                 [PROTOCOL_VERSION],
                 status=StatusBytes.SUCCESS,
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -90,7 +90,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                 0x0000,
                 [PROTOCOL_VERSION],
                 status=StatusBytes.FILE_OR_APP_NOT_FOUND,
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -129,7 +129,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                 0x0000,
                 [PROTOCOL_VERSION],
                 status=StatusBytes.SUCCESS,
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -148,7 +148,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                 0x0100,
                 [PROTOCOL_VERSION],
                 status=StatusBytes.SUCCESS,
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -164,7 +164,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
         mock_nfc.get_message.return_value = (
             apdu.create_select_response(
                 EXPEDITED_PHASE_AID, 0x0000, [0x0000], status=StatusBytes.SUCCESS
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -182,7 +182,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
         mock_nfc.get_message.return_value = (
             apdu.create_auth0_response(
                 user_ephemeral.get_public_key_as_bytes(), StatusBytes.SUCCESS
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -207,7 +207,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                 user_ephemeral.get_public_key_as_bytes(),
                 StatusBytes.SUCCESS,
                 cryptogram=b"\x00" * 64,
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -266,7 +266,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                     "e87eac3589c3eeb3a6d7976d3ef29f3f0bb022e750fcda4a88bea8358d1bb63870a39b"
                     "aa89f80950ae305bdc03da9b1d91b6c4dbef2b15133ec7fa2d9c1046b4"
                 ),
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -326,7 +326,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
     async def test_load_cert_command(self, mock_nfc: AsyncMock) -> None:
         apdu = APDU()
         mock_nfc.get_message.return_value = (
-            apdu.create_load_cert_response(StatusBytes.SUCCESS).to_bytes(),
+            apdu.create_load_cert_response(StatusBytes.SUCCESS)[0].to_bytes(),
             None,
             None,
         )
@@ -424,7 +424,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                 signature=reader_sig,
                 encryption=encryption,
                 status=StatusBytes.SUCCESS,
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -481,7 +481,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                 payload=bytes.fromhex("00020000"),
                 encryption=encryption_user,
                 status=StatusBytes.SUCCESS,
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )
@@ -529,7 +529,7 @@ class Test_reader(unittest.IsolatedAsyncioTestCase):
                 + bytes.fromhex("00020000"),
                 encryption=encryption_user,
                 status=StatusBytes.SUCCESS,
-            ).to_bytes(),
+            )[0].to_bytes(),
             None,
             None,
         )

@@ -65,7 +65,7 @@ class Test_apdu_testvectors(unittest.TestCase):
     def test_user_select_response(self) -> None:
         response = self.apdu.create_select_response(
             AID, 0x0000, [0x100], status=StatusBytes.SUCCESS
-        )
+        )[0]
         self.assertEqual(response.to_bytes(), SELECT_RESPONSE)
 
     def test_reader_select_response(self) -> None:
@@ -109,7 +109,7 @@ class Test_apdu_testvectors(unittest.TestCase):
 
         response = self.apdu.create_auth0_response(
             credential_epubk=user_epub_key.as_bytes(), status=StatusBytes.SUCCESS
-        )
+        )[0]
         self.assertEqual(response.to_bytes(), AUTH0_RESPONSE)
 
     def test_reader_auth0_response(self) -> None:
@@ -181,7 +181,7 @@ class Test_apdu_testvectors(unittest.TestCase):
             signature=USER_SIGNATURE,
             status=StatusBytes.SUCCESS,
             encryption=encryption,
-        )
+        )[0]
         self.assertEqual(hexlify(response.to_bytes()), hexlify(AUTH1_RESPONSE))
 
     def test_reader_auth1_response(self) -> None:
@@ -277,7 +277,7 @@ class Test_apdu_testvectors(unittest.TestCase):
         self.assertEqual(command.domain_specific_data, None)
 
     def test_user_control_flow_response(self) -> None:
-        response = self.apdu.create_control_flow_response(status=StatusBytes.SUCCESS)
+        response = self.apdu.create_control_flow_response(status=StatusBytes.SUCCESS)[0]
         self.assertEqual(response.to_bytes(), CONTROL_FLOW_RESPONSE)
 
     def test_reader_control_flow_response(self) -> None:

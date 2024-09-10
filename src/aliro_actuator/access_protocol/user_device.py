@@ -144,7 +144,7 @@ class UserDevice(Device):
         transport_override: TransportProtocolBase | None = None,
         access_credentials: list[AccessCredential] = [],
         supported_versions: list[int] = [PROTOCOL_VERSION],
-        access_document: AccessDocument | None = None,
+        access_document: bytes | None = None,
         revocation_document: RevocationDocument | None = None,
         mailbox: int | list[tuple[bytes, int, bytes]] | None = None,
         mailbox_read: bool = True,
@@ -287,7 +287,53 @@ class UserDevice(Device):
         """
 
         while True:
-            await self.single_transaction()
+            await self.transaction_initiation()
+            while True:
+                try:
+                    if self.session is None:
+                        raise SessionError("starting session failed")
+                    message = await self.wait_for_message()
+                except (InvalidCommandError, VerificationError):
+                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
+                except NoDeviceConnectedError:
+                    # try to reconnect in outer loop
+                    break
+                try:
+                    if isinstance(message, Command):
+                        match message.ins:
+                            case INS.SELECT:
+                                await self.handle_select(message)
+                            case INS.AUTH0:
+                                await self.handle_auth0(message)
+                            case INS.AUTH1:
+                                await self.handle_auth1(message)
+                            case INS.LOAD_CERT:
+                                await self.handle_load_cert(message)
+                            case INS.CONTROL_FLOW:
+                                await self.handle_control_flow(message)
+                                await self.transaction_termination()
+                                break
+                            case INS.EXCHANGE:
+                                await self.handle_exchange(message)
+                            case INS.ENVELOPE:
+                                await self.handle_envelope(message)
+                            case _:
+                                raise NotImplementedError(
+                                    "command: {} not implemented".format(message.ins)
+                                )
+                    else:
+                        self.handle_ble_messages(message)
+                except AccessProtocolError as error:
+                    Global.logger.error(
+                        "restarting session because of error: {}".format(repr(error))
+                    )
+                    # main loop should continue even when commands are not valid
+                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
+                    break
+                except NoDeviceConnectedError:
+                    # try to reconnect in outer loop
+                    break
 
     async def ranging_loop(self) -> None:
         while True:
@@ -1105,7 +1151,7 @@ class UserDevice(Device):
                 UserSessionState.AUTH0_FAST_DONE,
                 UserSessionState.AUTH1_DONE,
                 UserSessionState.EXCHANGE_DONE,
-                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.ENVELOPE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
         ):
@@ -1118,7 +1164,7 @@ class UserDevice(Device):
         Global.logger.info("Handling EXCHANGE Command")
         if self.session.state_valid(
             [
-                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.ENVELOPE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
         ):
@@ -1135,7 +1181,7 @@ class UserDevice(Device):
 
         if self.session.state_valid(
             [
-                UserSessionState.GET_RESPONSE_DONE,
+                UserSessionState.ENVELOPE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
             ]
         ):
@@ -1174,7 +1220,7 @@ class UserDevice(Device):
                 )
 
             if (
-                self.session.state_valid(UserSessionState.GET_RESPONSE_DONE)
+                self.session.state_valid(UserSessionState.ENVELOPE_DONE)
                 and not self.mailbox.step_up_permission
             ):
                 raise AccessProtocolError(
@@ -1333,13 +1379,53 @@ class UserDevice(Device):
 
         Global.logger.info("Handling CONTROL FLOW command done")
 
-    def handle_reader_status_changed_message(self, message: BleMessage) -> None:
-        Global.logger.info("Handling Reader Status Changed message")
-        message.check_header_and_id(
-            ProtocolType.NOTIFICATION,
-            Notification_ID.READER_STATUS_CHANGED,
+    async def handle_envelope(self, envelope_command: Command) -> bytes:
+        """
+        Parse an envelope command and send the appropriate response.
+
+        Args:
+            envelope_command (Command): The command to respond to.
+
+        Raises:
+            SessionError: Raised when the session is missing or in an invalid state.
+        """
+        if envelope_command.ins != INS.ENVELOPE:
+            raise AccessProtocolError(
+                "Tried to handle envelope command, "
+                "but received command is not a envelope command"
+            )
+
+        if self.session is None:
+            raise SessionError("No Session")
+        if not self.session.state_valid(
+            [
+                UserSessionState.AUTH1_DONE,
+                UserSessionState.EXCHANGE_DONE,
+                UserSessionState.ENVELOPE_DONE,
+            ]
+        ):
+            state = self.session.state
+            await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError(
+                "unexpected state for envelope command: {}".format(state)
+            )
+
+        Global.logger.info("Handling ENVELOPE Command")
+
+        if self.session.encryption_stepup is None:
+            raise AccessProtocolError("no encryption engine (step up) found")
+
+        if self.access_document is None:
+            raise AccessProtocolError("no access document found")
+
+        await self.response_envelope(
+            self.access_document, self.session.encryption_stepup
         )
-        message.parse_payload(self.session.get_ble_encryption())
+
+        self.session.update_state(UserSessionState.ENVELOPE_DONE)
+
+        Global.logger.info("Handling ENVELOPE command done")
+        return envelope_command.decrypted_payload
 
     def handle_reader_status_access_protocol_completed_message(
         self, message: BleMessage
@@ -1479,10 +1565,39 @@ class UserDevice(Device):
         else:
             raise AccessProtocolError("Message invalid (missing header or id)")
 
-        try:
-            command = self.apdu.parse_command(
-                command_str, self.session.encryption_expedited
+        command = await self.apdu.handle_chaining_receive_command(
+            command_str, self.transport_protocol
+        )
+
+        if self.session.state_valid(
+            [
+                UserSessionState.AUTH0_STD_DONE,
+                UserSessionState.AUTH0_FAST_DONE,
+            ]
+        ):
+            encryption = self.session.encryption_expedited
+        elif (
+            self.session.state_valid(
+                [UserSessionState.EXCHANGE_DONE, UserSessionState.AUTH1_DONE]
             )
+            and command.ins == INS.EXCHANGE
+        ):
+            encryption = self.session.encryption_expedited
+        elif self.session.state_valid(
+            [
+                UserSessionState.AUTH1_DONE,
+                UserSessionState.EXCHANGE_DONE,
+                UserSessionState.SELECT_STEP_UP_DONE,
+                UserSessionState.ENVELOPE_DONE,
+                UserSessionState.STEPUP_EXCHANGE_DONE,
+            ]
+        ):
+            encryption = self.session.encryption_stepup
+        else:
+            encryption = None
+
+        try:
+            command = self.apdu.parse_command(command, encryption)
         except InvalidCLAError as error:
             await self.failure_process(StatusBytes.FUNCTIONS_IN_CLA_NOT_SUPPORTED)
             raise error
@@ -1515,7 +1630,9 @@ class UserDevice(Device):
             credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
         Global.logger.info("Sending AUTH0 response")
-        await self.transport_protocol.send_message(auth0_response)
+        await self.apdu.handle_chaining_send_response(
+            auth0_response, self.transport_protocol
+        )
 
     async def response_auth1(
         self,
@@ -1559,7 +1676,9 @@ class UserDevice(Device):
             revocation_signed_timestamp,
         )
         Global.logger.info("Sending AUTH1 response")
-        await self.transport_protocol.send_message(auth1_response)
+        await self.apdu.handle_chaining_send_response(
+            auth1_response, self.transport_protocol
+        )
 
     async def response_select(
         self,
@@ -1591,13 +1710,23 @@ class UserDevice(Device):
             vendor_specific_tlv=vendor_specific_tlv,
         )
         Global.logger.info("Sending SELECT response")
-        await self.transport_protocol.send_message(select_response)
+        await self.apdu.handle_chaining_send_response(
+            select_response, self.transport_protocol
+        )
 
-    def response_envelope(self) -> None:
-        raise NotImplementedError
-
-    def response_get_response(self) -> None:
-        raise NotImplementedError
+    async def response_envelope(
+        self,
+        document: bytes,
+        encryption: EncryptionEngine,
+    ) -> None:
+        """
+        Create and send a envelope response.
+        """
+        envelope_response = self.apdu.create_envelope_response(document, encryption)
+        Global.logger.info("Sending ENVELOPE response")
+        await self.apdu.handle_chaining_send_response(
+            envelope_response, self.transport_protocol
+        )
 
     async def response_load_cert(self) -> None:
         """
@@ -1605,7 +1734,9 @@ class UserDevice(Device):
         """
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
         Global.logger.info("Sending LOAD CERT response")
-        await self.transport_protocol.send_message(load_cert_response)
+        await self.apdu.handle_chaining_send_response(
+            load_cert_response, self.transport_protocol
+        )
 
     async def response_exchange(
         self,
@@ -1623,7 +1754,9 @@ class UserDevice(Device):
             payload, encryption, StatusBytes.SUCCESS
         )
         Global.logger.info("Sending EXCHANGE response")
-        await self.transport_protocol.send_message(exchange_response)
+        await self.apdu.handle_chaining_send_response(
+            exchange_response, self.transport_protocol
+        )
 
     async def response_control_flow(self) -> None:
         """
@@ -1633,7 +1766,9 @@ class UserDevice(Device):
             StatusBytes.SUCCESS
         )
         Global.logger.info("Sending CONTROL FLOW response")
-        await self.transport_protocol.send_message(control_flow_response)
+        await self.apdu.handle_chaining_send_response(
+            control_flow_response, self.transport_protocol
+        )
 
 
 class UserSessionState(Enum):
@@ -1644,7 +1779,7 @@ class UserSessionState(Enum):
     AUTH1_DONE = 5
     EXCHANGE_DONE = 6
     SELECT_STEP_UP_DONE = 7
-    GET_RESPONSE_DONE = 8
+    ENVELOPE_DONE = 8
     STEPUP_EXCHANGE_DONE = 9
     TRANSACTION_COMPLETE = 10
 

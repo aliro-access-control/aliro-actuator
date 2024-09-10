@@ -63,7 +63,9 @@ class Test_apdu(unittest.TestCase):
     def test_select_response(self) -> None:
         aid = bytes("test_aid", "utf-8")
         etspv = [0x100, 0x0020]
-        response = self.apdu.create_select_response(aid, 0x0000, etspv, status=0x9000)
+        response = self.apdu.create_select_response(aid, 0x0000, etspv, status=0x9000)[
+            0
+        ]
         self.assertEqual(
             response.to_bytes(),
             bytes(
@@ -204,12 +206,14 @@ class Test_apdu(unittest.TestCase):
         credential_epubk = os.urandom(0x41)
         cryptogram = os.urandom(0x10)
 
-        response = self.apdu.create_auth0_response(credential_epubk, 0x9000)
+        response = self.apdu.create_auth0_response(credential_epubk, 0x9000)[0]
         self.assertEqual(
             response.to_bytes(), bytes([0x86, 0x41, *credential_epubk, 0x90, 0x00])
         )
 
-        response = self.apdu.create_auth0_response(credential_epubk, 0x9000, cryptogram)
+        response = self.apdu.create_auth0_response(
+            credential_epubk, 0x9000, cryptogram
+        )[0]
         self.assertEqual(
             response.to_bytes(),
             bytes([0x86, 0x41, *credential_epubk, 0x9D, 0x10, *cryptogram, 0x90, 0x00]),
@@ -228,7 +232,7 @@ class Test_apdu(unittest.TestCase):
         )
 
     def test_load_cert_response(self) -> None:
-        response = self.apdu.create_load_cert_response(0x9000)
+        response = self.apdu.create_load_cert_response(0x9000)[0]
         self.assertEqual(response.to_bytes(), bytes([0x90, 0x00]))
 
     def test_auth1(self) -> None:
