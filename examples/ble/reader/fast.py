@@ -44,7 +44,7 @@ async def main():
         AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
     await reader.handle_exchange(False, None, None, None)
-    await reader.reader_status_access_protocol_completed(0, 0)
+    await reader.reader_status_access_protocol_completed(1, 0)
     time.sleep(0.1)
     await reader.transaction_termination()
 
@@ -52,8 +52,8 @@ async def main():
     await reader.expedited_transaction_fast(
         AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
-    await reader.handle_exchange(False, ursk=b"")
-    await reader.reader_status_access_protocol_completed(0, 0)
+    await reader.handle_exchange(False, ursk=True)
+    await reader.reader_status_access_protocol_completed(1, 0)
     time.sleep(0.1)
     await reader.transaction_termination()
 

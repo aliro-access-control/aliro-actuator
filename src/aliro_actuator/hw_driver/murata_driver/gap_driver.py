@@ -9,7 +9,11 @@ from aliro_actuator.hw_driver.murata_driver.errors import (
     DeviceDisconnectedError,
     NoResponseError,
 )
-from aliro_actuator.hw_driver.murata_driver.fsci import ConfirmStatus, Message
+from aliro_actuator.hw_driver.murata_driver.fsci import (
+    AdvertisementInfo,
+    ConfirmStatus,
+    Message,
+)
 from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeGAP, OpGroup
 
 
@@ -66,8 +70,17 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         reader_group_sub_identifier: bytes,
         dynamic_tag_timestamp: bytes,
         dynamic_tag: bytes,
+        BLE_UWB_supported: bool = True,
+        BLE_only_supported: bool = True,
     ) -> None:
         Global.logger.debug("Setting advertising data")
+
+        byte_7 = advertisement_version & 0x07
+        byte_7 |= (notification & 0x3) << 3
+        if BLE_UWB_supported:
+            byte_7 |= 1 << 6
+        if BLE_only_supported:
+            byte_7 |= 1 << 7
 
         data = bytearray()
         data.append(0x01)  # advertising data included
@@ -81,7 +94,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         data.append(0x1A)  # length (-1)
         data.append(0x16)  # Type (Service data (16 bit UUID))
         data.extend(change_endianness(service_uuid))  # Aliro service UUID
-        data.append((notification << 3) | (advertisement_version & 0x07))
+        data.append(byte_7)
         data.append(tx_power)
         data.extend(reader_group_identifier[:8])
         data.extend(reader_group_sub_identifier[:2])
@@ -262,13 +275,13 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         check_dynamic_tag: bool = False,
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         reader_group_id: list | None = None,
-    ) -> tuple[int, bytes, int]:
+    ) -> AdvertisementInfo:
         while True:
             message = await self.wait_for_message(
                 OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
             )
             advertising_data = message.get_advertising_data()
-            _, address, _ = message.get_address()
+            address = message.get_address()
             Global.logger.debug(
                 "Scanned device with address: {!r} and data: {!r}".format(
                     hexlify(address), hexlify(advertising_data)
@@ -319,4 +332,4 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                 )
             else:
                 Global.logger.info("Device Found!")
-                return message.get_address()
+                return message.get_advertisement_info()

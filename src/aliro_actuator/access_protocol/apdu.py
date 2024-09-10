@@ -28,6 +28,7 @@ from aliro_actuator.access_protocol.defines import (
 )
 from aliro_actuator.access_protocol.encryption import (
     EncryptionEngine,
+    EncryptionMissingError,
     create_proprietary_information,
 )
 from aliro_actuator.access_protocol.errors import (
@@ -698,33 +699,50 @@ class Command(APDUMessage):
             )
 
             Global.logger.debug("Data needs to be verified during handling")
-            self.atomic_session = self.decrypted_payload[0] == 0x01
-            Global.logger.debug("atomic session: {}".format(self.atomic_session))
 
-            self.payload_tlv = TLV.from_bytes(self.decrypted_payload[1:])
+            self.payload_tlv = TLV.from_bytes(self.decrypted_payload)
             Global.logger.debug(
                 "Data contains TLV structure: {}".format(self.payload_tlv.to_print())
             )
 
-            self.read_requests = self._get_multiple_optional_bytes_from_TLV(
-                "Read_request",
-                Exchange.READ_TAG,
-                Exchange.READ_LEN,
-                tlv_data=self.payload_tlv,
+            self.mailbox_commands = self._get_optional_bytes_from_TLV(
+                "mailbox_commands", Exchange.MAILBOX_TAG, tlv_data=self.payload_tlv
             )
 
-            self.write_requests = self._get_multiple_optional_bytes_from_TLV(
-                "Write_request",
-                Exchange.WRITE_TAG,
-                tlv_data=self.payload_tlv,
-            )
+            if self.mailbox_commands is not None:
+                self.atomic_session: bool | None = self.mailbox_commands[0] == 0x01
+                Global.logger.debug("atomic session: {}".format(self.atomic_session))
 
-            self.set_requests = self._get_multiple_optional_bytes_from_TLV(
-                "Set_request",
-                Exchange.SET_TAG,
-                Exchange.SET_LEN,
-                tlv_data=self.payload_tlv,
-            )
+                self.mailbox_commands_tlv = TLV.from_bytes(self.mailbox_commands[1:])
+                Global.logger.debug(
+                    "mailbox_commands contains TLV structure: {}".format(
+                        self.payload_tlv.to_print()
+                    )
+                )
+                self.read_requests = self._get_multiple_optional_bytes_from_TLV(
+                    "Read_request",
+                    Exchange.READ_TAG,
+                    Exchange.READ_LEN,
+                    tlv_data=self.mailbox_commands_tlv,
+                )
+
+                self.write_requests = self._get_multiple_optional_bytes_from_TLV(
+                    "Write_request",
+                    Exchange.WRITE_TAG,
+                    tlv_data=self.mailbox_commands_tlv,
+                )
+
+                self.set_requests = self._get_multiple_optional_bytes_from_TLV(
+                    "Set_request",
+                    Exchange.SET_TAG,
+                    Exchange.SET_LEN,
+                    tlv_data=self.mailbox_commands_tlv,
+                )
+            else:
+                self.atomic_session = None
+                self.read_requests = []
+                self.write_requests = []
+                self.set_requests = []
 
             reader_status_bytes = self._get_optional_bytes_from_TLV(
                 "Reader Status",
@@ -746,7 +764,10 @@ class Command(APDUMessage):
             )
 
             self.ursk = self._get_optional_bytes_from_TLV(
-                "URSK", Exchange.URSK_TAG, tlv_data=self.payload_tlv
+                "URSK",
+                Exchange.URSK_TAG,
+                length=Exchange.URSK_LEN,
+                tlv_data=self.payload_tlv,
             )
 
             self.update_doc = self._get_optional_bytes_from_TLV(
@@ -1723,13 +1744,44 @@ class APDU:
         return self.create_response(status=status)
 
     def create_exchange_command(
-        self, atomic_session: bool, payload_tlv: TLV, encryption: EncryptionEngine
+        self,
+        mailbox_commands: bytes | None = None,
+        notify: bytes | None = None,
+        reader_status: int | None = None,
+        ursk: bool = False,
+        update_doc: bytes | None = None,
+        encryption: EncryptionEngine | None = None,
     ) -> list[Command]:
         Global.logger.info("Creating EXCHANGE command")
+        if encryption is None:
+            raise EncryptionMissingError
+
+        Global.logger.debug("Creating TLV")
+        payload_list: list[tuple[int, bytes | list]] = []
+        if mailbox_commands is not None:
+            Global.logger.debug("Adding mailbox commands")
+            payload_list.append((Exchange.MAILBOX_TAG, mailbox_commands))
+        if notify is not None:
+            Global.logger.debug("Adding notify")
+            payload_list.append((Exchange.NOTIFY_TAG, notify))
+        if reader_status is not None:
+            Global.logger.debug("Adding reader status: 0x{:04x}".format(reader_status))
+            payload_list.append(
+                (Exchange.READER_STATUS_TAG, reader_status.to_bytes(2, "big"))
+            )
+        if ursk:
+            Global.logger.debug("Adding URSK")
+            payload_list.append((Exchange.URSK_TAG, bytes()))
+        if update_doc is not None:
+            Global.logger.debug("Adding update doc")
+            payload_list.append((Exchange.UPDATE_DOC_TAG, update_doc))
+
+        payload_tlv = TLV(payload_list)
+
         Global.logger.debug(
             "Command contains TLV structure: {}".format(payload_tlv.to_print())
         )
-        payload = atomic_session.to_bytes(1, "big") + payload_tlv.to_bytes()
+        payload = payload_tlv.to_bytes()
         Global.logger.debug("Payload: {!r}".format(hexlify(payload)))
 
         Global.logger.info("encrypting EXCHANGE command payload")

@@ -66,7 +66,7 @@ class Auth0:
     READER_EPUBK_LEN = 65
     TRANSACTION_ID_LEN = 16
     READER_IDENTIFIER_LEN = 32
-    VENDOR_SPECIFIC_MAX_LEN = 128
+    VENDOR_SPECIFIC_MAX_LEN = 127
 
     # response
     CREDENTIAL_EPUBK_TAG = 0x86
@@ -120,6 +120,7 @@ class Exchange:
     READ_TAG = 0x87
     WRITE_TAG = 0x8A
     SET_TAG = 0x95
+    MAILBOX_TAG = 0xB9
     NOTIFY_TAG = 0xAE
     READER_STATUS_TAG = 0x97
     URSK_TAG = 0x98
@@ -128,6 +129,7 @@ class Exchange:
     READ_LEN = 4
     SET_LEN = 5
     READER_STATUS_LEN = 2
+    URSK_LEN = 0
 
 
 class ReaderAuth:

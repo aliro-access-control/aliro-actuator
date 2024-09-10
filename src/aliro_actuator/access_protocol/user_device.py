@@ -38,6 +38,7 @@ from aliro_actuator.access_protocol.defines import (
     PROTOCOL_VERSION,
     STEPUP_PHASE_AID,
     Auth0,
+    Select,
     TransportProtocol,
 )
 from aliro_actuator.access_protocol.device import Device
@@ -366,6 +367,15 @@ class UserDevice(Device):
                 return
             try:
                 if isinstance(message, Command):
+                    if (
+                        self.mailbox_session.is_started()
+                        and message.ins != INS.EXCHANGE
+                    ):
+                        await self.failure_process(StatusBytes.COMMAND_NOT_ALLOWED)
+                        raise AccessProtocolError(
+                            "received non-EXCHANGE command while an atomic session was "
+                            "open"
+                        )
                     match message.ins:
                         case INS.SELECT:
                             await self.handle_select(message)
@@ -604,7 +614,11 @@ class UserDevice(Device):
             CSA_APPLICATION_TYPE,
             self.supported_versions,
         )
-        message = BleMessage.create_initiate_access_protocol(proprietary.to_bytes())
+        proprietary_list: list[tuple[int, bytes | list]] = [
+            (Select.PROPRIETARY_TAG, proprietary.to_bytes())
+        ]
+        proprietary_tlv = TLV(proprietary_list)
+        message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes())
         await self.transport_protocol.send_message(message)
 
     async def send_timesync(self) -> None:
@@ -875,16 +889,6 @@ class UserDevice(Device):
                     )
                 except KeyLookupFailed:
                     pass
-                try:
-                    key = access_credential.get_issuer_public_key(
-                        self.session.reader_group_identifier
-                    ).as_bytes()
-                    Global.logger.info(
-                        "Issuer CA Certificate public key in access credential"
-                        ": {!r}".format(hexlify(key))
-                    )
-                except KeyLookupFailed:
-                    pass
 
                 break
         else:
@@ -976,9 +980,7 @@ class UserDevice(Device):
         Global.logger.info("Handling LOAD CERT Command")
         Global.logger.info("Decompressing and verifying certificate")
         try:
-            reader_issuer_public_key = (
-                self.session.get_reader_issuer_certificate_public_key()
-            )
+            reader_issuer_public_key = self.session.get_reader_group_identifier_key()
             verified = self.session.set_cert_and_verify(
                 load_cert_command.reader_cert, reader_issuer_public_key
             )
@@ -1024,7 +1026,7 @@ class UserDevice(Device):
             Global.logger.info("AUTH1 Command contains certificate")
             try:
                 reader_issuer_public_key = (
-                    self.session.get_reader_issuer_certificate_public_key()
+                    self.session.get_reader_group_identifier_key()
                 )
                 verified = self.session.set_cert_and_verify(
                     auth1_command.certificate_data, reader_issuer_public_key
@@ -1203,7 +1205,7 @@ class UserDevice(Device):
             self.session.update_state(UserSessionState.TRANSACTION_COMPLETE)
 
         if exchange_command.ursk is not None:
-            self.session.set_ursk(exchange_command.ursk)
+            self.session.set_ursk()
 
         if (
             len(exchange_command.read_requests)
@@ -1295,7 +1297,7 @@ class UserDevice(Device):
                 read_data.append((len(mailbox_read), mailbox_read))
 
         Global.logger.info("Handling write and set requests")
-        if self.mailbox is not None:
+        if self.mailbox is not None and exchange_command.atomic_session is not None:
             if exchange_command.atomic_session:
                 self.mailbox_session.start()
 
@@ -1798,7 +1800,7 @@ class UserSession:
         self.encryption_stepup: EncryptionEngine | None = None
         self.command_vendor_extension: bytes | None = None
         self.response_vendor_extension = vendor_extension
-        self.ursk_arbitrary_data: bytes | None = None
+        self.ursk_available: bool = False
         self.ble_encryption_engine: EncryptionEngine | None = None
 
     @property
@@ -1886,7 +1888,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Volatile****",
-            reader_public_key=self.get_reader_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -1934,7 +1936,7 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"VolatileFast",
-            reader_public_key=self.get_reader_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
@@ -1978,13 +1980,14 @@ class UserSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Persistent**",
-            reader_public_key=self.get_reader_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_epubk,
             reader_identifier=self.reader_identifier,
             protocol_version=self.expedited_phase_protocol_version.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
             flag=bytes([self.command_parameters, self.authentication_policy]),
             proprietary_information=proprietary_information,
+            credential_ephemeral_public_key=self.access_credential.get_access_credential_public_key(),
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]
@@ -2071,19 +2074,36 @@ class UserSession:
             )
         )
 
-    def get_reader_issuer_certificate_public_key(self) -> PublicKey:
-        if hasattr(self, "access_credential"):
-            return self.access_credential.get_issuer_public_key(
-                self.reader_group_identifier
-            )
-        else:
-            raise AccessProtocolError("No access credential set")
+    def get_reader_group_identifier_key(self) -> PublicKey:
+        Global.logger.debug("Looking for reader group identifier key")
 
-    def set_ursk(self, ursk_arbitrary_data: bytes) -> None:
-        if self.ursk_arbitrary_data is not None:
-            raise AccessProtocolError("URSK arbitrary data can only be set once")
+        if hasattr(self, "access_credential"):
+            Global.logger.info("Checking Access Credential")
+            if self.access_credential.has_identifier(self.reader_group_identifier):
+                try:
+                    reader_public_key = self.access_credential.get_reader_public_key(
+                        self.reader_group_identifier
+                    )
+                    Global.logger.debug(
+                        "reader_group_identifier_key set to "
+                        "reader public key: {!r}".format(
+                            hexlify(reader_public_key.as_bytes())
+                        )
+                    )
+                    return reader_public_key
+                except KeyLookupFailed:
+                    pass
+
+            raise KeyLookupFailed(
+                "reader group identifier not found in access credential"
+            )
+        raise KeyLookupFailed("No access credential set")
+
+    def set_ursk(self) -> None:
+        if self.ursk_available:
+            raise AccessProtocolError("Making the URSK available can only be done once")
         else:
-            self.ursk_arbitrary_data = ursk_arbitrary_data
+            self.ursk_available = True
 
 
 class MailboxSession:

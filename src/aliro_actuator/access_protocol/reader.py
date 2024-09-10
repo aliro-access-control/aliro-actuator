@@ -91,6 +91,11 @@ class ReaderState(Enum):
     STEPUP = 2
 
 
+class FastTransactionHandling(Enum):
+    CONTINUE_WITH_STANDARD = 0
+    ABORT_TRANSACTION = 1
+
+
 class ReaderMode(Enum):
     TEST = 0  # Every error raises an Exception
     READER = 1  # Strictly follows spec, may ignore errors if so noted in the spec, and
@@ -168,6 +173,8 @@ class Reader(Device):
         to be used by the reader. first transaction uses index 0, second
         transaction uses index 1, etc. Ephemeral keys are randomly generated if
         this is set to None. Defaults to None.
+        fast_transaction_handling (FastTransactionHandling): how to handle a failed
+        fast transaction
 
     Raises:
         AccessProtocolError: Raised when arguments have invalid format.
@@ -189,6 +196,8 @@ class Reader(Device):
         transaction_identifier_list: list[bytes] | None = None,
         ephemeral_key_list: list[KeyPair] | None = None,
         key_slot_list: list[PublicKey] = [],
+        fast_transaction_handling: FastTransactionHandling = FastTransactionHandling.CONTINUE_WITH_STANDARD,
+        reader_system_issuer_ca: PublicKey | None = None,
         mode: ReaderMode = ReaderMode.TEST,
     ):
         super().__init__(transport_protocol, transport_override)
@@ -216,6 +225,13 @@ class Reader(Device):
         else:
             self.reader_cert = None
             Global.logger.info("no reader certificate set")
+        self.reader_system_issuer_ca = reader_system_issuer_ca
+        if self.reader_system_issuer_ca is not None:
+            Global.logger.info(
+                "reader system issuer ca set to: {!r}".format(
+                    hexlify(self.reader_system_issuer_ca.as_bytes())
+                )
+            )
 
         # generate identifiers if None is passed
         if reader_group_identifier is None:
@@ -260,6 +276,7 @@ class Reader(Device):
                 )
             )
 
+        self.fast_transaction_handling = fast_transaction_handling
         self.failure_process_started = False
         self.mode = mode
 
@@ -326,7 +343,16 @@ class Reader(Device):
         self, authentication_policy: AuthenticationPolicy
     ) -> None:
         Global.logger.info("Start Expedited Transaction (fast)")
-        await self.handle_auth0(Transaction.FAST, authentication_policy)
+        try:
+            await self.handle_auth0(Transaction.FAST, authentication_policy)
+        except CryptogramNotFound as error:
+            if (
+                self.fast_transaction_handling
+                == FastTransactionHandling.CONTINUE_WITH_STANDARD
+            ):
+                await self.handle_auth1()
+            else:
+                raise error
         Global.logger.info("Expedited Transaction (fast) Done")
 
     async def expedited_transaction_standard(
@@ -360,7 +386,10 @@ class Reader(Device):
         """
         Global.logger.info("Starting new session")
         self.session = ReaderSession(
-            self.reader_key, self.reader_identifier, self.vendor_extension
+            self.reader_key,
+            self.reader_identifier,
+            self.vendor_extension,
+            self.reader_system_issuer_ca,
         )
         if (
             self.transaction_identifier_list is None
@@ -397,6 +426,7 @@ class Reader(Device):
             # we are already handling a failure, don't send another failure message
             return
         self.failure_process_started = True
+        Global.logger.info("Failure Process started")
 
         if self.mode == ReaderMode.READER:
             if (
@@ -500,9 +530,15 @@ class Reader(Device):
         except InvalidStatusError as error:
             if error.status == StatusBytes.FILE_OR_APP_NOT_FOUND:
                 Global.logger.error("User does not recognize AID")
+            else:
+                Global.logger.error(
+                    "Response status does not indicate success, "
+                    "status: 0x{:04x}".format(error.status)
+                )
             await self.failure_process(S2.NONE)
             raise error
         except InvalidResponseError as error:
+            Global.logger.error("SELECT response format invalid")
             await self.failure_process(S2.NONE)
             raise error
 
@@ -591,7 +627,15 @@ class Reader(Device):
                 reader_identifier=self.reader_identifier,
                 vendor_extension=self.vendor_extension,
             )
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(S2.NONE)
+            raise error
         except InvalidResponseError as error:
+            Global.logger.error("AUTH0 response format invalid")
             await self.failure_process(S2.NONE)
             raise error
 
@@ -689,7 +733,8 @@ class Reader(Device):
                 Global.logger.info("decryption failed, trying next key in storage")
                 pass
 
-        await self.failure_process(S2.NONE)
+        if self.fast_transaction_handling == FastTransactionHandling.ABORT_TRANSACTION:
+            await self.failure_process(S2.NONE)
         raise CryptogramNotFound("Matching Cryptogram not found")
 
     async def handle_load_cert(self) -> None:
@@ -712,7 +757,15 @@ class Reader(Device):
         Global.logger.info("Start handling LOAD CERT")
         try:
             await self.command_load_cert(self.reader_cert.encode_compressed())
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(S2.NONE)
+            raise error
         except InvalidResponseError as error:
+            Global.logger.error("LOAD CERT response format invalid")
             await self.failure_process(S2.NONE)
             raise error
 
@@ -750,8 +803,20 @@ class Reader(Device):
                 transaction_identifier=self.session.transaction_identifier,
                 encryption=self.session.encryption_expedited,
             )
-        except (InvalidResponseError, VerificationError) as error:
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            raise error
+        except InvalidResponseError as error:
+            Global.logger.error("AUTH1 response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+            raise error
+        except VerificationError as error:
+            Global.logger.error("AUTH1 response decryption failed")
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
             raise error
 
         Global.logger.info("Handling AUTH1 response")
@@ -883,7 +948,15 @@ class Reader(Device):
         )
         try:
             await self.command_control_flow(s1, s2)
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            raise error
         except (InvalidResponseError, VerificationError) as error:
+            Global.logger.error("CONTROL FLOW response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
 
@@ -893,12 +966,12 @@ class Reader(Device):
 
     async def handle_exchange(
         self,
-        atomic_session: bool,
+        atomic_session: bool = False,
         read_requests: list[tuple[int, int]] | None = None,
         write_requests: list[tuple[int, bytes]] | None = None,
         set_requests: list[tuple[int, int, int]] | None = None,
         notify: TLV | None = None,
-        ursk: bytes | None = None,
+        ursk: bool = False,
         update_doc: bytes | None = None,
         reader_status: int | None = None,
         reader_state: ReaderState = ReaderState.EXPEDITED,
@@ -926,16 +999,14 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        Global.logger.info(
-            "Start handling EXCHANGE with atomic session: {}".format(atomic_session)
-        )
+        Global.logger.info("Start handling EXCHANGE")
 
-        Global.logger.debug("Creating payload")
-        payload: list[tuple[int, bytes | list]] = []
+        Global.logger.debug("Creating mailbox commands TLV")
+        mailbox_commands_list: list[tuple[int, bytes | list]] = []
         if read_requests is not None:
             Global.logger.debug("Adding read requests")
             for read_request in read_requests:
-                payload.append(
+                mailbox_commands_list.append(
                     (
                         Exchange.READ_TAG,
                         read_request[0].to_bytes(2, "big")
@@ -944,7 +1015,7 @@ class Reader(Device):
                 )
         if write_requests is not None:
             for write_request in write_requests:
-                payload.append(
+                mailbox_commands_list.append(
                     (
                         Exchange.WRITE_TAG,
                         write_request[0].to_bytes(2, "big") + write_request[1],
@@ -953,7 +1024,7 @@ class Reader(Device):
         if set_requests is not None:
             Global.logger.debug("Adding set requests")
             for set_request in set_requests:
-                payload.append(
+                mailbox_commands_list.append(
                     (
                         Exchange.SET_TAG,
                         set_request[0].to_bytes(2, "big")
@@ -961,37 +1032,56 @@ class Reader(Device):
                         + set_request[2].to_bytes(1, "big"),
                     )
                 )
-        if notify is not None:
-            Global.logger.debug("Adding notify")
-            payload.append((Exchange.NOTIFY_TAG, notify.to_bytes()))
-        if ursk is not None:
-            Global.logger.debug("Adding URSK")
-            payload.append((Exchange.URSK_TAG, ursk))
-        if update_doc is not None:
-            Global.logger.debug("Adding update doc")
-            payload.append((Exchange.UPDATE_DOC_TAG, update_doc))
-
-        if reader_status is not None:
-            Global.logger.debug("Adding reader status: 0x{:04x}".format(reader_status))
-            payload.append(
-                (Exchange.READER_STATUS_TAG, reader_status.to_bytes(2, "big"))
+        mailbox_commands_tlv = TLV(mailbox_commands_list)
+        if len(mailbox_commands_tlv.to_data()) > 0:
+            Global.logger.info(
+                "mailbox commands are part of an atomic session: {}".format(
+                    atomic_session
+                )
             )
-
-        payload_tlv = TLV(payload)
+            mailbox_commands = (
+                atomic_session.to_bytes(1, "big") + mailbox_commands_tlv.to_bytes()
+            )
+            Global.logger.debug("Creating mailbox commands TLV Done")
+        else:
+            mailbox_commands = None
+            Global.logger.debug("No mailbox commands in this EXCHANGE")
 
         if reader_state == ReaderState.EXPEDITED:
+            Global.logger.debug("Using expedited encryption key")
             encryption = self.session.encryption_expedited
         elif reader_state == ReaderState.STEPUP:
+            Global.logger.debug("Using step up encryption key")
             encryption = self.session.encryption_stepup
-        if encryption is None:
-            raise AccessProtocolError("no encryption engine found")
+
+        if notify is not None:
+            notify_bytes = notify.to_bytes()
+        else:
+            notify_bytes = None
 
         try:
             response = await self.command_exchange(
-                atomic_session, payload_tlv, encryption
+                mailbox_commands=mailbox_commands,
+                notify=notify_bytes,
+                reader_status=reader_status,
+                ursk=ursk,
+                update_doc=update_doc,
+                encryption=encryption,
             )
-        except (InvalidResponseError, VerificationError) as error:
+        except InvalidStatusError as error:
+            Global.logger.error(
+                "Response status does not indicate success, "
+                "status: 0x{:04x}".format(error.status)
+            )
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            raise error
+        except InvalidResponseError as error:
+            Global.logger.error("EXCHANGE response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
+            raise error
+        except VerificationError as error:
+            Global.logger.error("EXCHANGE response decryption failed")
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
             raise error
 
         Global.logger.info("Handling EXCHANGE response")
@@ -1269,7 +1359,13 @@ class Reader(Device):
         return response
 
     async def command_exchange(
-        self, atomic_session: bool, payload: TLV, encryption: EncryptionEngine
+        self,
+        mailbox_commands: bytes | None = None,
+        notify: bytes | None = None,
+        reader_status: int | None = None,
+        ursk: bool = False,
+        update_doc: bytes | None = None,
+        encryption: EncryptionEngine | None = None,
     ) -> Response:
         """
         Create and send a exchange command, and wait for a response.
@@ -1283,7 +1379,14 @@ class Reader(Device):
         Returns:
             Response: Response containing the received data.
         """
-        command = self.apdu.create_exchange_command(atomic_session, payload, encryption)
+        command = self.apdu.create_exchange_command(
+            mailbox_commands=mailbox_commands,
+            notify=notify,
+            reader_status=reader_status,
+            ursk=ursk,
+            update_doc=update_doc,
+            encryption=encryption,
+        )
 
         response = await self.apdu.handle_chaining_send_command(
             "EXCHANGE", command, self.transport_protocol
@@ -1615,6 +1718,7 @@ class ReaderSession:
         reader_key: KeyPair,
         reader_identifier: bytes,
         vendor_extension: bytes | None = None,
+        reader_system_issuer_ca: PublicKey | None = None,
     ) -> None:
         self.reader_key = reader_key
         self.reader_identifier = reader_identifier
@@ -1623,6 +1727,7 @@ class ReaderSession:
         self.encryption_expedited: EncryptionEngine | None = None
         self.encryption_stepup: EncryptionEngine | None = None
         self.ble_encryption_engine: EncryptionEngine | None = None
+        self.reader_system_issuer_ca = reader_system_issuer_ca
 
     @property
     def reader_identifier(self) -> bytes:
@@ -1639,6 +1744,14 @@ class ReaderSession:
     @property
     def reader_group_sub_identifier(self) -> bytes:
         return self._reader_identifier.get_group_sub()
+
+    def get_reader_group_identifier_key(self) -> PublicKey:
+        if self.reader_system_issuer_ca is not None:
+            Global.logger.debug("Use reader system issuer ca key")
+            return self.reader_system_issuer_ca
+        else:
+            Global.logger.debug("Use reader public key")
+            return self.reader_key.get_public_key()
 
     def set_select_info(self, select_response: Response) -> None:
         self.compl_aid = select_response.compl_aid
@@ -1786,7 +1899,7 @@ class ReaderSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Volatile****",
-            reader_public_key=self.reader_key.get_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_ephemeral.get_public_key(),
             reader_identifier=self.reader_identifier,
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
@@ -1830,7 +1943,7 @@ class ReaderSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"VolatileFast",
-            reader_public_key=self.reader_key.get_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_ephemeral.get_public_key(),
             reader_identifier=self.reader_identifier,
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
@@ -1869,13 +1982,14 @@ class ReaderSession:
         salt = create_salt(
             transport_protocol=transport_protocol,
             word=b"Persistent**",
-            reader_public_key=self.reader_key.get_public_key(),
+            reader_public_key=self.get_reader_group_identifier_key(),
             reader_ephemeral_public_key=self.reader_ephemeral.get_public_key(),
             reader_identifier=self.reader_identifier,
             protocol_version=PROTOCOL_VERSION.to_bytes(2, "big"),
             transaction_identifier=self.transaction_identifier,
             flag=self.flag,
             proprietary_information=self.proprietary_tlv.to_bytes(),
+            credential_ephemeral_public_key=credential,
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]

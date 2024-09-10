@@ -39,7 +39,7 @@ class UserDeviceMurataDriver(
         await self.stop_scanning(False)
         await self.start_scanning()
 
-    async def wait_for_connection(self) -> None:
+    async def wait_for_connection(self) -> tuple[int, int, bool, bool]:
         Global.logger.info("wait for ble connection")
         Global.logger.debug(
             "Looking for devices with aliro service uuid: {!r}".format(
@@ -56,34 +56,24 @@ class UserDeviceMurataDriver(
                 ", ".join(str(hexlify(x)) for x in self.reader_group_identifier_list)
             )
         )
-        (
-            address_type,
-            address,
-            advertising_address_resolved,
-        ) = await self.search_for_device(
+        advertisement_info = await self.search_for_device(
             ALIRO_SERVICE_UUID,
             True,
             self.group_resolving_key,
             self.reader_group_identifier_list,
         )
         await self.stop_scanning()
-        await self.connect(address_type, address, advertising_address_resolved)
-
-    async def handle_GATT_layer(self, version: int) -> tuple[bytes, list[int]]:
-        Global.logger.info("handle GATT layer")
-        await self.handle_GATT_layer_setup()
-        primary_service = await self.handle_GATT_layer_get_primary_service()
-        spsm, ble_versions = await self.handle_GATT_layer_read_characteristic(
-            primary_service
+        await self.connect(
+            advertisement_info.address_type,
+            advertisement_info.address,
+            advertisement_info.advertising_address_resolved,
         )
-        Global.logger.debug("Read SPSM from reader: {!r}".format(hexlify(spsm)))
-        Global.logger.debug(
-            "Read BLE UWB Protocol versions: {}".format(
-                ", ".join(str(hex(version)) for version in ble_versions)
-            )
+        return (
+            advertisement_info.advertisement_version,
+            advertisement_info.notification,
+            advertisement_info.BLE_UWB_sepported,
+            advertisement_info.BLE_only_supported,
         )
-        await self.handle_GATT_layer_write_characteristic(primary_service, version)
-        return spsm, ble_versions
 
     async def handle_GATT_layer_setup(self) -> None:
         Global.logger.debug("GATT layer setup")
@@ -107,7 +97,7 @@ class UserDeviceMurataDriver(
 
     async def handle_GATT_layer_read_characteristic(
         self, primary_service: Service
-    ) -> tuple[bytes, list[int]]:
+    ) -> tuple[bytes, list[int], bytes]:
         Global.logger.debug("GATT read characteristic")
         reader_characteristic = None
         for characteristic in primary_service.characteristics:
@@ -127,7 +117,9 @@ class UserDeviceMurataDriver(
             start_index = 3 + index * 2
             end_index = 5 + index * 2
             versions.append(int.from_bytes(read_value[start_index:end_index], "big"))
-        return read_value[:2], versions
+        features_len = read_value[end_index]
+        features = read_value[end_index + 1 : end_index + 1 + features_len]
+        return read_value[:2], versions, features
 
     async def handle_GATT_layer_write_characteristic(
         self, primary_service: Service, version: int
@@ -158,7 +150,12 @@ class ReaderMurataDriver(
     MurataUWBDriver,
 ):
     async def setup_gatt_database(
-        self, spsm: bytes, supported_versions: list[int]
+        self,
+        spsm: bytes,
+        supported_versions: list[int],
+        time_sync_0: bool,
+        time_sync_1: bool,
+        LE_coded_phy: bool,
     ) -> None:
         Global.logger.info("Creating GATT Database")
         await self.release_database()
@@ -174,21 +171,34 @@ class ReaderMurataDriver(
         supported_versions_bytes = bytes(supported_versions_bytearray)
 
         supported_version_length = (len(supported_versions_bytes)).to_bytes(1, "big")
-        reader_value = spsm + supported_version_length + supported_versions_bytes
+        features_supported = int(time_sync_0)
+        features_supported |= int(time_sync_1) << 1
+        features_supported |= int(LE_coded_phy) << 2
+        features_supported_bytes = features_supported.to_bytes(1, "big")
+        features_supported_len = len(features_supported_bytes).to_bytes(1, "big")
+        reader_value = (
+            spsm
+            + supported_version_length
+            + supported_versions_bytes
+            + features_supported_len
+            + features_supported_bytes
+        )
+
+        write_value = bytes.fromhex("00000000")
 
         await self.add_characteristic_declaration_and_value(
             READER_CHARACTERISTIC_UUID,
             reader_value,
             uuid_type=UuidType.uuid_128_bits,
-            value_length=5,
+            value_length=len(reader_value),
             properties=Properties.read,
             permissions=Permissions.readable,
         )
         write_handle = await self.add_characteristic_declaration_and_value(
             USER_DEVICE_CHARACTERISTIC_UUID,
-            bytes.fromhex("0000"),
+            write_value,
             uuid_type=UuidType.uuid_128_bits,
-            value_length=2,
+            value_length=len(write_value),
             properties=Properties.write,
             permissions=Permissions.writable,
         )
@@ -206,6 +216,10 @@ class ReaderMurataDriver(
         reader_group_sub_identifier: bytes,
         group_resolving_key: bytes,
         expiry_timestamp: bytes = bytes.fromhex("7a4b8500"),
+        notification: int = 0x00,
+        advertisement_version: int = 0x00,
+        BLE_UWB_supported: bool = True,
+        BLE_only_supported: bool = True,
     ) -> None:
         Global.logger.info("setup ble connection")
         advertising_address = await self.read_public_device_address()
@@ -215,13 +229,15 @@ class ReaderMurataDriver(
         await self.set_advertising_parameters()
         await self.set_advertising_data(
             ALIRO_SERVICE_UUID,
-            notification=0x00,
-            advertisement_version=0x00,
+            notification=notification,
+            advertisement_version=advertisement_version,
             tx_power=0x00,
             reader_group_identifier=reader_group_identifier,
             reader_group_sub_identifier=reader_group_sub_identifier,
             dynamic_tag_timestamp=expiry_timestamp,
             dynamic_tag=dynamic_tag,
+            BLE_only_supported=BLE_only_supported,
+            BLE_UWB_supported=BLE_UWB_supported,
         )
         await self.set_tx_power_level(0, 0)
         await self.start_advertising()

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from binascii import hexlify
 from enum import IntEnum
 
@@ -35,6 +37,20 @@ class ConfirmStatus(IntEnum):
     INVALID_STATE = 0x09
     CALLBACK_ALREADY_INSTALLED = 0x03F3
     LE_PSM_ALREADY_REGISTERED = 0x03F5
+
+
+class AdvertisementInfo:
+    def __init__(self, message: Message) -> None:
+        adv_ind = message.get_advertising_data()
+        self.address = message.get_address()
+        self.address_type = message.data[0]
+        self.advertising_address_resolved = message.data[-1]
+
+        byte_7 = adv_ind[7]
+        self.advertisement_version = byte_7 & 0x7
+        self.notification = (byte_7 & 0x18) >> 3
+        self.BLE_UWB_sepported = (byte_7 & 0x40) == 0x40
+        self.BLE_only_supported = (byte_7 & 0x80) == 0x80
 
 
 class Message:
@@ -180,15 +196,20 @@ class Message:
             return self.data[9 : 9 + data_length]
         raise NotImplementedError
 
-    def get_address(self) -> tuple[int, bytes, int]:
+    def get_address(self) -> bytes:
         if (
             self.op_group == OpGroup.GAP
             and self.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
         ):
-            address_type = self.data[0]
-            address = change_endianness(self.data[1:7])
-            advertising_address_resolved = self.data[-1]
-            return (address_type, address, advertising_address_resolved)
+            return change_endianness(self.data[1:7])
+        raise NotImplementedError
+
+    def get_advertisement_info(self) -> AdvertisementInfo:
+        if (
+            self.op_group == OpGroup.GAP
+            and self.op_code == OpCodeGAP.SCANNING_EVENT_DEVICE_SCANNED
+        ):
+            return AdvertisementInfo(self)
         raise NotImplementedError
 
     def get_services(

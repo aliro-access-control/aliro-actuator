@@ -17,6 +17,8 @@ from enum import Enum
 
 from aliro_actuator.transport_protocol.message import Message
 
+ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION = 0x00
+
 
 class Mode(Enum):
     READER = 1

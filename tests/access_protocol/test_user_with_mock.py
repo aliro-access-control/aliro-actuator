@@ -159,7 +159,6 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
                 AccessCredential(
                     user_keys,
                     [(reader_identifier[:16], reader_keys.get_public_key())],
-                    [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
         )
@@ -200,7 +199,6 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             access_credentials=[
                 AccessCredential(
                     user_keys,
-                    [(reader_identifier[:16], reader_keys.get_public_key())],
                     [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
@@ -251,7 +249,6 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             access_credentials=[
                 AccessCredential(
                     user_keys,
-                    [(reader_identifier[:16], reader_keys.get_public_key())],
                     [(reader_identifier[:16], reader_keys.get_public_key())],
                 )
             ],
@@ -322,9 +319,6 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
                 AccessCredential(
                     access_credential_key_pair=user_credential,
                     reader_id_key_list=[
-                        (reader_identifier[:16], reader_key),
-                    ],
-                    reader_system_issuer_ca_certificate_id_key_list=[
                         (reader_identifier[:16], reader_key),
                     ],
                 )
@@ -409,9 +403,6 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
                         reader_key,
                     ),
                 ],
-                reader_system_issuer_ca_certificate_id_key_list=[
-                    (reader_id[:16], reader_key),
-                ],
             )
         ]
         user = UserDevice(TransportProtocol.NFC, mock_nfc, access_credentials)
@@ -476,7 +467,6 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
             AccessCredential(
                 credential_keypair,
                 [(reader_identifier[:16], reader_keypair.get_public_key())],
-                [(reader_identifier[:16], reader_keypair.get_public_key())],
             )
         ]
         user = UserDevice(
@@ -515,11 +505,10 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
         encryption = EncryptionEngine(
             DeviceType.READER, expedited_SK_reader, expedited_SK_device
         )
-        data = TLV(data=[])
 
         apdu = APDU()
         mock_nfc.get_message.return_value = (
-            apdu.create_exchange_command(False, data, encryption).to_bytes(),
+            apdu.create_exchange_command(encryption=encryption).to_bytes(),
             None,
             None,
         )
@@ -546,7 +535,10 @@ class Test_user(unittest.IsolatedAsyncioTestCase):
 
         apdu = APDU()
         mock_nfc.get_message.return_value = (
-            apdu.create_exchange_command(False, commands, encryption).to_bytes(),
+            apdu.create_exchange_command(
+                mailbox_commands=False.to_bytes(1, "big") + commands.to_bytes(),
+                encryption=encryption,
+            ).to_bytes(),
             None,
             None,
         )

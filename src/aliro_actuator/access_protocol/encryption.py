@@ -32,6 +32,14 @@ class VerificationError(AccessProtocolError):
     pass
 
 
+class EncryptionMissingError(AccessProtocolError):
+    """
+    Raised when the encryption engine is not available.
+    """
+
+    pass
+
+
 class DeviceType(Enum):
     """
     Enumerator, used by the EncryptionEngine, to indicate if the device is a reader or user.
@@ -153,6 +161,7 @@ class EncryptionEngine:
         try:
             cipher.verify(authentication_tag)
         except ValueError:
+            Global.logger.debug("Verification failed")
             self.decryption_counter += 1
             raise VerificationError
         self.decryption_counter += 1

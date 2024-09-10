@@ -35,16 +35,11 @@ async def main():
     issuer_public_key = PublicKey(issuer_public_key_pem.read())
 
     reader_identifier_list = [(READER_GROUP_IDENTIFIER, reader_public_key)]
-    reader_issuer_identifier_list = [(READER_GROUP_IDENTIFIER, issuer_public_key)]
 
     private_key_pem = open("examples/nfc/credential_private_key.pem", "rt")
     public_key_pem = open("examples/nfc/credential_public_key.pem", "rt")
     credential_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
-    access_credentials = [
-        AccessCredential(
-            credential_keypair, reader_identifier_list, reader_issuer_identifier_list
-        )
-    ]
+    access_credentials = [AccessCredential(credential_keypair, reader_identifier_list)]
 
     response = bytes.fromhex(
         "A3613163312E30613282A2613567616C69726F2D616131A26131A167616C69726F"

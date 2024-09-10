@@ -251,6 +251,12 @@ class BleMessage(Message):
                 "Invalid attribute in ble message: 0x{:02x}".format(self.id),
             )
 
+        if self.attribute.value is None or len(self.attribute.value) != 2:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute length in ble message",
+            )
+
         Global.logger.info("Parsing attribute: Reader information")
         self.unsolicited_reader_status_reporting = self._get_bits_and_enumerate(
             "unsolicited reader status reporting",
@@ -275,16 +281,31 @@ class BleMessage(Message):
                 "Invalid attribute in ble message: 0x{:02x}".format(self.attribute.id),
             )
 
+        if self.attribute.value is None:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute length in ble message",
+            )
+
         try:
-            self.proprietary_tlv = TLV.from_bytes(self.attribute.value)
+            proprietary_tlv = TLV.from_bytes(self.attribute.value)
         except TlvError as error:
             raise BLEMessageError(
                 self.to_bytes(),
                 "Proprietary information is not a valid TLV",
             ) from error
 
+        self.proprietary_tlv = self._get_TLV_from_TLV(
+            "Proprietary",
+            Select.PROPRIETARY_TAG,
+            tlv_data=proprietary_tlv,
+        )
+
         self.application_type = self._get_int_from_TLV(
-            "Type", Select.TYPE_TAG, Select.TYPE_LEN, tlv_data=self.proprietary_tlv
+            "Type",
+            Select.TYPE_TAG,
+            Select.TYPE_LEN,
+            tlv_data=self.proprietary_tlv,
         )
 
         etspv_bytes = self._get_bytes_from_TLV(
@@ -1007,11 +1028,13 @@ class OperationSourceInformation_Values(IntEnum):
     MANUAL = 1
     AUTO = 2
     SCHEDULE = 3
-    THIS_USER_DEVICE = 4
+    THIS_USER_BLE_UWB = 4
+    THIS_USER_NFC = 5
+    THIS_USER_BLE_ONLY = 6
+    MATTER = 7
 
 
 class UnsolicitedReaderStatusReporting_Values(IntEnum):
-    DO_NOT_SEND = 0
     SEND_TO_EACH_CONNECTED = 1
     SEND_ONLY_TO_THIS = 2
 
@@ -1020,6 +1043,7 @@ class ReaderStatusInformation_Values(IntEnum):
     SECURED = 0
     UNSECURED = 1
     JAMMED = 2
+    UNKNOWN = 3
 
 
 class SupplementaryService_AttributeID(IntEnum):

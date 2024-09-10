@@ -98,6 +98,15 @@ class MurataBaseDriver:
                 response = await self.read()
                 if (
                     response.get_op_group() == OpGroup.L2CAP
+                    and response.get_op_code() == OpCodeL2CAP.LE_CB_DATA
+                    and not (
+                        op_group == OpGroup.L2CAP and opcode == OpCodeL2CAP.LE_CB_DATA
+                    )
+                ):
+                    # received data while not waiting for data, pushing to message queue
+                    self.message_queue.append(response.get_packet())
+                if (
+                    response.get_op_group() == OpGroup.L2CAP
                     and response.get_op_code() == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
                 ):
                     # we always need to check for these messages, as they can be

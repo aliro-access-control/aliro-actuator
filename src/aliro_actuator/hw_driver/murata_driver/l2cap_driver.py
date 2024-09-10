@@ -21,12 +21,20 @@ class MurataL2CAPDriver(MurataBaseDriver):
         await self.register_le_psm(psm)
         await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
 
+        self.message_queue: list[
+            bytes
+        ] = []  # used for messages received while handling other commands
+
     async def setup_l2cap_connection_reader(self, psm: bytes) -> None:
         Global.logger.debug("Setup l2cap connection")
         await self.register_le_cb_callback()
         await self.register_le_psm(psm)
         await self.wait_for_l2cap_request(self.connected_devices[0])
         await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
+
+        self.message_queue = (
+            []
+        )  # used for messages received while handling other commands
 
     async def register_le_cb_callback(self) -> None:
         Global.logger.debug("Register Le Cb callback")
@@ -167,6 +175,11 @@ class MurataL2CAPDriver(MurataBaseDriver):
         Global.logger.debug("Wait for data")
         if device_id_requested not in self.connected_devices:
             raise DeviceNotFoundError
+
+        if len(self.message_queue) > 0:
+            data = self.message_queue.pop(0)
+            Global.logger.debug("Received data: {!r}".format(hexlify(data)))
+            return data
 
         while True:
             message = await self.wait_for_message(OpGroup.L2CAP, OpCodeL2CAP.LE_CB_DATA)
