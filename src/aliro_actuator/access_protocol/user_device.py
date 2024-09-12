@@ -979,17 +979,16 @@ class UserDevice(Device):
 
         Global.logger.info("Handling LOAD CERT Command")
         Global.logger.info("Decompressing and verifying certificate")
-        try:
-            reader_issuer_public_key = self.session.get_reader_group_identifier_key()
-            verified = self.session.set_cert_and_verify(
-                load_cert_command.reader_cert, reader_issuer_public_key
-            )
-        except CertificateDecodingError as error:
-            await self.response_load_cert()
-            raise error
+
+        reader_issuer_public_key = self.session.get_reader_group_identifier_key()
+        self.session.set_cert_and_verify(
+            load_cert_command.reader_cert, reader_issuer_public_key
+        )
         await self.response_load_cert()
 
-        if self.mode == UserMode.TEST and not verified:
+        if self.mode == UserMode.TEST and not self.session.cert_decoded:
+            raise AccessProtocolError("Certificate decoding failed")
+        if self.mode == UserMode.TEST and not self.session.cert_verified:
             raise AccessProtocolError("Certificate verification failed")
 
         Global.logger.info("Handling LOAD CERT command done")
@@ -1024,22 +1023,20 @@ class UserDevice(Device):
         Global.logger.info("Handling AUTH1 Command")
         if auth1_command.certificate_data is not None:
             Global.logger.info("AUTH1 Command contains certificate")
-            try:
-                reader_issuer_public_key = (
-                    self.session.get_reader_group_identifier_key()
-                )
-                verified = self.session.set_cert_and_verify(
-                    auth1_command.certificate_data, reader_issuer_public_key
-                )
-                if not verified:
-                    await self.failure_process(
-                        StatusBytes.SECURITY_STATUS_NOT_SATISFIED
-                    )
-                    raise AccessProtocolError("Certificate verification failed")
-            except CertificateDecodingError:
-                Global.logger.error("Error decoding certificate")
-                await self.failure_process(StatusBytes.GENERIC_ERROR)
-                return
+
+            reader_issuer_public_key = self.session.get_reader_group_identifier_key()
+            self.session.set_cert_and_verify(
+                auth1_command.certificate_data, reader_issuer_public_key
+            )
+
+        if not self.session.cert_decoded:
+            Global.logger.error("Error decoding certificate")
+            await self.failure_process(StatusBytes.GENERIC_ERROR)
+            raise AccessProtocolError("Certificate decoding failed")
+        if not self.session.cert_verified:
+            Global.logger.error("Error verifying certificate")
+            await self.failure_process(StatusBytes.SECURITY_STATUS_NOT_SATISFIED)
+            raise AccessProtocolError("Certificate verification failed")
 
         await self.check_reader_authentication_data(auth1_command.reader_signature)
 
@@ -2026,23 +2023,35 @@ class UserSession:
 
     def set_cert_and_verify(
         self, compressed_cert: bytes, public_key: PublicKey
-    ) -> bool:
+    ) -> None:
         Global.logger.debug(
             "decompressing compressed certificate: {!r}".format(
                 hexlify(compressed_cert)
             )
         )
-        cert = Certificate.decode_compressed(compressed_cert)
+        try:
+            cert = Certificate.decode_compressed(compressed_cert)
+        except CertificateDecodingError:
+            self.cert_decoded = False
+            return
+        self.cert_decoded = True
         verified = cert.verify(public_key)
         if verified:
             Global.logger.info("Verification successfull")
             self.cert = cert
+            self.cert_verified = True
         else:
             Global.logger.warning("Verification unsuccessfull")
-        return verified
+            self.cert_verified = False
 
     def get_reader_public_key(self) -> PublicKey:
         Global.logger.debug("Looking for reader public key")
+
+        if hasattr(self, "cert_decoded") and not self.cert_decoded:
+            raise KeyLookupFailed("Cert received but decoding failed")
+
+        if hasattr(self, "cert_verified") and not self.cert_verified:
+            raise KeyLookupFailed("Cert received but verification failed")
 
         if hasattr(self, "cert"):
             Global.logger.info("Checking certificate")
