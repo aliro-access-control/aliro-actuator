@@ -531,8 +531,14 @@ class MurataUWBDriver(MurataBaseDriver):
         uci.rng_stop(self.dh, session_id=self.session_handle_dh)
 
     async def get_ranging_data(self) -> int:
-        ntf = self.dh.wait_for_notification(ntf=uci.Cmds.RANGE_CCC_DATA, timeout=2)
-        return ntf.fields["DISTANCE"].val
+        invalid_dist = 65535
+        while True:
+            ntf = self.dh.wait_for_notification(ntf=uci.Cmds.RANGE_CCC_DATA, timeout=2)
+            distance = ntf.fields["DISTANCE"].val
+            if distance != invalid_dist:
+                return ntf.fields["DISTANCE"].val
+            else:
+                Global.logger.debug(f"Ranging NTF dist invalid: {distance}")
 
     async def close_uci(self) -> None:
         Global.logger.debug("Close UCI")
