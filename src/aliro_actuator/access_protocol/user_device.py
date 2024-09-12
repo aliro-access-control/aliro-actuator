@@ -1375,6 +1375,14 @@ class UserDevice(Device):
 
         Global.logger.info("Handling CONTROL FLOW command done")
 
+    def handle_reader_status_changed_message(self, message: BleMessage) -> None:
+        Global.logger.info("Handling Reader Status Changed message")
+        message.check_header_and_id(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.READER_STATUS_CHANGED,
+        )
+        message.parse_payload(self.session.get_ble_encryption())
+
     async def handle_envelope(self, envelope_command: Command) -> bytes:
         """
         Parse an envelope command and send the appropriate response.
