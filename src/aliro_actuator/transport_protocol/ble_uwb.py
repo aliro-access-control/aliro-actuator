@@ -121,11 +121,13 @@ class BLEUWB(TransportProtocolBase):
             )
 
     async def disconnect(self, raise_errors: bool = False) -> None:
-        if len(self.driver.connected_devices) == 0 and raise_errors:
+        if len(self.driver.connected_devices) == 0:
             await self.driver.close_uci()
-            raise NoDeviceConnectedError
-        await self.driver.disconnect(self.driver.connected_devices[0])
-        await self.driver.close_uci()
+            if raise_errors:
+                raise NoDeviceConnectedError
+        else:
+            await self.driver.disconnect(self.driver.connected_devices[0])
+            await self.driver.close_uci()
 
     async def handle_GATT_layer(self, version: int) -> None:
         if self.mode == Mode.USER_DEVICE and isinstance(
