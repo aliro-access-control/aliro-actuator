@@ -120,8 +120,9 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_identifier_list=truncated_list,
             )
 
-    async def disconnect(self) -> None:
-        if len(self.driver.connected_devices) == 0:
+    async def disconnect(self, raise_errors: bool = False) -> None:
+        if len(self.driver.connected_devices) == 0 and raise_errors:
+            await self.driver.close_uci()
             raise NoDeviceConnectedError
         await self.driver.disconnect(self.driver.connected_devices[0])
         await self.driver.close_uci()
