@@ -43,9 +43,7 @@ async def main():
     await reader.expedited_transaction_standard(
         AuthenticationPolicy.USER_DEVICE_SECURE_ACTION
     )
-    await reader.handle_exchange(
-        False, reader_status=ReaderStatus.READER_STATE_UNSECURED
-    )
+    await reader.handle_exchange(False, reader_status=ReaderStatus.READER_STATE_SECURED)
     await reader.transaction_termination()
 
 
