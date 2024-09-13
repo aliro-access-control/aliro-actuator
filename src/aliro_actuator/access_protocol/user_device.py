@@ -1642,6 +1642,7 @@ class UserDevice(Device):
         signaling_bitmap: bytes | None = None,
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
+        check_validity: bool = True,
     ) -> None:
         """
         Create and send an auth1 response.
@@ -1670,6 +1671,7 @@ class UserDevice(Device):
             signaling_bitmap,
             credential_signed_timestamp,
             revocation_signed_timestamp,
+            check_validity,
         )
         Global.logger.info("Sending AUTH1 response")
         await self.apdu.handle_chaining_send_response(
