@@ -700,7 +700,7 @@ class Command(APDUMessage):
 
             Global.logger.debug("Data needs to be verified during handling")
 
-            self.payload_tlv = TLV.from_bytes(self.decrypted_payload)
+            self.payload_tlv = TLV.from_bytes(self.decrypted_payload, recursive=False)
             Global.logger.debug(
                 "Data contains TLV structure: {}".format(self.payload_tlv.to_print())
             )
