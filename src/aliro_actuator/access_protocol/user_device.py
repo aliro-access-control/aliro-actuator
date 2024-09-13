@@ -323,13 +323,12 @@ class UserDevice(Device):
                                     "command: {} not implemented".format(message.ins)
                                 )
                     else:
-                        self.handle_ble_messages(message)
+                        await self.handle_ble_messages(message)
                 except AccessProtocolError as error:
                     Global.logger.error(
                         "restarting session because of error: {}".format(repr(error))
                     )
                     # main loop should continue even when commands are not valid
-                    await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                     break
                 except NoDeviceConnectedError:
                     # try to reconnect in outer loop
