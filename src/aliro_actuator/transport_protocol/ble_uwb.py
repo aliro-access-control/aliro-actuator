@@ -79,6 +79,11 @@ class BLEUWB(TransportProtocolBase):
         self.mode = mode
         self.group_resolving_key = group_resolving_key
         self.spsm = spsm
+
+        # In case uci is open close it before trying to initialize again
+        if hasattr(self, 'driver'):
+            await self.driver.close_uci()
+
         if self.mode == Mode.READER:
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port, self.baudrate)
