@@ -55,7 +55,7 @@ async def main():
         reader_group_sub_identifier=READER_SUB_GROUP_IDENTIFIER,
         reader_key=reader_keypair,
         reader_cert=out,
-        reader_system_issuer_ca=reader_keypair.get_public_key(),
+        reader_system_issuer_ca=issuer_keypair.get_public_key(),
         mode=ReaderMode.READER,
     )
     await reader.transaction_initiation()
