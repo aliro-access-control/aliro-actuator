@@ -925,9 +925,9 @@ class UserDevice(Device):
 
                 doc_timestamp = None
                 revoke_timestamp = None
-                if self.access_document is not None:
+                if self.access_document is not None and isinstance(self.access_document, AccessDocument):
                     doc_timestamp = self.access_document.get_timestamp()
-                if self.revocation_document is not None:
+                if self.revocation_document is not None and isinstance(self.revocation_document, RevocationDocument):
                     revoke_timestamp = self.revocation_document.get_timestamp()
                 cryptogram = compute_cryptogram(
                     self.session.cryptogram_SK,
