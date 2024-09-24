@@ -1028,11 +1028,11 @@ class UserDevice(Device):
                 auth1_command.certificate_data, reader_issuer_public_key
             )
 
-        if hasattr(self, "cert_decoded") and not self.session.cert_decoded:
+        if hasattr(self.session, "cert_decoded") and not self.session.cert_decoded:
             Global.logger.error("Error decoding certificate")
             await self.failure_process(StatusBytes.GENERIC_ERROR)
             raise AccessProtocolError("Certificate decoding failed")
-        if hasattr(self, "cert_verified") and not self.session.cert_verified:
+        if hasattr(self.session, "cert_verified") and not self.session.cert_verified:
             Global.logger.error("Error verifying certificate")
             await self.failure_process(StatusBytes.SECURITY_STATUS_NOT_SATISFIED)
             raise AccessProtocolError("Certificate verification failed")
