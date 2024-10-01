@@ -775,6 +775,7 @@ class Reader(Device):
     async def handle_auth1(
         self,
         expected_response: Auth1Response = Auth1Response.CREDENTIAL_PUBLIC_KEY,
+        certificate: bool = False,
     ) -> None:
         """
         Create and send a AUTH1 command.
@@ -794,6 +795,13 @@ class Reader(Device):
                 expected_response.name
             )
         )
+        if certificate:
+            if self.reader_cert is None:
+                raise AccessProtocolError("No reader cert available")
+            certificate_data = self.reader_cert.encode_compressed()
+        else:
+            certificate_data = None
+
         try:
             auth1_response = await self.command_auth1(
                 expected_response=expected_response,
@@ -802,6 +810,7 @@ class Reader(Device):
                 reader_epubk=self.session.get_reader_epubkey(),
                 transaction_identifier=self.session.transaction_identifier,
                 encryption=self.session.encryption_expedited,
+                certificate_data=certificate_data,
             )
         except InvalidStatusError as error:
             Global.logger.error(
@@ -1255,6 +1264,7 @@ class Reader(Device):
         reader_epubk: PublicKey,
         transaction_identifier: bytes,
         encryption: EncryptionEngine | None = None,
+        certificate_data: bytes | None = None,
     ) -> Response:
         """
         Create and send a auth1 command, and wait for a response.
@@ -1280,7 +1290,9 @@ class Reader(Device):
         Global.logger.debug(
             "reader authentication data signature: {!r}".format(hexlify(reader_sig))
         )
-        command = self.apdu.create_auth1_command(expected_response, reader_sig)
+        command = self.apdu.create_auth1_command(
+            expected_response, reader_sig, certificate_data
+        )
 
         response = await self.apdu.handle_chaining_send_command(
             "AUTH1", command, self.transport_protocol

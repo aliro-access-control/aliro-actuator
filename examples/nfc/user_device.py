@@ -21,7 +21,7 @@ sys.path.append(PROJECT_PATH)
 import asyncio
 
 from aliro_actuator.access_protocol.defines import TransportProtocol
-from aliro_actuator.access_protocol.user_device import UserDevice
+from aliro_actuator.access_protocol.user_device import UserDevice, UserMode
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey
 from examples.nfc.common import READER_GROUP_IDENTIFIER, READER_SUB_GROUP_IDENTIFIER
@@ -110,6 +110,7 @@ async def main():
         access_credentials=access_credentials,
         mailbox=0x20,
         access_document=response,
+        mode=UserMode.USER,
     )
     await reader.main_loop()
 

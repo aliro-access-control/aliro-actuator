@@ -79,6 +79,11 @@ class BLEUWB(TransportProtocolBase):
         self.mode = mode
         self.group_resolving_key = group_resolving_key
         self.spsm = spsm
+
+        # In case uci is open close it before trying to initialize again
+        if hasattr(self, 'driver'):
+            await self.driver.close_uci()
+
         if self.mode == Mode.READER:
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port, self.baudrate)
@@ -120,11 +125,14 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_identifier_list=truncated_list,
             )
 
-    async def disconnect(self) -> None:
+    async def disconnect(self, raise_errors: bool = False) -> None:
         if len(self.driver.connected_devices) == 0:
-            raise NoDeviceConnectedError
-        await self.driver.disconnect(self.driver.connected_devices[0])
-        await self.driver.close_uci()
+            await self.driver.close_uci()
+            if raise_errors:
+                raise NoDeviceConnectedError
+        else:
+            await self.driver.disconnect(self.driver.connected_devices[0])
+            await self.driver.close_uci()
 
     async def handle_GATT_layer(self, version: int) -> None:
         if self.mode == Mode.USER_DEVICE and isinstance(
