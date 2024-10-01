@@ -100,7 +100,7 @@ class TLV:
         """
         element = self.get_value(tag, index)
         if not isinstance(element, bytes):
-            raise TlvError
+            raise TlvError("type is not bytes, but {}".format(type(element)))
         return element
 
     def get_tlv(self, tag: int, index: int = 0) -> TLV:
@@ -192,7 +192,7 @@ class TLV:
         return bytes_list
 
     @staticmethod
-    def from_bytes(data_bytes: bytes) -> TLV:
+    def from_bytes(data_bytes: bytes, recursive: bool | None = None) -> TLV:
         """
         Converts tlv value (BER-TLV, ISO 7816-4) from bytestring to TLV class
         Value is b"" if the tlv tag has no value.
@@ -203,7 +203,7 @@ class TLV:
         """
         data: list[tuple[int, bytes | list]] = []
         try:
-            data = Tlv.parse(data_bytes)
+            data = Tlv.parse(data_bytes, recursive)
         except (BadTag, BadLength, BadParameter, UnexpectedEnd) as error:
             raise TlvError(error) from error
 

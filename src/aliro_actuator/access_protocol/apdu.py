@@ -700,7 +700,7 @@ class Command(APDUMessage):
 
             Global.logger.debug("Data needs to be verified during handling")
 
-            self.payload_tlv = TLV.from_bytes(self.decrypted_payload)
+            self.payload_tlv = TLV.from_bytes(self.decrypted_payload, recursive=False)
             Global.logger.debug(
                 "Data contains TLV structure: {}".format(self.payload_tlv.to_print())
             )
@@ -1628,16 +1628,17 @@ class APDU:
         signaling_bitmap: bytes | None = None,
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
+        check_validity: bool = True,
     ) -> list[Response]:
         Global.logger.info("Creating AUTH1 response")
         Global.logger.info("creating response payload")
         auth1_payload: list[tuple[int, bytes | list]] = []
         if expected_response == Auth1Response.KEY_SLOT:
-            if key_slot is None:
+            if check_validity and key_slot is None:
                 raise CreateCommandError(
                     "no keyslot passed while expected_response is KEY_SLOT"
                 )
-            if len(key_slot) != Auth1.KEY_SLOT_LEN:
+            if check_validity and len(key_slot) != Auth1.KEY_SLOT_LEN:
                 raise CreateCommandError(
                     "Key slot has invalid length, expected {}, actual: {}".format(
                         Auth1.KEY_SLOT_LEN, len(key_slot)
@@ -1645,11 +1646,11 @@ class APDU:
                 )
             auth1_payload.append((Auth1.KEY_SLOT_TAG, key_slot))
         elif expected_response == Auth1Response.CREDENTIAL_PUBLIC_KEY:
-            if public_key is None:
+            if check_validity and public_key is None:
                 raise CreateCommandError(
                     "no public key passed while expected_response is CREDENTIAL_PUBLIC_KEY"
                 )
-            if len(public_key) != Auth1.CREDENTIAL_PUBK_LEN:
+            if check_validity and len(public_key) != Auth1.CREDENTIAL_PUBK_LEN:
                 raise CreateCommandError(
                     "Credential public key has invalid length, expected {}, actual: {}".format(
                         Auth1.CREDENTIAL_PUBK_LEN, len(public_key)
@@ -1657,7 +1658,7 @@ class APDU:
                 )
             auth1_payload.append((Auth1.CREDENTIAL_PUBK_TAG, public_key))
 
-        if len(signature) != Auth1.USER_DEVICE_SIG_LEN:
+        if check_validity and len(signature) != Auth1.USER_DEVICE_SIG_LEN:
             raise CreateCommandError(
                 "Credential signature has invalid length, expected {}, actual: {}".format(
                     Auth1.USER_DEVICE_SIG_LEN, len(signature)
@@ -1669,7 +1670,7 @@ class APDU:
 
         if signaling_bitmap is None:
             signaling_bitmap = bytes(b"\x00" * Auth1.SIGNALING_BITMAP_LEN)
-        if len(signaling_bitmap) != Auth1.SIGNALING_BITMAP_LEN:
+        if check_validity and len(signaling_bitmap) != Auth1.SIGNALING_BITMAP_LEN:
             raise CreateCommandError(
                 "signaling_bitmap has invalid length, expected {}, actual: {}".format(
                     Auth1.SIGNALING_BITMAP_LEN, len(signaling_bitmap)
@@ -1678,7 +1679,10 @@ class APDU:
         auth1_payload.append((Auth1.SIGNALING_BITMAP_TAG, signaling_bitmap))
 
         if credential_signed_timestamp is not None:
-            if len(credential_signed_timestamp) != Auth1.CREDENTIAL_TIMESTAMP_LEN:
+            if (
+                check_validity
+                and len(credential_signed_timestamp) != Auth1.CREDENTIAL_TIMESTAMP_LEN
+            ):
                 raise CreateCommandError(
                     "credential_signed_timestamp has invalid length, expected {}, actual: {}".format(
                         Auth1.CREDENTIAL_TIMESTAMP_LEN, len(credential_signed_timestamp)
@@ -1688,7 +1692,10 @@ class APDU:
                 (Auth1.CREDENTIAL_TIMESTAMP_TAG, credential_signed_timestamp)
             )
         if revocation_signed_timestamp is not None:
-            if len(revocation_signed_timestamp) != Auth1.REVOCATION_TIMESTAMP_LEN:
+            if (
+                check_validity
+                and len(revocation_signed_timestamp) != Auth1.REVOCATION_TIMESTAMP_LEN
+            ):
                 raise CreateCommandError(
                     "revocation_signed_timestamp has invalid length, expected {}, actual: {}".format(
                         Auth1.REVOCATION_TIMESTAMP_LEN, len(revocation_signed_timestamp)
