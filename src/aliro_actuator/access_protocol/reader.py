@@ -1950,7 +1950,7 @@ class ReaderSession:
             transaction_identifier=self.transaction_identifier,
             flag=self.flag,
             proprietary_information=self.proprietary_tlv.to_bytes(),
-            credential_ephemeral_public_key=credential,
+            credential_public_key=credential,
         )
         derived_key = derive_key(k_persistent, bytes(info), 160, salt)
         self.cryptogram_SK = derived_key[0:32]
@@ -1989,7 +1989,7 @@ class ReaderSession:
             transaction_identifier=self.transaction_identifier,
             flag=self.flag,
             proprietary_information=self.proprietary_tlv.to_bytes(),
-            credential_ephemeral_public_key=credential,
+            credential_public_key=credential,
         )
         derived_key = derive_key(self.shared_key, bytes(info), 32, salt)
         return derived_key[0:32]

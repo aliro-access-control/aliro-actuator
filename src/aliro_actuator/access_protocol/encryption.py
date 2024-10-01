@@ -179,7 +179,7 @@ def create_salt(
     transaction_identifier: bytes,
     flag: bytes,
     proprietary_information: bytes,
-    credential_ephemeral_public_key: PublicKey | None = None,
+    credential_public_key: PublicKey | None = None,
 ) -> bytes:
     """
     Generates the salt used for key generation
@@ -194,7 +194,7 @@ def create_salt(
         transaction_identifier (bytes).
         flag (bytes): command_parameters || authentication_policy.
         proprietary_information (bytes): proprietary information.
-        credential_ephemeral_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
+        credential_public_key (PublicKey | None, optional): only for "VolatileFast" or "Persistent**". Defaults to None.
 
     Returns:
         bytes: the salt as bytes
@@ -225,8 +225,8 @@ def create_salt(
         bytes([Select.PROPRIETARY_TAG, len(proprietary_information)])
         + proprietary_information
     )
-    if credential_ephemeral_public_key is not None:
-        salt.extend(credential_ephemeral_public_key.get_x().to_bytes(32, "big"))
+    if credential_public_key is not None:
+        salt.extend(credential_public_key.get_x().to_bytes(32, "big"))
 
     Global.logger.debug("created salt: {!r}".format(hexlify(salt)))
     return bytes(salt)
