@@ -33,11 +33,13 @@ async def main():
     public_key_pem = open("examples/nfc/reader_public_key.pem", "rt")
     reader_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
 
-    issuer_private_key_pem = open("examples/nfc/issuer_private_key.pem", "rt")
-    issuer_public_key_pem = open("examples/nfc/issuer_public_key.pem", "rt")
+    issuer_private_key_pem = open("examples/nfc/private_key.pem", "rt")
+    issuer_public_key_pem = open("examples/nfc/public_key.pem", "rt")
     issuer_keypair = KeyPair(
         issuer_private_key_pem.read(), issuer_public_key_pem.read()
     )
+
+    issuer_group_identifier = bytes.fromhex("00113344667799AA00113344667799AB")
 
     out = Certificate.generate(
         serial_number=bytes.fromhex("01"),
@@ -51,7 +53,7 @@ async def main():
 
     reader = Reader(
         transport_protocol=TransportProtocol.NFC,
-        reader_group_identifier=READER_GROUP_IDENTIFIER,
+        reader_group_identifier=issuer_group_identifier,
         reader_group_sub_identifier=READER_SUB_GROUP_IDENTIFIER,
         reader_key=reader_keypair,
         reader_cert=out,
