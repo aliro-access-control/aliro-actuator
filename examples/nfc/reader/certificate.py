@@ -33,8 +33,8 @@ async def main():
     public_key_pem = open("examples/nfc/reader_public_key.pem", "rt")
     reader_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
 
-    issuer_private_key_pem = open("examples/nfc/private_key.pem", "rt")
-    issuer_public_key_pem = open("examples/nfc/public_key.pem", "rt")
+    issuer_private_key_pem = open("examples/nfc/issuer_private_key.pem", "rt")
+    issuer_public_key_pem = open("examples/nfc/issuer_public_key.pem", "rt")
     issuer_keypair = KeyPair(
         issuer_private_key_pem.read(), issuer_public_key_pem.read()
     )
