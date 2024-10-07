@@ -868,7 +868,7 @@ class BleMessage(Message):
         sync_code_index: int,
         ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
-        data = sts_index0.to_bytes(2, "big")
+        data = sts_index0.to_bytes(4, "big")
         sts_index0_attr = BleAttribute(UWB_AttributeID.STS_INDEX0, data)
         uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, uwb_time0)
         data = hop_mode_key.to_bytes(4, "big")

@@ -1,4 +1,5 @@
 import asyncio
+import time
 from binascii import hexlify
 from enum import IntEnum
 from pathlib import Path
@@ -96,7 +97,12 @@ class MurataUWBDriver(MurataBaseDriver):
             fw=DEFAULT_SR150_FIRMWARE_PATH,
             skip_fw_download=False,
         )
-        await asyncio.to_thread(uci.device_init, self.dh)
+        await asyncio.to_thread(
+            uci.device_init,
+            self.dh,
+            board=uci.PLATFORM.RHODES,
+            variant=uci.BOARD_VARIANT.V4,
+        )
 
         # fmt: off
         await self.set_device_config(
@@ -165,7 +171,7 @@ class MurataUWBDriver(MurataBaseDriver):
         await self.uci_set_calibration(
             uci.APP_CFG.CHANNEL_ID.CH_9, 
             uci.CALIB_TYPE.RX_ANT_DELAY_CALIB, 
-            [0x03, 0x01, 0xC5, 0x3A, 0x02, 0xC5, 0x3A, 0x03, 0xC5, 0x3A]
+            [0x03, 0x01, 0xBC, 0x3A, 0x02, 0xBC, 0x3A, 0x03, 0xBC, 0x3A]
         )
         await self.uci_set_calibration(
             uci.APP_CFG.CHANNEL_ID.CH_9,
@@ -531,8 +537,26 @@ class MurataUWBDriver(MurataBaseDriver):
         uci.rng_stop(self.dh, session_id=self.session_handle_dh)
 
     async def get_ranging_data(self) -> int:
-        ntf = self.dh.wait_for_notification(ntf=uci.Cmds.RANGE_CCC_DATA, timeout=2)
-        return ntf.fields["DISTANCE"].val
+        invalid_dist = 65535
+        timeout = 60
+        start_time = time.time()
+
+        while True:
+            ntf = self.dh.wait_for_notification(ntf=uci.Cmds.RANGE_CCC_DATA, timeout=2)
+            distance = ntf.fields["DISTANCE"].val
+            if distance != invalid_dist:
+                Global.logger.debug(f"Ranging NTF dist: {distance}")
+                if distance < 50:
+                    return distance
+            else:
+                Global.logger.debug("Ranging Active NTF")
+
+            # Get current time
+            current_time = time.time()
+
+            # Check if timeout has been reached
+            if current_time - start_time >= timeout:
+                return invalid_dist
 
     async def close_uci(self) -> None:
         Global.logger.debug("Close UCI")
