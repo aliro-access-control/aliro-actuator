@@ -39,6 +39,8 @@ async def main():
         issuer_private_key_pem.read(), issuer_public_key_pem.read()
     )
 
+    issuer_group_identifier = bytes.fromhex("00113344667799AA00113344667799AB")
+
     out = Certificate.generate(
         serial_number=bytes.fromhex("01"),
         issuer=bytes.fromhex("697373756572"),
@@ -51,7 +53,7 @@ async def main():
 
     reader = Reader(
         transport_protocol=TransportProtocol.NFC,
-        reader_group_identifier=READER_GROUP_IDENTIFIER,
+        reader_group_identifier=issuer_group_identifier,
         reader_group_sub_identifier=READER_SUB_GROUP_IDENTIFIER,
         reader_key=reader_keypair,
         reader_cert=out,
