@@ -51,6 +51,8 @@ from aliro_actuator.transport_protocol import TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.message import Message
 
+import cbor2
+
 # See Aliro spec 8.3
 APDU_COMMAND_MAX_DATA_LENGTH = 255
 APDU_RESPONSE_MAX_DATA_LENGTH = 254
@@ -481,8 +483,11 @@ class Command(APDUMessage):
             raise InvalidCommandDataError(
                 self.as_bytes, "ENVELOPE command received without data"
             )
-        self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
-        self.authentication_tag = self.data[-AUTHENTICATION_TAG_SIZE:]
+        apdu_data, *_ = TLV.from_bytes(self.data).get_all_bytes_of_tag(0x53)
+        cbor = cbor2.loads(apdu_data)
+        data = cbor["data"]
+        self.encrypted_payload = data[:-AUTHENTICATION_TAG_SIZE]
+        self.authentication_tag = data[-AUTHENTICATION_TAG_SIZE:]
 
         Global.logger.debug(
             "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
@@ -1828,13 +1833,19 @@ class APDU:
             payload,
         )
         payload = encrypted_payload + tag
+        session_data = {}
+        session_data['data'] = payload
+        cbor = cbor2.dumps(session_data)
+
+        command_payload = TLV([])
+        command_payload.add_value(0x53, cbor)
 
         return self.create_command(
             cla=0x00,
             ins=INS.ENVELOPE,
             p1=0x00,
             p2=0x00,
-            data=bytes(payload),
+            data=bytes(command_payload),
             le=0x00,
         )
 
