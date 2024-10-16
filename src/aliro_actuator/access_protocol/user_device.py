@@ -790,28 +790,30 @@ class UserDevice(Device):
             raise SessionError("No Session")
 
         Global.logger.info("Handling Select Command")
-        if select_command.aid == EXPEDITED_PHASE_AID:
-            Global.logger.info(
-                "AID valid for expedited phase: {!r}".format(
-                    hexlify(select_command.aid)
+        while True:
+            if select_command.aid == EXPEDITED_PHASE_AID:
+                Global.logger.info(
+                    "AID valid for expedited phase: {!r}".format(
+                        hexlify(select_command.aid)
+                    )
                 )
-            )
-            self.session.update_state(UserSessionState.SELECT_DONE)
-        elif select_command.aid == STEPUP_PHASE_AID:
-            Global.logger.info(
-                "AID valid for step-up phase: {!r}".format(hexlify(select_command.aid))
-            )
-            if not self.session.state_valid(
-                [UserSessionState.AUTH1_DONE, UserSessionState.EXCHANGE_DONE]
-            ):
-                raise AccessProtocolError(
-                    "Step up phase can only be requested after standard expedited phase"
+                self.session.update_state(UserSessionState.SELECT_DONE)
+                break
+            elif select_command.aid == STEPUP_PHASE_AID:
+                Global.logger.info(
+                    "AID valid for step-up phase: {!r}".format(hexlify(select_command.aid))
                 )
-            self.session.update_state(UserSessionState.SELECT_STEP_UP_DONE)
-        else:
-            Global.logger.warning("Invalid AID")
-            await self.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
-            raise InvalidAIDError(select_command.to_bytes(), select_command.aid)
+                if not self.session.state_valid(
+                    [UserSessionState.AUTH1_DONE, UserSessionState.EXCHANGE_DONE]
+                ):
+                    raise AccessProtocolError(
+                        "Step up phase can only be requested after standard expedited phase"
+                    )
+                self.session.update_state(UserSessionState.SELECT_STEP_UP_DONE)
+                break
+            else:
+                Global.logger.warning("Invalid AID")
+                # Retry handling of SELECT 
 
         await self.response_select(
             select_command.aid,
