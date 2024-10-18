@@ -1845,7 +1845,7 @@ class APDU:
             ins=INS.ENVELOPE,
             p1=0x00,
             p2=0x00,
-            data=bytes(command_payload),
+            data=bytes(command_payload.to_bytes()),
             le=0x00,
         )
 
