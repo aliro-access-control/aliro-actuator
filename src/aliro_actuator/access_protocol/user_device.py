@@ -1849,6 +1849,13 @@ class UserSession:
         self.reader_identifier = auth0_command.reader_identifier
         self.command_vendor_extension = auth0_command.vendor_specific_extension
 
+        # Initialize UWB support
+        await self.driver.uci_initialize(
+                session_id=self.session.transaction_identifier[-4:],
+                dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
+                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
+            )
+
     def set_access_credential(self, access_credential: AccessCredential) -> None:
         self.access_credential = access_credential
 
