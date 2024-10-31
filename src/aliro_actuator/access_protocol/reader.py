@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import os
+import ucitool.base_uci.helpers.uci_helper as uci
 from binascii import hexlify
 from enum import Enum
 
@@ -399,6 +400,13 @@ class Reader(Device):
         else:
             self.session.transaction_identifier = self.transaction_identifier_list.pop(
                 0
+            )
+
+        # Initialize UWB support
+        await self.transport_protocol.driver.uci_initialize(
+                session_id=self.session.transaction_identifier[-4:],
+                dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
+                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
             )
 
         if self.ephemeral_key_list is None or len(self.ephemeral_key_list) == 0:
