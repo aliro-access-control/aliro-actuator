@@ -80,6 +80,10 @@ from aliro_actuator.transport_protocol.errors import (
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
 )
+from aliro_actuator.hw_driver.murata_driver.uwb_driver import (
+    UCIHoppingConfig,
+    HoppingConfig,
+)
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
@@ -1569,20 +1573,52 @@ class Reader(Device):
         message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
+    def common_sync_code_index(self, sync_code_index: bytes, supported_sync_code_index: bytes) -> bytes:
+        # convert bytes to sets of unique bytes
+        set1 = set(sync_code_index)
+        set2 = set(supported_sync_code_index)
+
+        # Find common intersection of two sets
+        common_bytes = set1.intersection(set2)
+
+        return common_bytes
+
+    def set_hopping_conf(self, hopping_conf_bitmask: int, supported_hopping_conf_bitmask: int) -> None:
+        self.common_hopping_conf = hopping_conf_bitmask & supported_hopping_conf_bitmask
+
+        if self.common_hopping_conf & HoppingConfig.NO_HOPPING:
+            self.transport_protocol.set_hopping_mode(UCIHoppingConfig.NO_HOPPING)
+        elif self.common_hopping_conf & HoppingConfig.CONTINUOUS_HOPPING_MODULO:
+            self.transport_protocol.set_hopping_mode(UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO)
+        elif self.common_hopping_conf & HoppingConfig.ADAPTIVE_HOPPING_MODULO:
+            self.transport_protocol.set_hopping_mode(UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO)
+
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M2")
         message.parse_payload(self.session.get_ble_encryption())
-        # TODO: Number Chaps per Slot, Number Responder Nodes, Number Slots per Round,
+
+        await self.transport_protocol.set_uwb_config_id(
+                int.from_bytes(message.uwb_configuration_id.to_bytes, "big")
+        )
+
+        await self.transport_protocol.set_pulse_shape_combination(
+                message.pulse_shape_combo.to_bytes()
+        )
+
         await self.transport_protocol.set_ran_multiplier(
             int.from_bytes(message.ran_multiplier.value, "big")
         )
 
-        self.received_sync_code_bitmask = int.from_bytes(
-            message.sync_code_index_bitmask.value, "big"
+        self.common_sync_code_index_bitmask = self.common_sync_code_index(
+            message.sync_code_index_bitmask.to_bytes(),
+            self.sync_code_index_bitmask.to_bytes(4, "big")
         )
 
-        await self.transport_protocol.set_hopping_mode(0)  # TODO
-        await self.transport_protocol.set_mac_mode(0)  # TODO
+        self.set_hopping_conf(
+            message.hopping_conf_bitmask.to_bytes(),
+            self.hopping_conf_bitmask.to_bytes(4, "big")
+        )
+
         await self.send_ranging_session_setup_m3()
 
     async def handle_ranging_setup_m4(self, message: BleMessage) -> None:

@@ -68,6 +68,15 @@ sync_code_index = [
     0x80000000,
 ]
 
+class UCIHoppingConfig(IntEnum):
+    NO_HOPPING = 0
+    ADAPTIVE_HOPPING_MODULO = 2
+    CONTINUOUS_HOPPING_MODULO = 3
+
+class HoppingConfig(IntEnum):
+    NO_HOPPING = 0x80
+    CONTINUOUS_HOPPING_MODULO = 0x40
+    ADAPTIVE_HOPPING_MODULO = 0x20
 
 class MurataUWBDriver(MurataBaseDriver):
     async def uci_initialize(
