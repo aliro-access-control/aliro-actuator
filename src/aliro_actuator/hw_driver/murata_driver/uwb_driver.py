@@ -132,22 +132,28 @@ class MurataUWBDriver(MurataBaseDriver):
         await self.initial_config()
         await self.get_capabilities()
 
+    def check_response(self, response):
+        if (response.fields['UCI_STATUS'].name != 'STATUS_OK'):
+            raise Exception('UCI command failed')
+
     async def set_device_config(self, config: type, value: list) -> None:
-        await asyncio.to_thread(
+        response = await asyncio.to_thread(
             uci.set_device_config,
             self.dh,
             config=config,
             value=value,
         )
+        self.check_response(response)
 
     async def set_config(self, config: type, value: int) -> None:
-        await asyncio.to_thread(
+        response = await asyncio.to_thread(
             uci.set_config,
             self.dh,
             config=config,
             value=value,
             session_id=self.session_handle_dh,
         )
+        self.check_response(response)
 
     async def get_config(self, config: type) -> Any:
         return await asyncio.to_thread(
