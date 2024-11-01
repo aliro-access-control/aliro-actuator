@@ -1584,15 +1584,18 @@ class Reader(Device):
 
         return common_bytes
 
-    def set_hopping_conf(self, hopping_conf_bitmask: int, supported_hopping_conf_bitmask: int) -> None:
+    async def set_hopping_conf(self, hopping_conf_bitmask: int, supported_hopping_conf_bitmask: int) -> None:
         self.common_hopping_conf = hopping_conf_bitmask & supported_hopping_conf_bitmask
 
         if self.common_hopping_conf & HoppingConfig.NO_HOPPING:
-            self.transport_protocol.set_hopping_mode(UCIHoppingConfig.NO_HOPPING)
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.NO_HOPPING)
+            self.common_hopping_conf = HoppingConfig.NO_HOPPING + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
         elif self.common_hopping_conf & HoppingConfig.CONTINUOUS_HOPPING_MODULO:
-            self.transport_protocol.set_hopping_mode(UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO)
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO)
+            self.common_hopping_conf = HoppingConfig.CONTINUOUS_HOPPING_MODULO + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
         elif self.common_hopping_conf & HoppingConfig.ADAPTIVE_HOPPING_MODULO:
-            self.transport_protocol.set_hopping_mode(UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO)
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO)
+            self.common_hopping_conf = HoppingConfig.ADAPTIVE_HOPPING_MODULO + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
 
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M2")
@@ -1615,7 +1618,7 @@ class Reader(Device):
             self.sync_code_index_bitmask.to_bytes(4, "big")
         )
 
-        self.set_hopping_conf(
+        await self.set_hopping_conf(
             message.hopping_conf_bitmask.to_bytes(),
             self.hopping_conf_bitmask.to_bytes(4, "big")
         )
@@ -1705,11 +1708,6 @@ class Reader(Device):
         num_chaps_per_slot = await self.transport_protocol.get_num_chaps_per_slot()
         number_responder_nodes = await self.transport_protocol.get_number_responders()
         number_slots_per_round = await self.transport_protocol.get_slots_per_round()
-        sync_code_index_bitmask = (
-            self.transport_protocol.get_sync_code_bitmask()
-            & self.received_sync_code_bitmask
-        )
-        hopping_conf_bitmask = self.transport_protocol.get_hopping_config_bitmask()
         mac_mode = await self.transport_protocol.get_mac_mode()
         vendor_specific = 0xFF
 
@@ -1718,8 +1716,8 @@ class Reader(Device):
             num_chaps_per_slot,
             number_responder_nodes,
             number_slots_per_round,
-            sync_code_index_bitmask,
-            hopping_conf_bitmask,
+            self.common_sync_code_index_bitmask,
+            self.common_hopping_conf,
             mac_mode,
             vendor_specific,
             self.session.get_ble_encryption(),
