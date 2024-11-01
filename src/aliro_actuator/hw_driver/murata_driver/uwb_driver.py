@@ -77,6 +77,7 @@ class HoppingConfig(IntEnum):
     NO_HOPPING = 0x80
     CONTINUOUS_HOPPING_MODULO = 0x40
     ADAPTIVE_HOPPING_MODULO = 0x20
+    DEFAULT_HOPPING_SEQUENCE = 0X8
 
 class MurataUWBDriver(MurataBaseDriver):
     async def uci_initialize(
@@ -321,6 +322,7 @@ class MurataUWBDriver(MurataBaseDriver):
             config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
             value=uci.APP_CFG.NUMBER_OF_CONTROLEES.SINGLE_ANCHOR,
         )
+        await self.set_mac_mode(0x0) # One active ranging round
 
         if self.device_role == uci.APP_CFG.DEVICE_ROLE.RESPONDER:
             await self.set_config(

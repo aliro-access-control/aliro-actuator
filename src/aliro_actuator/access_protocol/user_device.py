@@ -60,6 +60,7 @@ from aliro_actuator.access_protocol.errors import (
     UnexpectedBLEMessageError,
     UnexpectedCommandError,
     VersionError,
+    InvalidPulseShapeCombo
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
@@ -496,9 +497,33 @@ class UserDevice(Device):
 
         return None
 
+    def select_config_id(self, config_id: bytes, supported_config_id: bytes) -> int:
+        # convert bytes to sets of unique bytes
+        set1 = set(config_id)
+        set2 = set(supported_config_id)
+
+        # Find common intersection of two sets
+        common_bytes = set1.intersection(set2)
+
+        for byte in config_id:
+            if byte in common_bytes:
+                return byte
+
+        return None
+
     async def handle_ranging_setup_m1(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M1")
         message.parse_payload(self.session.get_ble_encryption())
+
+        # Configure selected configuration ID
+        self.selected_config_id = self.select_config_id(
+            message.uwb_configuration_id.to_bytes,
+            self.transport_protocol.get_uwb_config_id_support()
+        )
+        if self.select_config_id is not None:
+            await self.transport_protocol.set_uwb_config_id(
+                int.from_bytes(self.select_config_id, "big")
+            )
 
         # Configure selected pulse shape combo for the user device
         self.selected_pulse_shape_combination = self.select_pulseshape_combo(
@@ -511,14 +536,21 @@ class UserDevice(Device):
             await self.transport_protocol.set_pulse_shape_combination(
                 self.selected_pulse_shape_combination
             )
-        await self.transport_protocol.set_uwb_config_id(
-            int.from_bytes(message.uwb_configuration_id.value, "big")
-        )
+        else:
+            raise InvalidPulseShapeCombo
 
         await self.transport_protocol.set_channel_bitmask(
             int.from_bytes(message.channel_bitmask.value, "big")
         )
         await self.send_ranging_session_setup_m2()
+
+    async def set_hopping_conf(self, common_hopping_conf: int) -> None:
+        if common_hopping_conf & HoppingConfig.NO_HOPPING:
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.NO_HOPPING)
+        elif common_hopping_conf & HoppingConfig.CONTINUOUS_HOPPING_MODULO:
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO)
+        elif common_hopping_conf & HoppingConfig.ADAPTIVE_HOPPING_MODULO:
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO)
 
     async def handle_ranging_setup_m3(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M3")
@@ -538,14 +570,15 @@ class UserDevice(Device):
         )
 
         # Select the first sync_code_index from the bitmask value
-        await self.transport_protocol.set_sync_code_index(
-            int.from_bytes(message.sync_code_index_bitmask.value, "big") & 0xFF
+        common_sync_code_index = int.from_bytes(message.sync_code_index_bitmask.value, "big")
+        for value in sync_code_index:
+            if common_sync_code_index & value:
+                await self.transport_protocol.set_sync_code_index(value)
+
+        await self.set_hopping_conf(
+            int.from_bytes(message.hopping_configuration_bitmask.value, "big")
         )
-        hopping_config = int.from_bytes(
-            message.hopping_configuration_bitmask.value, "big"
-        )
-        await self.transport_protocol.set_hopping_mode(0)  # TODO
-        await self.transport_protocol.set_mac_mode(0)  # TODO
+        await self.transport_protocol.set_mac_mode(int.from_bytes(message.mac_mode, "big"))
 
         await self.send_ranging_session_setup_m4()
 
