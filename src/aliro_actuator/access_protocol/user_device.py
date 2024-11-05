@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ucitool.base_uci.helpers.uci_helper as uci
+
 from binascii import hexlify
 from enum import Enum
 from os import urandom
@@ -61,7 +63,8 @@ from aliro_actuator.access_protocol.errors import (
     UnexpectedBLEMessageError,
     UnexpectedCommandError,
     VersionError,
-    InvalidPulseShapeCombo
+    InvalidPulseShapeCombo,
+    InvalidHoppingConfig
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
@@ -79,6 +82,11 @@ from aliro_actuator.transport_protocol.errors import (
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
+)
+from aliro_actuator.hw_driver.murata_driver.uwb_driver import (
+    UCIHoppingConfig,
+    HoppingConfig,
+    pulse_shape_combo,
 )
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -501,7 +509,7 @@ class UserDevice(Device):
 
         # Return the first common byte found in the order of pulseshape_received
         for byte in pulseshape_received:
-            if byte in common_bytes:
+            if byte in common_bytes and byte in pulse_shape_combo:
                 return byte
 
         return None
@@ -560,6 +568,8 @@ class UserDevice(Device):
             await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO)
         elif common_hopping_conf & HoppingConfig.ADAPTIVE_HOPPING_MODULO:
             await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO)
+        else:
+            raise InvalidHoppingConfig
 
     async def handle_ranging_setup_m3(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M3")
@@ -913,6 +923,13 @@ class UserDevice(Device):
         except InvalidKeyError:
             AccessProtocolError("Reader ephemeral key is invalid")
         Global.logger.info("Reader ephemeral key is a valid key")
+
+        # Initialize UWB support
+        await self.transport_protocol.driver.uci_initialize(
+            session_id=self.session.transaction_identifier[-4:],
+            dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
+            dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
+        )
 
         Global.logger.info("Looking up access credential")
         for access_credential in self.access_credentials:
@@ -1927,13 +1944,6 @@ class UserSession:
         self.transaction_identifier = auth0_command.transaction_identifier
         self.reader_identifier = auth0_command.reader_identifier
         self.command_vendor_extension = auth0_command.vendor_specific_extension
-
-        # Initialize UWB support
-        await self.driver.uci_initialize(
-                session_id=self.session.transaction_identifier[-4:],
-                dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
-                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
-            )
 
     def set_access_credential(self, access_credential: AccessCredential) -> None:
         self.access_credential = access_credential

@@ -211,14 +211,32 @@ class InvalidResponseDataError(InvalidResponseError):
             message = "response: {!r}".format(hexlify(response))
         AccessProtocolError.__init__(self, message)
 
-class InvalidUWBParamaeter(Exception):
+class InvalidUWBParameter(Exception):
     """
     Raised when an invalid UWB parameter is received.
     """
     pass
 
-class InvalidPulseShapeCombo(InvalidUWBParamaeter):
+class InvalidPulseShapeCombo(InvalidUWBParameter):
     """
     Raised when an invalid pulse shape combination is received.
+    """
+    pass
+
+class InvalidRanMultiplier(InvalidUWBParameter):
+    """
+    Raised when an invalid ran multiplier is received.
+    """
+    pass
+
+class InvalidHoppingConfig(InvalidUWBParameter):
+    """
+    Raised when an invalid hopping configuration is received.
+    """
+    pass
+
+class InvalidSyncCodeIndex(InvalidUWBParameter):
+    """
+    Raised when an invalid sync code index is received.
     """
     pass
