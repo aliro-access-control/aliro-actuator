@@ -32,10 +32,14 @@ class PulseShapeCombo(IntEnum):
     PRECURSOR_FREE = 0x01
     PRECURSOR_FREE_SPECIAL = 0x02
 
-
 pulse_shape_combo = [
     0x00, 0x01, 0x02, 0x10, 0x11, 0x12, 0x20, 0x21, 0x22,
 ]
+
+class Channel(IntEnum):
+    CHANNEL_5 = 0x01
+    CHANNEL_9 = 0x02
+
 
 class UCIHoppingConfig(IntEnum):
     NO_HOPPING = 0
@@ -51,7 +55,6 @@ class HoppingConfig(IntEnum):
 class MurataUWBDriver(MurataBaseDriver):
     async def uci_initialize(
         self,
-        session_id: int,
         dev_role: int,
         dev_type: int,
     ) -> None:
@@ -62,12 +65,11 @@ class MurataUWBDriver(MurataBaseDriver):
         ]:
             raise NotImplementedError
 
-        self.session_id = session_id
         self.device_role = dev_role
         self.device_type = dev_type
 
-        self.dh.disable_ntf_prints()
-        self.dh.disable_uci_prints()
+        # self.dh.disable_ntf_prints()
+        # self.dh.disable_uci_prints()
 
         Global.logger.info("Upload UWB device firmware. (This can take a while)")
         await asyncio.to_thread(
@@ -107,9 +109,6 @@ class MurataUWBDriver(MurataBaseDriver):
 
         Global.logger.info("Calibrate device.")
         await self.set_calibration()
-        await self.set_app_config(uci.APP_CFG.CHANNEL_ID.CH_9)
-        await self.initial_config()
-        await self.get_capabilities()
 
     def check_response(self, response):
         if (response.fields['UCI_STATUS'].name != 'STATUS_OK'):
@@ -224,6 +223,8 @@ class MurataUWBDriver(MurataBaseDriver):
             [0x02, 0x01, 0xE6, 0x32, 0x02, 0x4F, 0xEE],
         )
 
+    async def session_init(self, session_id: bytes) -> None:
+        self.session_id = int.from_bytes(session_id, "big")
         session_init_rsp = uci.session_init(
             self.dh,
             session_id=self.session_id,
@@ -231,6 +232,12 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         self.session_handle_dh = session_init_rsp.fields["SESSION_HANDLE"].val
 
+        # Do these configurations after setting the session id
+        await self.set_app_config(uci.APP_CFG.CHANNEL_ID.CH_9)
+        await self.initial_config()
+        await self.get_capabilities()
+
+    async def initial_config(self) -> None:
         uci.set_vendor_app_config(
             self.dh,
             config=uci.VENDOR_APP_CFG.ANTENNAS_CONFIGURATION_RX,
@@ -238,7 +245,6 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
 
-    async def initial_config(self) -> None:
         await self.set_config(
             config=uci.APP_CFG.STS_CONFIG,
             value=uci.APP_CFG.STS_CONFIG.PROVISIONED_STS,

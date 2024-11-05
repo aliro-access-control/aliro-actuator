@@ -62,6 +62,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidPulseShapeCombo,
     InvalidRanMultiplier,
     InvalidHoppingConfig,
+    InvalidSyncCodeIndex
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
@@ -319,11 +320,10 @@ class Reader(Device):
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
         ):
-            # Initialize UWB support
-            await self.transport_protocol.driver.uci_initialize(
-                session_id=self.session.transaction_identifier[-4:],
-                dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
-                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
+            # Setup UWB session id
+            Global.logger.info(f"Transaction ID: {self.session.transaction_identifier}")
+            await self.transport_protocol.driver.session_init(
+                session_id=self.session.transaction_identifier[-4:]
             )
             await self.wait_for_initiate_access_protocol_notification()
         else:
@@ -1577,15 +1577,18 @@ class Reader(Device):
         message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
-    def common_sync_code_index(self, sync_code_index: bytes, supported_sync_code_index: bytes) -> bytes:
-        # convert bytes to sets of unique bytes
-        set1 = set(sync_code_index)
-        set2 = set(supported_sync_code_index)
+    def common_sync_code_index(self, sync_code_index: int, supported_sync_code_index: int) -> list:
 
-        # Find common intersection of two sets
-        common_bytes = set1.intersection(set2)
+        common = sync_code_index & supported_sync_code_index
+   
+        sync_codes = []
+        for bit_index in range(32):
+            if common & (1 << bit_index):
+                sync_codes.append(bit_index + 1)
 
-        return common_bytes
+        Global.logger.info(f"Supported Sync codes: {sync_codes}")
+
+        return sync_codes
 
     async def set_hopping_conf(self, hopping_conf_bitmask: int, supported_hopping_conf_bitmask: int) -> None:
         self.common_hopping_conf = hopping_conf_bitmask & supported_hopping_conf_bitmask
@@ -1606,11 +1609,12 @@ class Reader(Device):
         Global.logger.info("Handling ranging session setup message M2")
         message.parse_payload(self.session.get_ble_encryption())
 
+        Global.logger.info(f"uwb_config_id = {int.from_bytes(message.uwb_configuration_id.value, 'big')}")
         await self.transport_protocol.set_uwb_config_id(
-                int.from_bytes(message.uwb_configuration_id.to_bytes, "big")
+                int.from_bytes(message.uwb_configuration_id.value, "big")
         )
 
-        pulse_shape = int.from_bytes(message.pulse_shape_combo.to_bytes(), "big")
+        pulse_shape = int.from_bytes(message.user_device_pulse_shape_combo.value, "big")
         if pulse_shape in pulse_shape_combo:
             await self.transport_protocol.set_pulse_shape_combination(pulse_shape)
         else:
@@ -1623,13 +1627,13 @@ class Reader(Device):
             raise InvalidRanMultiplier
 
         self.common_sync_code_index_bitmask = self.common_sync_code_index(
-            message.sync_code_index_bitmask.to_bytes(),
-            self.sync_code_index_bitmask.to_bytes(4, "big")
+            int.from_bytes(message.sync_code_index_bitmask.value, "big"),
+            self.transport_protocol.get_sync_code_bitmask(),
         )
 
         await self.set_hopping_conf(
-            message.hopping_conf_bitmask.to_bytes(),
-            self.hopping_conf_bitmask.to_bytes(4, "big")
+            int.from_bytes(message.hopping_configuration_bitmask.value, "big"),
+            self.transport_protocol.get_hopping_config_bitmask(),
         )
 
         await self.send_ranging_session_setup_m3()
@@ -1728,7 +1732,7 @@ class Reader(Device):
             num_chaps_per_slot,
             number_responder_nodes,
             number_slots_per_round,
-            self.common_sync_code_index_bitmask,
+            self.common_sync_code_index_bitmask[0], 
             self.common_hopping_conf,
             mac_mode,
             vendor_specific,
