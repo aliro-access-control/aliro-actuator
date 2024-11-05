@@ -240,3 +240,9 @@ class InvalidSyncCodeIndex(InvalidUWBParameter):
     Raised when an invalid sync code index is received.
     """
     pass
+
+class InvalidUWBSessionId(InvalidUWBParameter):
+    """
+    Raised when an invalid uwb session id is received.
+    """
+    pass

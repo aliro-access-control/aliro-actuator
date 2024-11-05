@@ -90,6 +90,10 @@ class BLEUWB(TransportProtocolBase):
             )
 
             self.supported_versions = SUPPORTED_VERSIONS
+            await self.driver.uci_initialize(
+                dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
+                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
+            )
             await self.driver.setup_gatt_database(
                 self.spsm,
                 self.supported_versions,
@@ -110,6 +114,10 @@ class BLEUWB(TransportProtocolBase):
         elif self.mode == Mode.USER_DEVICE:
             truncated_list = list(map(lambda x: x[:8], reader_group_identifier_list))
             self.driver = UserDeviceMurataDriver(self.port, self.baudrate)
+            await self.driver.uci_initialize(
+                dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
+                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
+            )
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
                 reader_group_identifier_list=truncated_list,
