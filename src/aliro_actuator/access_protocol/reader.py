@@ -59,6 +59,9 @@ from aliro_actuator.access_protocol.errors import (
     InvalidStatusError,
     SessionError,
     UnexpectedBLEMessageError,
+    InvalidPulseShapeCombo,
+    InvalidRanMultiplier,
+    InvalidHoppingConfig,
 )
 from aliro_actuator.access_protocol.tlv import TLV
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
@@ -83,6 +86,7 @@ from aliro_actuator.transport_protocol.errors import (
 from aliro_actuator.hw_driver.murata_driver.uwb_driver import (
     UCIHoppingConfig,
     HoppingConfig,
+    pulse_shape_combo,
 )
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
@@ -315,6 +319,12 @@ class Reader(Device):
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
         ):
+            # Initialize UWB support
+            await self.transport_protocol.driver.uci_initialize(
+                session_id=self.session.transaction_identifier[-4:],
+                dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
+                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
+            )
             await self.wait_for_initiate_access_protocol_notification()
         else:
             await self.handle_select(EXPEDITED_PHASE_AID)
@@ -404,13 +414,6 @@ class Reader(Device):
         else:
             self.session.transaction_identifier = self.transaction_identifier_list.pop(
                 0
-            )
-
-        # Initialize UWB support
-        await self.transport_protocol.driver.uci_initialize(
-                session_id=self.session.transaction_identifier[-4:],
-                dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
-                dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
             )
 
         if self.ephemeral_key_list is None or len(self.ephemeral_key_list) == 0:
@@ -1595,6 +1598,8 @@ class Reader(Device):
         elif self.common_hopping_conf & HoppingConfig.ADAPTIVE_HOPPING_MODULO:
             await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO)
             self.common_hopping_conf = HoppingConfig.ADAPTIVE_HOPPING_MODULO + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
+        else:
+            raise InvalidHoppingConfig
 
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M2")
@@ -1604,13 +1609,17 @@ class Reader(Device):
                 int.from_bytes(message.uwb_configuration_id.to_bytes, "big")
         )
 
-        await self.transport_protocol.set_pulse_shape_combination(
-                message.pulse_shape_combo.to_bytes()
-        )
+        pulse_shape = int.from_bytes(message.pulse_shape_combo.to_bytes(), "big")
+        if pulse_shape in pulse_shape_combo:
+            await self.transport_protocol.set_pulse_shape_combination(pulse_shape)
+        else:
+            raise InvalidPulseShapeCombo
 
-        await self.transport_protocol.set_ran_multiplier(
-            int.from_bytes(message.ran_multiplier.value, "big")
-        )
+        ran_multiplier = int.from_bytes(message.ran_multiplier.value, "big")
+        if (ran_multiplier >= 1) and (ran_multiplier <= 255):
+            await self.transport_protocol.set_ran_multiplier(ran_multiplier)
+        else:
+            raise InvalidRanMultiplier
 
         self.common_sync_code_index_bitmask = self.common_sync_code_index(
             message.sync_code_index_bitmask.to_bytes(),
@@ -1639,9 +1648,12 @@ class Reader(Device):
         await self.transport_protocol.set_hop_mode_key(
             int.from_bytes(message.hop_mode_key.value, "big")
         )
-        await self.transport_protocol.set_sync_code_index(
-            int.from_bytes(message.sync_code_index.value, "big")
-        )
+
+        sync_code = int.from_bytes(message.sync_code_index.value, "big")
+        if (sync_code >= 1) and (sync_code <= 32):
+            await self.transport_protocol.set_sync_code_index(sync_code)
+        else:
+            raise InvalidSyncCodeIndex
 
     async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session suspend request")
