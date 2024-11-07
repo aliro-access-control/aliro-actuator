@@ -585,11 +585,13 @@ class UserDevice(Device):
             int.from_bytes(message.number_slots_per_round.value, "big")
         )
 
-        sync_code = int.from_bytes(message.sync_code_index_bitmask.value, "big")
-        if (sync_code >= 1) and (sync_code <= 32):
-            await self.transport_protocol.set_sync_code_index(sync_code)
-        else:
-            raise InvalidSyncCodeIndex
+        sync_code_bitmask = int.from_bytes(message.sync_code_index_bitmask.value, "big")
+        sync_codes = []
+        for bit_index in range(32):
+            if sync_code_bitmask & (1 << bit_index):
+                sync_codes.append(bit_index + 1)
+
+        await self.transport_protocol.set_sync_code_index(sync_codes[0]) # pick the first sync code in the list
 
         await self.set_hopping_conf(
             int.from_bytes(message.hopping_configuration_bitmask.value, "big")
