@@ -275,6 +275,12 @@ class BLEUWB(TransportProtocolBase):
     async def get_uwb_config_id(self) -> int:
         return await self.driver.get_uwb_config_id()
 
+    async def set_session_key(self, ursk: bytes) -> None:
+        await self.driver.set_session_key(ursk)
+
+    async def get_session_key(self) -> bytes:
+        return await self.driver.get_session_key()
+
     def get_uwb_session_id(self) -> int:
         return self.driver.get_uwb_session_id()
 

@@ -805,6 +805,12 @@ class Reader(Device):
             raise SessionError("No Session")
 
         self.create_shared_keys()
+        if self.transport_protocol_type in [
+            TransportProtocol.BLE_UWB,
+            TransportProtocol.SOCKET_BLE,
+        ]:
+            Global.logger.info("Setting up UWB secure ranging")
+            await self.transport_protocol.set_session_key(self.session.UR_SK)
 
         Global.logger.info(
             "Start handling AUTH1 with key type request: {}".format(
@@ -1577,18 +1583,8 @@ class Reader(Device):
         message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
-    def common_sync_code_index(self, sync_code_index: int, supported_sync_code_index: int) -> list:
-
-        common = sync_code_index & supported_sync_code_index
-   
-        sync_codes = []
-        for bit_index in range(32):
-            if common & (1 << bit_index):
-                sync_codes.append(bit_index + 1)
-
-        Global.logger.info(f"Supported Sync codes: {sync_codes}")
-
-        return sync_codes
+    def common_sync_code_index(self, sync_code_index: int, supported_sync_code_index: int) -> int:
+        return sync_code_index & supported_sync_code_index
 
     async def set_hopping_conf(self, hopping_conf_bitmask: int, supported_hopping_conf_bitmask: int) -> None:
         self.common_hopping_conf = hopping_conf_bitmask & supported_hopping_conf_bitmask
@@ -1732,7 +1728,7 @@ class Reader(Device):
             num_chaps_per_slot,
             number_responder_nodes,
             number_slots_per_round,
-            self.common_sync_code_index_bitmask[0], 
+            self.common_sync_code_index_bitmask,
             self.common_hopping_conf,
             mac_mode,
             vendor_specific,

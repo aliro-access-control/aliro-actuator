@@ -68,8 +68,8 @@ class MurataUWBDriver(MurataBaseDriver):
         self.device_role = dev_role
         self.device_type = dev_type
 
-        # self.dh.disable_ntf_prints()
-        # self.dh.disable_uci_prints()
+        self.dh.disable_ntf_prints()
+        self.dh.disable_uci_prints()
 
         Global.logger.info("Upload UWB device firmware. (This can take a while)")
         await asyncio.to_thread(
@@ -316,6 +316,18 @@ class MurataUWBDriver(MurataBaseDriver):
         self.protocol_versions = data.fields["SUPPORTED_PROTOCOL_VERSION"].val
         self.uwb_config_id_support = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
         self.pulseshape_combo_support = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
+
+    async def set_session_key(self, ursk: bytes) -> None:
+        await self.set_config(
+            config=uci.APP_CFG.SESSION_KEY,
+            value=list(ursk),
+        )
+
+    async def get_session_key(self) -> bytearray:
+        data = await self.get_config(
+            config=uci.APP_CFG.SESSION_KEY,
+        )
+        return data.fields["SESSION_KEY"].val
 
     def get_uwb_session_id(self) -> int:
         return self.session_id
