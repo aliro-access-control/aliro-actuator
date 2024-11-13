@@ -567,7 +567,8 @@ class Reader(Device):
                 )
             )
 
-        if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
+        if (PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions and
+                response.compl_aid == EXPEDITED_PHASE_AID):
             await self.failure_process(S2.PROTOCOL_VERSION_NOT_SUPPORTED)
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
