@@ -483,9 +483,22 @@ class Command(APDUMessage):
             raise InvalidCommandDataError(
                 self.as_bytes, "ENVELOPE command received without data"
             )
-        apdu_data, *_ = TLV.from_bytes(self.data).get_all_bytes_of_tag(0x53)
-        cbor = cbor2.loads(apdu_data)
-        data = cbor["data"]
+        try:
+            apdu_data, *_ = TLV.from_bytes(self.data).get_all_bytes_of_tag(0x53)
+            cbor = cbor2.loads(apdu_data)
+            data = cbor["data"]
+        except TlvError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command missing or empty Tag 0x53"
+            )
+        except cbor2.CBORDecodeError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 did not contain valid CBOR"
+            )
+        except KeyError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 CBOR structure did not contain 'data' field"
+            )
         self.encrypted_payload = data[:-AUTHENTICATION_TAG_SIZE]
         self.authentication_tag = data[-AUTHENTICATION_TAG_SIZE:]
 
@@ -994,12 +1007,28 @@ class Response(APDUMessage):
 
         if self.data is None:
             raise InvalidResponseDataError(self.as_bytes, "No data available")
-        self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
+        try:
+            apdu_data, *_ = TLV.from_bytes(self.data).get_all_bytes_of_tag(0x53)
+            cbor = cbor2.loads(apdu_data)
+            data = cbor["data"]
+        except TlvError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command missing or empty Tag 0x53"
+            )
+        except cbor2.CBORDecodeError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 did not contain valid CBOR"
+            )
+        except KeyError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 CBOR structure did not contain 'data' field"
+            )
+        self.encrypted_payload = data[:-AUTHENTICATION_TAG_SIZE]
         Global.logger.debug(
             "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
         )
 
-        self.authentication_tag = self.data[-AUTHENTICATION_TAG_SIZE:]
+        self.authentication_tag = data[-AUTHENTICATION_TAG_SIZE:]
         Global.logger.debug(
             "authentication tag: {!r}".format(hexlify(self.authentication_tag))
         )
