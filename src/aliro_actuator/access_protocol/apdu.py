@@ -1891,7 +1891,14 @@ class APDU:
         )
 
         payload = encrypted_payload + tag
-        return self.create_response(payload, status)
+        session_data = {}
+        session_data['data'] = payload
+        cbor = cbor2.dumps(session_data)
+
+        response_payload = TLV([])
+        response_payload.add_value(0x53, cbor)
+
+        return self.create_response(response_payload.to_bytes(), status)
 
     def create_get_response_command(self, expected_response_size: int) -> list[Command]:
         Global.logger.info("Creating GET RESPONSE command")
