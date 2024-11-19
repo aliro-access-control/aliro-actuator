@@ -60,6 +60,10 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         message = Message(OpGroup.GAP, OpCodeGAP.SET_PHY, len(data), data)
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
+            OpGroup.GAP, 
+            OpCodeGAP.GENERIC_EVENT_LE_PHY_INDICATION,
+        )
         Global.logger.debug(
             "Set Phy: 1M: {}, 2M: {}, coded: {}".format(
                 prefer_1m, prefer_2m, prefer_coded
