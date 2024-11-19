@@ -125,6 +125,15 @@ class MurataBaseDriver:
                 if (
                     response.get_op_group() == OpGroup.GAP
                     and response.get_op_code()
+                    == OpCodeGAP.GENERIC_EVENT_LE_PHY_INDICATION
+                ):
+                    Global.logger.debug(
+                            "Received Generic event Le PHY Indication"
+                    )
+                    response.print()
+                if (
+                    response.get_op_group() == OpGroup.GAP
+                    and response.get_op_code()
                     == OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
                 ):
                     # we always need to check for these messages, as they can be
