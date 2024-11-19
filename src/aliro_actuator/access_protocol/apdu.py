@@ -51,6 +51,8 @@ from aliro_actuator.transport_protocol import TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.message import Message
 
+import cbor2
+
 # See Aliro spec 8.3
 APDU_COMMAND_MAX_DATA_LENGTH = 255
 APDU_RESPONSE_MAX_DATA_LENGTH = 254
@@ -481,8 +483,24 @@ class Command(APDUMessage):
             raise InvalidCommandDataError(
                 self.as_bytes, "ENVELOPE command received without data"
             )
-        self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
-        self.authentication_tag = self.data[-AUTHENTICATION_TAG_SIZE:]
+        try:
+            apdu_data, *_ = TLV.from_bytes(self.data).get_all_bytes_of_tag(0x53)
+            cbor = cbor2.loads(apdu_data)
+            data = cbor["data"]
+        except TlvError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command missing or empty Tag 0x53"
+            )
+        except cbor2.CBORDecodeError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 did not contain valid CBOR"
+            )
+        except KeyError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 CBOR structure did not contain 'data' field"
+            )
+        self.encrypted_payload = data[:-AUTHENTICATION_TAG_SIZE]
+        self.authentication_tag = data[-AUTHENTICATION_TAG_SIZE:]
 
         Global.logger.debug(
             "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
@@ -989,12 +1007,28 @@ class Response(APDUMessage):
 
         if self.data is None:
             raise InvalidResponseDataError(self.as_bytes, "No data available")
-        self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
+        try:
+            apdu_data, *_ = TLV.from_bytes(self.data).get_all_bytes_of_tag(0x53)
+            cbor = cbor2.loads(apdu_data)
+            data = cbor["data"]
+        except TlvError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command missing or empty Tag 0x53"
+            )
+        except cbor2.CBORDecodeError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 did not contain valid CBOR"
+            )
+        except KeyError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 CBOR structure did not contain 'data' field"
+            )
+        self.encrypted_payload = data[:-AUTHENTICATION_TAG_SIZE]
         Global.logger.debug(
             "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
         )
 
-        self.authentication_tag = self.data[-AUTHENTICATION_TAG_SIZE:]
+        self.authentication_tag = data[-AUTHENTICATION_TAG_SIZE:]
         Global.logger.debug(
             "authentication tag: {!r}".format(hexlify(self.authentication_tag))
         )
@@ -1828,13 +1862,19 @@ class APDU:
             payload,
         )
         payload = encrypted_payload + tag
+        session_data = {}
+        session_data['data'] = payload
+        cbor = cbor2.dumps(session_data)
+
+        command_payload = TLV([])
+        command_payload.add_value(0x53, cbor)
 
         return self.create_command(
             cla=0x00,
             ins=INS.ENVELOPE,
             p1=0x00,
             p2=0x00,
-            data=bytes(payload),
+            data=bytes(command_payload.to_bytes()),
             le=0x00,
         )
 
@@ -1851,7 +1891,14 @@ class APDU:
         )
 
         payload = encrypted_payload + tag
-        return self.create_response(payload, status)
+        session_data = {}
+        session_data['data'] = payload
+        cbor = cbor2.dumps(session_data)
+
+        response_payload = TLV([])
+        response_payload.add_value(0x53, cbor)
+
+        return self.create_response(response_payload.to_bytes(), status)
 
     def create_get_response_command(self, expected_response_size: int) -> list[Command]:
         Global.logger.info("Creating GET RESPONSE command")
