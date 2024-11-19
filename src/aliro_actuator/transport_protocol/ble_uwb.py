@@ -74,7 +74,7 @@ class BLEUWB(TransportProtocolBase):
         BLE_only_supported: bool = False,
         time_sync_0: bool = True,
         time_sync_1: bool = True,
-        LE_coded_phy: bool = True,
+        LE_coded_phy: bool = False,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
