@@ -52,10 +52,12 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
 
         data = bytearray()
         data.append(0x01)  # default mode
+        data.append(0x00)  # device id
         data.append(0x00)  # no preferences
         data.append(bitmask)  # Tx PHY
         data.append(bitmask)  # Rx PHY
         data.append(0x01)  # Coded phy options (set to S=2)
+        data.append(0x00)
 
         message = Message(OpGroup.GAP, OpCodeGAP.SET_PHY, len(data), data)
         self.write(message)
