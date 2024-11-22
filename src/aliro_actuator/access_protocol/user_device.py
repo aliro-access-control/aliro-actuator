@@ -935,9 +935,13 @@ class UserDevice(Device):
         Global.logger.info("Reader ephemeral key is a valid key")
 
         # Setup UWB session id
-        await self.transport_protocol.driver.session_init(
-            session_id=self.session.transaction_identifier[-4:]
-        )
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.transport_protocol.driver.session_init(
+                session_id=self.session.transaction_identifier[-4:]
+            )
 
         Global.logger.info("Looking up access credential")
         for access_credential in self.access_credentials:
