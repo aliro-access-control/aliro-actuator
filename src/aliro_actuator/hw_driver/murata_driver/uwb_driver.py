@@ -564,9 +564,10 @@ class MurataUWBDriver(MurataBaseDriver):
 
     async def close_uci(self) -> None:
         Global.logger.debug("Close UCI")
-        await asyncio.to_thread(
-            uci.session_de_init, self.dh, session_id=self.session_handle_dh
-        )
+        if hasattr(self, "session_handle_dh"):
+            await asyncio.to_thread(
+                uci.session_de_init, self.dh, session_id=self.session_handle_dh
+            )
         self.dh.device.close()
 
     async def get_uwb_configuration(self) -> dict:
