@@ -1193,6 +1193,12 @@ class UserDevice(Device):
                 "EXCHANGE command has reader status tag while using BLE"
             )
         elif exchange_command.reader_status is not None:
+            # the encrypted data should be 4 bytes data + 16 bytes tag
+            if len(exchange_command.data) != 20:
+                raise AccessProtocolError(
+                    "EXCHANGE command has invalid length: 0x{:04x}".format(len(exchange_command.data)
+                )
+            )
             Global.logger.info(
                 "Received reader status: 0x{:04x}, transaction is completed".format(
                     exchange_command.reader_status.value
