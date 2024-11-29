@@ -1257,6 +1257,9 @@ class UserDevice(Device):
                 "EXCHANGE command has reader status tag while using BLE"
             )
         elif exchange_command.reader_status is not None:
+            # the encrypted data should be 4 bytes data + 16 bytes tag
+            self.assertDataLength(exchange_command, 20)
+            
             Global.logger.info(
                 "Received reader status: 0x{:04x}, transaction is completed".format(
                     exchange_command.reader_status.value
@@ -1389,6 +1392,17 @@ class UserDevice(Device):
         await self.response_exchange(exchange_payload, encryption)
 
         Global.logger.info("Handling EXCHANGE command done")
+
+     def assertDataLength(self, command, expectedLength) -> None:
+        """
+        Assert a command contains the correct payload length.
+        """
+        if len(command.data) != expectedLength:
+            raise AccessProtocolError(
+                    "Command has invalid length: 0x{:04x} received, expected 0x{:04x}".format(
+                        len(command.data), expectedLength        
+                    )
+            )
 
     async def return_exchange_error_and_close_channel(
         self, encryption: EncryptionEngine
