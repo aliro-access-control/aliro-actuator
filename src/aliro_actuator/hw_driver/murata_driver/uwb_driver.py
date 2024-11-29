@@ -40,6 +40,11 @@ class Channel(IntEnum):
     CHANNEL_5 = 0x01
     CHANNEL_9 = 0x02
 
+class WRAPPED_RDS:
+        TAG_ID = [121]
+        LEN = '12'
+        TAG = 'WRAPPED_RDS'
+
 
 class UCIHoppingConfig(IntEnum):
     NO_HOPPING = 0
@@ -298,6 +303,13 @@ class MurataUWBDriver(MurataBaseDriver):
             value=uci.APP_CFG.NUMBER_OF_CONTROLEES.SINGLE_ANCHOR,
         )
         await self.set_mac_mode(0x0) # One active ranging round
+
+        uci.set_vendor_app_config(
+            self.dh,
+            config=WRAPPED_RDS,
+            value=[0xB5, 0xB5, 0xB5, 0xB5, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10],
+            session_id=self.session_handle_dh,
+        )
 
         if self.device_role == uci.APP_CFG.DEVICE_ROLE.RESPONDER:
             await self.set_config(
