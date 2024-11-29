@@ -32,47 +32,34 @@ class PulseShapeCombo(IntEnum):
     PRECURSOR_FREE = 0x01
     PRECURSOR_FREE_SPECIAL = 0x02
 
-
-sync_code_index = [
-    0x01,
-    0x02,
-    0x04,
-    0x08,
-    0x10,
-    0x20,
-    0x40,
-    0x80,
-    0x100,
-    0x200,
-    0x400,
-    0x800,
-    0x1000,
-    0x2000,
-    0x4000,
-    0x8000,
-    0x10000,
-    0x20000,
-    0x40000,
-    0x80000,
-    0x100000,
-    0x200000,
-    0x400000,
-    0x800000,
-    0x1000000,
-    0x2000000,
-    0x4000000,
-    0x8000000,
-    0x10000000,
-    0x20000000,
-    0x40000000,
-    0x80000000,
+pulse_shape_combo = [
+    0x00, 0x01, 0x02, 0x10, 0x11, 0x12, 0x20, 0x21, 0x22,
 ]
 
+class Channel(IntEnum):
+    CHANNEL_5 = 0x01
+    CHANNEL_9 = 0x02
+
+class WRAPPED_RDS:
+        TAG_ID = [121]
+        LEN = '12'
+        TAG = 'WRAPPED_RDS'
+
+
+class UCIHoppingConfig(IntEnum):
+    NO_HOPPING = 0
+    ADAPTIVE_HOPPING_MODULO = 2
+    CONTINUOUS_HOPPING_MODULO = 3
+
+class HoppingConfig(IntEnum):
+    NO_HOPPING = 0x80
+    CONTINUOUS_HOPPING_MODULO = 0x40
+    ADAPTIVE_HOPPING_MODULO = 0x20
+    DEFAULT_HOPPING_SEQUENCE = 0X8
 
 class MurataUWBDriver(MurataBaseDriver):
     async def uci_initialize(
         self,
-        session_id: int,
         dev_role: int,
         dev_type: int,
     ) -> None:
@@ -83,7 +70,6 @@ class MurataUWBDriver(MurataBaseDriver):
         ]:
             raise NotImplementedError
 
-        self.session_id = session_id
         self.device_role = dev_role
         self.device_type = dev_type
 
@@ -128,26 +114,29 @@ class MurataUWBDriver(MurataBaseDriver):
 
         Global.logger.info("Calibrate device.")
         await self.set_calibration()
-        await self.set_app_config(uci.APP_CFG.CHANNEL_ID.CH_9)
-        await self.initial_config()
-        await self.get_capabilities()
+
+    def check_response(self, response):
+        if (response.fields['UCI_STATUS'].name != 'STATUS_OK'):
+            raise Exception('UCI command failed')
 
     async def set_device_config(self, config: type, value: list) -> None:
-        await asyncio.to_thread(
+        response = await asyncio.to_thread(
             uci.set_device_config,
             self.dh,
             config=config,
             value=value,
         )
+        self.check_response(response)
 
     async def set_config(self, config: type, value: int) -> None:
-        await asyncio.to_thread(
+        response = await asyncio.to_thread(
             uci.set_config,
             self.dh,
             config=config,
             value=value,
             session_id=self.session_handle_dh,
         )
+        self.check_response(response)
 
     async def get_config(self, config: type) -> Any:
         return await asyncio.to_thread(
@@ -239,6 +228,8 @@ class MurataUWBDriver(MurataBaseDriver):
             [0x02, 0x01, 0xE6, 0x32, 0x02, 0x4F, 0xEE],
         )
 
+    async def session_init(self, session_id: bytes) -> None:
+        self.session_id = int.from_bytes(session_id, "big")
         session_init_rsp = uci.session_init(
             self.dh,
             session_id=self.session_id,
@@ -246,6 +237,12 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         self.session_handle_dh = session_init_rsp.fields["SESSION_HANDLE"].val
 
+        # Do these configurations after setting the session id
+        await self.set_app_config(uci.APP_CFG.CHANNEL_ID.CH_9)
+        await self.initial_config()
+        await self.get_capabilities()
+
+    async def initial_config(self) -> None:
         uci.set_vendor_app_config(
             self.dh,
             config=uci.VENDOR_APP_CFG.ANTENNAS_CONFIGURATION_RX,
@@ -253,7 +250,6 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
 
-    async def initial_config(self) -> None:
         await self.set_config(
             config=uci.APP_CFG.STS_CONFIG,
             value=uci.APP_CFG.STS_CONFIG.PROVISIONED_STS,
@@ -306,6 +302,14 @@ class MurataUWBDriver(MurataBaseDriver):
             config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
             value=uci.APP_CFG.NUMBER_OF_CONTROLEES.SINGLE_ANCHOR,
         )
+        await self.set_mac_mode(0x0) # One active ranging round
+
+        uci.set_vendor_app_config(
+            self.dh,
+            config=WRAPPED_RDS,
+            value=[0xB5, 0xB5, 0xB5, 0xB5, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10],
+            session_id=self.session_handle_dh,
+        )
 
         if self.device_role == uci.APP_CFG.DEVICE_ROLE.RESPONDER:
             await self.set_config(
@@ -324,6 +328,18 @@ class MurataUWBDriver(MurataBaseDriver):
         self.protocol_versions = data.fields["SUPPORTED_PROTOCOL_VERSION"].val
         self.uwb_config_id_support = data.fields["SUPPORTED_UWB_CONFIG_ID"].val
         self.pulseshape_combo_support = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
+
+    async def set_session_key(self, ursk: bytes) -> None:
+        await self.set_config(
+            config=uci.APP_CFG.SESSION_KEY,
+            value=list(ursk),
+        )
+
+    async def get_session_key(self) -> bytearray:
+        data = await self.get_config(
+            config=uci.APP_CFG.SESSION_KEY,
+        )
+        return data.fields["SESSION_KEY"].val
 
     def get_uwb_session_id(self) -> int:
         return self.session_id
@@ -560,9 +576,10 @@ class MurataUWBDriver(MurataBaseDriver):
 
     async def close_uci(self) -> None:
         Global.logger.debug("Close UCI")
-        await asyncio.to_thread(
-            uci.session_de_init, self.dh, session_id=self.session_handle_dh
-        )
+        if hasattr(self, "session_handle_dh"):
+            await asyncio.to_thread(
+                uci.session_de_init, self.dh, session_id=self.session_handle_dh
+            )
         self.dh.device.close()
 
     async def get_uwb_configuration(self) -> dict:
