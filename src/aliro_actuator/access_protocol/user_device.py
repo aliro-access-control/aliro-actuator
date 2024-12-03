@@ -925,9 +925,13 @@ class UserDevice(Device):
 
                 doc_timestamp = None
                 revoke_timestamp = None
-                if self.access_document is not None and isinstance(self.access_document, AccessDocument):
+                if self.access_document is not None and isinstance(
+                    self.access_document, AccessDocument
+                ):
                     doc_timestamp = self.access_document.get_timestamp()
-                if self.revocation_document is not None and isinstance(self.revocation_document, RevocationDocument):
+                if self.revocation_document is not None and isinstance(
+                    self.revocation_document, RevocationDocument
+                ):
                     revoke_timestamp = self.revocation_document.get_timestamp()
                 cryptogram = compute_cryptogram(
                     self.session.cryptogram_SK,
@@ -1514,7 +1518,13 @@ class UserDevice(Device):
         Returns:
             Command: the received command.
         """
-        message = await self.wait_for_message(expected_command)
+        while True:
+            try:
+                message = await self.wait_for_message(expected_command)
+                break
+            except InvalidAIDError as error:
+                Global.logger.info(f"Caught exception: {error}")
+                # retry wait for message
         if not isinstance(message, APDUMessage):
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
@@ -1572,6 +1582,13 @@ class UserDevice(Device):
         command = await self.apdu.handle_chaining_receive_command(
             command_str, self.transport_protocol
         )
+
+        if (
+            command.ins == INS.SELECT
+            and command.data != EXPEDITED_PHASE_AID
+            and command.data != STEPUP_PHASE_AID
+        ):
+            raise InvalidAIDError(command.to_bytes(), command.data)
 
         if self.session.state_valid(
             [
