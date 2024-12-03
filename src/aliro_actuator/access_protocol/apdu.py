@@ -20,6 +20,7 @@ from enum import IntEnum
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.defines import (
     AUTHENTICATION_TAG_SIZE,
+    EXPEDITED_PHASE_AID,
     Auth0,
     Auth1,
     ControlFlow,
@@ -950,20 +951,20 @@ class Response(APDUMessage):
         self.type = self._get_int_from_TLV(
             "Type", Select.TYPE_TAG, Select.TYPE_LEN, tlv_data=self.proprietary_tlv
         )
-
-        etspv_bytes = self._get_bytes_from_TLV(
-            "Expedited phase supported protocol versions",
-            Select.ETSPV_TAG,
-            tlv_data=self.proprietary_tlv,
-        )
-        if (len(etspv_bytes) % 2) == 1:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "Expedited phase supported protocol versions has invalid length",
+        if self.compl_aid == EXPEDITED_PHASE_AID:
+            etspv_bytes = self._get_bytes_from_TLV(
+                "Expedited phase supported protocol versions",
+                Select.ETSPV_TAG,
+                tlv_data=self.proprietary_tlv,
             )
-        self.expedited_phase_supported_protocol_versions = self._data_to_2byte_list(
-            etspv_bytes
-        )
+            if (len(etspv_bytes) % 2) == 1:
+                raise InvalidResponseDataError(
+                    self.as_bytes,
+                    "Expedited phase supported protocol versions has invalid length",
+                )
+            self.expedited_phase_supported_protocol_versions = self._data_to_2byte_list(
+                etspv_bytes
+            )
 
         extended_length = self._get_optional_TLV_from_TLV(
             "Extended Length Information",
