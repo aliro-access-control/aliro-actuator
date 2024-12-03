@@ -1588,6 +1588,8 @@ class UserDevice(Device):
             and command.data != EXPEDITED_PHASE_AID
             and command.data != STEPUP_PHASE_AID
         ):
+            response = self.apdu.create_error_response(StatusBytes.FILE_OR_APP_NOT_FOUND)
+            await self.transport_protocol.send_message(response)
             raise InvalidAIDError(command.to_bytes(), command.data)
 
         if self.session.state_valid(
