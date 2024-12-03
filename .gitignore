@@ -12,3 +12,4 @@ docs/diagrams/out
 .idea/
 
 third_party/murata_fw
+third_party/nxp_nfc
