@@ -1329,7 +1329,7 @@ class UserDevice(Device):
 
         Global.logger.info("Handling EXCHANGE command done")
 
-     def assertDataLength(self, command, expectedLength) -> None:
+    def assertDataLength(self, command, expectedLength) -> None:
         """
         Assert a command contains the correct payload length.
         """
