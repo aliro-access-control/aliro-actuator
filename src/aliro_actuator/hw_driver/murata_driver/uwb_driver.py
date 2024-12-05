@@ -23,7 +23,7 @@ DEFAULT_SR150_FIRMWARE_PATH = (
     ACTUATOR_ROOT_PATH
     / "third_party"
     / "aliro-th-additions"
-    / "ALIRO_IOT_SR150_FW_v46.42.02.bin"
+    / "H1_IOT.SR150_MAINLINE_PROD_FW_46.43.01_7d38a06f4be3a12c_TH.bin"
 )
 
 
@@ -146,6 +146,15 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
 
+    async def set_wrapped_rds(self, wrapped_rds: list) -> None:
+        response = await asyncio.to_thread(
+            uci.set_wrapped_rds,
+            self.dh,
+            session_handle=self.session_handle_dh,
+            wrapped_rds=wrapped_rds,
+        )
+        self.check_response(response)
+
     async def uci_set_calibration(self, channel: int, param: int, value: list) -> None:
         await asyncio.to_thread(
             uci.set_calibration,
@@ -233,7 +242,7 @@ class MurataUWBDriver(MurataBaseDriver):
         session_init_rsp = uci.session_init(
             self.dh,
             session_id=self.session_id,
-            session_type=uci.SESSION_TYPE.SESSION_CCC,
+            session_type=uci.SESSION_TYPE.SESSION_CSA,
         )
         self.session_handle_dh = session_init_rsp.fields["SESSION_HANDLE"].val
 
@@ -252,7 +261,7 @@ class MurataUWBDriver(MurataBaseDriver):
 
         await self.set_config(
             config=uci.APP_CFG.STS_CONFIG,
-            value=uci.APP_CFG.STS_CONFIG.PROVISIONED_STS,
+            value=uci.APP_CFG.STS_CONFIG.SE_DYNAMIC_STS,
         )
         await self.set_config(
             config=uci.APP_CFG.SLOT_DURATION,
@@ -304,13 +313,6 @@ class MurataUWBDriver(MurataBaseDriver):
         )
         await self.set_mac_mode(0x0) # One active ranging round
 
-        uci.set_vendor_app_config(
-            self.dh,
-            config=WRAPPED_RDS,
-            value=[0xB5, 0xB5, 0xB5, 0xB5, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10],
-            session_id=self.session_handle_dh,
-        )
-
         if self.device_role == uci.APP_CFG.DEVICE_ROLE.RESPONDER:
             await self.set_config(
                 config=uci.APP_CFG.RESPONDER_SLOT_INDEX,
@@ -330,9 +332,14 @@ class MurataUWBDriver(MurataBaseDriver):
         self.pulseshape_combo_support = data.fields["SUPPORTED_PULSESHAPE_COMBO"].val
 
     async def set_session_key(self, ursk: bytes) -> None:
-        await self.set_config(
-            config=uci.APP_CFG.SESSION_KEY,
-            value=list(ursk),
+        # Set the URSK for DYNAMIC_STS
+        wrapped_rds_list = list(self.session_id.to_bytes(4, byteorder='big'))
+        wrapped_rds_list.extend([
+            0xB5, 0xB5, 0xB5, 0xB5, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, # Random number
+        ])
+        wrapped_rds_list.extend(list(ursk))
+        await self.set_wrapped_rds(
+            wrapped_rds = wrapped_rds_list,
         )
 
     async def get_session_key(self) -> bytearray:
