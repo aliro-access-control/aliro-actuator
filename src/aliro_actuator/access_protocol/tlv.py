@@ -20,68 +20,67 @@ from ber_tlv.tlv import BadLength, BadParameter, BadTag, Tlv, UnexpectedEnd
 
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 
-#class TLVIndexAliro(IntEnum):
-#    """
-#    Indicating the index of the TLV payload to be validated
-#    """
-#
-TLV_SELECT_CMD = 0
-TLV_SELECT_CMD_6F = 1
-TLV_SELECT_CMD = 0
-TLV_SELECT_CMD_6F = 1
-TLV_SELECT_CMD_A5 = 2
-TLV_SELECT_CMD_7F66 = 3
-TLV_CONTROLFLOW_CMD = 4
-TLV_AUTH0_CMD = 5
-TLV_AUTH0_RSP = 6
-TLV_AUTH0_RSP_9D = 7
-TLV_AUTH0_RSP_B2 = 8
-TLV_AUTH1_CMD = 9
-TLV_AUTH1_RSP = 10
-TLV_AUTH1_RSP_9D = 11
-TLV_AUTH1_RSP_B2 = 12
-TLV_AUTH1_RSP_RD_auth = 13
-TLV_AUTH1_RSP_UD_auth = 14
-TLV_EXCHANGE_CMD = 15
-TLV_EXCHANGE_CMD_B9 = 16
+class TLVIndex(Enum):
+    
+    TLV_SELECT_CMD = 0 
+    TLV_SELECT_CMD_6F = 1
+    TLV_SELECT_CMD_A5 = 2
+    TLV_SELECT_CMD_7F66 = 3
+    TLV_CONTROLFLOW_CMD = 4
+    TLV_AUTH0_CMD = 5
+    TLV_AUTH0_RSP = 6
+    TLV_AUTH0_RSP_9D = 7 
+    TLV_AUTH0_RSP_B2 = 8 
+    TLV_AUTH1_CMD = 9 
+    TLV_AUTH1_RSP = 10 
+    TLV_AUTH1_RSP_9D = 11
+    TLV_AUTH1_RSP_B2 = 12
+    TLV_AUTH1_RSP_RD_AUTH = 13
+    TLV_AUTH1_RSP_UD_AUTH = 14
+    TLV_EXCHANGE_CMD = 15
+    TLV_EXCHANGE_CMD_B9 = 16
+    
 
-expectedTags = [[0x6F], # SELECT command
-                [0x84, 0xA5], # SELECT 6F sub tags
-                [0x80, 0x5C, 0x7F66, 0xB3], # SELECT A5 sub tags
-                [0x02], # SELECT 7F66 sub tags
-                [0x41, 0x42], # CONTROL FLOW command
-                [0x41, 0x42, 0x5C, 0x87, 0x4C, 0x4D, 0xB1], # AUTH0 command
-                [0x86, 0x9D, 0xB2], # AUTH0 response
-                [0x5E, 0x91, 0x92], # AUTH0 response 9D sub tags
-                [0x30], # AUTH0 response B2 sub tags
-                [0x41, 0x9E, 0x90], # AUTH1 command
-                [0x4E, 0x5A, 0x9E, 0x4B, 0x5E, 0x91, 0x92], # AUTH1 response
-                [0x5E, 0x91, 0x92], # AUTH1 response 9D sub tags
-                [0x30], # AUTH1 response B2 sub tags
-                [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 reader authentication data fields
-                [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 user device authentication data fields
-                [0xB9, 0xAE, 0x97, 0x98, 0x81], # EXCHANGE command
-                [0x87, 0x8A, 0x95] # EXCHANGE command B9 sub tags
-                ]
+expectedTags = {
+    TLV_SELECT_CMD: [0x6F], # SELECT command
+    TLV_SELECT_CMD_6F: [0x84, 0xA5], # SELECT 6F sub tags
+    TLV_SELECT_CMD_A5: [0x80, 0x5C, 0x7F66, 0xB3], # SELECT A5 sub tags
+    TLV_SELECT_CMD_7F66: [0x02], # SELECT 7F66 sub tags
+    TLV_CONTROLFLOW_CMD: [0x41, 0x42], # CONTROL FLOW command
+    TLV_AUTH0_CMD: [0x41, 0x42, 0x5C, 0x87, 0x4C, 0x4D, 0xB1], # AUTH0 command
+    TLV_AUTH0_RSP: [0x86, 0x9D, 0xB2], # AUTH0 response
+    TLV_AUTH0_RSP_9D: [0x5E, 0x91, 0x92], # AUTH0 response 9D sub tags
+    TLV_AUTH0_RSP_B2: [0x30], # AUTH0 response B2 sub tags
+    TLV_AUTH1_CMD: [0x41, 0x9E, 0x90], # AUTH1 command
+    TLV_AUTH1_RSP: [0x4E, 0x5A, 0x9E, 0x4B, 0x5E, 0x91, 0x92], # AUTH1 response
+    TLV_AUTH1_RSP_9D: [0x5E, 0x91, 0x92], # AUTH1 response 9D sub tags
+    TLV_AUTH1_RSP_B2: [0x30], # AUTH1 response B2 sub tags
+    TLV_AUTH1_RSP_RD_AUTH: [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 reader authentication data fields
+    TLV_AUTH1_RSP_UD_AUTH: [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 user device authentication data fields
+    TLV_EXCHANGE_CMD: [0xB9, 0xAE, 0x97, 0x98, 0x81], # EXCHANGE command
+    TLV_EXCHANGE_CMD_B9: [0x87, 0x8A, 0x95] # EXCHANGE command B9 sub tags
+}
 
-lengthExpected = [[-1], # SELECT command
-                  [9, -1], # SELECT 6F sub tags
-                  [2, -1, 8, -1], # SELECT A5 sub tags
-                  [2], # SELECT 7F66 sub tags
-                  [1, 1], # CONTROL FLOW command
-                  [1, 1, 2, 65, 16, 32, -1], # AUTH0 command
-                  [65, 64, -1], # AUTH0 response
-                  [2, 20, 20], # AUTH0 response 9D sub tags
-                  [-1], # AUTH0 response B2 sub tags
-                  [1, 64, -1], # AUTH1 command
-                  [8, 65, 64, -1, 2, 20, 20], # AUTH1 response
-                  [2, 20, 20], # AUTH1 response 9D sub tags
-                  [-1], # AUTH1 response B2 sub tags
-                  [32, 32, 32, 16, 4], # AUTH1 reader authentication data fields
-                  [32, 32, 32, 16, 4], # AUTH1 user device authentication data fields
-                  [-1, -1, 2, 0, -1], # EXCHANGE command
-                  [4, -1, 5], # EXCHANGE command B9 sub tags
-                  ]
+expectedLength = {
+    TLV_SELECT_CMD, [-1], # SELECT command
+    TLV_SELECT_CMD_6F, [9, -1], # SELECT 6F sub tags
+    TLV_SELECT_CMD_A5, [2, -1, 8, -1], # SELECT A5 sub tags
+    TLV_SELECT_CMD_7F66, [2], # SELECT 7F66 sub tags
+    TLV_CONTROLFLOW_CMD, [1, 1], # CONTROL FLOW command
+    TLV_AUTH0_CMD, [1, 1, 2, 65, 16, 32, -1], # AUTH0 command
+    TLV_AUTH0_RSP, [65, 64, -1], # AUTH0 response
+    TLV_AUTH0_RSP_9D, [2, 20, 20], # AUTH0 response 9D sub tags
+    TLV_AUTH0_RSP_B2, [-1], # AUTH0 response B2 sub tags
+    TLV_AUTH1_CMD, [1, 64, -1], # AUTH1 command
+    TLV_AUTH1_RSP, [8, 65, 64, -1, 2, 20, 20], # AUTH1 response
+    TLV_AUTH1_RSP_9D, [2, 20, 20], # AUTH1 response 9D sub tags
+    TLV_AUTH1_RSP_B2, [-1], # AUTH1 response B2 sub tags
+    TLV_AUTH1_RSP_RD_AUTH, [32, 32, 32, 16, 4], # AUTH1 reader authentication data fields
+    TLV_AUTH1_RSP_UD_AUTH, [32, 32, 32, 16, 4], # AUTH1 user device authentication data fields
+    TLV_EXCHANGE_CMD, [-1, -1, 2, 0, -1], # EXCHANGE command
+    TLV_EXCHANGE_CMD_B9, [4, -1, 5], # EXCHANGE command B9 sub tags
+}
+
 class TlvError(AccessProtocolError):
     """
     Raised when a TLV is malformed, has unexpected items or is missing items.
@@ -354,12 +353,16 @@ class TLV:
             # length must match expected length
             el = expectedLength[idx][foundIdx]
             if (el != valuelen) and (el != -1):
-                raise TlvError("Wrong length for tag {} Expected {}, but found {}".format(hex(tag), el, valuelen))
+                raise TlvError("Wrong length for tag {} Expected {}, but found {}".format(tag, el, valuelen))
 
             i += 1
             value = buf[i:i+valuelen]
             i += valuelen
             # print('T=', hex(tag), 'L=', hex(valuelen), 'V=', hex_dump(value), '[', self.tagInfo.get(tag), ']')
+
+            tagIdx = expectedTags[idx].index(tag)
+            if valuelen is not expectedLength[idx][tagIdx] and expectedLength[idx][tagIdx] != -1 :
+                raise TlvError("Wrong length for tag detected")
 
             if (i<=buflen):
                 tags.append(tag)

@@ -718,7 +718,7 @@ class Command(APDUMessage):
             )
 
             Global.logger.debug("Data needs to be verified during handling")
-            TLV.verifySequence(self.decrypted_payload, 15) # TODO: modify fixed value
+            TLV.verifySequence(self.decrypted_payload, TLV_EXCHANGE_CMD)
 
             self.payload_tlv = TLV.from_bytes(self.decrypted_payload, recursive=False)
             Global.logger.debug(
