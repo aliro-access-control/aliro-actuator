@@ -47,7 +47,7 @@ from aliro_actuator.access_protocol.errors import (
     MessageTooLongError,
     UnexpectedBLEMessageError,
 )
-from aliro_actuator.access_protocol.tlv import TLV, TlvError
+from aliro_actuator.access_protocol.tlv import TLV, TLVIndex, TlvError
 from aliro_actuator.transport_protocol import TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.message import Message
@@ -1423,20 +1423,25 @@ class APDU:
 
         match command.ins:
             case INS.SELECT:
+                TLV.verifySequence(command.data, TLVIndex.TLV_SELECT_CMD)
                 command.parse_as_select()
             case INS.ENVELOPE:
                 command.parse_as_envelope(encryption)
             case INS.GET_RESPONSE:
                 command.parse_as_get_response()
             case INS.AUTH0:
+                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
                 command.parse_as_auth0()
             case INS.LOAD_CERT:
+                TLV.verifySequence(command.data, TLVIndex.TLV_LOADCERT_CMD)
                 command.parse_as_load_cert()
             case INS.AUTH1:
+                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH1_CMD)
                 command.parse_as_auth1()
             case INS.EXCHANGE:
                 command.parse_as_exchange(encryption)
             case INS.CONTROL_FLOW:
+                TLV.verifySequence(command.data, TLVIndex.TLV_CONTROLFLOW_CMD)
                 command.parse_as_control_flow()
             case _:
                 raise InvalidINSError(command.as_bytes)
