@@ -293,6 +293,10 @@ class UserDevice(Device):
                     if self.session is None:
                         raise SessionError("starting session failed")
                     message = await self.wait_for_message()
+                except InvalidAIDError as error:
+                    Global.logger.info(f"Caught exception: {error}")
+                    # retry wait for message
+                    continue
                 except (InvalidCommandError, VerificationError):
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                     break
@@ -359,6 +363,10 @@ class UserDevice(Device):
                 if self.session is None:
                     raise SessionError("starting session failed")
                 message = await self.wait_for_message()
+            except InvalidAIDError as error:
+                Global.logger.info(f"Caught exception: {error}")
+                # retry wait for message
+                continue
             except (InvalidCommandError, VerificationError):
                 await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                 return
