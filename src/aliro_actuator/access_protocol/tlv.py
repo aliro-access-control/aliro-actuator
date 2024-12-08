@@ -22,10 +22,10 @@ from aliro_actuator.access_protocol.errors import AccessProtocolError
 
 class TLVIndex(Enum):
     
-    TLV_SELECT_CMD = 0 
-    TLV_SELECT_CMD_6F = 1
-    TLV_SELECT_CMD_A5 = 2
-    TLV_SELECT_CMD_7F66 = 3
+    TLV_SELECT_RSP = 0 
+    TLV_SELECT_RSP_6F = 1
+    TLV_SELECT_RSP_A5 = 2
+    TLV_SELECT_RSP_7F66 = 3
     TLV_CONTROLFLOW_CMD = 4
     TLV_AUTH0_CMD = 5
     TLV_AUTH0_RSP = 6
@@ -42,10 +42,10 @@ class TLVIndex(Enum):
     
 
 expectedTags = {
-    TLVIndex.TLV_SELECT_CMD: [0x6F], # SELECT command
-    TLVIndex.TLV_SELECT_CMD_6F: [0x84, 0xA5], # SELECT 6F sub tags
-    TLVIndex.TLV_SELECT_CMD_A5: [0x80, 0x5C, 0x7F66, 0xB3], # SELECT A5 sub tags
-    TLVIndex.TLV_SELECT_CMD_7F66: [0x02], # SELECT 7F66 sub tags
+    TLVIndex.TLV_SELECT_RSP: [0x6F], # SELECT command
+    TLVIndex.TLV_SELECT_RSP_6F: [0x84, 0xA5], # SELECT 6F sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [0x80, 0x5C, 0x7F66, 0xB3], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_7F66: [0x02], # SELECT 7F66 sub tags
     TLVIndex.TLV_CONTROLFLOW_CMD: [0x41, 0x42], # CONTROL FLOW command
     TLVIndex.TLV_AUTH0_CMD: [0x41, 0x42, 0x5C, 0x87, 0x4C, 0x4D, 0xB1], # AUTH0 command
     TLVIndex.TLV_AUTH0_RSP: [0x86, 0x9D, 0xB2], # AUTH0 response
@@ -62,10 +62,10 @@ expectedTags = {
 }
 
 expectedLength = {
-    TLVIndex.TLV_SELECT_CMD: [-1], # SELECT command
-    TLVIndex.TLV_SELECT_CMD_6F: [9, -1], # SELECT 6F sub tags
-    TLVIndex.TLV_SELECT_CMD_A5: [2, -1, 8, -1], # SELECT A5 sub tags
-    TLVIndex.TLV_SELECT_CMD_7F66: [2], # SELECT 7F66 sub tags
+    TLVIndex.TLV_SELECT_RSP: [-1], # SELECT command
+    TLVIndex.TLV_SELECT_RSP_6F: [9, -1], # SELECT 6F sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [2, -1, 8, -1], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_7F66: [2], # SELECT 7F66 sub tags
     TLVIndex.TLV_CONTROLFLOW_CMD: [1, 1], # CONTROL FLOW command
     TLVIndex.TLV_AUTH0_CMD: [1, 1, 2, 65, 16, 32, -1], # AUTH0 command
     TLVIndex.TLV_AUTH0_RSP: [65, 64, -1], # AUTH0 response
@@ -333,7 +333,7 @@ class TLV:
                 i += 1
 
             if tag not in expectedTags[idx]:
-                raise TlvError("invalid tag detected")
+                raise TlvError("invalid tag detected {} in {}".format(hex(tag), ', '.join(hex(x) for x in expectedTags[idx])))
             else: # store index to check length
                 foundIdx = expectedTags[idx].index(tag)
 
