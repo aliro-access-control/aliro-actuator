@@ -1423,7 +1423,6 @@ class APDU:
 
         match command.ins:
             case INS.SELECT:
-                TLV.verifySequence(command.data, TLVIndex.TLV_SELECT_CMD)
                 command.parse_as_select()
             case INS.ENVELOPE:
                 command.parse_as_envelope(encryption)
