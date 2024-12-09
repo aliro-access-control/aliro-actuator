@@ -15,12 +15,13 @@
 from __future__ import annotations
 
 from binascii import hexlify
+from enum import IntEnum
 
 from ber_tlv.tlv import BadLength, BadParameter, BadTag, Tlv, UnexpectedEnd
 
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 
-class TLVIndex(Enum):
+class TLVIndex(IntEnum):
     
     TLV_SELECT_RSP = 0 
     TLV_SELECT_RSP_6F = 1
