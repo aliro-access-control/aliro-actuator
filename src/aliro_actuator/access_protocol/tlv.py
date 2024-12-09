@@ -374,5 +374,3 @@ class TLV:
                 if all(i in it for i in tags) == False:
                     raise TlvError("Wrong sequence of TLV tags {} not matching {}".format(', '.join(hex(x) for x in tags), ', '.join(hex(x) for x in expectedTags[idx])))
 
-        return 0
-
