@@ -1794,6 +1794,7 @@ class ReaderSession:
         self.maximum_command_apdu = select_response.maximum_command_apdu
         self.maximum_response_apdu = select_response.maximum_response_apdu
         self.proprietary_tlv = select_response.proprietary_tlv
+        self.vendor_specific_extensions = select_response.vendor_specific_extensions
 
     def set_initiate_access_protocol_info(
         self, initiate_ap_notification: BleMessage
