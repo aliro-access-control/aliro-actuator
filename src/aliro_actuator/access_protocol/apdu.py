@@ -1127,6 +1127,9 @@ class Response(APDUMessage):
         Global.logger.debug(
             "decrypted payload: {!r}".format(hexlify(self.decrypted_payload))
         )
+        
+        Global.logger.debug("Data needs to be verified during handling")
+        TLV.verifySequence(self.decrypted_payload, TLVIndex.TLV_AUTH1_RSP)
 
         try:
             self.tlv_data = TLV.from_bytes(self.decrypted_payload)
@@ -1492,17 +1495,16 @@ class APDU:
 
         match ins:
             case INS.SELECT:
-                TLV.verifySequence(response, TLVIndex.TLV_SELECT_RSP)
+                TLV.verifySequence(response.data, TLVIndex.TLV_SELECT_RSP)
                 response.parse_as_select()
             case INS.ENVELOPE:
                 response.parse_as_envelope(encryption)
             case INS.GET_RESPONSE:
                 response.parse_as_get_response()
             case INS.AUTH0:
-                TLV.verifySequence(response, TLVIndex.TLV_AUTH0_RSP)
+                TLV.verifySequence(response.data, TLVIndex.TLV_AUTH0_RSP)
                 response.parse_as_auth0()
             case INS.AUTH1:
-                TLV.verifySequence(response, TLVIndex.TLV_AUTH1_RSP)
                 response.parse_as_auth1(encryption)
             case INS.LOAD_CERT:
                 response.parse_as_load_cert()
