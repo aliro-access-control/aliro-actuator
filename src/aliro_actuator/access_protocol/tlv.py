@@ -334,7 +334,8 @@ class TLV:
                 i += 1
 
             if tag not in expectedTags[idx]:
-                raise TlvError("invalid tag detected {} in {}".format(hex(tag), ', '.join(hex(x) for x in expectedTags[idx])))
+                if (idx != TLVIndex.TLV_SELECT_RSP):
+                    raise TlvError("invalid tag detected {} in {}".format(hex(tag), ', '.join(hex(x) for x in expectedTags[idx])))
             else: # store index to check length
                 foundIdx = expectedTags[idx].index(tag)
 
