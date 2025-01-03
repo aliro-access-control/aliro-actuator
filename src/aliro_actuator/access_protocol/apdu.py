@@ -779,8 +779,11 @@ class Command(APDUMessage):
             else:
                 self.reader_status = None
 
-            self.notify = self._get_multiple_optional_TLV_from_TLV(
-                "Notify", Exchange.NOTIFY_TAG, tlv_data=self.payload_tlv
+            self.notify = self._get_optional_bytes_from_TLV(
+                "Notify", 
+                Exchange.NOTIFY_TAG,
+                max_length=256,
+                tlv_data=self.payload_tlv
             )
 
             self.ursk = self._get_optional_bytes_from_TLV(
