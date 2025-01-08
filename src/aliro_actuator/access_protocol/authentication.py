@@ -25,6 +25,7 @@ def create_reader_authentication(
     data_fields.append((ReaderAuth.USAGE_TAG, ReaderAuth.USAGE))
 
     data = TLV(data_fields)
+    TLV.verifySequence(data, TLVIndex.TLV_AUTH1_RSP_RD, false)
     Global.logger.debug(
         "reader authentication data: {!r}".format(hexlify(data.to_bytes()))
     )
@@ -56,6 +57,7 @@ def create_user_device_authentication(
     data_fields.append((UserDeviceAuth.USAGE_TAG, UserDeviceAuth.USAGE))
 
     data = TLV(data_fields)
+    TLV.verifySequence(data, TLVIndex.TLV_AUTH1_RSP_UD, false)
     Global.logger.debug(
         "Created user device authentication data: {!r}".format(hexlify(data.to_bytes()))
     )

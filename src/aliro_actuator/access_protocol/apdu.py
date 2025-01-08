@@ -718,7 +718,7 @@ class Command(APDUMessage):
             )
 
             Global.logger.debug("Data needs to be verified during handling")
-            TLV.verifySequence(self.decrypted_payload, TLVIndex.TLV_EXCHANGE_CMD)
+            TLV.verifySequence(self.decrypted_payload, TLVIndex.TLV_EXCHANGE_CMD, false)
 
             self.payload_tlv = TLV.from_bytes(self.decrypted_payload, recursive=False)
             Global.logger.debug(
@@ -730,6 +730,7 @@ class Command(APDUMessage):
             )
 
             if self.mailbox_commands is not None:
+                TLV.verifySequence(self.mailbox_commands, TLVIndex.TLV_EXCHANGE_CMD_B9, false)
                 self.atomic_session: bool | None = self.mailbox_commands[0] == 0x01
                 Global.logger.debug("atomic session: {}".format(self.atomic_session))
 
@@ -940,6 +941,7 @@ class Response(APDUMessage):
         FCI_tlv = self._get_TLV_from_TLV(
             "File Control Information (FCI)", Select.FCI_TAG
         )
+        TLV.verifySequence(FCI_tlv, TLVIndex.TLV_SELECT_RSP_6F, false)
 
         self.compl_aid = self._get_bytes_from_TLV(
             "AID", Select.AID_TAG, Select.AID_LEN, tlv_data=FCI_tlv
@@ -948,6 +950,8 @@ class Response(APDUMessage):
         self.proprietary_tlv = self._get_TLV_from_TLV(
             "Proprietary information", Select.PROPRIETARY_TAG, tlv_data=FCI_tlv
         )
+
+        TLV.verifySequence(self.proprietary_tlv, TLVIndex.TLV_SELECT_RSP_A5, false)
 
         self.type = self._get_int_from_TLV(
             "Type", Select.TYPE_TAG, Select.TYPE_LEN, tlv_data=self.proprietary_tlv
@@ -977,6 +981,7 @@ class Response(APDUMessage):
             self.maximum_command_apdu = None
             self.maximum_response_apdu = None
         else:
+            TLV.verifySequence(extended_length, TLVIndex.TLV_SELECT_RSP_7F66, false);
             self.maximum_command_apdu = self._get_int_from_TLV(
                 "Maximum Command APDU",
                 Select.MAX_COMMAND_TAG,
@@ -1129,7 +1134,7 @@ class Response(APDUMessage):
         )
         
         Global.logger.debug("Data needs to be verified during handling")
-        TLV.verifySequence(self.decrypted_payload, TLVIndex.TLV_AUTH1_RSP)
+        TLV.verifySequence(self.decrypted_payload, TLVIndex.TLV_AUTH1_RSP, false)
 
         try:
             self.tlv_data = TLV.from_bytes(self.decrypted_payload)
@@ -1432,18 +1437,18 @@ class APDU:
             case INS.GET_RESPONSE:
                 command.parse_as_get_response()
             case INS.AUTH0:
-                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
+                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD, false)
                 command.parse_as_auth0()
             case INS.LOAD_CERT:
-                TLV.verifySequence(command.data, TLVIndex.TLV_LOADCERT_CMD)
+                TLV.verifySequence(command.data, TLVIndex.TLV_LOADCERT_CMD, false)
                 command.parse_as_load_cert()
             case INS.AUTH1:
-                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH1_CMD)
+                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH1_CMD, false)
                 command.parse_as_auth1()
             case INS.EXCHANGE:
                 command.parse_as_exchange(encryption)
             case INS.CONTROL_FLOW:
-                TLV.verifySequence(command.data, TLVIndex.TLV_CONTROLFLOW_CMD)
+                TLV.verifySequence(command.data, TLVIndex.TLV_CONTROLFLOW_CMD, false)
                 command.parse_as_control_flow()
             case _:
                 raise InvalidINSError(command.as_bytes)
@@ -1495,14 +1500,14 @@ class APDU:
 
         match ins:
             case INS.SELECT:
-                TLV.verifySequence(response.data, TLVIndex.TLV_SELECT_RSP)
+                TLV.verifySequence(response.data, TLVIndex.TLV_SELECT_RSP, true)
                 response.parse_as_select()
             case INS.ENVELOPE:
                 response.parse_as_envelope(encryption)
             case INS.GET_RESPONSE:
                 response.parse_as_get_response()
             case INS.AUTH0:
-                TLV.verifySequence(response.data, TLVIndex.TLV_AUTH0_RSP)
+                TLV.verifySequence(response.data, TLVIndex.TLV_AUTH0_RSP, false)
                 response.parse_as_auth0()
             case INS.AUTH1:
                 response.parse_as_auth1(encryption)

@@ -34,52 +34,46 @@ class TLVIndex(IntEnum):
     TLV_AUTH0_RSP_B2 = 8 
     TLV_AUTH1_CMD = 9 
     TLV_AUTH1_RSP = 10 
-    TLV_AUTH1_RSP_9D = 11
-    TLV_AUTH1_RSP_B2 = 12
-    TLV_AUTH1_RSP_RD_AUTH = 13
-    TLV_AUTH1_RSP_UD_AUTH = 14
-    TLV_EXCHANGE_CMD = 15
-    TLV_EXCHANGE_CMD_B9 = 16
+    TLV_AUTH1_RSP_RD_AUTH = 11
+    TLV_AUTH1_RSP_UD_AUTH = 12
+    TLV_EXCHANGE_CMD = 13
+    TLV_EXCHANGE_CMD_B9 = 14
     
 
 expectedTags = {
-    TLVIndex.TLV_SELECT_RSP: [0x6F], # SELECT command
-    TLVIndex.TLV_SELECT_RSP_6F: [0x84, 0xA5], # SELECT 6F sub tags
-    TLVIndex.TLV_SELECT_RSP_A5: [0x80, 0x5C, 0x7F66, 0xB3], # SELECT A5 sub tags
-    TLVIndex.TLV_SELECT_RSP_7F66: [0x02], # SELECT 7F66 sub tags
-    TLVIndex.TLV_CONTROLFLOW_CMD: [0x41, 0x42], # CONTROL FLOW command
-    TLVIndex.TLV_AUTH0_CMD: [0x41, 0x42, 0x5C, 0x87, 0x4C, 0x4D, 0xB1], # AUTH0 command
-    TLVIndex.TLV_AUTH0_RSP: [0x86, 0x9D, 0xB2], # AUTH0 response
-    TLVIndex.TLV_AUTH0_RSP_9D: [0x5E, 0x91, 0x92], # AUTH0 response 9D sub tags
+    TLVIndex.TLV_SELECT_RSP: [Select.FCI_TAG], # SELECT command
+    TLVIndex.TLV_SELECT_RSP_6F: [Select.AID_TAG, Select.PROPRIETARY_TAG], # SELECT 6F sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [Select.TYPE_TAG, Select.ETSPV_TAG, Select.EXTENDED_INFO_TAG, Select.VENDOR_SPECIFIC_TAG], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_7F66: [0x02], # SELECT 7F66 sub tags: both for MAX_COMMAND_TAG (0x02) as for MAX_RESPONSE_TAG (0x02)
+    TLVIndex.TLV_CONTROLFLOW_CMD: [ControlFlow.S1_TAG, ControlFlow.S2_TAG], # CONTROL FLOW command
+    TLVIndex.TLV_AUTH0_CMD: [Auth0.COMMAND_TAG, Auth0.AUTHENTICATION_POLICY_TAG, Auth0.ETPV_TAG, Auth0.READER_EPUBK_TAG, Auth0.TRANSACTION_ID_TAG, Auth0.READER_IDENTIFIER_TAG, Auth0.VENDOR_SPECIFIC_TAG], # AUTH0 command
+    TLVIndex.TLV_AUTH0_RSP: [Auth0.CREDENTIAL_EPUBK_TAG, Auth0.CRYPTOGRAM_TAG, Auth0.RE_VENDOR_SPECIFIC_TAG], # AUTH0 response
+    TLVIndex.TLV_AUTH0_RSP_9D: [Auth1.SIGNALING_BITMAP_TAG, Auth1.CREDENTIAL_TIMESTAMP_TAG, Auth1.REVOCATION_TIMESTAMP_TAG], # AUTH0 response 9D sub tags
     TLVIndex.TLV_AUTH0_RSP_B2: [0x30], # AUTH0 response B2 sub tags
-    TLVIndex.TLV_AUTH1_CMD: [0x41, 0x9E, 0x90], # AUTH1 command
-    TLVIndex.TLV_AUTH1_RSP: [0x4E, 0x5A, 0x9E, 0x4B, 0x5E, 0x91, 0x92], # AUTH1 response
-    TLVIndex.TLV_AUTH1_RSP_9D: [0x5E, 0x91, 0x92], # AUTH1 response 9D sub tags
-    TLVIndex.TLV_AUTH1_RSP_B2: [0x30], # AUTH1 response B2 sub tags
-    TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 reader authentication data fields
-    TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 user device authentication data fields
-    TLVIndex.TLV_EXCHANGE_CMD: [0xB9, 0xAE, 0x97, 0x98, 0x81], # EXCHANGE command
-    TLVIndex.TLV_EXCHANGE_CMD_B9: [0x87, 0x8A, 0x95] # EXCHANGE command B9 sub tags
+    TLVIndex.TLV_AUTH1_CMD: [Auth1.COMMAND_TAG, Auth1.READER_SIG_TAG, Auth1.CERTIFICATE_TAG], # AUTH1 command
+    TLVIndex.TLV_AUTH1_RSP: [Auth1.KEY_SLOT_TAG, Auth1.CREDENTIAL_PUBK_TAG, Auth1.USER_DEVICE_SIG_TAG, Auth1.MAILBOX_DATA_TAG, Auth1.SIGNALING_BITMAP_TAG, Auth1.CREDENTIAL_TIMESTAMP_TAG, Auth1.REVOCATION_TIMESTAMP_TAG], # AUTH1 response
+    TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [ReaderAuth.READER_IDENTIFIER_TAG, ReaderAuth.CREDENTIAL_EPUBK_TAG, ReaderAuth.READER_EPUBK_TAG, ReaderAuth.TRANSACTION_IDENTIFIER_TAG, ReaderAuth.USAGE_TAG], # AUTH1 reader authentication data fields
+    TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [UserDeviceAuth.READER_IDENTIFIER_TAG, UserDeviceAuth.CREDENTIAL_EPUBK_TAG, UserDeviceAuth.READER_EPUBK_TAG, UserDeviceAuth.TRANSACTION_IDENTIFIER_TAG, UserDeviceAuth.USAGE], # AUTH1 user device authentication data fields
+    TLVIndex.TLV_EXCHANGE_CMD: [Exchange.MAILBOX_TAG, Exchange.NOTIFY_TAG, Exchange.READER_STATUS_TAG, Exchange.URSK_TAG, Exchange.UPDATE_DOC_TAG], # EXCHANGE command
+    TLVIndex.TLV_EXCHANGE_CMD_B9: [Exchange.READ_TAG, Exchange.WRITE_TAG, Exchange.SET_TAG] # EXCHANGE command B9 sub tags
 }
 
 expectedLength = {
     TLVIndex.TLV_SELECT_RSP: [-1], # SELECT command
-    TLVIndex.TLV_SELECT_RSP_6F: [9, -1], # SELECT 6F sub tags
-    TLVIndex.TLV_SELECT_RSP_A5: [2, -1, 8, -1], # SELECT A5 sub tags
-    TLVIndex.TLV_SELECT_RSP_7F66: [2], # SELECT 7F66 sub tags
+    TLVIndex.TLV_SELECT_RSP_6F: [Select.AID_LEN, -1], # SELECT 6F sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [Select.TYPE_LEN, -1, Select.EXTENDED_INFO_LEN, -1], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_7F66: [2], # SELECT 7F66 sub tags: both for MAX_COMMAND_LEN as for MAX_RESPONSE_LEN
     TLVIndex.TLV_CONTROLFLOW_CMD: [1, 1], # CONTROL FLOW command
-    TLVIndex.TLV_AUTH0_CMD: [1, 1, 2, 65, 16, 32, -1], # AUTH0 command
-    TLVIndex.TLV_AUTH0_RSP: [65, 64, -1], # AUTH0 response
-    TLVIndex.TLV_AUTH0_RSP_9D: [2, 20, 20], # AUTH0 response 9D sub tags
+    TLVIndex.TLV_AUTH0_CMD: [Auth0.COMMAND_LEN, Auth0.POLICY_LEN, Auth0.ETPV_LEN, Auth0.READER_EPUBK_LEN, Auth0.TRANSACTION_ID_LEN, Auth0.READER_IDENTIFIER_LEN, -1], # AUTH0 command
+    TLVIndex.TLV_AUTH0_RSP: [Auth0.CREDENTIAL_EPUBK_LEN, Auth0.CRYPTOGRAM_LEN, -1], # AUTH0 response
+    TLVIndex.TLV_AUTH0_RSP_9D: [Auth0.SIGNALING_BITMAP_LEN, Auth0.CREDENTIAL_TIMESTAMP_LEN, Auth0.REVOCATION_TIMESTAMP_LEN], # AUTH0 response 9D sub tags
     TLVIndex.TLV_AUTH0_RSP_B2: [-1], # AUTH0 response B2 sub tags
-    TLVIndex.TLV_AUTH1_CMD: [1, 64, -1], # AUTH1 command
-    TLVIndex.TLV_AUTH1_RSP: [8, 65, 64, -1, 2, 20, 20], # AUTH1 response
-    TLVIndex.TLV_AUTH1_RSP_9D: [2, 20, 20], # AUTH1 response 9D sub tags
-    TLVIndex.TLV_AUTH1_RSP_B2: [-1], # AUTH1 response B2 sub tags
+    TLVIndex.TLV_AUTH1_CMD: [Auth1.COMMAND_LEN, Auth1.READER_SIG_LEN, -1], # AUTH1 command
+    TLVIndex.TLV_AUTH1_RSP: [Auth1.KEY_SLOT_LEN, Auth1.CREDENTIAL_PUBK_LEN, Auth1.USER_DEVICE_SIG_LEN, -1, Auth1.SIGNALING_BITMAP_LEN, Auth1.CREDENTIAL_TIMESTAMP_LEN, Auth1.REVOCATION_TIMESTAMP_LEN], # AUTH1 response
     TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [32, 32, 32, 16, 4], # AUTH1 reader authentication data fields
     TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [32, 32, 32, 16, 4], # AUTH1 user device authentication data fields
-    TLVIndex.TLV_EXCHANGE_CMD: [-1, -1, 2, 0, -1], # EXCHANGE command
-    TLVIndex.TLV_EXCHANGE_CMD_B9: [4, -1, 5], # EXCHANGE command B9 sub tags
+    TLVIndex.TLV_EXCHANGE_CMD: [-1, -1, Exchange.READER_STATUS_LEN, Exchange.URSK_LEN, -1], # EXCHANGE command
+    TLVIndex.TLV_EXCHANGE_CMD_B9: [Exchange.READER_LEN, -1, Exchange.SET_LEN], # EXCHANGE command B9 sub tags
 }
 
 class TlvError(AccessProtocolError):
@@ -311,7 +305,7 @@ class TLV:
         return result
 
     @staticmethod
-    def verifySequence(buf, idx):
+    def verifySequence(buf, idx, skipUnknownTags):
         """
         checks the TLV sequence is valid, tags are valid and lengths are valid for a given predefined TLV sequence.
 
@@ -334,9 +328,9 @@ class TLV:
                 i += 1
 
             if tag not in expectedTags[idx]:
-                if (idx != TLVIndex.TLV_SELECT_RSP):
+                if not skipUnknownTags:
                     raise TlvError("invalid tag detected {} in {}".format(hex(tag), ', '.join(hex(x) for x in expectedTags[idx])))
-            else: # store index to check length
+            else: # store index of known tag to check length
                 foundIdx = expectedTags[idx].index(tag)
 
             valuelen = 0

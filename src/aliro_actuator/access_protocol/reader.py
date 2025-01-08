@@ -673,6 +673,9 @@ class Reader(Device):
         else:
             await self.decrypt_cryptogram(auth0_response.cryptogram)
 
+        if auth0_response.vendor_specific_extensions is not None:
+            TLV.verifySequence(auth0_response.vendor_specific_extensions, TLVIndex.TLV_AUTH0_RSP_B2, false) 
+        
         Global.logger.info("Handling AUTH0 command done")
 
     async def decrypt_cryptogram(self, cryptogram: bytes | None) -> None:

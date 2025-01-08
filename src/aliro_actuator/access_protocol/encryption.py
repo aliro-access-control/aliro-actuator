@@ -346,4 +346,5 @@ def decrypt_cryptogram(
         cipher.verify(authentication_tag)
     except ValueError:
         raise VerificationError
+    TLV.verifySequence(plaintext, TLVIndex.TLV_AUTH0_RSP_9D, false)
     return plaintext
