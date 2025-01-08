@@ -71,7 +71,7 @@ class UserDeviceMurataDriver(
         return (
             advertisement_info.advertisement_version,
             advertisement_info.notification,
-            advertisement_info.BLE_UWB_sepported,
+            advertisement_info.BLE_UWB_supported,
             advertisement_info.BLE_only_supported,
         )
 
