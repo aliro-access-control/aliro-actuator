@@ -160,7 +160,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         data.append(device_id)
         data.extend(self.channel_ids[device_id].to_bytes(2, "little"))
         data.extend(len(data_to_send).to_bytes(2, "little"))
-        data.extend(change_endianness(data_to_send))
+        data.extend(data_to_send)
 
         message = Message(
             OpGroup.L2CAP,
