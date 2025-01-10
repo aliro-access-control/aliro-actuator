@@ -78,9 +78,9 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         byte_7 = advertisement_version & 0x07
         byte_7 |= (notification & 0x3) << 3
         if BLE_UWB_supported:
-            byte_7 |= 1 << 6
-        if BLE_only_supported:
             byte_7 |= 1 << 7
+        if BLE_only_supported:
+            byte_7 |= 1 << 6
 
         data = bytearray()
         data.append(0x01)  # advertising data included
