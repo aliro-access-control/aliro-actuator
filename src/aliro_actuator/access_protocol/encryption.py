@@ -20,7 +20,7 @@ from Crypto.Cipher import AES
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.defines import Auth1, Select, TransportProtocol
 from aliro_actuator.access_protocol.errors import AccessProtocolError
-from aliro_actuator.access_protocol.tlv import TLV
+from aliro_actuator.access_protocol.tlv import TLV, TLVIndex
 from aliro_actuator.trust_framework.key import PublicKey
 
 
@@ -346,5 +346,5 @@ def decrypt_cryptogram(
         cipher.verify(authentication_tag)
     except ValueError:
         raise VerificationError
-    TLV.verifySequence(plaintext, TLVIndex.TLV_AUTH0_RSP_9D, false)
+    TLV.verifySequence(plaintext, TLVIndex.TLV_AUTH0_RSP_9D, False)
     return plaintext

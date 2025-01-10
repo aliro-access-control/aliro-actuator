@@ -59,7 +59,7 @@ from aliro_actuator.access_protocol.errors import (
     SessionError,
     UnexpectedBLEMessageError,
 )
-from aliro_actuator.access_protocol.tlv import TLV
+from aliro_actuator.access_protocol.tlv import TLV, TLVIndex
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_encryption import get_ble_encryption
 from aliro_actuator.transport_protocol.ble_message_format import (
@@ -674,7 +674,7 @@ class Reader(Device):
             await self.decrypt_cryptogram(auth0_response.cryptogram)
 
         if auth0_response.vendor_specific_extensions is not None:
-            TLV.verifySequence(auth0_response.vendor_specific_extensions, TLVIndex.TLV_AUTH0_RSP_B2, false) 
+            TLV.verifySequence(auth0_response.vendor_specific_extensions, TLVIndex.TLV_AUTH0_RSP_B2, False) 
         
         Global.logger.info("Handling AUTH0 command done")
 
@@ -1309,6 +1309,9 @@ class Reader(Device):
         data = create_reader_authentication(
             reader_identifier, credential_epubk, reader_epubk, transaction_identifier
         )
+        
+        TLV.verifyTLVSequence(data, TLVIndex.TLV_AUTH1_RSP_RD_AUTH, False)
+
         reader_sig = self.reader_key.sign(data.to_bytes())
         Global.logger.debug(
             "reader authentication data signature: {!r}".format(hexlify(reader_sig))
@@ -1897,6 +1900,7 @@ class ReaderSession:
             self.reader_ephemeral.get_public_key(),
             self.transaction_identifier,
         )
+        TLV.verifyTLVSequence(data, TLVIndex.TLV_AUTH1_RSP_RD_AUTH, False)
         Global.logger.debug(
             "verifying user data with key: {!r}".format(
                 hexlify(self.credential_pubk.as_bytes())

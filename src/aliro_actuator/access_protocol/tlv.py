@@ -19,6 +19,7 @@ from enum import IntEnum
 
 from ber_tlv.tlv import BadLength, BadParameter, BadTag, Tlv, UnexpectedEnd
 
+from aliro_actuator import Global
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 from aliro_actuator.access_protocol.defines import Select, ControlFlow, Auth0, Auth1, Exchange, ReaderAuth, UserDeviceAuth
 
@@ -71,8 +72,8 @@ expectedLength = {
     TLVIndex.TLV_AUTH0_RSP_B2: [-1], # AUTH0 response B2 sub tags
     TLVIndex.TLV_AUTH1_CMD: [Auth1.COMMAND_LEN, Auth1.READER_SIG_LEN, -1], # AUTH1 command
     TLVIndex.TLV_AUTH1_RSP: [Auth1.KEY_SLOT_LEN, Auth1.CREDENTIAL_PUBK_LEN, Auth1.USER_DEVICE_SIG_LEN, -1, Auth1.SIGNALING_BITMAP_LEN, Auth1.CREDENTIAL_TIMESTAMP_LEN, Auth1.REVOCATION_TIMESTAMP_LEN], # AUTH1 response
-    TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [32, 32, 32, 16, 4], # AUTH1 reader authentication data fields
-    TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [32, 32, 32, 16, 4], # AUTH1 user device authentication data fields
+    TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [ReaderAuth.READER_IDENTIFIER_LEN, ReaderAuth.CREDENTIAL_EPUBK_LEN, ReaderAuth.READER_EPUBK_LEN, ReaderAuth.TRANSACTION_IDENTIFIER_LEN, ReaderAuth.USAGE_LEN], # AUTH1 reader authentication data fields
+    TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [UserDeviceAuth.READER_IDENTIFIER_LEN, UserDeviceAuth.CREDENTIAL_EPUBK_LEN, UserDeviceAuth.READER_EPUBK_LEN, UserDeviceAuth.TRANSACTION_IDENTIFIER_LEN, UserDeviceAuth.USAGE_LEN], # AUTH1 user device authentication data fields
     TLVIndex.TLV_EXCHANGE_CMD: [-1, -1, Exchange.READER_STATUS_LEN, Exchange.URSK_LEN, -1], # EXCHANGE command
     TLVIndex.TLV_EXCHANGE_CMD_B9: [Exchange.READ_LEN, -1, Exchange.SET_LEN], # EXCHANGE command B9 sub tags
 }
@@ -305,8 +306,12 @@ class TLV:
         result = "[{}]".format(", ".join(x for x in element_list))
         return result
 
+    @staticmethod 
+    def verifyTLVSequence(tlv : TLV, idx, skipUnknownTags):
+        TLV.verifySequence(tlv.to_bytes(), idx, skipUnknownTags)
+
     @staticmethod
-    def verifySequence(buf, idx, skipUnknownTags):
+    def verifySequence(buf : bytes, idx, skipUnknownTags):
         """
         checks the TLV sequence is valid, tags are valid and lengths are valid for a given predefined TLV sequence.
 
