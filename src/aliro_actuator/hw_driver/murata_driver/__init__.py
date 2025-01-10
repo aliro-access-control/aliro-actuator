@@ -226,6 +226,7 @@ class ReaderMurataDriver(
         dynamic_tag = dynamic_tag_generation(
             group_resolving_key, expiry_timestamp, advertising_address
         )
+        await self.set_phy(True, False, False)
         await self.set_advertising_parameters()
         await self.set_advertising_data(
             ALIRO_SERVICE_UUID,

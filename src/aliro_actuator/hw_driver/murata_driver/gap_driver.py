@@ -37,6 +37,41 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         Global.logger.debug("Read public device address ready")
         return change_endianness(response.data)
 
+    async def set_phy(
+        self, prefer_1m: bool, prefer_2m: bool, prefer_coded: bool
+    ) -> None:
+        Global.logger.info("Set Phy")
+
+        bitmask = 0x00
+        if prefer_1m:
+            bitmask |= 0x01
+        if prefer_2m:
+            bitmask |= 0x02
+        if prefer_coded:
+            bitmask |= 0x04
+
+        data = bytearray()
+        data.append(0x01)  # default mode
+        data.append(0x00)  # device id
+        data.append(0x00)  # no preferences
+        data.append(bitmask)  # Tx PHY
+        data.append(bitmask)  # Rx PHY
+        data.append(0x01)  # Coded phy options (set to S=2)
+        data.append(0x00)
+
+        message = Message(OpGroup.GAP, OpCodeGAP.SET_PHY, len(data), data)
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GAP)
+        await self.wait_for_message(
+            OpGroup.GAP, 
+            OpCodeGAP.GENERIC_EVENT_LE_PHY_INDICATION,
+        )
+        Global.logger.debug(
+            "Set Phy: 1M: {}, 2M: {}, coded: {}".format(
+                prefer_1m, prefer_2m, prefer_coded
+            )
+        )
+
     async def set_advertising_parameters(self) -> None:
         Global.logger.debug("Setting advertising parameters")
 
