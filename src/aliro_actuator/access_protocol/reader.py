@@ -678,12 +678,14 @@ class Reader(Device):
     async def decrypt_cryptogram(self, cryptogram: bytes | None) -> None:
         if self.session is None:
             raise SessionError("No Session")
-
+        
         if cryptogram is None:
             await self.failure_process(S2.NONE)
             raise AccessProtocolError(
                 "User did not send cryptogram during a fast transaction"
             )
+        
+        self.session.set_received_cryptogram(cryptogram)
 
         Global.logger.info(
             "Trying to decrypt cryptogram received: {!r}".format(
@@ -1876,6 +1878,9 @@ class ReaderSession:
         self.revocation_signed_timestamp = decrypted_cryptogram.get_bytes(
             Auth1.REVOCATION_TIMESTAMP_TAG
         )
+        
+    def set_received_cryptogram(self, cryptogram: bytes) -> None:
+        self.received_cryptogram = cryptogram
 
     def set_auth1_info(
         self,
