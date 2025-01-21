@@ -1437,7 +1437,6 @@ class APDU:
                 TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
                 command.parse_as_auth0()
             case INS.LOAD_CERT:
-                TLV.verifySequence(command.data, TLVIndex.TLV_LOADCERT_CMD)
                 command.parse_as_load_cert()
             case INS.AUTH1:
                 TLV.verifySequence(command.data, TLVIndex.TLV_AUTH1_CMD)
