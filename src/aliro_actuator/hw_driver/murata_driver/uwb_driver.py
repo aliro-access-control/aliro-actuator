@@ -23,7 +23,7 @@ DEFAULT_SR150_FIRMWARE_PATH = (
     ACTUATOR_ROOT_PATH
     / "third_party"
     / "aliro-th-additions"
-    / "H1_IOT.SR150_MAINLINE_PROD_FW_46.43.01_7d38a06f4be3a12c_TH.bin"
+    / "ALIRO_IOT_SR150_FW_v46.43.A3.bin"
 )
 
 
