@@ -15,6 +15,10 @@
 # limitations under the License.
 set -e
 
+# Assign default value to NXP_TRANSPORT if it was not provided and do uppercase
+: ${NXP_TRANSPORT:="SPI"}
+NXP_TRANSPORT=$(echo "$NXP_TRANSPORT" | tr '[:lower:]' '[:upper:]')
+
 ACTUATOR_PATH=$(realpath $(dirname "$0")/..)
 cd $ACTUATOR_PATH
 
@@ -38,7 +42,18 @@ git reset --hard
 git checkout NCI2.0_PN7160
 
 git apply --whitespace=fix 64bit_patch/ROOT_src.patch
-sed -i 's/NXP_TRANSPORT=0x00/NXP_TRANSPORT=0x03/g' conf/libnfc-nxp.conf
+if [ "$NXP_TRANSPORT" = "SPI" ]; then
+    echo "Install NFC with NXP_TRANSPORT=0x03 (${NXP_TRANSPORT})"
+    sed -i 's/NXP_TRANSPORT=0x00/NXP_TRANSPORT=0x03/g' conf/libnfc-nxp.conf
+elif [ "$NXP_TRANSPORT" = "I2C" ]; then
+    echo "Install NFC with NXP_TRANSPORT=0x02 (${NXP_TRANSPORT})"
+    sed -i 's/NXP_TRANSPORT=0x00/NXP_TRANSPORT=0x02/g' conf/libnfc-nxp.conf
+else
+    echo "Unsupported NXP_TRANSPORT option: $NXP_TRANSPORT" >&2
+    exit 1
+fi
+
+
 sed -i 's/NXP_NFC_DEV_NODE="\/dev\/nxpnfc"/NXP_NFC_DEV_NODE="\/dev\/spidev0.0"/g' conf/libnfc-nxp.conf
 
 echo "####################"

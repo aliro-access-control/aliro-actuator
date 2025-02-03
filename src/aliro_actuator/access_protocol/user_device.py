@@ -57,6 +57,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidAIDError,
     InvalidCLAError,
     InvalidCommandError,
+    InvalidINSError,
     InvalidParameterError,
     SessionError,
     UnexpectedBLEMessageError,
@@ -305,6 +306,10 @@ class UserDevice(Device):
                     if self.session is None:
                         raise SessionError("starting session failed")
                     message = await self.wait_for_message()
+                except (InvalidAIDError, InvalidINSError) as error:
+                    Global.logger.info(f"Caught exception: {error}")
+                    # retry wait for message
+                    continue
                 except (InvalidCommandError, VerificationError):
                     await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                     break
@@ -371,6 +376,10 @@ class UserDevice(Device):
                 if self.session is None:
                     raise SessionError("starting session failed")
                 message = await self.wait_for_message()
+            except(InvalidAIDError, InvalidINSError) as error:
+                Global.logger.info(f"Caught exception: {error}")
+                # retry wait for message
+                continue
             except (InvalidCommandError, VerificationError):
                 await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                 return
@@ -987,9 +996,13 @@ class UserDevice(Device):
 
                 doc_timestamp = None
                 revoke_timestamp = None
-                if self.access_document is not None and isinstance(self.access_document, AccessDocument):
+                if self.access_document is not None and isinstance(
+                    self.access_document, AccessDocument
+                ):
                     doc_timestamp = self.access_document.get_timestamp()
-                if self.revocation_document is not None and isinstance(self.revocation_document, RevocationDocument):
+                if self.revocation_document is not None and isinstance(
+                    self.revocation_document, RevocationDocument
+                ):
                     revoke_timestamp = self.revocation_document.get_timestamp()
                 cryptogram = compute_cryptogram(
                     self.session.cryptogram_SK,
@@ -1578,7 +1591,13 @@ class UserDevice(Device):
         Returns:
             Command: the received command.
         """
-        message = await self.wait_for_message(expected_command)
+        while True:
+            try:
+                message = await self.wait_for_message(expected_command)
+                break
+            except (InvalidAIDError, InvalidINSError) as error:
+                Global.logger.info(f"Caught exception: {error}")
+                # retry wait for message
         if not isinstance(message, APDUMessage):
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
@@ -1636,6 +1655,33 @@ class UserDevice(Device):
         command = await self.apdu.handle_chaining_receive_command(
             command_str, self.transport_protocol
         )
+
+        if (
+            command.ins == INS.GET_DATA
+            and (command.p1, command.p2) == (0x7F, 0x68)
+        ):
+            Global.logger.info("Received unexpected GET DATA command")
+            response = self.apdu.create_error_response(StatusBytes.REFERENCED_DATA_NOT_FOUND)
+            await self.transport_protocol.send_message(response)
+            raise InvalidINSError(command.to_bytes())
+
+        if (
+            command.ins == INS.SELECT
+            and command.p1 != 0x04
+            and command.p2 != 0x00
+        ):
+            response = self.apdu.create_error_response(StatusBytes.INCORRECT_P1_P2)
+            await self.transport_protocol.send_message(response)
+            raise InvalidAIDError(command.to_bytes(), command.data)
+
+        if (
+            command.ins == INS.SELECT
+            and command.data != EXPEDITED_PHASE_AID
+            and command.data != STEPUP_PHASE_AID
+        ):
+            response = self.apdu.create_error_response(StatusBytes.FILE_OR_APP_NOT_FOUND)
+            await self.transport_protocol.send_message(response)
+            raise InvalidAIDError(command.to_bytes(), command.data)
 
         if self.session.state_valid(
             [

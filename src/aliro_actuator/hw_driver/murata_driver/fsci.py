@@ -49,8 +49,8 @@ class AdvertisementInfo:
         byte_7 = adv_ind[7]
         self.advertisement_version = byte_7 & 0x7
         self.notification = (byte_7 & 0x18) >> 3
-        self.BLE_UWB_sepported = (byte_7 & 0x40) == 0x40
-        self.BLE_only_supported = (byte_7 & 0x80) == 0x80
+        self.BLE_UWB_supported = (byte_7 & 0x80) == 0x80
+        self.BLE_only_supported = (byte_7 & 0x40) == 0x40
 
 
 class Message:
@@ -304,4 +304,4 @@ class Message:
 
     def get_packet(self) -> bytes:
         length = int.from_bytes(self.data[3:5], "little")
-        return change_endianness(self.data[5 : 5 + length])
+        return self.data[5 : 5 + length]

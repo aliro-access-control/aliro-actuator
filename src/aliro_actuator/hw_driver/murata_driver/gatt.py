@@ -173,7 +173,6 @@ class Value:
         max_length = int.from_bytes(input[index : 2 + index], "little")
         index += 2
         value = bytearray(input[index : length + index])
-        value.reverse()
         return (
             Value(handle, uuid, length, max_length, value, input[:index]),
             length + index,
@@ -186,7 +185,6 @@ class Value:
 
     def get_value(self) -> bytes:
         value = bytearray(self.value)
-        value.reverse()
         return bytes(value)
 
 

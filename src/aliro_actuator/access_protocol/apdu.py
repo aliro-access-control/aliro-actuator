@@ -20,6 +20,7 @@ from enum import IntEnum
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.defines import (
     AUTHENTICATION_TAG_SIZE,
+    EXPEDITED_PHASE_AID,
     Auth0,
     Auth1,
     ControlFlow,
@@ -46,10 +47,12 @@ from aliro_actuator.access_protocol.errors import (
     MessageTooLongError,
     UnexpectedBLEMessageError,
 )
-from aliro_actuator.access_protocol.tlv import TLV, TlvError
+from aliro_actuator.access_protocol.tlv import TLV, TLVIndex, TlvError
 from aliro_actuator.transport_protocol import TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.message import Message
+
+import cbor2
 
 # See Aliro spec 8.3
 APDU_COMMAND_MAX_DATA_LENGTH = 255
@@ -68,6 +71,7 @@ class INS(IntEnum):
     SELECT = 0xA4
     ENVELOPE = 0xC3
     GET_RESPONSE = 0xC0
+    GET_DATA = 0xCA
     AUTH0 = 0x80
     LOAD_CERT = 0xD1
     AUTH1 = 0x81
@@ -187,7 +191,8 @@ class StatusBytes(IntEnum):
     INCORRECT_PARAMETERS_IN_DATA = 0x6A80
     FUNCTION_NOT_SUPPORTED = 0x6A81
     FILE_OR_APP_NOT_FOUND = 0x6A82
-    INCORRECT_P1_P2 = 0x6B00
+    INCORRECT_P1_P2= 0x6A86
+    REFERENCED_DATA_NOT_FOUND = 0x6A88
     ## Instruction code not supported
     INVALID_INSTRUCTION = 0x6D00
     ## class not supported
@@ -481,8 +486,24 @@ class Command(APDUMessage):
             raise InvalidCommandDataError(
                 self.as_bytes, "ENVELOPE command received without data"
             )
-        self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
-        self.authentication_tag = self.data[-AUTHENTICATION_TAG_SIZE:]
+        try:
+            apdu_data, *_ = TLV.from_bytes(self.data).get_all_bytes_of_tag(0x53)
+            cbor = cbor2.loads(apdu_data)
+            data = cbor["data"]
+        except TlvError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command missing or empty Tag 0x53"
+            )
+        except cbor2.CBORDecodeError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 did not contain valid CBOR"
+            )
+        except KeyError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 CBOR structure did not contain 'data' field"
+            )
+        self.encrypted_payload = data[:-AUTHENTICATION_TAG_SIZE]
+        self.authentication_tag = data[-AUTHENTICATION_TAG_SIZE:]
 
         Global.logger.debug(
             "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
@@ -699,6 +720,7 @@ class Command(APDUMessage):
             )
 
             Global.logger.debug("Data needs to be verified during handling")
+            TLV.verifySequence(self.decrypted_payload, TLVIndex.TLV_EXCHANGE_CMD)
 
             self.payload_tlv = TLV.from_bytes(self.decrypted_payload, recursive=False)
             Global.logger.debug(
@@ -932,20 +954,20 @@ class Response(APDUMessage):
         self.type = self._get_int_from_TLV(
             "Type", Select.TYPE_TAG, Select.TYPE_LEN, tlv_data=self.proprietary_tlv
         )
-
-        etspv_bytes = self._get_bytes_from_TLV(
-            "Expedited phase supported protocol versions",
-            Select.ETSPV_TAG,
-            tlv_data=self.proprietary_tlv,
-        )
-        if (len(etspv_bytes) % 2) == 1:
-            raise InvalidResponseDataError(
-                self.as_bytes,
-                "Expedited phase supported protocol versions has invalid length",
+        if self.compl_aid == EXPEDITED_PHASE_AID:
+            etspv_bytes = self._get_bytes_from_TLV(
+                "Expedited phase supported protocol versions",
+                Select.ETSPV_TAG,
+                tlv_data=self.proprietary_tlv,
             )
-        self.expedited_phase_supported_protocol_versions = self._data_to_2byte_list(
-            etspv_bytes
-        )
+            if (len(etspv_bytes) % 2) == 1:
+                raise InvalidResponseDataError(
+                    self.as_bytes,
+                    "Expedited phase supported protocol versions has invalid length",
+                )
+            self.expedited_phase_supported_protocol_versions = self._data_to_2byte_list(
+                etspv_bytes
+            )
 
         extended_length = self._get_optional_TLV_from_TLV(
             "Extended Length Information",
@@ -989,12 +1011,28 @@ class Response(APDUMessage):
 
         if self.data is None:
             raise InvalidResponseDataError(self.as_bytes, "No data available")
-        self.encrypted_payload = self.data[:-AUTHENTICATION_TAG_SIZE]
+        try:
+            apdu_data, *_ = TLV.from_bytes(self.data).get_all_bytes_of_tag(0x53)
+            cbor = cbor2.loads(apdu_data)
+            data = cbor["data"]
+        except TlvError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command missing or empty Tag 0x53"
+            )
+        except cbor2.CBORDecodeError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 did not contain valid CBOR"
+            )
+        except KeyError:
+            raise InvalidCommandDataError(
+                self.as_bytes, "ENVELOPE command Tag 0x53 CBOR structure did not contain 'data' field"
+            )
+        self.encrypted_payload = data[:-AUTHENTICATION_TAG_SIZE]
         Global.logger.debug(
             "encrypted payload: {!r}".format(hexlify(self.encrypted_payload))
         )
 
-        self.authentication_tag = self.data[-AUTHENTICATION_TAG_SIZE:]
+        self.authentication_tag = data[-AUTHENTICATION_TAG_SIZE:]
         Global.logger.debug(
             "authentication tag: {!r}".format(hexlify(self.authentication_tag))
         )
@@ -1091,6 +1129,9 @@ class Response(APDUMessage):
         Global.logger.debug(
             "decrypted payload: {!r}".format(hexlify(self.decrypted_payload))
         )
+        
+        Global.logger.debug("Data needs to be verified during handling")
+        TLV.verifySequence(self.decrypted_payload, TLVIndex.TLV_AUTH1_RSP)
 
         try:
             self.tlv_data = TLV.from_bytes(self.decrypted_payload)
@@ -1393,14 +1434,18 @@ class APDU:
             case INS.GET_RESPONSE:
                 command.parse_as_get_response()
             case INS.AUTH0:
+                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
                 command.parse_as_auth0()
             case INS.LOAD_CERT:
+                TLV.verifySequence(command.data, TLVIndex.TLV_LOADCERT_CMD)
                 command.parse_as_load_cert()
             case INS.AUTH1:
+                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH1_CMD)
                 command.parse_as_auth1()
             case INS.EXCHANGE:
                 command.parse_as_exchange(encryption)
             case INS.CONTROL_FLOW:
+                TLV.verifySequence(command.data, TLVIndex.TLV_CONTROLFLOW_CMD)
                 command.parse_as_control_flow()
             case _:
                 raise InvalidINSError(command.as_bytes)
@@ -1452,12 +1497,14 @@ class APDU:
 
         match ins:
             case INS.SELECT:
+                TLV.verifySequence(response.data, TLVIndex.TLV_SELECT_RSP)
                 response.parse_as_select()
             case INS.ENVELOPE:
                 response.parse_as_envelope(encryption)
             case INS.GET_RESPONSE:
                 response.parse_as_get_response()
             case INS.AUTH0:
+                TLV.verifySequence(response.data, TLVIndex.TLV_AUTH0_RSP)
                 response.parse_as_auth0()
             case INS.AUTH1:
                 response.parse_as_auth1(encryption)
@@ -1828,13 +1875,19 @@ class APDU:
             payload,
         )
         payload = encrypted_payload + tag
+        session_data = {}
+        session_data['data'] = payload
+        cbor = cbor2.dumps(session_data)
+
+        command_payload = TLV([])
+        command_payload.add_value(0x53, cbor)
 
         return self.create_command(
             cla=0x00,
             ins=INS.ENVELOPE,
             p1=0x00,
             p2=0x00,
-            data=bytes(payload),
+            data=bytes(command_payload.to_bytes()),
             le=0x00,
         )
 
@@ -1851,7 +1904,14 @@ class APDU:
         )
 
         payload = encrypted_payload + tag
-        return self.create_response(payload, status)
+        session_data = {}
+        session_data['data'] = payload
+        cbor = cbor2.dumps(session_data)
+
+        response_payload = TLV([])
+        response_payload.add_value(0x53, cbor)
+
+        return self.create_response(response_payload.to_bytes(), status)
 
     def create_get_response_command(self, expected_response_size: int) -> list[Command]:
         Global.logger.info("Creating GET RESPONSE command")

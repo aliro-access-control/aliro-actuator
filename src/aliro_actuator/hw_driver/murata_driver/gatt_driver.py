@@ -373,7 +373,7 @@ class MurataGATTServerDriver(MurataBaseDriver):
         )
         handle = change_endianness(message.data[1:3])
         length = int.from_bytes(message.data[3:5], "little")
-        data = int.from_bytes(message.data[5 : 5 + length], "little")
+        data = int.from_bytes(message.data[5 : 5 + length], "big")
         Global.logger.info("Data written:")
         Global.logger.info("handle: {!r}".format(hexlify(handle)))
         Global.logger.info("data: 0x{:x}".format(data))
@@ -482,7 +482,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
         data.extend(int.to_bytes(device_id, 1, "little"))
         data.extend(characteristic.to_bytes())
         data.extend(int.to_bytes(value_length, 2, "little"))  # value length
-        data.extend(int.to_bytes(value, value_length, "little"))  # value
+        data.extend(int.to_bytes(value, value_length, "big"))  # value
         data.append(0x00)  # without response
         data.append(0x00)  # signed write
         data.append(0x00)  # reliable long char writes
