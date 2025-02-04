@@ -878,7 +878,7 @@ class UserDevice(Device):
         try:
             self.session.set_auth0_data(auth0_command)
         except InvalidKeyError:
-            AccessProtocolError("Reader ephemeral key is invalid")
+            raise AccessProtocolError("Reader ephemeral key is invalid")
         Global.logger.info("Reader ephemeral key is a valid key")
 
         Global.logger.info("Looking up access credential")
