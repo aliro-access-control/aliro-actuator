@@ -1359,10 +1359,7 @@ class Reader(Device):
                 response.maximum_response_apdu
             )
         else:
-            self.apdu.set_extended_length(
-                response.maximum_command_apdu, 
-                response.maximum_response_apdu
-            )
+            self.apdu.reset_extended_length()
 
         return response
 
