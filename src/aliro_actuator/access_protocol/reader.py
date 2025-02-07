@@ -56,6 +56,7 @@ from aliro_actuator.access_protocol.errors import (
     CryptogramNotFound,
     InvalidResponseError,
     InvalidStatusError,
+    InvalidResponseDataError,
     SessionError,
     UnexpectedBLEMessageError,
 )
