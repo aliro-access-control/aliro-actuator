@@ -59,7 +59,7 @@ class BleMessage(Message):
 
     @classmethod
     def from_bytes(cls, input: bytes) -> BleMessage:
-        input = change_endianness(input)
+        # input = change_endianness(input)
         header = input[0]
         id = input[1]
         length = int.from_bytes(input[2:4], "big")
@@ -72,7 +72,7 @@ class BleMessage(Message):
         output.append(self.id)
         output.extend(len(self.payload).to_bytes(2, "big"))
         output.extend(self.payload)
-        return bytes(change_endianness(output))
+        return bytes(output)
 
     def check_header_and_id(self, header: int, id: int) -> None:
         if self.header != header:

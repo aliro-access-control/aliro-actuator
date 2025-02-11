@@ -15,9 +15,18 @@ Examples of how to use the actuator can be found in the examples folder.
 ## Installing the prerequisites
 
 This project uses the nci library (provided by NXP) for interfacing with the pn7160 nfc 
-board. This library can be build by running the following command:
+board. There at least two versions of [PN7160 evaluation kit](https://www.nxp.com/docs/en/application-note/AN12991.pdf):
+- OM27160A1EVK (embeds PN7161A1HN I2C variant )
+- OM27160B1EVK (embeds PN7161B1HN SPI variant)
+
+By default this library can be build by running the following command and it supports SPI variant:
 ```
 ./scripts/install_nfc.sh
+```
+
+In case I2C variant kit is used run the script with `NXP_TRANSPORT=I2C` variable set:
+```
+NXP_TRANSPORT=I2C ./scripts/install_nfc.sh
 ```
 
 This actuator use poetry for dependency management. To setup the environment, run:

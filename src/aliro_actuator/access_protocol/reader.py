@@ -582,7 +582,8 @@ class Reader(Device):
                 )
             )
 
-        if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
+        if (response.compl_aid == EXPEDITED_PHASE_AID and
+                PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions):
             await self.failure_process(S2.PROTOCOL_VERSION_NOT_SUPPORTED)
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
@@ -1847,6 +1848,7 @@ class ReaderSession:
         self.maximum_command_apdu = select_response.maximum_command_apdu
         self.maximum_response_apdu = select_response.maximum_response_apdu
         self.proprietary_tlv = select_response.proprietary_tlv
+        self.vendor_specific_extensions = select_response.vendor_specific_extensions
 
     def set_initiate_access_protocol_info(
         self, initiate_ap_notification: BleMessage

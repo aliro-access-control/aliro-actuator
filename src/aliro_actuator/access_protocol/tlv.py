@@ -15,11 +15,72 @@
 from __future__ import annotations
 
 from binascii import hexlify
+from enum import IntEnum
 
 from ber_tlv.tlv import BadLength, BadParameter, BadTag, Tlv, UnexpectedEnd
 
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 
+class TLVIndex(IntEnum):
+    
+    TLV_SELECT_RSP = 0 
+    TLV_SELECT_RSP_6F = 1
+    TLV_SELECT_RSP_A5 = 2
+    TLV_SELECT_RSP_7F66 = 3
+    TLV_CONTROLFLOW_CMD = 4
+    TLV_AUTH0_CMD = 5
+    TLV_AUTH0_RSP = 6
+    TLV_AUTH0_RSP_9D = 7 
+    TLV_AUTH0_RSP_B2 = 8 
+    TLV_AUTH1_CMD = 9 
+    TLV_AUTH1_RSP = 10 
+    TLV_AUTH1_RSP_9D = 11
+    TLV_AUTH1_RSP_B2 = 12
+    TLV_AUTH1_RSP_RD_AUTH = 13
+    TLV_AUTH1_RSP_UD_AUTH = 14
+    TLV_EXCHANGE_CMD = 15
+    TLV_EXCHANGE_CMD_B9 = 16
+    
+
+expectedTags = {
+    TLVIndex.TLV_SELECT_RSP: [0x6F], # SELECT command
+    TLVIndex.TLV_SELECT_RSP_6F: [0x84, 0xA5], # SELECT 6F sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [0x80, 0x5C, 0x7F66, 0xB3], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_7F66: [0x02], # SELECT 7F66 sub tags
+    TLVIndex.TLV_CONTROLFLOW_CMD: [0x41, 0x42], # CONTROL FLOW command
+    TLVIndex.TLV_AUTH0_CMD: [0x41, 0x42, 0x5C, 0x87, 0x4C, 0x4D, 0xB1], # AUTH0 command
+    TLVIndex.TLV_AUTH0_RSP: [0x86, 0x9D, 0xB2], # AUTH0 response
+    TLVIndex.TLV_AUTH0_RSP_9D: [0x5E, 0x91, 0x92], # AUTH0 response 9D sub tags
+    TLVIndex.TLV_AUTH0_RSP_B2: [0x30], # AUTH0 response B2 sub tags
+    TLVIndex.TLV_AUTH1_CMD: [0x41, 0x9E, 0x90], # AUTH1 command
+    TLVIndex.TLV_AUTH1_RSP: [0x4E, 0x5A, 0x9E, 0x4B, 0x5E, 0x91, 0x92], # AUTH1 response
+    TLVIndex.TLV_AUTH1_RSP_9D: [0x5E, 0x91, 0x92], # AUTH1 response 9D sub tags
+    TLVIndex.TLV_AUTH1_RSP_B2: [0x30], # AUTH1 response B2 sub tags
+    TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 reader authentication data fields
+    TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 user device authentication data fields
+    TLVIndex.TLV_EXCHANGE_CMD: [0xB9, 0xAE, 0x97, 0x98, 0x81], # EXCHANGE command
+    TLVIndex.TLV_EXCHANGE_CMD_B9: [0x87, 0x8A, 0x95] # EXCHANGE command B9 sub tags
+}
+
+expectedLength = {
+    TLVIndex.TLV_SELECT_RSP: [-1], # SELECT command
+    TLVIndex.TLV_SELECT_RSP_6F: [9, -1], # SELECT 6F sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [2, -1, 8, -1], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_7F66: [2], # SELECT 7F66 sub tags
+    TLVIndex.TLV_CONTROLFLOW_CMD: [1, 1], # CONTROL FLOW command
+    TLVIndex.TLV_AUTH0_CMD: [1, 1, 2, 65, 16, 32, -1], # AUTH0 command
+    TLVIndex.TLV_AUTH0_RSP: [65, 64, -1], # AUTH0 response
+    TLVIndex.TLV_AUTH0_RSP_9D: [2, 20, 20], # AUTH0 response 9D sub tags
+    TLVIndex.TLV_AUTH0_RSP_B2: [-1], # AUTH0 response B2 sub tags
+    TLVIndex.TLV_AUTH1_CMD: [1, 64, -1], # AUTH1 command
+    TLVIndex.TLV_AUTH1_RSP: [8, 65, 64, -1, 2, 20, 20], # AUTH1 response
+    TLVIndex.TLV_AUTH1_RSP_9D: [2, 20, 20], # AUTH1 response 9D sub tags
+    TLVIndex.TLV_AUTH1_RSP_B2: [-1], # AUTH1 response B2 sub tags
+    TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [32, 32, 32, 16, 4], # AUTH1 reader authentication data fields
+    TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [32, 32, 32, 16, 4], # AUTH1 user device authentication data fields
+    TLVIndex.TLV_EXCHANGE_CMD: [-1, -1, 2, 0, -1], # EXCHANGE command
+    TLVIndex.TLV_EXCHANGE_CMD_B9: [4, -1, 5], # EXCHANGE command B9 sub tags
+}
 
 class TlvError(AccessProtocolError):
     """
@@ -248,3 +309,68 @@ class TLV:
             element_list.append(element_print)
         result = "[{}]".format(", ".join(x for x in element_list))
         return result
+
+    @staticmethod
+    def verifySequence(buf, idx):
+        """
+        checks the TLV sequence is valid, tags are valid and lengths are valid for a given predefined TLV sequence.
+
+        Raises:
+            TlvError: error when the TLV sequence is not valid
+        """
+        i = 0
+        buflen = len(buf)
+
+        tags = []
+
+        while i < buflen:
+            tag = buf[i]
+            tagpos = i
+            if (tag & 0x1F) == 0x1F:
+                if (i<buflen-1):
+                    tag = tag*256 + buf[i+1]
+                    i += 2
+            else:
+                i += 1
+
+            if tag not in expectedTags[idx]:
+                raise TlvError("invalid tag detected {} in {}".format(hex(tag), ', '.join(hex(x) for x in expectedTags[idx])))
+            else: # store index to check length
+                foundIdx = expectedTags[idx].index(tag)
+
+            valuelen = 0
+            if (i<buflen):
+                if (buf[i] & 0x80 == 0): # 1 byte L
+                    valuelen = buf[i]
+                elif (buf[i] == 0x81 and (i+1) < buflen): # 2 bytes L
+                    valuelen = buf[i+1]
+                    i+=1
+                elif (buf[i] == 0x82 and (i+2) < buflen): # 3 bytes L
+                    valuelen = buf[i+1] * 256 + buf[i+2]
+                    i+=2
+                else:
+                    valuelen = buf[i]
+
+            # length must match expected length
+            el = expectedLength[idx][foundIdx]
+            if (el != valuelen) and (el != -1):
+                raise TlvError("Wrong length for tag {} Expected {}, but found {}".format(hex(tag), el, valuelen))
+
+            i += 1
+            value = buf[i:i+valuelen]
+            i += valuelen
+            # print('T=', hex(tag), 'L=', hex(valuelen), 'V=', hex_dump(value), '[', self.tagInfo.get(tag), ']')
+
+            tagIdx = expectedTags[idx].index(tag)
+            if valuelen is not expectedLength[idx][tagIdx] and expectedLength[idx][tagIdx] != -1 :
+                raise TlvError("Wrong length for tag detected")
+
+            if (i<=buflen):
+                tags.append(tag)
+
+            # once the whole TLV structure is parsed, check the order is as expected
+            it = iter(expectedTags[idx])
+            if (i >= buflen):
+                if all(i in it for i in tags) == False:
+                    raise TlvError("Wrong sequence of TLV tags {} not matching {}".format(', '.join(hex(x) for x in tags), ', '.join(hex(x) for x in expectedTags[idx])))
+
