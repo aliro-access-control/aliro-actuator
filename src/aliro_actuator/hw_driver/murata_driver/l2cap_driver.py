@@ -95,6 +95,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
             len(data),
             data,
         )
+        Global.logger.debug(
+            "Le PSM Message: {!r}".format(hexlify(message.to_bytes()))
+        )
         # while we don't have an l2cap channel (and thus a connection)
         while device_id not in self.channel_ids.keys():
             self.write(message)
@@ -102,6 +105,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
             response = await self.wait_for_message(
                 OpGroup.L2CAP,
                 OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE,
+            )
+            Global.logger.debug(
+                "Le PSM Response: {!r}".format(hexlify(response.to_bytes()))
             )
             try:
                 response.check_for_error()
@@ -124,6 +130,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
             response = await self.wait_for_message(
                 OpGroup.L2CAP,
                 OpCodeL2CAP.LE_PSM_CONNECTION_REQUEST,
+            )
+            Global.logger.debug(
+                "Response: {!r}".format(hexlify(response.to_bytes()))
             )
             if response.get_device_id() == device_id:
                 Global.logger.debug("Wait for L2CAP request done")
