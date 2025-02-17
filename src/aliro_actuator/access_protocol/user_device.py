@@ -55,6 +55,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidAIDError,
     InvalidCLAError,
     InvalidCommandError,
+    InvalidINSError,
     InvalidParameterError,
     SessionError,
     UnexpectedBLEMessageError,
@@ -293,7 +294,7 @@ class UserDevice(Device):
                     if self.session is None:
                         raise SessionError("starting session failed")
                     message = await self.wait_for_message()
-                except InvalidAIDError as error:
+                except (InvalidAIDError, InvalidINSError) as error:
                     Global.logger.info(f"Caught exception: {error}")
                     # retry wait for message
                     continue
@@ -363,7 +364,7 @@ class UserDevice(Device):
                 if self.session is None:
                     raise SessionError("starting session failed")
                 message = await self.wait_for_message()
-            except InvalidAIDError as error:
+            except(InvalidAIDError, InvalidINSError) as error:
                 Global.logger.info(f"Caught exception: {error}")
                 # retry wait for message
                 continue
@@ -1564,7 +1565,7 @@ class UserDevice(Device):
             try:
                 message = await self.wait_for_message(expected_command)
                 break
-            except InvalidAIDError as error:
+            except (InvalidAIDError, InvalidINSError) as error:
                 Global.logger.info(f"Caught exception: {error}")
                 # retry wait for message
         if not isinstance(message, APDUMessage):
@@ -1624,6 +1625,24 @@ class UserDevice(Device):
         command = await self.apdu.handle_chaining_receive_command(
             command_str, self.transport_protocol
         )
+
+        if (
+            command.ins == INS.GET_DATA
+            and (command.p1, command.p2) == (0x7F, 0x68)
+        ):
+            Global.logger.info("Received unexpected GET DATA command")
+            response = self.apdu.create_error_response(StatusBytes.REFERENCED_DATA_NOT_FOUND)
+            await self.transport_protocol.send_message(response)
+            raise InvalidINSError(command.to_bytes())
+
+        if (
+            command.ins == INS.SELECT
+            and command.p1 != 0x04
+            and command.p2 != 0x00
+        ):
+            response = self.apdu.create_error_response(StatusBytes.INCORRECT_P1_P2)
+            await self.transport_protocol.send_message(response)
+            raise InvalidAIDError(command.to_bytes(), command.data)
 
         if (
             command.ins == INS.SELECT

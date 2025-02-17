@@ -71,6 +71,7 @@ class INS(IntEnum):
     SELECT = 0xA4
     ENVELOPE = 0xC3
     GET_RESPONSE = 0xC0
+    GET_DATA = 0xCA
     AUTH0 = 0x80
     LOAD_CERT = 0xD1
     AUTH1 = 0x81
@@ -190,7 +191,8 @@ class StatusBytes(IntEnum):
     INCORRECT_PARAMETERS_IN_DATA = 0x6A80
     FUNCTION_NOT_SUPPORTED = 0x6A81
     FILE_OR_APP_NOT_FOUND = 0x6A82
-    INCORRECT_P1_P2 = 0x6B00
+    INCORRECT_P1_P2= 0x6A86
+    REFERENCED_DATA_NOT_FOUND = 0x6A88
     ## Instruction code not supported
     INVALID_INSTRUCTION = 0x6D00
     ## class not supported
@@ -1438,7 +1440,6 @@ class APDU:
                 TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
                 command.parse_as_auth0()
             case INS.LOAD_CERT:
-                TLV.verifySequence(command.data, TLVIndex.TLV_LOADCERT_CMD)
                 command.parse_as_load_cert()
             case INS.AUTH1:
                 TLV.verifySequence(command.data, TLVIndex.TLV_AUTH1_CMD)
