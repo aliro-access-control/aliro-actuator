@@ -1285,7 +1285,6 @@ class UserDevice(Device):
 
         Global.logger.info("Handling notifications")
         if exchange_command.notify is not None:
-            # Global.logger.info("TLV detected {}".format(TLV.from_bytes(exchange_command.notify).to_print()))
             tlvList = TLV.to_tlv_list(TLV.from_bytes(exchange_command.notify).to_data())
             if len(tlvList) > 1:
                 Global.logger.info("Too much sub-TLVs for EXCHANGE[Notify], found {}.".format(len(tlvList)))
@@ -1298,8 +1297,7 @@ class UserDevice(Device):
             Global.logger.info("Sub TLV tag detected: " + str(hex(tag)))
             if tag == 0xC1:
                 errors = []
-                for notify in exchange_command.notify:
-                    errors.extend(notify.get_all_bytes_of_tag(0xC1))
+                errors = tlv.get_all_bytes_of_tag(0xC1)
                 for error in errors:
                     if error is None:
                         raise AccessProtocolError
