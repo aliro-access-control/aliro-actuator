@@ -18,9 +18,9 @@ asn1 = "^2.7.0"
 pyopenssl = "^23.2.0"
 pyserial = "^3.5"
 ber-tlv = "^0.0.6"
-ucitool = {path = "third_party/aliro-th-additions/ucitool-2.0.3-py3-none-any.whl"}
 cbor2 = "^5.6.4"
 icalendar = "^5.0.13"
+ucitool = {path = "third_party/aliro-th-additions/ucitool-2.0.4-py3-none-any.whl"}
 
 [tool.poetry.dev-dependencies]
 sphinx = "^7.2.5"

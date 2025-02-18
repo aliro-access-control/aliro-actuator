@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ucitool.base_uci.helpers.uci_helper as uci
+
 from binascii import hexlify
 from enum import Enum
 from os import urandom
@@ -61,6 +63,10 @@ from aliro_actuator.access_protocol.errors import (
     UnexpectedBLEMessageError,
     UnexpectedCommandError,
     VersionError,
+    InvalidPulseShapeCombo,
+    InvalidHoppingConfig,
+    InvalidUWBSessionId,
+    InvalidSyncCodeIndex
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
@@ -78,6 +84,12 @@ from aliro_actuator.transport_protocol.errors import (
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
+)
+from aliro_actuator.hw_driver.murata_driver.uwb_driver import (
+    UCIHoppingConfig,
+    HoppingConfig,
+    pulse_shape_combo,
+    Channel
 )
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -500,6 +512,20 @@ class UserDevice(Device):
 
         # Return the first common byte found in the order of pulseshape_received
         for byte in pulseshape_received:
+            if (byte in common_bytes) and (byte in pulse_shape_combo):
+                return byte
+
+        return None
+
+    def select_config_id(self, config_id: bytes, supported_config_id: bytes) -> int:
+        # convert bytes to sets of unique bytes
+        set1 = set(config_id)
+        set2 = set(supported_config_id)
+
+        # Find common intersection of two sets
+        common_bytes = set1.intersection(set2)
+
+        for byte in config_id:
             if byte in common_bytes:
                 return byte
 
@@ -509,9 +535,17 @@ class UserDevice(Device):
         Global.logger.info("Handling ranging session setup message M1")
         message.parse_payload(self.session.get_ble_encryption())
 
+        # Configure selected configuration ID
+        self.selected_config_id = self.select_config_id(
+            message.uwb_configuration_id.value,
+            self.transport_protocol.get_uwb_config_id_support().to_bytes(2, "big")
+        )
+        if self.selected_config_id is not None:
+            await self.transport_protocol.set_uwb_config_id(self.selected_config_id)
+
         # Configure selected pulse shape combo for the user device
         self.selected_pulse_shape_combination = self.select_pulseshape_combo(
-            message.pulse_shape_combo.to_bytes(),
+            message.pulse_shape_combo.value,
             self.transport_protocol.get_pulse_shape_combination_support().to_bytes(
                 3, "big"
             ),
@@ -520,14 +554,28 @@ class UserDevice(Device):
             await self.transport_protocol.set_pulse_shape_combination(
                 self.selected_pulse_shape_combination
             )
-        await self.transport_protocol.set_uwb_config_id(
-            int.from_bytes(message.uwb_configuration_id.value, "big")
-        )
+        else:
+            raise InvalidPulseShapeCombo
 
         await self.transport_protocol.set_channel_bitmask(
             int.from_bytes(message.channel_bitmask.value, "big")
         )
+        received_session_id = int.from_bytes(message.uwb_session_id.value, "big")
+        uwb_session_id = self.transport_protocol.get_uwb_session_id()
+        if received_session_id != uwb_session_id:
+            raise InvalidUWBSessionId
+
         await self.send_ranging_session_setup_m2()
+
+    async def set_hopping_conf(self, common_hopping_conf: int) -> None:
+        if common_hopping_conf & HoppingConfig.NO_HOPPING:
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.NO_HOPPING)
+        elif common_hopping_conf & HoppingConfig.CONTINUOUS_HOPPING_MODULO:
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO)
+        elif common_hopping_conf & HoppingConfig.ADAPTIVE_HOPPING_MODULO:
+            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO)
+        else:
+            raise InvalidHoppingConfig
 
     async def handle_ranging_setup_m3(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M3")
@@ -546,15 +594,19 @@ class UserDevice(Device):
             int.from_bytes(message.number_slots_per_round.value, "big")
         )
 
-        # Select the first sync_code_index from the bitmask value
-        await self.transport_protocol.set_sync_code_index(
-            int.from_bytes(message.sync_code_index_bitmask.value, "big") & 0xFF
+        sync_code_bitmask = int.from_bytes(message.sync_code_index_bitmask.value, "big")
+        sync_codes = []
+        for bit_index in range(32):
+            if sync_code_bitmask & (1 << bit_index):
+                sync_codes.append(bit_index + 1)
+
+        # pick the first sync code in the list
+        await self.transport_protocol.set_sync_code_index(sync_codes[0])
+
+        await self.set_hopping_conf(
+            int.from_bytes(message.hopping_configuration_bitmask.value, "big")
         )
-        hopping_config = int.from_bytes(
-            message.hopping_configuration_bitmask.value, "big"
-        )
-        await self.transport_protocol.set_hopping_mode(0)  # TODO
-        await self.transport_protocol.set_mac_mode(0)  # TODO
+        await self.transport_protocol.set_mac_mode(int.from_bytes(message.mac_mode.value, "big"))
 
         await self.send_ranging_session_setup_m4()
 
@@ -682,7 +734,8 @@ class UserDevice(Device):
         Global.logger.info("Sending ranging session setup M2 ble message")
 
         uwb_configuration_id = await self.transport_protocol.get_uwb_config_id()
-        channel_bitmask = self.transport_protocol.get_channel_bitmask()
+        Global.logger.info(f"uwb_config_id = {uwb_configuration_id}")
+        channel_bitmask = Channel.CHANNEL_9
         sync_code_index_bitmask = self.transport_protocol.get_sync_code_bitmask()
         ran_multiplier = await self.transport_protocol.get_ran_multiplier()
         slot_bitmask = self.transport_protocol.get_slot_bitmask()
@@ -881,6 +934,15 @@ class UserDevice(Device):
             AccessProtocolError("Reader ephemeral key is invalid")
         Global.logger.info("Reader ephemeral key is a valid key")
 
+        # Setup UWB session id
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.transport_protocol.driver.session_init(
+                session_id=self.session.transaction_identifier[-4:]
+            )
+
         Global.logger.info("Looking up access credential")
         for access_credential in self.access_credentials:
             if access_credential.has_identifier(self.session.reader_group_identifier):
@@ -1062,6 +1124,8 @@ class UserDevice(Device):
             ]:
                 Global.logger.info("Setting up BLE encryption")
                 self.session.set_ble_encryption(self.transport_protocol)
+                Global.logger.info("Setting up UWB secure ranging")
+                await self.transport_protocol.set_session_key(self.session.UR_SK)
 
             Global.logger.info("Creating Kpersistent")
             self.storage.add_kpersistent(

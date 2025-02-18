@@ -91,7 +91,6 @@ class BLEUWB(TransportProtocolBase):
 
             self.supported_versions = SUPPORTED_VERSIONS
             await self.driver.uci_initialize(
-                session_id=1,
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
             )
@@ -110,19 +109,20 @@ class BLEUWB(TransportProtocolBase):
                 notification=notification,
                 BLE_UWB_supported=BLE_UWB_supported,
                 BLE_only_supported=BLE_only_supported,
+                spsm=self.spsm,
             )
 
         elif self.mode == Mode.USER_DEVICE:
             truncated_list = list(map(lambda x: x[:8], reader_group_identifier_list))
             self.driver = UserDeviceMurataDriver(self.port, self.baudrate)
             await self.driver.uci_initialize(
-                session_id=1,
                 dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
             )
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
                 reader_group_identifier_list=truncated_list,
+                spsm=self.spsm,
             )
 
     async def disconnect(self, raise_errors: bool = False) -> None:
@@ -276,6 +276,12 @@ class BLEUWB(TransportProtocolBase):
 
     async def get_uwb_config_id(self) -> int:
         return await self.driver.get_uwb_config_id()
+
+    async def set_session_key(self, ursk: bytes) -> None:
+        await self.driver.set_session_key(ursk)
+
+    async def get_session_key(self) -> bytes:
+        return await self.driver.get_session_key()
 
     def get_uwb_session_id(self) -> int:
         return self.driver.get_uwb_session_id()
