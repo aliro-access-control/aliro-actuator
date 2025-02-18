@@ -109,6 +109,7 @@ class BLEUWB(TransportProtocolBase):
                 notification=notification,
                 BLE_UWB_supported=BLE_UWB_supported,
                 BLE_only_supported=BLE_only_supported,
+                spsm=self.spsm,
             )
 
         elif self.mode == Mode.USER_DEVICE:
@@ -121,6 +122,7 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
                 reader_group_identifier_list=truncated_list,
+                spsm=self.spsm,
             )
 
     async def disconnect(self, raise_errors: bool = False) -> None:

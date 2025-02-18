@@ -32,10 +32,14 @@ class UserDeviceMurataDriver(
         self,
         group_resolving_key: bytes,
         reader_group_identifier_list: list,
+        spsm: bytes = bytes.fromhex("0080"),
     ) -> None:
         Global.logger.info("setup ble connection")
         self.group_resolving_key = group_resolving_key
         self.reader_group_identifier_list = reader_group_identifier_list
+        Global.logger.debug("Initialize l2cap")
+        await self.register_le_cb_callback()
+        await self.register_le_psm(spsm)
         await self.stop_scanning(False)
         await self.start_scanning()
 
@@ -220,6 +224,7 @@ class ReaderMurataDriver(
         advertisement_version: int = 0x00,
         BLE_UWB_supported: bool = True,
         BLE_only_supported: bool = True,
+        spsm: bytes = bytes.fromhex("0080"),
     ) -> None:
         Global.logger.info("setup ble connection")
         advertising_address = await self.read_public_device_address()
@@ -240,6 +245,9 @@ class ReaderMurataDriver(
             BLE_UWB_supported=BLE_UWB_supported,
         )
         await self.set_tx_power_level(0, 0)
+        Global.logger.debug("Initialize l2cap")
+        await self.register_le_cb_callback()
+        await self.register_le_psm(spsm)
         await self.start_advertising()
 
     async def wait_for_connection(self) -> None:
