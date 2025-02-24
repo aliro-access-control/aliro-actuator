@@ -90,6 +90,32 @@ python3 -m examples.ble.reader.fast
 python3 -m examples.ble.user_device
 ```
 
+There are some tests used for specific usecases. These fall into three categories:
+- fast transaction
+- mailbox
+- stepup
+- key slot
+- certificate (load cert)
+- negative tests
+
+Specific tests:
+- `reader/fast.py`
+- `reader/stepup.py`
+- `reader/mailbox.py`
+- `reader/key_slot.py`
+
+Certificate tests:
+- `reader/certificate.py`
+
+Negative tests:
+- `reader/id_fail.py`
+- `reader/key_fail.py`
+- `reader/key_fail.py`
+
+For BLE only there is an example specific for UWB test cases:
+- `reader/ble_uwb.py`
+- `user_device_ble_uwb.py`
+
 There are also examples that can be used to generate a keypair or a certificate:
 ```
 python3 -m examples.cryptography.generate_certificate
