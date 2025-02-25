@@ -57,6 +57,7 @@ from aliro_actuator.access_protocol.errors import (
     CryptogramNotFound,
     InvalidResponseError,
     InvalidStatusError,
+    InvalidResponseDataError,
     SessionError,
     UnexpectedBLEMessageError,
     InvalidPulseShapeCombo,
@@ -308,7 +309,7 @@ class Reader(Device):
     def reader_group_sub_identifier(self) -> bytes:
         return self._reader_identifier.get_group_sub()
 
-    async def transaction_initiation(self) -> None:
+    async def transaction_initiation(self, check_apdu_length: bool = False) -> None:
         """
         Initializes the hardware and sets up a connection to the card.
         """
@@ -327,7 +328,7 @@ class Reader(Device):
             )
             await self.wait_for_initiate_access_protocol_notification()
         else:
-            await self.handle_select(EXPEDITED_PHASE_AID)
+            await self.handle_select(EXPEDITED_PHASE_AID, check_apdu_length)
         Global.logger.info("Transaction Initiation Done")
 
     async def transaction_termination(self) -> None:
@@ -521,7 +522,7 @@ class Reader(Device):
         )
         await self.transport_protocol.send_message(message)
 
-    async def handle_select(self, aid: bytes) -> None:
+    async def handle_select(self, aid: bytes, check_apdu_length: bool = False) -> None:
         """
         create and send a select command.
         Required data from is retrieved from the Reader (self) and the session.
@@ -541,7 +542,7 @@ class Reader(Device):
 
         Global.logger.info("Start handling SELECT with AID: {!r}".format(hexlify(aid)))
         try:
-            response = await self.command_select(aid)
+            response = await self.command_select(aid, check_apdu_length)
         except InvalidStatusError as error:
             if error.status == StatusBytes.FILE_OR_APP_NOT_FOUND:
                 Global.logger.error("User does not recognize AID")
@@ -1346,7 +1347,7 @@ class Reader(Device):
 
         return response
 
-    async def command_select(self, aid: bytes) -> Response:
+    async def command_select(self, aid: bytes, check_apdu_length: bool = False) -> Response:
         """
         Create and send a select command, and wait for a response.
 
@@ -1364,6 +1365,25 @@ class Reader(Device):
 
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response, INS.SELECT)
+        if (
+            check_apdu_length and 
+            (response.maximum_command_apdu == None or response.maximum_response_apdu == None)
+        ):
+            raise InvalidResponseDataError(
+                    response.as_bytes,
+                    "Missing extended length information",
+                )
+        
+        if (
+            response.maximum_command_apdu != None and 
+            response.maximum_response_apdu != None
+        ):
+            self.apdu.set_extended_length(
+                response.maximum_command_apdu, 
+                response.maximum_response_apdu
+            )
+        else:
+            self.apdu.reset_extended_length()
 
         return response
 
