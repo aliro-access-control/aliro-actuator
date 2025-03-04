@@ -101,6 +101,7 @@ class BLEUWB(TransportProtocolBase):
                 time_sync_0,
                 time_sync_1,
                 LE_coded_phy,
+                enable_timeouts=enable_timeouts,
             )
             await self.driver.setup_connection(
                 reader_group_identifier=reader_group_identifier,
@@ -111,7 +112,6 @@ class BLEUWB(TransportProtocolBase):
                 BLE_UWB_supported=BLE_UWB_supported,
                 BLE_only_supported=BLE_only_supported,
                 spsm=self.spsm,
-                enable_timeouts=enable_timeouts,
             )
 
         elif self.mode == Mode.USER_DEVICE:
