@@ -172,6 +172,7 @@ class UserDevice(Device):
         mode: UserMode = UserMode.TEST,
         support_step_up_notify: bool = True,
         support_step_up_update_doc: bool = True,
+        enable_timeouts: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -217,6 +218,8 @@ class UserDevice(Device):
 
         self.support_step_up_notify = support_step_up_notify
         self.support_step_up_update_doc = support_step_up_update_doc
+        
+        self.enable_timeouts = enable_timeouts
 
     async def transaction_initiation(self) -> None:
         """
@@ -257,6 +260,7 @@ class UserDevice(Device):
             Mode.USER_DEVICE,
             group_resolving_key=self.group_resolving_key,
             reader_group_identifier_list=reader_group_list,
+            enable_timeouts=self.enable_timeouts
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Connection established")

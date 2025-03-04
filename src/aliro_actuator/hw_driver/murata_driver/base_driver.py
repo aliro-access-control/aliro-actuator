@@ -65,17 +65,19 @@ class MurataBaseDriver:
 
     async def read(self, timeout: float = 10.0) -> Message:
         async def _read_packet():
-            for _ in range(10):  # Retry up to 10 times
+            while True:  # Retry
                 packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
                 if packet is not None:
                     return packet
                 await asyncio.sleep(0.1)  # Prevent busy waiting
-            raise NoResponseError
 
-        try:
-            packet = await asyncio.wait_for(_read_packet(), timeout=timeout)
-        except asyncio.TimeoutError:
-            raise NoResponseError
+        if self.enable_timeouts:
+            try:
+                packet = await asyncio.wait_for(_read_packet(), timeout=timeout)
+            except asyncio.TimeoutError:
+                raise NoResponseError
+        else:
+            packet = await _read_packet() # No timeout
 
         if len(packet) == 0:
             raise NoResponseError

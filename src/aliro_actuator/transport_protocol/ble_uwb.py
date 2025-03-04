@@ -75,6 +75,7 @@ class BLEUWB(TransportProtocolBase):
         time_sync_0: bool = True,
         time_sync_1: bool = True,
         LE_coded_phy: bool = True,
+        enable_timeouts: bool = True,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
@@ -110,6 +111,7 @@ class BLEUWB(TransportProtocolBase):
                 BLE_UWB_supported=BLE_UWB_supported,
                 BLE_only_supported=BLE_only_supported,
                 spsm=self.spsm,
+                enable_timeouts=enable_timeouts,
             )
 
         elif self.mode == Mode.USER_DEVICE:
@@ -123,6 +125,7 @@ class BLEUWB(TransportProtocolBase):
                 group_resolving_key=self.group_resolving_key,
                 reader_group_identifier_list=truncated_list,
                 spsm=self.spsm,
+                enable_timeouts=enable_timeouts,
             )
 
     async def disconnect(self, raise_errors: bool = False) -> None:

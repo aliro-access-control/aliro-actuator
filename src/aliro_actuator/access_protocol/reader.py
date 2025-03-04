@@ -209,6 +209,7 @@ class Reader(Device):
         fast_transaction_handling: FastTransactionHandling = FastTransactionHandling.CONTINUE_WITH_STANDARD,
         reader_system_issuer_ca: PublicKey | None = None,
         mode: ReaderMode = ReaderMode.TEST,
+        enable_timeouts: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -289,6 +290,8 @@ class Reader(Device):
         self.fast_transaction_handling = fast_transaction_handling
         self.failure_process_started = False
         self.mode = mode
+        
+        self.enable_timeouts = enable_timeouts
 
         Global.logger.info("Initialized Reader")
 
@@ -350,6 +353,7 @@ class Reader(Device):
             reader_group_sub_identifier=self.reader_group_sub_identifier,
             group_resolving_key=self.group_resolving_key,
             spsm=self.spsm,
+            enable_timeouts=self.enable_timeouts
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Connection established")
