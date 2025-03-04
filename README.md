@@ -90,7 +90,7 @@ python3 -m examples.ble.reader.fast
 python3 -m examples.ble.user_device
 ```
 
-There are some tests used for specific usecases. These fall into three categories:
+There are some tests used for specific use cases. These fall into the following categories:
 - fast transaction
 - mailbox
 - stepup
@@ -110,9 +110,8 @@ Certificate tests:
 Negative tests:
 - `reader/id_fail.py`
 - `reader/key_fail.py`
-- `reader/key_fail.py`
 
-For BLE only there is an example specific for UWB test cases:
+For UWB testing you can use one of these examples:
 - `reader/ble_uwb.py`
 - `user_device_ble_uwb.py`
 
