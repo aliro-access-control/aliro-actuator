@@ -1226,6 +1226,7 @@ class UserDevice(Device):
                 UserSessionState.EXCHANGE_DONE,
                 UserSessionState.ENVELOPE_DONE,
                 UserSessionState.STEPUP_EXCHANGE_DONE,
+                UserSessionState.SELECT_STEP_UP_DONE,
             ]
         ):
             state = self.session.state
@@ -1515,6 +1516,7 @@ class UserDevice(Device):
                 UserSessionState.AUTH1_DONE,
                 UserSessionState.EXCHANGE_DONE,
                 UserSessionState.ENVELOPE_DONE,
+                UserSessionState.SELECT_STEP_UP_DONE,
             ]
         ):
             state = self.session.state
