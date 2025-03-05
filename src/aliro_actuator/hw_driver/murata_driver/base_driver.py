@@ -38,6 +38,7 @@ class MurataBaseDriver:
         self.dh.device.flush_port()
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
+        self.enable_timeout = False
 
     def open(self) -> None:
         if not self.serial.isOpen:
@@ -71,14 +72,12 @@ class MurataBaseDriver:
                     return packet
                 await asyncio.sleep(0.1)  # Prevent busy waiting
 
-        if self.timeout != None:
+        if self.timeout != None and self.enable_timeout == True:
             try:
-                Global.logger.info(f"Using timeout: {self.timeout}")
                 packet = await asyncio.wait_for(_read_packet(), timeout=self.timeout)
             except asyncio.TimeoutError:
                 raise NoResponseError
         else:
-            Global.logger.info(f"Not using timeouts")
             packet = await _read_packet() # No timeout
 
         if len(packet) == 0:
@@ -133,6 +132,7 @@ class MurataBaseDriver:
                             channel
                         )
                     )
+                    self.enable_timeout = True
                 except ErrorReturnedError:
                     pass  # just ignore message
             if (
