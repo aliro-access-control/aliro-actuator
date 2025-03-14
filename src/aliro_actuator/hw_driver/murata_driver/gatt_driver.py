@@ -371,13 +371,16 @@ class MurataGATTServerDriver(MurataBaseDriver):
         await self.send_attribute_written_status(
             message.get_device_id(), message.get_handle()
         )
+        Global.logger.info("message: {!r}".format(hexlify(message.data)))
         handle = change_endianness(message.data[1:3])
-        length = int.from_bytes(message.data[3:5], "little")
-        data = int.from_bytes(message.data[5 : 5 + length], "big")
+        supported_version = int.from_bytes(message.data[4:7], "big")
+        features_supported_len = int.from_bytes(message.data[7:8], "big")
+        features_supported = int.from_bytes(message.data[8: 8 + features_supported_len], "big")
         Global.logger.info("Data written:")
         Global.logger.info("handle: {!r}".format(hexlify(handle)))
-        Global.logger.info("data: 0x{:x}".format(data))
-        return data
+        Global.logger.info("version: 0x{:x}".format(supported_version))
+        Global.logger.info("features: 0x{:x}".format(features_supported))
+        return supported_version, features_supported
 
 
 class MurataGATTClientDriver(MurataBaseDriver):
@@ -474,7 +477,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
         self,
         device_id: int,
         characteristic: Characteristic,
-        value: int,
+        value: bytearray,
         value_length: int = 0x01,
     ) -> None:
         Global.logger.debug("Write characteristic value")
@@ -482,7 +485,7 @@ class MurataGATTClientDriver(MurataBaseDriver):
         data.extend(int.to_bytes(device_id, 1, "little"))
         data.extend(characteristic.to_bytes())
         data.extend(int.to_bytes(value_length, 2, "little"))  # value length
-        data.extend(int.to_bytes(value, value_length, "big"))  # value
+        data.extend(value) # value
         data.append(0x00)  # without response
         data.append(0x00)  # signed write
         data.append(0x00)  # reliable long char writes
