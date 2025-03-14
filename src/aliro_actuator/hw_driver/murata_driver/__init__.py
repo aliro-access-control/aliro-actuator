@@ -33,10 +33,12 @@ class UserDeviceMurataDriver(
         group_resolving_key: bytes,
         reader_group_identifier_list: list,
         spsm: bytes = bytes.fromhex("0080"),
+        timeout: float | None = None,
     ) -> None:
         Global.logger.info("setup ble connection")
         self.group_resolving_key = group_resolving_key
         self.reader_group_identifier_list = reader_group_identifier_list
+        self.timeout = timeout
         Global.logger.debug("Initialize l2cap")
         await self.register_le_cb_callback()
         await self.register_le_psm(spsm)
@@ -160,7 +162,9 @@ class ReaderMurataDriver(
         time_sync_0: bool,
         time_sync_1: bool,
         LE_coded_phy: bool,
+        timeout: float | None = None,
     ) -> None:
+        self.timeout = timeout
         Global.logger.info("Creating GATT Database")
         await self.release_database()
         await self.gattbd_initialize()
@@ -249,7 +253,7 @@ class ReaderMurataDriver(
         await self.register_le_cb_callback()
         await self.register_le_psm(spsm)
         await self.start_advertising()
-
+        
     async def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
         await self.wait_for_connection_event()

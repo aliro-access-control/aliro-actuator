@@ -90,7 +90,8 @@ class Message:
         checksum = 0
         checksum ^= self.op_group
         checksum ^= self.op_code
-        checksum ^= self.length
+        checksum ^= (self.length & 0x00FF)
+        checksum ^= ((self.length & 0xFF00) >> 8)
         for byte in self.data:
             checksum ^= byte
         return checksum.to_bytes(1, "little")

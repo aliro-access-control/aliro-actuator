@@ -44,7 +44,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
             [ConfirmStatus.SUCCESS, ConfirmStatus.CALLBACK_ALREADY_INSTALLED],
         )
 
-    async def register_le_psm(self, psm: bytes, psm_mtu: int = 0xFF) -> None:
+    async def register_le_psm(self, psm: bytes, psm_mtu: int = 0xFFFF) -> None:
         Global.logger.debug("Register Le PSM")
         data = bytearray()
         data.extend(change_endianness(psm[:2]))
