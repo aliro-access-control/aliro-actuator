@@ -1265,6 +1265,7 @@ class Reader(Device):
         transaction_identifier: bytes,
         reader_identifier: bytes,
         vendor_extension: bytes | None = None,
+        extra_tlv: bytes | None = None,
     ) -> Response:
         """
         Create and send a auth0 command, and wait for a response.
@@ -1290,6 +1291,7 @@ class Reader(Device):
             transaction_identifier,
             reader_identifier,
             vendor_extension,
+            extra_tlv,
         )
 
         Global.logger.info("Sending AUTH0 command")
