@@ -1587,6 +1587,7 @@ class APDU:
         transaction_identifier: bytes,
         reader_identifier: bytes,
         vendor_extension: bytes | None = None,
+        extra_tlv: bytes | None = None,
     ) -> list[Command]:
         Global.logger.info("Creating AUTH0 command")
         data_tlv: list[tuple[int, bytes | list]] = [
@@ -1599,6 +1600,8 @@ class APDU:
         ]
         if vendor_extension is not None:
             data_tlv.append((Auth0.VENDOR_SPECIFIC_TAG, vendor_extension))
+        if extra_tlv is not None:
+            data_tlv.append((Auth0.UNKNOWN_TAG, extra_tlv))
         data = TLV(data_tlv)
         Global.logger.debug(
             "Command contains TLV structure: {}".format(data.to_print())
