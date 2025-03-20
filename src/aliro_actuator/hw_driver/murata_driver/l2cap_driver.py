@@ -17,6 +17,8 @@ from aliro_actuator.hw_driver.murata_driver.opcodes import OpCodeL2CAP, OpGroup
 class MurataL2CAPDriver(MurataBaseDriver):
     async def setup_l2cap_connection_user(self, psm: bytes) -> None:
         Global.logger.debug("Setup l2cap connection")
+        await self.register_le_cb_callback()
+        await self.register_le_psm(psm)
         await self.connect_le_psm(self.connected_devices[0], psm, 0xFF)
 
         self.message_queue: list[

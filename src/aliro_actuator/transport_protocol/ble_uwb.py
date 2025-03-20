@@ -122,7 +122,6 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
                 reader_group_identifier_list=truncated_list,
-                spsm=self.spsm,
             )
 
     async def disconnect(self, raise_errors: bool = False) -> None:

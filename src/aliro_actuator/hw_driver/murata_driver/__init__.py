@@ -32,14 +32,11 @@ class UserDeviceMurataDriver(
         self,
         group_resolving_key: bytes,
         reader_group_identifier_list: list,
-        spsm: bytes = bytes.fromhex("0080"),
     ) -> None:
         Global.logger.info("setup ble connection")
         self.group_resolving_key = group_resolving_key
         self.reader_group_identifier_list = reader_group_identifier_list
         Global.logger.debug("Initialize l2cap")
-        await self.register_le_cb_callback()
-        await self.register_le_psm(spsm)
         await self.stop_scanning(False)
         await self.start_scanning()
 
