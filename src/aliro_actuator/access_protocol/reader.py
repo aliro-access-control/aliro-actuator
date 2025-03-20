@@ -300,6 +300,7 @@ class Reader(Device):
         self.timeout = timeout
         self.advertisement_version = advertisement_version
 
+        self._protocol_version = PROTOCOL_VERSION 
         Global.logger.info("Initialized Reader")
 
     async def handle_timeout(self):
@@ -307,6 +308,14 @@ class Reader(Device):
         Global.logger.info("Command timed out")
         await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.UNKNOWN_ERROR)
         await self.transaction_termination()
+
+    @property
+    def protocol_version(self):
+        return self._protocol_version
+
+    @protocol_version.setter
+    def protocol_version(self, protocol_version) -> None:
+        self._protocol_version = protocol_version
 
     @property
     def reader_identifier(self) -> bytes:
@@ -665,7 +674,7 @@ class Reader(Device):
             auth0_response = await self.command_auth0(
                 transaction=transaction_type,
                 authentication_policy=authentication_policy,
-                protocol_version=PROTOCOL_VERSION,
+                protocol_version=self.protocol_version(),
                 reader_epubk=self.session.get_reader_epubkey().as_bytes(),
                 transaction_identifier=self.session.transaction_identifier,
                 reader_identifier=self.reader_identifier,
