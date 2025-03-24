@@ -1354,6 +1354,7 @@ class APDU:
 
         if not command.chaining_control_bit:
             Global.logger.debug("No chaining used in this command")
+            response.chaining = False
             return command
 
         Global.logger.debug("Chained command, getting the other commands of the chain")
@@ -1369,7 +1370,8 @@ class APDU:
             command = Command.create_from_bytestring(command_str)
             if command.data is not None:
                 total_payload.extend(command.data)
-
+                
+        response.chaining = True
         return Command.create_from_parameters(
             command.cla,
             command.ins,

@@ -1062,6 +1062,7 @@ class UserDevice(Device):
         self.session.set_cert_and_verify(
             load_cert_command.reader_cert, reader_issuer_public_key
         )
+        self.chaining_command = load_cert_command.chaining
         await self.response_load_cert()
 
         if self.mode == UserMode.TEST and not self.session.cert_decoded:
