@@ -1449,7 +1449,10 @@ class APDU:
             case INS.GET_RESPONSE:
                 command.parse_as_get_response()
             case INS.AUTH0:
-                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
+                try:
+                    TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
+                except TlvError as error:
+                    command.tlv_check = False
                 command.parse_as_auth0()
             case INS.LOAD_CERT:
                 command.parse_as_load_cert()

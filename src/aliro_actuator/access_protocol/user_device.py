@@ -971,7 +971,10 @@ class UserDevice(Device):
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
-            await self.response_auth0(self.session.get_credential_epubkey().as_bytes())
+            await self.response_auth0(
+                self.session.get_credential_epubkey().as_bytes(),
+                command_status=auth0_command.tlv_check
+            )
         elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
             Global.logger.info("Looking for Kpersistent in storage")
@@ -1019,6 +1022,7 @@ class UserDevice(Device):
             await self.response_auth0(
                 credential_epubk=self.session.get_credential_epubkey().as_bytes(),
                 cryptogram=cryptogram,
+                command_status=auth0_command.tlv_check
             )
 
         Global.logger.info("Handling AUTH0 command done")
@@ -1762,7 +1766,10 @@ class UserDevice(Device):
         return command
 
     async def response_auth0(
-        self, credential_epubk: bytes, cryptogram: bytes | None = None
+        self,
+        credential_epubk: bytes,
+        cryptogram: bytes | None = None,
+        command_status: bool = True,
     ) -> None:
         """
         Create and send an auth0 response.
@@ -1772,8 +1779,13 @@ class UserDevice(Device):
             cryptogram (bytes | None, optional): authentication cryptogram.
             Defaults to None.
         """
+        if command_status:
+            status = StatusBytes.SUCCESS
+        else:
+            status = StatusBytes.COMMAND_NOT_COMPLIANT
+            
         auth0_response = self.apdu.create_auth0_response(
-            credential_epubk, StatusBytes.SUCCESS, cryptogram
+            credential_epubk, status, cryptogram
         )
         Global.logger.info("Sending AUTH0 response")
         await self.apdu.handle_chaining_send_response(
