@@ -301,6 +301,7 @@ class Reader(Device):
         self.advertisement_version = advertisement_version
 
         self._protocol_version = PROTOCOL_VERSION 
+
         Global.logger.info("Initialized Reader")
 
     async def handle_timeout(self):
@@ -308,14 +309,6 @@ class Reader(Device):
         Global.logger.info("Command timed out")
         await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.UNKNOWN_ERROR)
         await self.transaction_termination()
-
-    @property
-    def protocol_version(self):
-        return self._protocol_version
-
-    @protocol_version.setter
-    def protocol_version(self, protocol_version) -> None:
-        self._protocol_version = protocol_version
 
     @property
     def reader_identifier(self) -> bytes:
