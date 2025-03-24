@@ -279,16 +279,7 @@ class Reader(Device):
         self.fast_transaction_handling = fast_transaction_handling
         self.failure_process_started = False
         self.mode = mode
-        self._protocol_version = PROTOCOL_VERSION 
         Global.logger.info("Initialized Reader")
-
-    @property
-    def protocol_version(self):
-        return self._protocol_version
-
-    @protocol_version.setter
-    def protocol_version(self, protocol_version) -> None:
-        self._protocol_version = protocol_version
 
     @property
     def reader_identifier(self) -> bytes:
