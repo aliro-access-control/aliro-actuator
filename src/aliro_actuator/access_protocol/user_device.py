@@ -1164,6 +1164,7 @@ class UserDevice(Device):
             raise AccessProtocolError("no encryption engine found")
 
         self.session.update_state(UserSessionState.AUTH1_DONE)
+        self.chaining_command = auth1_command.chaining
 
         await self.response_auth1(
             self.session.access_credential.get_key_slot(),
