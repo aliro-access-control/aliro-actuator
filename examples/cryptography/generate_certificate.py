@@ -59,5 +59,20 @@ if __name__ == "__main__":
 
     issuer_keypair = KeyPair(issuer_private, issuer_public)
 
-    certificate = Certificate.generate(reader_public.as_bytes(), issuer_keypair)
+    certificate = Certificate.generate(
+        key_info_subject_public_key=reader_public.as_bytes(),
+        issuer_keypair=issuer_keypair,
+        serial_number=bytes.fromhex("010203040506060707080880"),
+        issuer=bytes(
+            "Thisisaverylongissuernametobeusedforalirocertificationtest", "utf-8"
+        ),
+        subject=bytes(
+            "Thisisaverylongsubjectnametobeusedforalirocertificationtest", "utf-8"
+        ),
+        validity_not_before=bytes.fromhex("32303235303430313030303030305A"),
+        validity_not_after=bytes.fromhex("32303330303430313030303030305A"),
+        subject=bytes(
+            "Thisisaverylongsubjectnametobeusedforalirocertificationtest", "utf-8"
+        ),
+    )
     Global.logger.info("Generated certificate: {}".format(hexlify(certificate)))
