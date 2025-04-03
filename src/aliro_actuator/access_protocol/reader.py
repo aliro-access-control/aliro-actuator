@@ -1723,7 +1723,7 @@ class Reader(Device):
         
     async def handle_initiate_ranging(self, message: BleMessage) -> None:
         Global.logger.info("Handling initiate ranging message")
-        #message.parse_payload(self.session.get_ble_encryption())
+        message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
     def common_sync_code_index(
