@@ -186,6 +186,16 @@ class TLV:
             raise TlvError
         return element
 
+    @staticmethod
+    def to_tlv_list(l: list) -> list[TLV]:
+        """
+        returns a list of all TLVs
+        """
+        tlvs: list[TLV] = []
+        for element in l:
+            tlvs.append(TLV(element))
+        return tlvs
+        
     def get_all_of_tag(self, tag: int) -> list[bytes | TLV]:
         """
         returns a list with all values with a given tag.
@@ -289,6 +299,16 @@ class TLV:
         """
         return self.data
 
+    def to_tag(self) -> int:
+        """
+        Gets the (last) tag of a TLV
+        """
+        tag = 0
+        for element in self.data:
+            tag = element[0]
+
+        return tag
+
     def to_print(self) -> str:
         """
         returns a printable string.
@@ -330,6 +350,8 @@ class TLV:
                 if (i<buflen-1):
                     tag = tag*256 + buf[i+1]
                     i += 2
+                else:
+                    raise TlvError("TLV is not correctly formatted")
             else:
                 i += 1
 

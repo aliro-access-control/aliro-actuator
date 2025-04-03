@@ -40,8 +40,6 @@ class UserDeviceMurataDriver(
         self.reader_group_identifier_list = reader_group_identifier_list
         self.timeout = timeout
         Global.logger.debug("Initialize l2cap")
-        await self.register_le_cb_callback()
-        await self.register_le_psm(spsm)
         await self.stop_scanning(False)
         await self.start_scanning()
 
@@ -253,7 +251,7 @@ class ReaderMurataDriver(
         await self.register_le_cb_callback()
         await self.register_le_psm(spsm)
         await self.start_advertising()
-        
+
     async def wait_for_connection(self) -> None:
         Global.logger.info("wait for ble connection")
         await self.wait_for_connection_event()

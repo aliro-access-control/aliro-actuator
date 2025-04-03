@@ -935,7 +935,7 @@ class UserDevice(Device):
         try:
             self.session.set_auth0_data(auth0_command)
         except InvalidKeyError:
-            AccessProtocolError("Reader ephemeral key is invalid")
+            raise AccessProtocolError("Reader ephemeral key is invalid")
         Global.logger.info("Reader ephemeral key is a valid key")
 
         # Setup UWB session id
@@ -1353,15 +1353,47 @@ class UserDevice(Device):
 
         Global.logger.info("Handling notifications")
         if exchange_command.notify is not None:
-            errors = []
-            for notify in exchange_command.notify:
-                errors.extend(notify.get_all_bytes_of_tag(0xC1))
-            for error in errors:
-                if error is None:
+            tlvList = TLV.to_tlv_list(TLV.from_bytes(exchange_command.notify).to_data())
+            if len(tlvList) > 1:
+                Global.logger.info("Too much sub-TLVs for EXCHANGE[Notify], found {}.".format(len(tlvList)))
+                raise AccessProtocolError
+            else:
+                # Get the (only) tag
+                tlv = TLV.from_bytes(exchange_command.notify)
+                tag = tlv.to_tag()
+
+            Global.logger.info("Sub TLV tag detected: " + str(hex(tag)))
+            if tag == 0xC1:
+                errors = []
+                errors = tlv.get_all_bytes_of_tag(0xC1)
+                for error in errors:
+                    if error is None:
+                        raise AccessProtocolError
+                    Global.logger.info("received error notification: {!r}".format(hexlify(error)))
+            else:
+                if tag & 0x9F00 != 0x9F00:
+                    Global.logger.info("tag does not match with 0xC1 or 0x9Fxx")
                     raise AccessProtocolError
-                Global.logger.info(
-                    "received error notification: {!r}".format(hexlify(error))
-                )
+                else:
+                    Global.logger.info("Notify Credential Issuer backend or application")
+                    if tag & 0x9FC0 == 0x9F00:
+                        Global.logger.info("Request to send data to a bound application on User Device")
+                    else:
+                        if tag & 0x9FC0 == 0x9F40:
+                            Global.logger.info("Request to send data to the Credential Issuer backend")
+                            if tag & 0x9F10 == 0x9F10:
+                                Global.logger.info("Request is time sensitive")
+                            else:
+                                Global.logger.info("Request is not time sensitive")
+                            importanceLevel = tag & 0x0007
+                            if 0 <= importanceLevel < 5:
+                                Global.logger.info("Importance level: {}".format(importanceLevel))
+                            else:
+                                Global.logger.info("Invalid importance level {}".format(importanceLevel))
+                                raise AccessProtocolError
+                        else:
+                            Global.logger.info("Invalid tag")
+                            raise AccessProtocolError
 
         Global.logger.info("Handling read requests")
         read_data: list[tuple[int, bytes]] = []
