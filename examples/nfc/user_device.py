@@ -106,7 +106,7 @@ async def main():
     reader = UserDevice(
         transport_protocol=TransportProtocol.NFC,
         access_credentials=access_credentials,
-        mailbox=0x20,
+        mailbox=0x64,
         access_document=response,
         mode=UserMode.USER,
     )
