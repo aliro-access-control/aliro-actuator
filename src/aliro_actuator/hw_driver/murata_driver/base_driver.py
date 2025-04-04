@@ -38,6 +38,7 @@ class MurataBaseDriver:
         self.dh.device.flush_port()
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
+        self.enable_timeout = False
 
     def open(self) -> None:
         if not self.serial.isOpen:
@@ -64,20 +65,32 @@ class MurataBaseDriver:
         self.serial.timeout = TIMEOUT
 
     async def read(self) -> Message:
-        packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
-        while packet is None:
-            packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
+        async def _read_packet():
+            while True:  # Retry
+                packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
+                if packet is not None:
+                    return packet
+                await asyncio.sleep(0.1)  # Prevent busy waiting
+
+        if self.timeout != None and self.enable_timeout == True:
+            try:
+                packet = await asyncio.wait_for(_read_packet(), timeout=self.timeout)
+            except asyncio.TimeoutError:
+                raise NoResponseError
+        else:
+            packet = await _read_packet() # No timeout
+
         if len(packet) == 0:
             raise NoResponseError
+
         if int.from_bytes(packet[0], "little") != 0x02:
             raise STXError
+
+        length = get_length_from_header(packet[:5])
         message = Message(
-            packet[1],
-            packet[2],
-            get_length_from_header(packet[:5]),
-            bytes(packet[5 : 5 + get_length_from_header(packet[:5])]),
-            packet[-1].to_bytes(1, "little"),
+            packet[1], packet[2], length, bytes(packet[5:5+length]), packet[-1].to_bytes(1, "little")
         )
+
         return message
 
     def write(self, message: Message) -> None:
@@ -94,76 +107,72 @@ class MurataBaseDriver:
     ) -> Message:
         self.set_low_timeout()
         while True:
-            try:
-                response = await self.read()
-                if (
-                    response.get_op_group() == OpGroup.L2CAP
-                    and response.get_op_code() == OpCodeL2CAP.LE_CB_DATA
-                    and not (
-                        op_group == OpGroup.L2CAP and opcode == OpCodeL2CAP.LE_CB_DATA
+            response = await self.read()
+            if (
+                response.get_op_group() == OpGroup.L2CAP
+                and response.get_op_code() == OpCodeL2CAP.LE_CB_DATA
+                and not (
+                    op_group == OpGroup.L2CAP and opcode == OpCodeL2CAP.LE_CB_DATA
+                )
+            ):
+                # received data while not waiting for data, pushing to message queue
+                self.message_queue.append(response.get_packet())
+            if (
+                response.get_op_group() == OpGroup.L2CAP
+                and response.get_op_code() == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
+            ):
+                # we always need to check for these messages, as they can be
+                # triggered by the other device
+                try:
+                    channel = response.get_channel_id()
+                    id = response.get_device_id()
+                    self.channel_ids[id] = channel
+                    Global.logger.debug(
+                        "Received Le PSM connection complete message, using channel: 0x{:02x}".format(
+                            channel
+                        )
                     )
-                ):
-                    # received data while not waiting for data, pushing to message queue
-                    self.message_queue.append(response.get_packet())
+                    self.enable_timeout = True
+                except ErrorReturnedError:
+                    pass  # just ignore message
+            if (
+                response.get_op_group() == OpGroup.GAP
+                and response.get_op_code()
+                == OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
+            ):
+                # we always need to check for these messages, as they can be
+                # triggered by the other device
+                try:
+                    id = response.get_device_id()
+                    if id in self.channel_ids.keys():
+                        del self.channel_ids[id]
+                    self.connected_devices.remove(id)
+                    Global.logger.debug(
+                        "Received connection event disconnected message, "
+                        "disconnected id: 0x{:02x}".format(id)
+                    )
+                except ErrorReturnedError:
+                    pass  # just ignore message
+                raise DeviceDisconnectedError
+            if (
+                response.get_op_group() != op_group
+                or response.get_op_code() != opcode
+            ):
                 if (
-                    response.get_op_group() == OpGroup.L2CAP
-                    and response.get_op_code() == OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE
+                    response.get_op_group() == op_group
+                    and return_opcode_list is not None
+                    and response.get_op_code() in return_opcode_list
                 ):
-                    # we always need to check for these messages, as they can be
-                    # triggered by the other device
-                    try:
-                        channel = response.get_channel_id()
-                        id = response.get_device_id()
-                        self.channel_ids[id] = channel
-                        Global.logger.debug(
-                            "Received Le PSM connection complete message, using channel: 0x{:02x}".format(
-                                channel
-                            )
-                        )
-                    except ErrorReturnedError:
-                        pass  # just ignore message
-                if (
-                    response.get_op_group() == OpGroup.GAP
-                    and response.get_op_code()
-                    == OpCodeGAP.CONNECTION_EVENT_DISCONNECTED
-                ):
-                    # we always need to check for these messages, as they can be
-                    # triggered by the other device
-                    try:
-                        id = response.get_device_id()
-                        if id in self.channel_ids.keys():
-                            del self.channel_ids[id]
-                        self.connected_devices.remove(id)
-                        Global.logger.debug(
-                            "Received connection event disconnected message, "
-                            "disconnected id: 0x{:02x}".format(id)
-                        )
-                    except ErrorReturnedError:
-                        pass  # just ignore message
-                    raise DeviceDisconnectedError
-                if (
-                    response.get_op_group() != op_group
-                    or response.get_op_code() != opcode
-                ):
-                    if (
-                        response.get_op_group() == op_group
-                        and return_opcode_list is not None
-                        and response.get_op_code() in return_opcode_list
-                    ):
-                        Global.logger.debug(
-                            "Received message with opcode: 0x{:02x}, returning message "
-                            "for further handling".format(response.get_op_code())
-                        )
-                        return response
-                    Global.logger.debug("Unexpected Command received:")
-                    response.print()
-                    continue
-                self.set_normal_timeout()
-                return response
-            except NoResponseError:
-                # sleep so other processes can run
-                await asyncio.sleep(0.1)
-                pass
+                    Global.logger.debug(
+                        "Received message with opcode: 0x{:02x}, returning message "
+                        "for further handling".format(response.get_op_code())
+                    )
+                    return response
+                Global.logger.debug("Unexpected Command received:")
+                response.print()
+                continue
+            self.set_normal_timeout()
+            return response
 
     async def wait_for_confirm(
         self, op_group: OpGroup, accepted: list = [ConfirmStatus.SUCCESS]
