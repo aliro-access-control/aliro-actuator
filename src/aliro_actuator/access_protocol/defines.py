@@ -85,6 +85,7 @@ class Auth1:
     COMMAND_TAG = 0x41
     READER_SIG_TAG = 0x9E
     CERTIFICATE_TAG = 0x90
+    UNKNOWN_TAG = 0xAA
 
     COMMAND_LEN = 1
     READER_SIG_LEN = 64
