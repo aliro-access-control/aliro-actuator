@@ -1290,6 +1290,7 @@ class APDU:
     ) -> Response:
         if len(commands) == 1:
             Global.logger.debug("Command fits in one message, no chaining required")
+            command_chaining_required = False
             Global.logger.info("Sending {} command".format(command_name))
             await transport_layer.send_message(commands[0])
 
@@ -1300,6 +1301,7 @@ class APDU:
             response = Response.create_from_bytestring(response_str)
         else:
             Global.logger.debug("Command chaining required")
+            command_chaining_required = True
             for command in commands:
                 Global.logger.info("Sending {} command".format(command_name))
                 await transport_layer.send_message(command)
@@ -1320,9 +1322,9 @@ class APDU:
         # response chaining
         if chaining_remaining is None:
             Global.logger.info("No response chaining required")
-            chaining_required = False
+            response_chaining_required = False
         while chaining_remaining is not None:
-            chaining_required = True
+            response_chaining_required = True
             Global.logger.info("Response chaining is required")
             expected_response_size = chaining_remaining
             if self.support_extended_length_apdu:
@@ -1342,7 +1344,8 @@ class APDU:
 
         total_response_data.extend(response.status.to_bytes(2, "big"))
         response = Response.create_from_bytestring(bytes(total_response_data))
-        response.chaining = chaining_required
+        response.response_chaining = response_chaining_required
+        response.command_chaining = command_chaining_required
         return response
 
     async def handle_chaining_receive_command(
