@@ -689,7 +689,7 @@ class Reader(Device):
         else:
             await self.decrypt_cryptogram(auth0_response.cryptogram)
             
-        self.chaining_response = auth0_response.chaining
+        self.chaining_response = auth0_response.response_chaining
 
         Global.logger.info("Handling AUTH0 command done")
 
@@ -884,6 +884,7 @@ class Reader(Device):
 
         Global.logger.info("Save AUTH1 response data to session")
         self.session.set_auth1_info(auth1_response)
+        self.command_chaining = auth1_response.command_chaining
 
         Global.logger.info("Handling AUTH1 response done")
 
