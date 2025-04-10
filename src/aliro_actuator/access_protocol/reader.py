@@ -1001,9 +1001,9 @@ class Reader(Device):
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
 
-        Global.logger.info("Handling AUTH1 response")
+        Global.logger.info("Handling CONTROL FLOW response")
         self.session = None
-        Global.logger.info("Handling AUTH1 response done")
+        Global.logger.info("Handling CONTROL FLOW response done")
 
     async def handle_exchange(
         self,
