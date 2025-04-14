@@ -126,7 +126,7 @@ class UserDeviceMurataDriver(
         return read_value[:2], versions, features
 
     async def handle_GATT_layer_write_characteristic(
-        self, primary_service: Service, version: int
+        self, primary_service: Service, value: bytearray
     ) -> None:
         Global.logger.debug("GATT write characteristic")
         user_device_characteristic = None
@@ -137,13 +137,13 @@ class UserDeviceMurataDriver(
         else:
             raise GATTError("user device characteristic not found")
         Global.logger.info(
-            "Writing BLE UWB protocol version to Reader: 0x{:04x}".format(version)
+            "Writing BLE UWB protocol version to Reader: 0x{!r}".format(hexlify(value))
         )
         await self.write_characteristic_value(
             self.connected_devices[0],
             user_device_characteristic,
-            value=version,
-            value_length=0x02,
+            value=value,
+            value_length=0x04,
         )
 
 
