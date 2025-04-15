@@ -692,6 +692,8 @@ class Reader(Device):
                 )
         else:
             await self.decrypt_cryptogram(auth0_response.cryptogram)
+            
+        self.chaining_response = auth0_response.chaining
 
         Global.logger.info("Handling AUTH0 command done")
 

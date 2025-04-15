@@ -869,6 +869,14 @@ class Response(APDUMessage):
     @sw2.setter
     def sw2(self, value: int) -> None:
         self.status = (self.status & 0xFF00) | (value & 0x00FF)
+        
+    @property
+    def chaining(self) -> bool:
+        return self._chaining
+    
+    @chaining.setter
+    def chaining(self, value: bool) -> None:
+        self._chaining = value
 
     def _check_status(self, valid_codes: list[int] = [StatusBytes.SUCCESS]) -> None:
         if self.status not in valid_codes:
@@ -1312,7 +1320,9 @@ class APDU:
         # response chaining
         if chaining_remaining is None:
             Global.logger.info("No response chaining required")
+            chaining_required = False
         while chaining_remaining is not None:
+            chaining_required = True
             Global.logger.info("Response chaining is required")
             expected_response_size = chaining_remaining
             if self.support_extended_length_apdu:
@@ -1331,7 +1341,9 @@ class APDU:
             chaining_remaining = self.check_chaining_response(response)
 
         total_response_data.extend(response.status.to_bytes(2, "big"))
-        return Response.create_from_bytestring(bytes(total_response_data))
+        response = Response.create_from_bytestring(bytes(total_response_data))
+        response.chaining = chaining_required
+        return response
 
     async def handle_chaining_receive_command(
         self,
