@@ -163,8 +163,12 @@ class BLEUWB(TransportProtocolBase):
             self.time_sync_0 = (features[0] & 0x01) == 0x01
             self.time_sync_1 = (features[0] & 0x02) == 0x02
             self.LE_coded_phy = (features[0] & 0x04) == 0x04
+            value = bytearray()
+            value.extend(int.to_bytes(version, 2, "big"))
+            value.append(0x01) # Features Supported Length 
+            value.append(features[0] & 0x07)
             await self.driver.handle_GATT_layer_write_characteristic(
-                primary_service, version
+                primary_service, value
             )
             return
         raise TransportProtocolError
@@ -172,7 +176,7 @@ class BLEUWB(TransportProtocolBase):
     async def wait_for_connection(self) -> None:
         if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
             await self.driver.wait_for_connection()
-            self.ble_version = await self.driver.wait_for_write()
+            self.ble_version, self.features = await self.driver.wait_for_write()
             Global.logger.info(
                 "Checking ble version requested by User Device: 0x{:4x}".format(
                     self.ble_version
