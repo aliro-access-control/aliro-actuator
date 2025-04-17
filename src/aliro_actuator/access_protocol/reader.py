@@ -587,22 +587,22 @@ class Reader(Device):
                 )
             )
 
-        if (response.compl_aid == EXPEDITED_PHASE_AID and
-                PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions):
-            await self.failure_process(S2.PROTOCOL_VERSION_NOT_SUPPORTED)
-            raise AccessProtocolError(
-                "User does not support protocol version used by reader"
-            )
-        else:
-            Global.logger.info(
-                "Protocol versions ({}) contains valid version: 0x{:04x}".format(
-                    ", ".join(
-                        str(hex(x))
-                        for x in response.expedited_phase_supported_protocol_versions
-                    ),
-                    PROTOCOL_VERSION,
+        if response.compl_aid == EXPEDITED_PHASE_AID:
+            if PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions:
+                await self.failure_process(S2.PROTOCOL_VERSION_NOT_SUPPORTED)
+                raise AccessProtocolError(
+                    "User does not support protocol version used by reader"
                 )
-            )
+            else:
+                Global.logger.info(
+                    "Protocol versions ({}) contains valid version: 0x{:04x}".format(
+                        ", ".join(
+                            str(hex(x))
+                            for x in response.expedited_phase_supported_protocol_versions
+                        ),
+                        PROTOCOL_VERSION,
+                    )
+                )
 
         self.session.set_select_info(response)
         Global.logger.info("Handling SELECT response done")
@@ -1870,9 +1870,10 @@ class ReaderSession:
     def set_select_info(self, select_response: Response) -> None:
         self.compl_aid = select_response.compl_aid
         self.application_type = select_response.type
-        self.expedited_phase_supported_protocol_versions = (
-            select_response.expedited_phase_supported_protocol_versions
-        )
+        if self.compl_aid == EXPEDITED_PHASE_AID:
+            self.expedited_phase_supported_protocol_versions = (
+                select_response.expedited_phase_supported_protocol_versions
+            )
         self.maximum_command_apdu = select_response.maximum_command_apdu
         self.maximum_response_apdu = select_response.maximum_response_apdu
         self.proprietary_tlv = select_response.proprietary_tlv
