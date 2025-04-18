@@ -313,7 +313,7 @@ class Reader(Device):
     def reader_group_sub_identifier(self) -> bytes:
         return self._reader_identifier.get_group_sub()
 
-    async def transaction_initiation(self, check_apdu_length: bool = False) -> None:
+    async def transaction_initiation(self, check_apdu_length: bool = False, rke: bool = False) -> None:
         """
         Initializes the hardware and sets up a connection to the card.
         """
@@ -330,7 +330,7 @@ class Reader(Device):
             await self.transport_protocol.driver.session_init(
                 session_id=self.session.transaction_identifier[-4:]
             )
-            await self.wait_for_initiate_access_protocol_notification()
+            await self.wait_for_initiate_access_protocol_notification(rke=rke)
         else:
             await self.handle_select(EXPEDITED_PHASE_AID, check_apdu_length)
         Global.logger.info("Transaction Initiation Done")
@@ -470,15 +470,20 @@ class Reader(Device):
 
         await self.transaction_termination()
 
-    async def wait_for_initiate_access_protocol_notification(self) -> None:
+    async def wait_for_initiate_access_protocol_notification(self, rke: bool = False) -> None:
         if self.session is None:
             raise SessionError("No Session")
+
+        if rke:
+            expected_id = Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE
+        else:
+            expected_id = Notification_ID.INITIATE_ACCESS_PROTOCOL
 
         Global.logger.info("Waiting for Initiate access protocol notification")
         response_str, header, id = await self.transport_protocol.get_message()
         if (
             header != ProtocolType.NOTIFICATION
-            or id != Notification_ID.INITIATE_ACCESS_PROTOCOL
+            or id != expected_id
         ):
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
@@ -1613,6 +1618,11 @@ class Reader(Device):
                     header,
                     id,
                 )
+                
+    def handle_rke_request(self, message: BleMessage) -> None:
+        Global.logger.info("Handling RKE request message")
+        message.parse_payload(self.session.get_ble_encryption)
+        
 
     def handle_timesync(self, message: BleMessage) -> None:
         Global.logger.info("Handling time sync message")
