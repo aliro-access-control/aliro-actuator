@@ -75,13 +75,14 @@ class BLEUWB(TransportProtocolBase):
         time_sync_0: bool = True,
         time_sync_1: bool = True,
         LE_coded_phy: bool = True,
+        timeout: float | None = None,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
         self.spsm = spsm
 
         # In case uci is open close it before trying to initialize again
-        if hasattr(self, 'driver'):
+        if hasattr(self, "driver"):
             await self.driver.close_uci()
 
         if self.mode == Mode.READER:
@@ -100,6 +101,7 @@ class BLEUWB(TransportProtocolBase):
                 time_sync_0,
                 time_sync_1,
                 LE_coded_phy,
+                timeout=timeout,
             )
             await self.driver.setup_connection(
                 reader_group_identifier=reader_group_identifier,
@@ -123,6 +125,7 @@ class BLEUWB(TransportProtocolBase):
                 group_resolving_key=self.group_resolving_key,
                 reader_group_identifier_list=truncated_list,
                 spsm=self.spsm,
+                timeout=timeout,
             )
 
     async def disconnect(self, raise_errors: bool = False) -> None:
