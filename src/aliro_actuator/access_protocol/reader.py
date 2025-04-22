@@ -1619,9 +1619,27 @@ class Reader(Device):
                     id,
                 )
                 
-    def handle_rke_request(self, message: BleMessage) -> None:
-        Global.logger.info("Handling RKE request message")
-        message.parse_payload(self.session.get_ble_encryption)
+    async def handle_rke_request(self) -> None:
+        Global.logger.info("Waiting for RKE request message")
+        payload, header, id = await self.transport_protocol.get_message()
+        if header is not None and id is not None:
+            message = BleMessage(header, id, payload)
+        else:
+            raise UnexpectedMessageTypeError
+        if (
+            header == ProtocolType.NOTIFICATION
+            and id == Notification_ID.RKE_REQUEST
+        ):
+            message.parse_payload(self.session.get_ble_encryption())
+        else:
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "RKE request message",
+                header,
+                id,
+            )
+            
+        self.rke_action = message.rke_action
         
 
     def handle_timesync(self, message: BleMessage) -> None:
