@@ -212,6 +212,7 @@ class Reader(Device):
         reader_system_issuer_ca: PublicKey | None = None,
         mode: ReaderMode = ReaderMode.TEST,
         timeout: float | None = None,
+        advertisment_version: int = 0x00,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -356,6 +357,7 @@ class Reader(Device):
             group_resolving_key=self.group_resolving_key,
             spsm=self.spsm,
             timeout=self.timeout,
+            advertisment_version=self.advertisment_version,
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Connection established")
