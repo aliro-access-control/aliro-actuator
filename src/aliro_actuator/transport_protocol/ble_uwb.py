@@ -76,6 +76,7 @@ class BLEUWB(TransportProtocolBase):
         time_sync_1: bool = True,
         LE_coded_phy: bool = True,
         timeout: float | None = None,
+        advertisement_version: int = 0x00,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
@@ -107,7 +108,7 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
-                advertisement_version=ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION,
+                advertisement_version=advertisement_version,
                 notification=notification,
                 BLE_UWB_supported=BLE_UWB_supported,
                 BLE_only_supported=BLE_only_supported,
