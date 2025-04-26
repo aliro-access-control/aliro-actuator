@@ -166,7 +166,7 @@ class BLEUWB(TransportProtocolBase):
             self.LE_coded_phy = (features[0] & 0x04) == 0x04
             value = bytearray()
             value.extend(int.to_bytes(version, 2, "big"))
-            value.append(0x01) # Features Supported Length 
+            value.append(0x01)  # Features Supported Length
             value.append(features[0] & 0x07)
             await self.driver.handle_GATT_layer_write_characteristic(
                 primary_service, value
@@ -196,6 +196,7 @@ class BLEUWB(TransportProtocolBase):
                 self.BLE_only_supported,
             ) = await self.driver.wait_for_connection()
             if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
+                await self.disconnect()
                 raise TransportProtocolError("Invalid BLE advertisement version")
             self.ble_version = CURRENT_VERSION
             await self.handle_GATT_layer(self.ble_version)
