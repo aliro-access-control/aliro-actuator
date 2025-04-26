@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from binascii import hexlify
-from enum import Enum
+from enum import Enum, IntEnum
+
 from os import urandom
 
 import ucitool.base_uci.helpers.uci_helper as uci
@@ -106,7 +107,7 @@ class UserMode(Enum):
     TEST = 0  # Every error raises an Exception
     USER = 1  # Strictly follows spec, may ignore errors if so noted in the spec
     
-class RkeAction(Enum):
+class RkeAction(IntEnum):
     SECURE = 0
     UNSECURE = 1
 
