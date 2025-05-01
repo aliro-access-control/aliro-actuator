@@ -512,6 +512,7 @@ class Reader(Device):
             PROTOCOL_VERSION
             not in self.session.expedited_phase_supported_protocol_versions
         ):
+            await self.transport_protocol.disconnect()
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
             )
