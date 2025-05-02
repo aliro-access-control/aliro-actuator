@@ -676,6 +676,19 @@ class BleMessage(Message):
         return ble_message
 
     @staticmethod
+    def create_busy_event_message(
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        attribute = BleAttribute(Event_AttributeID.BUSY, None)
+        ble_message = BleMessage(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.EVENT,
+            attribute.to_bytes(),
+        )
+        ble_message._encrypt(ble_encryption)
+        return ble_message
+
+    @staticmethod
     def create_ap_command_message(command: bytes) -> BleMessage:
         return BleMessage(ProtocolType.AP, AP_ID.AP_RQ, command)
 
@@ -991,7 +1004,7 @@ class BleMessage(Message):
         uwb_time0: bytes,
         ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
-        data = sts_index0.to_bytes(2, "big")
+        data = sts_index0.to_bytes(4, "big")
         sts_index0_attr = BleAttribute(UWB_AttributeID.STS_INDEX0, data)
         uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, uwb_time0)
 

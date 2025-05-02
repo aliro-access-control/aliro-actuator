@@ -25,6 +25,7 @@ from aliro_actuator.hw_driver.murata_driver import (
 from aliro_actuator.hw_driver.murata_driver.errors import (
     DeviceDisconnectedError,
     DeviceNotFoundError,
+    NoResponseError,
 )
 from aliro_actuator.transport_protocol import (
     ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION,
@@ -37,14 +38,15 @@ from aliro_actuator.transport_protocol.errors import (
     TransportProtocolError,
     UnexpectedMessageTypeError,
     UnknownVersionRequestedError,
+    TimeoutError,
 )
 from aliro_actuator.transport_protocol.message import Message
 
-DEFAULT_PORT = "/dev/ttyUSB0"
+import os
+DEFAULT_PORT = os.getenv("TH_MURATA_COM", "/dev/ttyUSB0")
 DEFAULT_BAUDRATE = "230400"
 SUPPORTED_VERSIONS = [0x0100]
 CURRENT_VERSION = 0x0100
-
 
 class BLEUWB(TransportProtocolBase):
     def __init__(
@@ -60,6 +62,7 @@ class BLEUWB(TransportProtocolBase):
             self.baudrate = baudrate
         else:
             self.baudrate = DEFAULT_BAUDRATE
+        self.timeout = None
 
     async def initialization(
         self,
@@ -128,6 +131,12 @@ class BLEUWB(TransportProtocolBase):
                 spsm=self.spsm,
                 timeout=timeout,
             )
+
+    def was_timer_started(self):
+        if self.timeout is not None:
+            Global.logger.debug("Timer was started")
+            return True
+        return False
 
     async def disconnect(self, raise_errors: bool = False) -> None:
         if len(self.driver.connected_devices) == 0:
@@ -209,6 +218,7 @@ class BLEUWB(TransportProtocolBase):
     async def send_message(
         self,
         message: bytes | Message,
+        timeout: int | None = None,
     ) -> None:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
@@ -244,9 +254,11 @@ class BLEUWB(TransportProtocolBase):
             "Sending data using BLE: {!r}".format(hexlify(message_bytes))
         )
         try:
+            self.driver.set_timeout(None)
             await self.driver.send_le_cb_data(
                 self.driver.connected_devices[0], message_bytes
             )
+            self.timeout = timeout
         except (DeviceDisconnectedError, DeviceNotFoundError) as error:
             raise NoDeviceConnectedError from error
 
@@ -254,11 +266,15 @@ class BLEUWB(TransportProtocolBase):
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         try:
+            self.driver.set_timeout(self.timeout)
             message_bytes = await self.driver.wait_for_data(
                 self.driver.connected_devices[0]
             )
         except (DeviceDisconnectedError, DeviceNotFoundError) as error:
             raise NoDeviceConnectedError from error
+        except NoResponseError:
+            # Timeout
+            raise TimeoutError
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
 

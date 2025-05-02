@@ -77,6 +77,7 @@ class Socket(TransportProtocolBase):
     async def send_message(
         self,
         message: bytes | Message,
+        timeout: int | None = None,
     ) -> None:
         if not isinstance(message, bytes):
             message = message.to_bytes()

@@ -57,6 +57,7 @@ class NFC(TransportProtocolBase):
     async def send_message(
         self,
         message: bytes | Message,
+        timeout: int | None = None,
     ) -> None:
         if isinstance(message, BleMessage):
             raise UnexpectedMessageTypeError(
