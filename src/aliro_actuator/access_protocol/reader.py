@@ -72,6 +72,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     ReaderStatusInformation_Values,
     Supplementary_Service_ID,
     UWB_RangingService_ID,
+    Event_AttributeID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import (
@@ -1736,6 +1737,22 @@ class Reader(Device):
         )
 
         await self.transport_protocol.start_ranging()
+        await self.transport_protocol.send_message(message)
+
+    async def send_event(self, attribute: Event_AttributeID, errorcode: int | None) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Sending event")
+
+        if Event_AttributeID.BUSY == attribute:
+            message = BleMessage.create_busy_event_message(self.session.get_ble_encryption())
+        elif Event_AttributeID.GENERAL_ERROR == attribute:
+            message = BleMessage.create_error_event_message(errorcode, self.session.get_ble_encryption())
+
         await self.transport_protocol.send_message(message)
 
 
