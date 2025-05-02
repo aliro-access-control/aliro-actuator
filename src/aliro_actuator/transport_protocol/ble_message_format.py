@@ -118,11 +118,11 @@ class BleMessage(Message):
             case Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED:
                 self._parse_access_protocol_completed_payload()
             case Notification_ID.RKE_REQUEST:
-                raise NotImplementedError
+                self._parse_rke_request_payload()
             case Notification_ID.INITIATE_ACCESS_PROTOCOL:
                 self._parse_initiate_access_protocol()
             case Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE:
-                raise NotImplementedError
+                self._parse_initiate_access_protocol(rke=True)
 
     def _parse_uwb_ranging_service_payload(
         self, ble_encryption: EncryptionEngine | None = None
@@ -271,8 +271,24 @@ class BleMessage(Message):
             ReaderStatusInformation_Values,
         )
         Global.logger.info("Parsing Reader Status Access Protocol Completed done")
+        
+    def _parse_rke_request_payload(self) -> None:
+        Global.logger.info("Parsing RKE request Completed")
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != RKERequest_AttributeID.ACTION:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.attribute.id),
+            )
+        if self.attribute.value is None:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute length in ble message",
+            )
+        self.rke_action = self.attribute.value
+        Global.logger.info("Parsing RKE request Completed done")
 
-    def _parse_initiate_access_protocol(self) -> None:
+    def _parse_initiate_access_protocol(self, rke: bool = False) -> None:
         Global.logger.info("Parsing Initiate Access Protocol")
         self.attribute = BleAttribute.from_bytes(self.payload)
         if self.attribute.id != InitiateAccessProtocol_AttributeID.PROPRIETARY_INFO:
@@ -286,6 +302,8 @@ class BleMessage(Message):
                 self.to_bytes(),
                 "Invalid attribute length in ble message",
             )
+            
+        self.rke = rke
 
         try:
             proprietary_tlv = TLV.from_bytes(self.attribute.value)
@@ -609,13 +627,34 @@ class BleMessage(Message):
     def create_initiate_access_protocol(
         proprietary_info: bytes,
         ble_encryption: EncryptionEngine | None = None,
+        rke: bool = False,
     ) -> BleMessage:
         attribute = BleAttribute(
             InitiateAccessProtocol_AttributeID.PROPRIETARY_INFO, proprietary_info
         )
+        if rke:
+            id = Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE
+        else:
+            id = Notification_ID.INITIATE_ACCESS_PROTOCOL
         ble_message = BleMessage(
             ProtocolType.NOTIFICATION,
-            Notification_ID.INITIATE_ACCESS_PROTOCOL,
+            id,
+            attribute.to_bytes(),
+        )
+        ble_message._encrypt(ble_encryption)
+        return ble_message
+    
+    @staticmethod
+    def create_rke_request(
+        action: bytes, 
+        ble_encryption: EncryptionEngine | None = None
+    ) -> BleMessage:
+        attribute = BleAttribute(
+            RKERequest_AttributeID.ACTION, action
+        )
+        ble_message = BleMessage(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.RKE_REQUEST,
             attribute.to_bytes(),
         )
         ble_message._encrypt(ble_encryption)
@@ -971,6 +1010,9 @@ class BleMessage(Message):
 
 class InitiateAccessProtocol_AttributeID(IntEnum):
     PROPRIETARY_INFO = 0x00
+    
+class RKERequest_AttributeID(IntEnum):
+    ACTION = 0x00
 
 
 class Event_AttributeID(IntEnum):

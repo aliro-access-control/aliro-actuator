@@ -212,6 +212,7 @@ class Reader(Device):
         reader_system_issuer_ca: PublicKey | None = None,
         mode: ReaderMode = ReaderMode.TEST,
         timeout: float | None = None,
+        advertisement_version: int = 0x00,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -294,6 +295,7 @@ class Reader(Device):
         self.mode = mode
 
         self.timeout = timeout
+        self.advertisement_version = advertisement_version
 
         Global.logger.info("Initialized Reader")
 
@@ -313,7 +315,9 @@ class Reader(Device):
     def reader_group_sub_identifier(self) -> bytes:
         return self._reader_identifier.get_group_sub()
 
-    async def transaction_initiation(self, check_apdu_length: bool = False) -> None:
+    async def transaction_initiation(
+        self, check_apdu_length: bool = False, rke: bool = False
+    ) -> None:
         """
         Initializes the hardware and sets up a connection to the card.
         """
@@ -330,7 +334,7 @@ class Reader(Device):
             await self.transport_protocol.driver.session_init(
                 session_id=self.session.transaction_identifier[-4:]
             )
-            await self.wait_for_initiate_access_protocol_notification()
+            await self.wait_for_initiate_access_protocol_notification(rke=rke)
         else:
             await self.handle_select(EXPEDITED_PHASE_AID, check_apdu_length)
         Global.logger.info("Transaction Initiation Done")
@@ -356,6 +360,7 @@ class Reader(Device):
             group_resolving_key=self.group_resolving_key,
             spsm=self.spsm,
             timeout=self.timeout,
+            advertisement_version=self.advertisement_version,
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Connection established")
@@ -470,16 +475,20 @@ class Reader(Device):
 
         await self.transaction_termination()
 
-    async def wait_for_initiate_access_protocol_notification(self) -> None:
+    async def wait_for_initiate_access_protocol_notification(
+        self, rke: bool = False
+    ) -> None:
         if self.session is None:
             raise SessionError("No Session")
 
+        if rke:
+            expected_id = Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE
+        else:
+            expected_id = Notification_ID.INITIATE_ACCESS_PROTOCOL
+
         Global.logger.info("Waiting for Initiate access protocol notification")
         response_str, header, id = await self.transport_protocol.get_message()
-        if (
-            header != ProtocolType.NOTIFICATION
-            or id != Notification_ID.INITIATE_ACCESS_PROTOCOL
-        ):
+        if header != ProtocolType.NOTIFICATION or id != expected_id:
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
                 "initiate_access_protocol message",
@@ -1613,6 +1622,25 @@ class Reader(Device):
                     header,
                     id,
                 )
+
+    async def handle_rke_request(self) -> None:
+        Global.logger.info("Waiting for RKE request message")
+        payload, header, id = await self.transport_protocol.get_message()
+        if header is not None and id is not None:
+            message = BleMessage(header, id, payload)
+        else:
+            raise UnexpectedMessageTypeError
+        if header == ProtocolType.NOTIFICATION and id == Notification_ID.RKE_REQUEST:
+            message.parse_payload(self.session.get_ble_encryption())
+        else:
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "RKE request message",
+                header,
+                id,
+            )
+
+        self.rke_action = message.rke_action
 
     def handle_timesync(self, message: BleMessage) -> None:
         Global.logger.info("Handling time sync message")

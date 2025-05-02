@@ -13,7 +13,8 @@
 # limitations under the License.
 
 from binascii import hexlify
-from enum import Enum
+from enum import Enum, IntEnum
+
 from os import urandom
 
 import ucitool.base_uci.helpers.uci_helper as uci
@@ -105,6 +106,10 @@ from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 class UserMode(Enum):
     TEST = 0  # Every error raises an Exception
     USER = 1  # Strictly follows spec, may ignore errors if so noted in the spec
+    
+class RkeAction(IntEnum):
+    SECURE = 0
+    UNSECURE = 1
 
 
 class UserStorage:
@@ -221,7 +226,7 @@ class UserDevice(Device):
         
         self.timeout = timeout
 
-    async def transaction_initiation(self) -> None:
+    async def transaction_initiation(self, rke: bool = False) -> None:
         """
         Initializes the hardware and sets up a connection to the reader.
         """
@@ -233,7 +238,7 @@ class UserDevice(Device):
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
         ):
-            await self.send_initiate_access_protocol_notification()
+            await self.send_initiate_access_protocol_notification(rke=rke)
         else:
             command = await self.wait_for_command()
             await self.handle_select(command)
@@ -670,7 +675,7 @@ class UserDevice(Device):
 
         await self.transaction_termination()
 
-    async def send_initiate_access_protocol_notification(self) -> None:
+    async def send_initiate_access_protocol_notification(self, rke: bool = False) -> None:
         """
         Used by BLE, after a connection is established.
         """
@@ -682,7 +687,17 @@ class UserDevice(Device):
             (Select.PROPRIETARY_TAG, proprietary.to_bytes())
         ]
         proprietary_tlv = TLV(proprietary_list)
-        message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes())
+        message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes(), rke=rke)
+        await self.transport_protocol.send_message(message)
+        
+    async def send_rke_request(self, action: int = 0) -> None:
+        """
+        Used by BLE, after a connection is established to request RKE action.
+        """
+        message = BleMessage.create_rke_request(
+            action.to_bytes(1, "big"),
+            self.session.get_ble_encryption()
+        )
         await self.transport_protocol.send_message(message)
 
     async def send_timesync(self) -> None:

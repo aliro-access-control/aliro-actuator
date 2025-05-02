@@ -76,6 +76,7 @@ class BLEUWB(TransportProtocolBase):
         time_sync_1: bool = True,
         LE_coded_phy: bool = True,
         timeout: float | None = None,
+        advertisement_version: int = 0x00,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
@@ -107,7 +108,7 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
-                advertisement_version=ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION,
+                advertisement_version=advertisement_version,
                 notification=notification,
                 BLE_UWB_supported=BLE_UWB_supported,
                 BLE_only_supported=BLE_only_supported,
@@ -165,7 +166,7 @@ class BLEUWB(TransportProtocolBase):
             self.LE_coded_phy = (features[0] & 0x04) == 0x04
             value = bytearray()
             value.extend(int.to_bytes(version, 2, "big"))
-            value.append(0x01) # Features Supported Length 
+            value.append(0x01)  # Features Supported Length
             value.append(features[0] & 0x07)
             await self.driver.handle_GATT_layer_write_characteristic(
                 primary_service, value
@@ -195,6 +196,7 @@ class BLEUWB(TransportProtocolBase):
                 self.BLE_only_supported,
             ) = await self.driver.wait_for_connection()
             if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
+                await self.disconnect()
                 raise TransportProtocolError("Invalid BLE advertisement version")
             self.ble_version = CURRENT_VERSION
             await self.handle_GATT_layer(self.ble_version)
