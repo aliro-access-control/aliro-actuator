@@ -86,12 +86,15 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     Notification_ID,
     ProtocolType,
     UWB_RangingService_ID,
+    GeneralError_Values,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import (
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
+    BLEMessageError,
+    TimeoutError,
 )
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -102,7 +105,6 @@ from aliro_actuator.trust_framework.errors import (
 )
 from aliro_actuator.trust_framework.key import KeyPair, PublicKey, derive_key
 from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
-
 
 class UserMode(Enum):
     TEST = 0  # Every error raises an Exception
@@ -226,6 +228,13 @@ class UserDevice(Device):
         self.support_step_up_update_doc = support_step_up_update_doc
         
         self.timeout = timeout
+        self._timer = None
+
+    async def handle_timeout(self):
+        # Send general error event
+        Global.logger.info("Command timed out")
+        await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.UNKNOWN_ERROR)
+        await self.transaction_termination()
 
     async def transaction_initiation(self, rke: bool = False) -> None:
         """
@@ -316,6 +325,12 @@ class UserDevice(Device):
                     if self.session is None:
                         raise SessionError("starting session failed")
                     message = await self.wait_for_message()
+                    if (message.header == ProtocolType.NOTIFICATION) and (
+                        message.id == Notification_ID.EVENT) and (
+                        message.payload is not None and message.payload[0] == Event_AttributeID.BUSY):
+                        # Received busy event
+                        if True == self.transport_protocol.was_timer_started():
+                            continue
                 except (InvalidAIDError, InvalidINSError) as error:
                     Global.logger.info(f"Caught exception: {error}")
                     # retry wait for message
@@ -370,8 +385,17 @@ class UserDevice(Device):
                     message = BleMessage(header, id, payload)
                 else:
                     raise UnexpectedMessageTypeError
+                if (header == ProtocolType.NOTIFICATION) and (
+                    id == Notification_ID.EVENT) and (
+                    payload is not None and payload[0] == Event_AttributeID.BUSY):
+                    # Received busy event
+                    if True == self.transport_protocol.was_timer_started():
+                        continue
             except NoDeviceConnectedError:
                 break
+            except TimeoutError:
+                await self.handle_timeout()
+                raise TimeoutError
             # await self.transport_protocol.start_ranging()
             await self.handle_ble_messages(message)
 
@@ -386,6 +410,12 @@ class UserDevice(Device):
                 if self.session is None:
                     raise SessionError("starting session failed")
                 message = await self.wait_for_message()
+                if isinstance(message, BleMessage) and (message.header == ProtocolType.NOTIFICATION) and (
+                    message.id == Notification_ID.EVENT) and (
+                    message.payload is not None and message.payload[0] == Event_AttributeID.BUSY):
+                    # Received busy event
+                    if True == self.transport_protocol.was_timer_started():
+                        continue
             except(InvalidAIDError, InvalidINSError) as error:
                 Global.logger.info(f"Caught exception: {error}")
                 # retry wait for message
@@ -543,7 +573,12 @@ class UserDevice(Device):
 
     async def handle_ranging_setup_m1(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M1")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except BLEMessageError as error:
+            # Incorrect attributes passed
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
 
         # Configure selected configuration ID
         self.selected_config_id = self.select_config_id(
@@ -589,7 +624,13 @@ class UserDevice(Device):
 
     async def handle_ranging_setup_m3(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M3")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except BLEMessageError as error:
+            # Incorrect attributes passed
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
+
         await self.transport_protocol.set_ran_multiplier(
             int.from_bytes(message.ran_multiplier.value, "big")
         )
@@ -623,8 +664,12 @@ class UserDevice(Device):
     async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session suspend request")
         message.parse_payload(self.session.get_ble_encryption())
-
-        await self.send_ranging_session_suspend_response()
+        if message.uwb_session_id.value != int.from_bytes(self.session.transaction_identifier[-4:], "big"):
+            # Mismatch in session ID
+            # Generic error NTF with Wrong parameters
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+        else:
+            await self.send_ranging_session_suspend_response()
 
     async def handle_ranging_session_suspend_response(
         self, message: BleMessage
@@ -636,8 +681,12 @@ class UserDevice(Device):
     async def handle_ranging_session_resume_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume request")
         message.parse_payload(self.session.get_ble_encryption())
-
-        await self.send_ranging_session_resume_response()
+        if message.uwb_session_id.value != int.from_bytes(self.session.transaction_identifier[-4:], "big"):
+            # Mismatch in session ID
+            # Generic error NTF with URSK not available
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.URSK_UNAVAILABLE)
+        else:
+            await self.send_ranging_session_resume_response()
 
     async def handle_ranging_session_resume_response(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume response")
@@ -689,7 +738,7 @@ class UserDevice(Device):
         ]
         proprietary_tlv = TLV(proprietary_list)
         message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes(), rke=rke)
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
         
     async def send_rke_request(self, action: int = 0) -> None:
         """
@@ -745,7 +794,7 @@ class UserDevice(Device):
         message = BleMessage.create_initiate_ranging_session(
             self.session.get_ble_encryption()
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_setup_m2(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -773,7 +822,7 @@ class UserDevice(Device):
             vendor_specific,
             self.session.get_ble_encryption(),
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_setup_m4(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -792,7 +841,7 @@ class UserDevice(Device):
             sync_code_index,
             self.session.get_ble_encryption(),
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_suspend_request(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -805,7 +854,7 @@ class UserDevice(Device):
             uwb_session_id,
             self.session.get_ble_encryption(),
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_suspend_response(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -832,7 +881,7 @@ class UserDevice(Device):
             uwb_session_id,
             self.session.get_ble_encryption(),
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_resume_response(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -849,6 +898,22 @@ class UserDevice(Device):
         )
 
         await self.transport_protocol.start_ranging()
+        await self.transport_protocol.send_message(message)
+
+    async def send_event(self, attribute: Event_AttributeID, errorcode: int | None) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Sending event")
+
+        if Event_AttributeID.BUSY == attribute:
+            message = BleMessage.create_busy_event_message(self.session.get_ble_encryption())
+        elif Event_AttributeID.GENERAL_ERROR == attribute:
+            message = BleMessage.create_error_event_message(errorcode, self.session.get_ble_encryption())
+
         await self.transport_protocol.send_message(message)
 
     async def handle_select(self, select_command: Command) -> bytes:
@@ -1722,7 +1787,12 @@ class UserDevice(Device):
             expected_command = [expected_command]
 
         Global.logger.info("Waiting for command")
-        command_str, header, id = await self.transport_protocol.get_message()
+        try:
+            command_str, header, id = await self.transport_protocol.get_message()
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
+
         if (header is None and id is None) or (
             header == ProtocolType.AP and id == AP_ID.AP_RQ
         ):
@@ -1737,9 +1807,13 @@ class UserDevice(Device):
         else:
             raise AccessProtocolError("Message invalid (missing header or id)")
 
-        command = await self.apdu.handle_chaining_receive_command(
-            command_str, self.transport_protocol
-        )
+        try:
+            command = await self.apdu.handle_chaining_receive_command(
+                command_str, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
         if (
             command.ins == INS.GET_DATA
@@ -1837,9 +1911,14 @@ class UserDevice(Device):
             credential_epubk, status, cryptogram
         )
         Global.logger.info("Sending AUTH0 response")
-        await self.apdu.handle_chaining_send_response(
-            auth0_response, self.transport_protocol
-        )
+        try:
+            await self.apdu.handle_chaining_send_response(
+                auth0_response, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
+
 
     async def response_auth1(
         self,
@@ -1887,9 +1966,13 @@ class UserDevice(Device):
             extra_tlv,
         )
         Global.logger.info("Sending AUTH1 response")
-        await self.apdu.handle_chaining_send_response(
-            auth1_response, self.transport_protocol
-        )
+        try:
+            await self.apdu.handle_chaining_send_response(
+                auth1_response, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
     async def response_select(
         self,
@@ -1935,9 +2018,13 @@ class UserDevice(Device):
         """
         envelope_response = self.apdu.create_envelope_response(document, encryption)
         Global.logger.info("Sending ENVELOPE response")
-        await self.apdu.handle_chaining_send_response(
-            envelope_response, self.transport_protocol
-        )
+        try:
+            await self.apdu.handle_chaining_send_response(
+                envelope_response, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
     async def response_load_cert(self) -> None:
         """
@@ -1945,9 +2032,13 @@ class UserDevice(Device):
         """
         load_cert_response = self.apdu.create_load_cert_response(StatusBytes.SUCCESS)
         Global.logger.info("Sending LOAD CERT response")
-        await self.apdu.handle_chaining_send_response(
-            load_cert_response, self.transport_protocol
-        )
+        try:
+            await self.apdu.handle_chaining_send_response(
+                load_cert_response, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
     async def response_exchange(
         self,
@@ -1965,9 +2056,13 @@ class UserDevice(Device):
             payload, encryption, StatusBytes.SUCCESS
         )
         Global.logger.info("Sending EXCHANGE response")
-        await self.apdu.handle_chaining_send_response(
-            exchange_response, self.transport_protocol
-        )
+        try:
+            await self.apdu.handle_chaining_send_response(
+                exchange_response, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
     async def response_control_flow(self) -> None:
         """

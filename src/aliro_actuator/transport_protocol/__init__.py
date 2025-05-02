@@ -50,6 +50,7 @@ class TransportProtocolBase(ABC):
     async def send_message(
         self,
         message: bytes | Message,
+        timeout: int | None = None,
     ) -> None:
         pass
 

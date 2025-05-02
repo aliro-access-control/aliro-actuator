@@ -42,6 +42,8 @@ class NoDeviceConnectedError(TransportProtocolError):
 class UnknownVersionRequestedError(TransportProtocolError):
     pass
 
+class TimeoutError(TransportProtocolError):
+    pass
 
 class BLEMessageError(TransportProtocolError):
     """

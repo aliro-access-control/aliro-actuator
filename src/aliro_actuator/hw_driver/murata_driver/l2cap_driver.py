@@ -169,6 +169,9 @@ class MurataL2CAPDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.L2CAP)
 
+    def set_timeout(self, timeout: int | None = None):
+        self.timeout = timeout
+
     async def wait_for_data(self, device_id_requested: int) -> bytes:
         Global.logger.debug("Wait for data")
         if device_id_requested not in self.connected_devices:
