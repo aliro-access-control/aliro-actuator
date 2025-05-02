@@ -16,11 +16,12 @@ from binascii import hexlify
 from enum import Enum, IntEnum
 
 from os import urandom
+import cbor2
 
 import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import Global
-from aliro_actuator.access_document.access_credential import AccessDocument
+from aliro_actuator.access_document.access_document import AccessDocument
 from aliro_actuator.access_document.revocation_document import RevocationDocument
 from aliro_actuator.access_protocol.apdu import (
     INS,
@@ -163,7 +164,7 @@ class UserDevice(Device):
         access_credentials: list[AccessCredential] = [],
         supported_versions: list[int] = [PROTOCOL_VERSION],
         access_document: bytes | None = None,
-        revocation_document: RevocationDocument | None = None,
+        revocation_document: bytes | None = None,
         mailbox: int | list[tuple[bytes, int, bytes]] | None = None,
         mailbox_read: bool = True,
         mailbox_write: bool = True,
@@ -1023,14 +1024,10 @@ class UserDevice(Device):
 
                 doc_timestamp = None
                 revoke_timestamp = None
-                if self.access_document is not None and isinstance(
-                    self.access_document, AccessDocument
-                ):
-                    doc_timestamp = self.access_document.get_timestamp()
-                if self.revocation_document is not None and isinstance(
-                    self.revocation_document, RevocationDocument
-                ):
-                    revoke_timestamp = self.revocation_document.get_timestamp()
+                if self.access_document is not None:
+                    doc_timestamp = AccessDocument(self.access_document).get_timestamp()
+                if self.revocation_document is not None:
+                    revoke_timestamp = RevocationDocument(self.revocation_document).get_timestamp()
                 cryptogram = compute_cryptogram(
                     self.session.cryptogram_SK,
                     signaling_bitmap=self.get_signaling_bitmap(),
@@ -1190,6 +1187,13 @@ class UserDevice(Device):
         self.session.update_state(UserSessionState.AUTH1_DONE)
         self.chaining_command = auth1_command.chaining
 
+        doc_timestamp = None
+        revoke_timestamp = None
+        if self.access_document is not None:
+            doc_timestamp = AccessDocument(self.access_document).get_timestamp()
+        if self.revocation_document is not None:
+            revoke_timestamp = RevocationDocument(self.revocation_document).get_timestamp()
+
         await self.response_auth1(
             self.session.access_credential.get_key_slot(),
             self.session.access_credential.get_access_credential_public_key().as_bytes(),
@@ -1198,6 +1202,8 @@ class UserDevice(Device):
             self.session.encryption_expedited,
             StatusBytes.SUCCESS,
             signaling_bitmap=self.get_signaling_bitmap(),
+            credential_signed_timestamp=doc_timestamp,
+            revocation_signed_timestamp=revoke_timestamp,
         )
 
         Global.logger.info("Handling AUTH1 command done")
@@ -1560,11 +1566,25 @@ class UserDevice(Device):
         if self.session.encryption_stepup is None:
             raise AccessProtocolError("no encryption engine (step up) found")
 
-        if self.access_document is None:
-            raise AccessProtocolError("no access document found")
+        if self.access_document is None and self.revocation_document is None:
+            # If both are empty, we still send a DeviceResponse
+            Global.logger.warning("no access or revocation documents found")
 
+        device_response = {
+            "1": "1.0",
+            "2": [],
+            "3": 0,
+        }
+
+        if self.access_document is not None:
+            device_response["2"].append(cbor2.loads(self.access_document))
+        if self.revocation_document is not None:
+            device_response["2"].append(cbor2.loads(self.revocation_document))
+
+        device_response_cbor = cbor2.dumps(device_response)
+        Global.logger.info(f"DeviceResponse: {device_response_cbor.hex()}")
         await self.response_envelope(
-            self.access_document, self.session.encryption_stepup
+            device_response_cbor, self.session.encryption_stepup
         )
 
         self.session.update_state(UserSessionState.ENVELOPE_DONE)
