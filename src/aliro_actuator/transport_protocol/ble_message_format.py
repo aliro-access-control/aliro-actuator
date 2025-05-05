@@ -980,7 +980,28 @@ class BleMessage(Message):
         )
         message._encrypt(ble_encryption)
         return message
-
+    
+    @staticmethod
+    def create_initiate_ranging_session_suspended(
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        data = BleAttribute(RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED)
+        message = BleMessage(
+            ProtocolType.NOTIFICATION, Notification_ID.RANGING, data.to_bytes()
+        )
+        message._encrypt(ble_encryption)
+        return message
+    
+    @staticmethod
+    def create_initiate_ranging_session_resume(
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        data = BleAttribute(RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME)
+        message = BleMessage(
+            ProtocolType.NOTIFICATION, Notification_ID.RANGING, data.to_bytes()
+        )
+        message._encrypt(ble_encryption)
+        return message
 
 class InitiateAccessProtocol_AttributeID(IntEnum):
     PROPRIETARY_INFO = 0x00
