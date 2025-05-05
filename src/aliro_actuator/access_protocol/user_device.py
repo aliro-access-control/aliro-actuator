@@ -813,6 +813,34 @@ class UserDevice(Device):
         )
         await self.transport_protocol.send_message(message, timeout=self.timeout)
 
+    async def send_initiate_ranging_suspended(self) -> None:
+        """
+        Used to trigger the Reader to initiate a new UWB ranging session
+        """
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending initiate ranging ble message")
+
+        message = BleMessage.create_initiate_ranging_session_suspended(
+            self.session.get_ble_encryption()
+        )
+        await self.transport_protocol.send_message(message)
+
+    async def send_initiate_ranging_resume(self) -> None:
+        """
+        Used to trigger the Reader to initiate a new UWB ranging session
+        """
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending initiate ranging ble message")
+
+        message = BleMessage.create_initiate_ranging_session_resume(
+            self.session.get_ble_encryption()
+        )
+        await self.transport_protocol.send_message(message)
+        
     async def send_ranging_session_setup_m2(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
