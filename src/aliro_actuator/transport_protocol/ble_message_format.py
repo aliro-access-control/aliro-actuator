@@ -112,7 +112,7 @@ class BleMessage(Message):
             case Notification_ID.EVENT:
                 self._parse_event_payload()
             case Notification_ID.RANGING:
-                self._parse_ranging_initiation_payload()
+                self._parse_ranging_payload()
             case Notification_ID.READER_STATUS_CHANGED:
                 self._parse_reader_status_changed_payload()
             case Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED:
@@ -372,10 +372,18 @@ class BleMessage(Message):
         )
         Global.logger.info("Parsing Initiate Access Protocol done")
 
-    def _parse_ranging_initiation_payload(self) -> None:
+    def _parse_ranging_payload(self) -> None:
         Global.logger.info("Parsing ranging initiation")
         self.attribute = BleAttribute.from_bytes(self.payload)
-        if self.attribute.id != RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
+        if self.attribute.id not in [
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION,
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME,
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION_SETUP_LATER,
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME_LATER,
+            RangingMessage_AttributeID.SECURE_RANGING_OVER_UWB_RADIO_FAILED,
+            RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED,
+        ]:
+            # if self.attribute.id != RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
             raise BLEMessageError(
                 self.to_bytes(),
                 "Invalid attribute in ble message: 0x{:02x}".format(self.attribute.id),
@@ -1021,7 +1029,7 @@ class BleMessage(Message):
         return message
     
     @staticmethod
-    def create_initiate_ranging_session_suspended(
+    def create_ranging_messsage_suspended(
         ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         data = BleAttribute(RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED)
@@ -1032,7 +1040,7 @@ class BleMessage(Message):
         return message
     
     @staticmethod
-    def create_initiate_ranging_session_resume(
+    def create_ranging_message_resume(
         ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
         data = BleAttribute(RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME)
