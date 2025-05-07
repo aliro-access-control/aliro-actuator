@@ -85,6 +85,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     Supplementary_Service_ID,
     UWB_RangingService_ID,
     Event_AttributeID,
+    RangingMessage_AttributeID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import (
@@ -1619,7 +1620,17 @@ class Reader(Device):
             ):
                 self.handle_timesync(message)
             elif header == ProtocolType.NOTIFICATION and id == Notification_ID.RANGING:
-                await self.handle_initiate_ranging(message)
+                message.parse_payload(self.session.get_ble_encryption())
+                Global.logger.info("Payload[0] = %x" %(payload[0]))
+                match message.attribute.id:
+                    case RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
+                        await self.handle_initiate_ranging(message)
+                    case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME:
+                        await self.send_ranging_session_resume_request()
+                    case RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED:
+                        await self.send_ranging_session_suspend_request()
+                    case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_SETUP_LATER | RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME_LATER | RangingMessage_AttributeID.SECURE_RANGING_OVER_UWB_RADIO_FAILED:
+                        raise NotImplementedError
             elif (
                 header == ProtocolType.UWB_RANGING_SERVICE
                 and id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M2
@@ -1692,7 +1703,7 @@ class Reader(Device):
 
     async def handle_initiate_ranging(self, message: BleMessage) -> None:
         Global.logger.info("Handling initiate ranging message")
-        message.parse_payload(self.session.get_ble_encryption())
+        #message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
     def common_sync_code_index(
