@@ -32,18 +32,29 @@ class PulseShapeCombo(IntEnum):
     PRECURSOR_FREE = 0x01
     PRECURSOR_FREE_SPECIAL = 0x02
 
+
 pulse_shape_combo = [
-    0x00, 0x01, 0x02, 0x10, 0x11, 0x12, 0x20, 0x21, 0x22,
+    0x00,
+    0x01,
+    0x02,
+    0x10,
+    0x11,
+    0x12,
+    0x20,
+    0x21,
+    0x22,
 ]
+
 
 class Channel(IntEnum):
     CHANNEL_5 = 0x01
     CHANNEL_9 = 0x02
 
+
 class WRAPPED_RDS:
-        TAG_ID = [121]
-        LEN = '12'
-        TAG = 'WRAPPED_RDS'
+    TAG_ID = [121]
+    LEN = "12"
+    TAG = "WRAPPED_RDS"
 
 
 class UCIHoppingConfig(IntEnum):
@@ -51,11 +62,13 @@ class UCIHoppingConfig(IntEnum):
     ADAPTIVE_HOPPING_MODULO = 2
     CONTINUOUS_HOPPING_MODULO = 3
 
+
 class HoppingConfig(IntEnum):
     NO_HOPPING = 0x80
     CONTINUOUS_HOPPING_MODULO = 0x40
     ADAPTIVE_HOPPING_MODULO = 0x20
-    DEFAULT_HOPPING_SEQUENCE = 0X8
+    DEFAULT_HOPPING_SEQUENCE = 0x8
+
 
 class MurataUWBDriver(MurataBaseDriver):
     async def uci_initialize(
@@ -73,8 +86,8 @@ class MurataUWBDriver(MurataBaseDriver):
         self.device_role = dev_role
         self.device_type = dev_type
 
-        self.dh.disable_ntf_prints()
-        self.dh.disable_uci_prints()
+        # self.dh.disable_ntf_prints()
+        # self.dh.disable_uci_prints()
 
         Global.logger.info("Upload UWB device firmware. (This can take a while)")
         await asyncio.to_thread(
@@ -116,8 +129,8 @@ class MurataUWBDriver(MurataBaseDriver):
         await self.set_calibration()
 
     def check_response(self, response):
-        if (response.fields['UCI_STATUS'].name != 'STATUS_OK'):
-            raise Exception('UCI command failed')
+        if response.fields["UCI_STATUS"].name != "STATUS_OK":
+            raise Exception("UCI command failed")
 
     async def set_device_config(self, config: type, value: list) -> None:
         response = await asyncio.to_thread(
@@ -229,7 +242,7 @@ class MurataUWBDriver(MurataBaseDriver):
         await self.uci_set_calibration(
             uci.APP_CFG.CHANNEL_ID.CH_9,
             uci.CALIB_TYPE.PDOA_OFFSET_CALIB,
-            [0x02, 0x01, 0x40, 0xFE, 0x02,  0x67, 0xFD],
+            [0x02, 0x01, 0x40, 0xFE, 0x02, 0x67, 0xFD],
         )
         await self.uci_set_calibration(
             uci.APP_CFG.CHANNEL_ID.CH_9,
@@ -256,6 +269,13 @@ class MurataUWBDriver(MurataBaseDriver):
             self.dh,
             config=uci.VENDOR_APP_CFG.ANTENNAS_CONFIGURATION_RX,
             value=[1, 2, 1, 2],
+            session_id=self.session_handle_dh,
+        )
+
+        uci.set_vendor_app_config(
+            self.dh,
+            config=uci.VENDOR_APP_CFG.TEST_KDF_FEATURE,
+            value=uci.VENDOR_APP_CFG.TEST_KDF_FEATURE.ENABLE,
             session_id=self.session_handle_dh,
         )
 
@@ -311,7 +331,7 @@ class MurataUWBDriver(MurataBaseDriver):
             config=uci.APP_CFG.NUMBER_OF_CONTROLEES,
             value=uci.APP_CFG.NUMBER_OF_CONTROLEES.SINGLE_ANCHOR,
         )
-        await self.set_mac_mode(0x0) # One active ranging round
+        await self.set_mac_mode(0x0)  # One active ranging round
 
         if self.device_role == uci.APP_CFG.DEVICE_ROLE.RESPONDER:
             await self.set_config(
@@ -333,13 +353,26 @@ class MurataUWBDriver(MurataBaseDriver):
 
     async def set_session_key(self, ursk: bytes) -> None:
         # Set the URSK for DYNAMIC_STS
-        wrapped_rds_list = list(self.session_id.to_bytes(4, byteorder='big'))
-        wrapped_rds_list.extend([
-            0xB5, 0xB5, 0xB5, 0xB5, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, # Random number
-        ])
+        wrapped_rds_list = list(self.session_id.to_bytes(4, byteorder="big"))
+        wrapped_rds_list.extend(
+            [
+                0xB5,
+                0xB5,
+                0xB5,
+                0xB5,
+                0x09,
+                0x0A,
+                0x0B,
+                0x0C,
+                0x0D,
+                0x0E,
+                0x0F,
+                0x10,  # Random number
+            ]
+        )
         wrapped_rds_list.extend(list(ursk))
         await self.set_wrapped_rds(
-            wrapped_rds = wrapped_rds_list,
+            wrapped_rds=wrapped_rds_list,
         )
 
     async def get_session_key(self) -> bytearray:
