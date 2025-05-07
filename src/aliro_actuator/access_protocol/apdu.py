@@ -1287,6 +1287,7 @@ class APDU:
         command_name: str,
         commands: list[Command],
         transport_layer: TransportProtocolBase,
+        skip_command: int | None = None,
     ) -> Response:
         if len(commands) == 1:
             Global.logger.debug("Command fits in one message, no chaining required")
@@ -1302,7 +1303,9 @@ class APDU:
         else:
             Global.logger.debug("Command chaining required")
             command_chaining_required = True
-            for command in commands:
+            for index, command in enumerate(commands):
+                if skip_command is not None and index == skip_command:
+                    continue
                 Global.logger.info("Sending {} command".format(command_name))
                 await transport_layer.send_message(command)
 
@@ -1951,7 +1954,7 @@ class APDU:
         )
 
     def create_command(
-        self, cla: int, ins: int, p1: int, p2: int, data: bytes, le: int | None
+        self, cla: int, ins: int, p1: int, p2: int, data: bytes, le: int | None, max_data_len: int | None = None,
     ) -> list[Command]:
         """
         Create a command. (the other more specific functions are recommended)
@@ -1965,11 +1968,14 @@ class APDU:
             raise MessageTooLongError("requested response longer than allowed")
 
         data_list: list[bytes] = []
-
+        
+        if max_data_len is None:
+            max_data_len = APDU_COMMAND_MAX_DATA_LENGTH
+            
         if not self.support_extended_length_apdu:
-            while len(data) > APDU_COMMAND_MAX_DATA_LENGTH:
-                data_list.append(data[:APDU_COMMAND_MAX_DATA_LENGTH])
-                data = data[APDU_COMMAND_MAX_DATA_LENGTH:]
+            while len(data) > max_data_len:
+                data_list.append(data[:max_data_len])
+                data = data[max_data_len:]
             data_list.append(data)
 
         else:
