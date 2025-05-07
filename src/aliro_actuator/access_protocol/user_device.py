@@ -574,7 +574,7 @@ class UserDevice(Device):
         Global.logger.info("Handling ranging session setup message M1")
         try:
             message.parse_payload(self.session.get_ble_encryption())
-        except BLEMessageError as error:
+        except (BLEMessageError, IndexError) as error:
             # Incorrect attributes passed
             await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
             return
@@ -625,7 +625,7 @@ class UserDevice(Device):
         Global.logger.info("Handling ranging session setup message M3")
         try:
             message.parse_payload(self.session.get_ble_encryption())
-        except BLEMessageError as error:
+        except (BLEMessageError, IndexError) as error:
             # Incorrect attributes passed
             await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
             return
@@ -662,24 +662,36 @@ class UserDevice(Device):
 
     async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session suspend request")
-        message.parse_payload(self.session.get_ble_encryption())
-        if message.uwb_session_id.value != int.from_bytes(self.session.transaction_identifier[-4:], "big"):
-            # Mismatch in session ID
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+            await self.send_ranging_session_suspend_response()
+        except IndexError:
+            # Mismatch in parameters
             # Generic error NTF with Wrong parameters
             await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
-        else:
-            await self.send_ranging_session_suspend_response()
 
     async def handle_ranging_session_suspend_response(
         self, message: BleMessage
     ) -> None:
         Global.logger.info("Handling ranging session suspend response")
-        message.parse_payload(self.session.get_ble_encryption())
-        await self.transport_protocol.stop_ranging()
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+            await self.transport_protocol.stop_ranging()
+        except IndexError:
+            # Mismatch in parameters
+            # Generic error NTF with Wrong parameters
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
 
     async def handle_ranging_session_resume_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume request")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except IndexError:
+            # Mismatch in parameters
+            # Generic error NTF with Wrong parameters
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return None
+
         if message.uwb_session_id.value != int.from_bytes(self.session.transaction_identifier[-4:], "big"):
             # Mismatch in session ID
             # Generic error NTF with URSK not available
@@ -689,8 +701,13 @@ class UserDevice(Device):
 
     async def handle_ranging_session_resume_response(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume response")
-        message.parse_payload(self.session.get_ble_encryption())
-        await self.transport_protocol.start_ranging()
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+            await self.transport_protocol.start_ranging()
+        except IndexError:
+            # Mismatch in parameters
+            # Generic error NTF with Wrong parameters
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
 
     def start_new_session(self) -> None:
         """
