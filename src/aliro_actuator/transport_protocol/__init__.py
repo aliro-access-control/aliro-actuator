@@ -47,6 +47,10 @@ class TransportProtocolBase(ABC):
         pass
 
     @abstractmethod
+    def was_timer_started(self):
+        pass
+
+    @abstractmethod
     async def send_message(
         self,
         message: bytes | Message,
