@@ -74,6 +74,9 @@ class Socket(TransportProtocolBase):
         elif self.mode == Mode.USER_DEVICE:
             self.host.close()
 
+    def was_timer_started(self):
+        return False
+
     async def send_message(
         self,
         message: bytes | Message,
