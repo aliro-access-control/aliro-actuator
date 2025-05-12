@@ -1200,6 +1200,154 @@ class UserDevice(Device):
 
         Global.logger.info("Handling AUTH0 command done")
 
+    async def handle_auth0_with_wrong_tag(self, auth0_command: Command) -> None:
+        """
+        Parse a auth0 command and send the appropriate response.
+
+        Args:
+            auth0_command (Command): The command to respond to.
+
+        Raises:
+            SessionError: Raised when the session is missing or in an invalid state.
+            VersionError: Raised when the protocol version is not supported.
+            NotImplementedError:
+        """
+        if auth0_command.ins != INS.AUTH0:
+            raise AccessProtocolError(
+                "Tried to handle auth0 command, "
+                "but received command is not a auth0 command"
+            )
+
+        if self.session is None:
+            raise SessionError("No Session")
+        if not self.session.state_valid(UserSessionState.SELECT_DONE) and (
+            self.transport_protocol_type != TransportProtocol.BLE_UWB
+            and self.transport_protocol_type != TransportProtocol.SOCKET_BLE
+        ):
+            state = self.session.state
+            await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
+            raise SessionError("unexpected state for auth0 command: {}".format(state))
+
+        Global.logger.info("Handling AUTH0 Command")
+        if (
+            auth0_command.expedited_phase_protocol_version
+            not in self.supported_versions
+        ):
+            await self.failure_process(StatusBytes.CONDITIONS_OF_USE_NOT_SATISFIED)
+            raise VersionError
+        else:
+            Global.logger.info(
+                "Requested version 0x{:04x} is supported (supported versions: {})".format(
+                    auth0_command.expedited_phase_protocol_version,
+                    ", ".join(str(hex(x)) for x in self.supported_versions),
+                )
+            )
+
+        Global.logger.info("Saving AUTH0 data")
+        try:
+            self.session.set_auth0_data(auth0_command)
+        except InvalidKeyError:
+            raise AccessProtocolError("Reader ephemeral key is invalid")
+        Global.logger.info("Reader ephemeral key is a valid key")
+
+        # Setup UWB session id
+        if (
+            self.transport_protocol_type == TransportProtocol.BLE_UWB
+            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
+        ):
+            await self.transport_protocol.driver.session_init(
+                session_id=self.session.transaction_identifier[-4:]
+            )
+
+        Global.logger.info("Looking up access credential")
+        for access_credential in self.access_credentials:
+            if access_credential.has_identifier(self.session.reader_group_identifier):
+                self.session.set_access_credential(access_credential)
+                Global.logger.info("Access credential found")
+                try:
+                    key = access_credential.get_reader_public_key(
+                        self.session.reader_group_identifier
+                    ).as_bytes()
+                    Global.logger.info(
+                        "Reader public key in access credential: {!r}".format(
+                            hexlify(key)
+                        )
+                    )
+                except KeyLookupFailed:
+                    pass
+
+                break
+        else:
+            raise AccessProtocolError(
+                "Could not find key for reader identifier in access credential: "
+                "{!r}".format(hexlify(self.session.reader_group_identifier))
+            )
+            
+        if hasattr(auth0_command, "tlv_check"):
+            command_status = auth0_command.tlv_check
+        else:
+            command_status = True
+
+        if self.session.get_transaction_type() == Transaction.STANDARD:
+            Global.logger.info("Standard transaction requested")
+            self.session.update_state(UserSessionState.AUTH0_STD_DONE)
+
+            await self.response_auth0_with_wrong_tag(
+                self.session.get_credential_epubkey().as_bytes(),
+                command_status=command_status
+            )
+        elif self.session.get_transaction_type() == Transaction.FAST:
+            Global.logger.info("Fast transaction requested")
+            Global.logger.info("Looking for Kpersistent in storage")
+            kpersistent = self.storage.find_kpersistent(
+                self.session.reader_group_sub_identifier
+            )
+            if self.fast_transaction_implemented and kpersistent is not None:
+                Global.logger.info(
+                    "Kpersistent found: {!r}".format(hexlify(kpersistent))
+                )
+                Global.logger.info("Creating Cryptogram")
+                self.session.derive_key_volatile_fast(
+                    self.transport_protocol_type, kpersistent
+                )
+                self.session.create_encryption_engine_expedited()
+                if self.transport_protocol_type in [
+                    TransportProtocol.BLE_UWB,
+                    TransportProtocol.SOCKET_BLE,
+                ]:
+                    Global.logger.info("Setting up BLE encryption")
+                    self.session.set_ble_encryption(self.transport_protocol)
+
+                doc_timestamp = None
+                revoke_timestamp = None
+                if self.access_document is not None and isinstance(
+                    self.access_document, AccessDocument
+                ):
+                    doc_timestamp = self.access_document.get_timestamp()
+                if self.revocation_document is not None and isinstance(
+                    self.revocation_document, RevocationDocument
+                ):
+                    revoke_timestamp = self.revocation_document.get_timestamp()
+                cryptogram = compute_cryptogram(
+                    self.session.cryptogram_SK,
+                    signaling_bitmap=self.get_signaling_bitmap(),
+                    credential_signed_timestamp=doc_timestamp,
+                    revocation_signed_timestamp=revoke_timestamp,
+                )
+            else:
+                Global.logger.info("Kpersistent not found, assigning random cryptogram")
+                cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
+
+            self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
+
+            await self.response_auth0_with_wrong_tag(
+                credential_epubk=self.session.get_credential_epubkey().as_bytes(),
+                cryptogram=cryptogram,
+                command_status=command_status
+            )
+
+        Global.logger.info("Handling AUTH0 command done")
+
     async def handle_load_cert(self, load_cert_command: Command) -> None:
         """
         Parse a load cert command and send the appropriate response.
@@ -2006,6 +2154,25 @@ class UserDevice(Device):
             await self.handle_timeout()
             raise TimeoutError
 
+
+    async def response_auth0_with_wrong_tag(
+        self, credential_epubk: bytes, cryptogram: bytes | None = None
+    ) -> None:
+        """
+        Create and send an auth0 response.
+
+        Args:
+            credential_epubk (bytes): Access credential ephemeral public key.
+            cryptogram (bytes | None, optional): authentication cryptogram.
+            Defaults to None.
+        """
+        auth0_response = self.apdu.create_auth0_response_with_wrong_tag(
+            credential_epubk, StatusBytes.SUCCESS, cryptogram
+        )
+        Global.logger.info("Sending AUTH0 response")
+        await self.apdu.handle_chaining_send_response(
+            auth0_response, self.transport_protocol
+        )
 
     async def response_auth1(
         self,
