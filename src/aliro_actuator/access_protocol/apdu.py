@@ -1705,6 +1705,7 @@ class APDU:
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
         check_validity: bool = True,
+        extra_tlv: bytes | None = None,
     ) -> list[Response]:
         Global.logger.info("Creating AUTH1 response")
         Global.logger.info("creating response payload")
@@ -1780,6 +1781,9 @@ class APDU:
             auth1_payload.append(
                 (Auth1.REVOCATION_TIMESTAMP_TAG, revocation_signed_timestamp)
             )
+            
+        if extra_tlv is not None:
+            auth1_payload.append((Auth1.UNKNOWN_TAG, extra_tlv))
 
         auth1_payload_tlv = TLV(auth1_payload)
         Global.logger.debug(
