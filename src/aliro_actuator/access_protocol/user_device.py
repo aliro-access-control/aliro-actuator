@@ -1091,7 +1091,7 @@ class UserDevice(Device):
 
         Global.logger.info("Handling AUTH0 command done")
 
-    async def handle_auth0_with_wrong_tag(self, auth0_command: Command) -> None:
+    async def handle_auth0_with_wrong_tag_value(self, auth0_command: Command) -> None:
         """
         Parse a auth0 command and send the appropriate response.
 
@@ -1183,7 +1183,7 @@ class UserDevice(Device):
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
-            await self.response_auth0_with_wrong_tag(
+            await self.response_auth0_with_wrong_tag_value(
                 self.session.get_credential_epubkey().as_bytes(),
                 command_status=command_status
             )
@@ -1231,7 +1231,7 @@ class UserDevice(Device):
 
             self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
 
-            await self.response_auth0_with_wrong_tag(
+            await self.response_auth0_with_wrong_tag_value(
                 credential_epubk=self.session.get_credential_epubkey().as_bytes(),
                 cryptogram=cryptogram,
                 command_status=command_status
@@ -2008,8 +2008,11 @@ class UserDevice(Device):
             auth0_response, self.transport_protocol
         )
 
-    async def response_auth0_with_wrong_tag(
-        self, credential_epubk: bytes, cryptogram: bytes | None = None
+    async def response_auth0_with_wrong_tag_value(
+        self,
+        credential_epubk: bytes,
+        cryptogram: bytes | None = None,
+        command_status: bool = True,
     ) -> None:
         """
         Create and send an auth0 response.
@@ -2019,7 +2022,7 @@ class UserDevice(Device):
             cryptogram (bytes | None, optional): authentication cryptogram.
             Defaults to None.
         """
-        auth0_response = self.apdu.create_auth0_response_with_wrong_tag(
+        auth0_response = self.apdu.create_auth0_response_with_wrong_tag_value(
             credential_epubk, StatusBytes.SUCCESS, cryptogram
         )
         Global.logger.info("Sending AUTH0 response")
