@@ -87,6 +87,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     ProtocolType,
     UWB_RangingService_ID,
     GeneralError_Values,
+    RangingMessage_AttributeID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import (
@@ -491,6 +492,17 @@ class UserDevice(Device):
             and message.id == Notification_ID.READER_STATUS_CHANGED
         ):
             self.handle_reader_status_changed_message(message)
+            return True
+        elif (message.header == ProtocolType.NOTIFICATION and message.id == Notification_ID.RANGING
+        ):
+            message.parse_payload(self.session.get_ble_encryption())
+            match message.attribute.id:
+                case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME:
+                    await self.send_ranging_session_resume_request()
+                case RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED:
+                    await self.send_ranging_session_suspend_request()
+                case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_SETUP_LATER | RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME_LATER | RangingMessage_AttributeID.SECURE_RANGING_OVER_UWB_RADIO_FAILED:
+                    raise NotImplementedError
             return True
         elif (
             message.header == ProtocolType.NOTIFICATION
@@ -2449,7 +2461,7 @@ class UserSession:
 
         if hasattr(self, "access_credential"):
             Global.logger.info("Checking Access Credential")
-            if self.access_credential.has_identifier(self.reader_group_identifier):
+             if self.access_credential.has_identifier(self.reader_group_identifier):
                 reader_public_key = self.access_credential.get_reader_public_key(
                     self.reader_group_identifier
                 )
