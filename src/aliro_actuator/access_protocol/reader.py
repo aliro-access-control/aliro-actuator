@@ -1658,6 +1658,20 @@ class Reader(Device):
         Global.logger.info("Handling time sync message")
         message.parse_payload(self.session.get_ble_encryption())
 
+    async def send_ranging_message_suspended(self) -> None:
+        """
+        Used to trigger the Reader to initiate a new UWB ranging session
+        """
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging suspended ble message")
+
+        message = BleMessage.create_ranging_messsage_suspended(
+            self.session.get_ble_encryption()
+        )
+        await self.transport_protocol.send_message(message)
+        
     async def handle_initiate_ranging(self, message: BleMessage) -> None:
         Global.logger.info("Handling initiate ranging message")
         #message.parse_payload(self.session.get_ble_encryption())
