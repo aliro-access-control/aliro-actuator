@@ -1096,7 +1096,7 @@ class UserDevice(Device):
 
         Global.logger.info("Handling LOAD CERT command done")
 
-    async def handle_auth1(self, auth1_command: Command) -> None:
+    async def handle_auth1(self, auth1_command: Command, extra_tlv: bytes | None = None,) -> None:
         """
         Parse a auth1 command and send the appropriate response.
 
@@ -1198,6 +1198,7 @@ class UserDevice(Device):
             self.session.encryption_expedited,
             StatusBytes.SUCCESS,
             signaling_bitmap=self.get_signaling_bitmap(),
+            extra_tlv=extra_tlv,
         )
 
         Global.logger.info("Handling AUTH1 command done")
@@ -1833,6 +1834,7 @@ class UserDevice(Device):
         credential_signed_timestamp: bytes | None = None,
         revocation_signed_timestamp: bytes | None = None,
         check_validity: bool = True,
+        extra_tlv: bytes | None = None,
     ) -> None:
         """
         Create and send an auth1 response.
@@ -1862,6 +1864,7 @@ class UserDevice(Device):
             credential_signed_timestamp,
             revocation_signed_timestamp,
             check_validity,
+            extra_tlv,
         )
         Global.logger.info("Sending AUTH1 response")
         await self.apdu.handle_chaining_send_response(
