@@ -88,6 +88,7 @@ from aliro_actuator.transport_protocol.ble_message_format import (
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import (
+    BLEMessageError,
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
@@ -1331,7 +1332,7 @@ class Reader(Device):
                 "AUTH0", command, self.transport_protocol, timeout=self.timeout
             )
         except TimeoutError:
-            self.handle_timeout()
+            await self.handle_timeout()
             raise TimeoutError
 
         Global.logger.info("Received response")
@@ -1382,7 +1383,7 @@ class Reader(Device):
                 "AUTH1", command, self.transport_protocol, timeout=self.timeout
             )
         except TimeoutError:
-            self.handle_timeout()
+            await self.handle_timeout()
             raise TimeoutError
 
         Global.logger.info("Received response")
@@ -1452,7 +1453,7 @@ class Reader(Device):
                 "ENVELOPE", command, self.transport_protocol, timeout=self.timeout
             )
         except TimeoutError:
-            self.handle_timeout()
+            await self.handle_timeout()
             raise TimeoutError
 
         Global.logger.info("Received response")
@@ -1477,7 +1478,7 @@ class Reader(Device):
                 "LOAD CERT", command, self.transport_protocol, timeout=self.timeout
             )
         except TimeoutError:
-            self.handle_timeout()
+            await self.handle_timeout()
             raise TimeoutError
 
         Global.logger.info("Received response")
@@ -1520,7 +1521,7 @@ class Reader(Device):
                 "EXCHANGE", command, self.transport_protocol, timeout=self.timeout
             )
         except TimeoutError:
-            self.handle_timeout()
+            await self.handle_timeout()
             raise TimeoutError
 
         Global.logger.info("Received response")
@@ -1588,7 +1589,7 @@ class Reader(Device):
                 )
             return message
         except TimeoutError:
-            self.handle_timeout()
+            await self.handle_timeout()
             raise TimeoutError
 
     async def ranging_loop(self) -> None:
@@ -1609,7 +1610,7 @@ class Reader(Device):
             except NoDeviceConnectedError:
                 break
             except TimeoutError:
-                self.handle_timeout()
+                await self.handle_timeout()
                 raise TimeoutError
 
             if (
@@ -1730,7 +1731,11 @@ class Reader(Device):
 
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M2")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except (BLEMessageError, IndexError) as error:
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
 
         Global.logger.info(
             f"uwb_config_id = {int.from_bytes(message.uwb_configuration_id.value, 'big')}"
@@ -1768,7 +1773,12 @@ class Reader(Device):
         Finish setting up the ranging session and collect distance measurement
         """
         Global.logger.info("Handling ranging session setup message M4")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except (BLEMessageError, IndexError) as error:
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
+
         await self.transport_protocol.set_sts_index0(
             int.from_bytes(message.sts_index0.value, "big")
         )
@@ -1787,7 +1797,11 @@ class Reader(Device):
 
     async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session suspend request")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except (BLEMessageError, IndexError) as error:
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
 
         await self.send_ranging_session_suspend_response()
 
