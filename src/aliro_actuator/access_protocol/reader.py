@@ -14,9 +14,10 @@
 from __future__ import annotations
 
 import os
-import ucitool.base_uci.helpers.uci_helper as uci
 from binascii import hexlify
 from enum import Enum
+
+import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import READER_GROUP_ID_LENGTH, READER_GROUP_SUB_ID_LENGTH, Global
 from aliro_actuator.access_protocol.apdu import (
@@ -55,17 +56,22 @@ from aliro_actuator.access_protocol.encryption import (
 from aliro_actuator.access_protocol.errors import (
     AccessProtocolError,
     CryptogramNotFound,
-    InvalidResponseError,
-    InvalidStatusError,
-    InvalidResponseDataError,
-    SessionError,
-    UnexpectedBLEMessageError,
+    InvalidHoppingConfig,
     InvalidPulseShapeCombo,
     InvalidRanMultiplier,
-    InvalidHoppingConfig,
-    InvalidSyncCodeIndex
+    InvalidResponseDataError,
+    InvalidResponseError,
+    InvalidStatusError,
+    InvalidSyncCodeIndex,
+    SessionError,
+    UnexpectedBLEMessageError,
 )
-from aliro_actuator.access_protocol.tlv import TLV
+from aliro_actuator.access_protocol.tlv import TLV, TlvError
+from aliro_actuator.hw_driver.murata_driver.uwb_driver import (
+    HoppingConfig,
+    UCIHoppingConfig,
+    pulse_shape_combo,
+)
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_encryption import get_ble_encryption
 from aliro_actuator.transport_protocol.ble_message_format import (
@@ -84,11 +90,6 @@ from aliro_actuator.transport_protocol.errors import (
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
-)
-from aliro_actuator.hw_driver.murata_driver.uwb_driver import (
-    UCIHoppingConfig,
-    HoppingConfig,
-    pulse_shape_combo,
 )
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
@@ -291,7 +292,7 @@ class Reader(Device):
         self.fast_transaction_handling = fast_transaction_handling
         self.failure_process_started = False
         self.mode = mode
-        
+
         self.timeout = timeout
 
         Global.logger.info("Initialized Reader")
@@ -587,8 +588,11 @@ class Reader(Device):
                 )
             )
 
-        if (response.compl_aid == EXPEDITED_PHASE_AID and
-                PROTOCOL_VERSION not in response.expedited_phase_supported_protocol_versions):
+        if (
+            response.compl_aid == EXPEDITED_PHASE_AID
+            and PROTOCOL_VERSION
+            not in response.expedited_phase_supported_protocol_versions
+        ):
             await self.failure_process(S2.PROTOCOL_VERSION_NOT_SUPPORTED)
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
@@ -693,20 +697,20 @@ class Reader(Device):
         else:
             await self.decrypt_cryptogram(auth0_response.cryptogram)
             
-        self.chaining_response = auth0_response.chaining
+        self.chaining_response = auth0_response.response_chaining
 
         Global.logger.info("Handling AUTH0 command done")
 
     async def decrypt_cryptogram(self, cryptogram: bytes | None) -> None:
         if self.session is None:
             raise SessionError("No Session")
-        
+
         if cryptogram is None:
             await self.failure_process(S2.NONE)
             raise AccessProtocolError(
                 "User did not send cryptogram during a fast transaction"
             )
-        
+
         self.session.set_received_cryptogram(cryptogram)
 
         Global.logger.info(
@@ -858,6 +862,10 @@ class Reader(Device):
             Global.logger.error("AUTH1 response decryption failed")
             await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
             raise error
+        except TlvError as error:
+            Global.logger.error("AUTH1 response TLV check failed")
+            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            raise error
 
         Global.logger.info("Handling AUTH1 response")
         Global.logger.info("Checking AUTH1 response fields")
@@ -888,6 +896,7 @@ class Reader(Device):
 
         Global.logger.info("Save AUTH1 response data to session")
         self.session.set_auth1_info(auth1_response)
+        self.command_chaining = auth1_response.command_chaining
 
         Global.logger.info("Handling AUTH1 response done")
 
@@ -1000,9 +1009,9 @@ class Reader(Device):
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
 
-        Global.logger.info("Handling AUTH1 response")
+        Global.logger.info("Handling CONTROL FLOW response")
         self.session = None
-        Global.logger.info("Handling AUTH1 response done")
+        Global.logger.info("Handling CONTROL FLOW response done")
 
     async def handle_exchange(
         self,
@@ -1269,6 +1278,7 @@ class Reader(Device):
         transaction_identifier: bytes,
         reader_identifier: bytes,
         vendor_extension: bytes | None = None,
+        extra_tlv: bytes | None = None,
     ) -> Response:
         """
         Create and send a auth0 command, and wait for a response.
@@ -1294,6 +1304,7 @@ class Reader(Device):
             transaction_identifier,
             reader_identifier,
             vendor_extension,
+            extra_tlv,
         )
 
         Global.logger.info("Sending AUTH0 command")
@@ -1353,7 +1364,9 @@ class Reader(Device):
 
         return response
 
-    async def command_select(self, aid: bytes, check_apdu_length: bool = False) -> Response:
+    async def command_select(
+        self, aid: bytes, check_apdu_length: bool = False
+    ) -> Response:
         """
         Create and send a select command, and wait for a response.
 
@@ -1371,22 +1384,21 @@ class Reader(Device):
 
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response, INS.SELECT)
-        if (
-            check_apdu_length and 
-            (response.maximum_command_apdu == None or response.maximum_response_apdu == None)
+        if check_apdu_length and (
+            response.maximum_command_apdu == None
+            or response.maximum_response_apdu == None
         ):
             raise InvalidResponseDataError(
-                    response.as_bytes,
-                    "Missing extended length information",
-                )
-        
+                response.as_bytes,
+                "Missing extended length information",
+            )
+
         if (
-            response.maximum_command_apdu != None and 
-            response.maximum_response_apdu != None
+            response.maximum_command_apdu != None
+            and response.maximum_response_apdu != None
         ):
             self.apdu.set_extended_length(
-                response.maximum_command_apdu, 
-                response.maximum_response_apdu
+                response.maximum_command_apdu, response.maximum_response_apdu
             )
         else:
             self.apdu.reset_extended_length()
@@ -1611,21 +1623,37 @@ class Reader(Device):
         message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
-    def common_sync_code_index(self, sync_code_index: int, supported_sync_code_index: int) -> int:
+    def common_sync_code_index(
+        self, sync_code_index: int, supported_sync_code_index: int
+    ) -> int:
         return sync_code_index & supported_sync_code_index
 
-    async def set_hopping_conf(self, hopping_conf_bitmask: int, supported_hopping_conf_bitmask: int) -> None:
+    async def set_hopping_conf(
+        self, hopping_conf_bitmask: int, supported_hopping_conf_bitmask: int
+    ) -> None:
         self.common_hopping_conf = hopping_conf_bitmask & supported_hopping_conf_bitmask
 
         if self.common_hopping_conf & HoppingConfig.NO_HOPPING:
             await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.NO_HOPPING)
-            self.common_hopping_conf = HoppingConfig.NO_HOPPING + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
+            self.common_hopping_conf = (
+                HoppingConfig.NO_HOPPING + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
+            )
         elif self.common_hopping_conf & HoppingConfig.CONTINUOUS_HOPPING_MODULO:
-            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO)
-            self.common_hopping_conf = HoppingConfig.CONTINUOUS_HOPPING_MODULO + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
+            await self.transport_protocol.set_hopping_mode(
+                UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO
+            )
+            self.common_hopping_conf = (
+                HoppingConfig.CONTINUOUS_HOPPING_MODULO
+                + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
+            )
         elif self.common_hopping_conf & HoppingConfig.ADAPTIVE_HOPPING_MODULO:
-            await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO)
-            self.common_hopping_conf = HoppingConfig.ADAPTIVE_HOPPING_MODULO + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
+            await self.transport_protocol.set_hopping_mode(
+                UCIHoppingConfig.ADAPTIVE_HOPPING_MODULO
+            )
+            self.common_hopping_conf = (
+                HoppingConfig.ADAPTIVE_HOPPING_MODULO
+                + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
+            )
         else:
             raise InvalidHoppingConfig
 
@@ -1633,9 +1661,11 @@ class Reader(Device):
         Global.logger.info("Handling ranging session setup message M2")
         message.parse_payload(self.session.get_ble_encryption())
 
-        Global.logger.info(f"uwb_config_id = {int.from_bytes(message.uwb_configuration_id.value, 'big')}")
+        Global.logger.info(
+            f"uwb_config_id = {int.from_bytes(message.uwb_configuration_id.value, 'big')}"
+        )
         await self.transport_protocol.set_uwb_config_id(
-                int.from_bytes(message.uwb_configuration_id.value, "big")
+            int.from_bytes(message.uwb_configuration_id.value, "big")
         )
 
         pulse_shape = int.from_bytes(message.user_device_pulse_shape_combo.value, "big")
@@ -1958,7 +1988,7 @@ class ReaderSession:
         self.revocation_signed_timestamp = decrypted_cryptogram.get_bytes(
             Auth1.REVOCATION_TIMESTAMP_TAG
         )
-        
+
     def set_received_cryptogram(self, cryptogram: bytes) -> None:
         self.received_cryptogram = cryptogram
 

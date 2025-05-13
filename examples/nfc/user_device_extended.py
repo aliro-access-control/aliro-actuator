@@ -36,8 +36,9 @@ async def main():
 
     reader_identifier_list = [(READER_GROUP_IDENTIFIER, reader_public_key)]
 
-    private_key_pem = open("examples/nfc/credential_private_key.pem", "rt")
-    public_key_pem = open("examples/nfc/credential_public_key.pem", "rt")
+    private_key_pem = open("examples/nfc/issuer_private_key.pem", "rt")
+    public_key_pem = open("examples/nfc/issuer_public_key.pem", "rt")
+    
     credential_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
     access_credentials = [AccessCredential(credential_keypair, reader_identifier_list)]
 
@@ -109,6 +110,8 @@ async def main():
         mailbox=0x20,
         access_document=response,
         mode=UserMode.USER,
+        maximum_command_apdu=1000,
+        maximum_response_apdu=1000,
     )
     await reader.main_loop()
 

@@ -19,6 +19,7 @@ from enum import IntEnum
 
 from ber_tlv.tlv import BadLength, BadParameter, BadTag, Tlv, UnexpectedEnd
 
+from aliro_actuator import Global
 from aliro_actuator.access_protocol.errors import AccessProtocolError
 
 class TLVIndex(IntEnum):
@@ -356,7 +357,14 @@ class TLV:
                 i += 1
 
             if tag not in expectedTags[idx]:
-                raise TlvError("invalid tag detected {} in {}".format(hex(tag), ', '.join(hex(x) for x in expectedTags[idx])))
+                Global.logger.info(
+                    "invalid tag detected {} in {} so we ignore it".format(
+                        hex(tag), ", ".join(hex(x) for x in expectedTags[idx])
+                    )
+                )
+                skip_len = buf[i]
+                i += skip_len + 1
+                continue
             else: # store index to check length
                 foundIdx = expectedTags[idx].index(tag)
 

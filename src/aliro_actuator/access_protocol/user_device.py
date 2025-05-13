@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import ucitool.base_uci.helpers.uci_helper as uci
-
 from binascii import hexlify
 from enum import Enum
 from os import urandom
+
+import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import Global
 from aliro_actuator.access_document.access_credential import AccessDocument
@@ -57,18 +57,24 @@ from aliro_actuator.access_protocol.errors import (
     InvalidAIDError,
     InvalidCLAError,
     InvalidCommandError,
+    InvalidHoppingConfig,
     InvalidINSError,
     InvalidParameterError,
+    InvalidPulseShapeCombo,
+    InvalidSyncCodeIndex,
+    InvalidUWBSessionId,
     SessionError,
     UnexpectedBLEMessageError,
     UnexpectedCommandError,
     VersionError,
-    InvalidPulseShapeCombo,
-    InvalidHoppingConfig,
-    InvalidUWBSessionId,
-    InvalidSyncCodeIndex
 )
 from aliro_actuator.access_protocol.mailbox import Mailbox
+from aliro_actuator.hw_driver.murata_driver.uwb_driver import (
+    Channel,
+    HoppingConfig,
+    UCIHoppingConfig,
+    pulse_shape_combo,
+)
 from aliro_actuator.transport_protocol import Mode, TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_encryption import get_ble_encryption
 from aliro_actuator.transport_protocol.ble_message_format import (
@@ -84,12 +90,6 @@ from aliro_actuator.transport_protocol.errors import (
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
-)
-from aliro_actuator.hw_driver.murata_driver.uwb_driver import (
-    UCIHoppingConfig,
-    HoppingConfig,
-    pulse_shape_combo,
-    Channel
 )
 from aliro_actuator.trust_framework.access_credential import AccessCredential
 from aliro_actuator.trust_framework.certificate import Certificate
@@ -970,12 +970,20 @@ class UserDevice(Device):
                 "Could not find key for reader identifier in access credential: "
                 "{!r}".format(hexlify(self.session.reader_group_identifier))
             )
+            
+        if hasattr(auth0_command, "tlv_check"):
+            command_status = auth0_command.tlv_check
+        else:
+            command_status = True
 
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
-            await self.response_auth0(self.session.get_credential_epubkey().as_bytes())
+            await self.response_auth0(
+                self.session.get_credential_epubkey().as_bytes(),
+                command_status=command_status
+            )
         elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
             Global.logger.info("Looking for Kpersistent in storage")
@@ -1023,6 +1031,7 @@ class UserDevice(Device):
             await self.response_auth0(
                 credential_epubk=self.session.get_credential_epubkey().as_bytes(),
                 cryptogram=cryptogram,
+                command_status=command_status
             )
 
         Global.logger.info("Handling AUTH0 command done")
@@ -1062,6 +1071,7 @@ class UserDevice(Device):
         self.session.set_cert_and_verify(
             load_cert_command.reader_cert, reader_issuer_public_key
         )
+        self.chaining_command = load_cert_command.chaining
         await self.response_load_cert()
 
         if self.mode == UserMode.TEST and not self.session.cert_decoded:
@@ -1163,6 +1173,7 @@ class UserDevice(Device):
             raise AccessProtocolError("no encryption engine found")
 
         self.session.update_state(UserSessionState.AUTH1_DONE)
+        self.chaining_command = auth1_command.chaining
 
         await self.response_auth1(
             self.session.access_credential.get_key_slot(),
@@ -1768,7 +1779,10 @@ class UserDevice(Device):
         return command
 
     async def response_auth0(
-        self, credential_epubk: bytes, cryptogram: bytes | None = None
+        self,
+        credential_epubk: bytes,
+        cryptogram: bytes | None = None,
+        command_status: bool = True,
     ) -> None:
         """
         Create and send an auth0 response.
@@ -1778,8 +1792,13 @@ class UserDevice(Device):
             cryptogram (bytes | None, optional): authentication cryptogram.
             Defaults to None.
         """
+        if command_status:
+            status = StatusBytes.SUCCESS
+        else:
+            status = StatusBytes.COMMAND_NOT_COMPLIANT
+            
         auth0_response = self.apdu.create_auth0_response(
-            credential_epubk, StatusBytes.SUCCESS, cryptogram
+            credential_epubk, status, cryptogram
         )
         Global.logger.info("Sending AUTH0 response")
         await self.apdu.handle_chaining_send_response(

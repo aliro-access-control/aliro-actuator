@@ -1290,6 +1290,7 @@ class APDU:
     ) -> Response:
         if len(commands) == 1:
             Global.logger.debug("Command fits in one message, no chaining required")
+            command_chaining_required = False
             Global.logger.info("Sending {} command".format(command_name))
             await transport_layer.send_message(commands[0])
 
@@ -1300,6 +1301,7 @@ class APDU:
             response = Response.create_from_bytestring(response_str)
         else:
             Global.logger.debug("Command chaining required")
+            command_chaining_required = True
             for command in commands:
                 Global.logger.info("Sending {} command".format(command_name))
                 await transport_layer.send_message(command)
@@ -1320,9 +1322,9 @@ class APDU:
         # response chaining
         if chaining_remaining is None:
             Global.logger.info("No response chaining required")
-            chaining_required = False
+            response_chaining_required = False
         while chaining_remaining is not None:
-            chaining_required = True
+            response_chaining_required = True
             Global.logger.info("Response chaining is required")
             expected_response_size = chaining_remaining
             if self.support_extended_length_apdu:
@@ -1342,7 +1344,8 @@ class APDU:
 
         total_response_data.extend(response.status.to_bytes(2, "big"))
         response = Response.create_from_bytestring(bytes(total_response_data))
-        response.chaining = chaining_required
+        response.response_chaining = response_chaining_required
+        response.command_chaining = command_chaining_required
         return response
 
     async def handle_chaining_receive_command(
@@ -1354,6 +1357,7 @@ class APDU:
 
         if not command.chaining_control_bit:
             Global.logger.debug("No chaining used in this command")
+            command.chaining = False
             return command
 
         Global.logger.debug("Chained command, getting the other commands of the chain")
@@ -1369,8 +1373,8 @@ class APDU:
             command = Command.create_from_bytestring(command_str)
             if command.data is not None:
                 total_payload.extend(command.data)
-
-        return Command.create_from_parameters(
+                
+        command = Command.create_from_parameters(
             command.cla,
             command.ins,
             command.p1,
@@ -1378,6 +1382,8 @@ class APDU:
             bytes(total_payload),
             command.le,
         )
+        command.chaining = True
+        return command
 
     async def handle_chaining_send_response(
         self,
@@ -1449,7 +1455,10 @@ class APDU:
             case INS.GET_RESPONSE:
                 command.parse_as_get_response()
             case INS.AUTH0:
-                TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
+                try:
+                    TLV.verifySequence(command.data, TLVIndex.TLV_AUTH0_CMD)
+                except TlvError as error:
+                    command.tlv_check = False
                 command.parse_as_auth0()
             case INS.LOAD_CERT:
                 command.parse_as_load_cert()
@@ -1587,6 +1596,7 @@ class APDU:
         transaction_identifier: bytes,
         reader_identifier: bytes,
         vendor_extension: bytes | None = None,
+        extra_tlv: bytes | None = None,
     ) -> list[Command]:
         Global.logger.info("Creating AUTH0 command")
         data_tlv: list[tuple[int, bytes | list]] = [
@@ -1599,6 +1609,8 @@ class APDU:
         ]
         if vendor_extension is not None:
             data_tlv.append((Auth0.VENDOR_SPECIFIC_TAG, vendor_extension))
+        if extra_tlv is not None:
+            data_tlv.append((Auth0.UNKNOWN_TAG, extra_tlv))
         data = TLV(data_tlv)
         Global.logger.debug(
             "Command contains TLV structure: {}".format(data.to_print())
