@@ -296,14 +296,10 @@ class Reader(Device):
         self.fast_transaction_handling = fast_transaction_handling
         self.failure_process_started = False
         self.mode = mode
-<<<<<<< HEAD
-
         self.timeout = timeout
         self.advertisement_version = advertisement_version
 
-=======
->>>>>>> bitbucket/feature/ALSD-455-synchronize-with-test-plan
-        Global.logger.info("Initialized Reader")
+        Global.logger.info("Initialized Reader") 
 
     async def handle_timeout(self):
         # Send general error event
