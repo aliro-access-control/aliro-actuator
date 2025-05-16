@@ -296,10 +296,13 @@ class Reader(Device):
         self.fast_transaction_handling = fast_transaction_handling
         self.failure_process_started = False
         self.mode = mode
+<<<<<<< HEAD
 
         self.timeout = timeout
         self.advertisement_version = advertisement_version
 
+=======
+>>>>>>> bitbucket/feature/ALSD-455-synchronize-with-test-plan
         Global.logger.info("Initialized Reader")
 
     async def handle_timeout(self):
@@ -665,7 +668,7 @@ class Reader(Device):
             auth0_response = await self.command_auth0(
                 transaction=transaction_type,
                 authentication_policy=authentication_policy,
-                protocol_version=PROTOCOL_VERSION,
+                protocol_version=self.protocol_version(),
                 reader_epubk=self.session.get_reader_epubkey().as_bytes(),
                 transaction_identifier=self.session.transaction_identifier,
                 reader_identifier=self.reader_identifier,

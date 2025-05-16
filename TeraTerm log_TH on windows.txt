@@ -1,0 +1,566 @@
+
+ === LPI2C board2board polling example ===
+Master will send data :
+0x5a  0xc0  0x00  0xff  0xfc
+
+68 LPI2C_MasterStart: 900
+113 WAIT_TIME: 100
+Receive sent data from slave :125 LPI2C_MasterStart: 900
+
+Received:
+
+0x13  0x00  0x00  0x00  0x00
+
+
+End of LPI2C example .
+Compiled: Jan 27 2025 11:40:07
+StartTask_NFC
+StartTask_BLE
+AppReaderBleTask
+APP_InitBle
+App_CheckNbuCompatibility
+APP_InitServices
+aliro_handle_init
+check
+check
+check
+READER :DEBUG: Init
+                   READER :DEBUG: reader_identifier.global_group: 00113344667799aa00113344667799aa
+                  READER :DEBUG: reader_identifier.sub_group: 113344667799aa00113344667799aa00
+              READER :DEBUG: group_resolving_key: 00000000000000000000000000000000
+  READER :DEBUG: fast_transaction_supported: 01
+                                               READER :DEBUG: spsm: 8000
+                                                                        READER :DEBUG: request_transaction_identifier_func: 0x109e1
+                                                   READER :DEBUG: request_ephemeral_key_pair_func: 0x10a65
+                          check
+check
+handle_init done with success
+                             EXAMPLE_UWB:DEBUG: Aliro_UwbInitHardware
+                                                                     FWDNLD  :INFO :FWDL Directly from host
+                           AppReaderTask
+HALUCI  :INFO :Starting FW download
+                                   HALUCI  :INFO :FW Download done.
+                                                                   HALUCI  :RX < :RECV                :60010001 00
+                                  TMLUWB  :TX > :SEND                :2E000002 7304
+   HALUCI  :RX < :RECV                :4E000001 00
+                                                  HALUCI  :RX < :RECV                :60010001 01
+                 TMLUWB  :TX > :SEND                :20000001 00
+                                                                HALUCI  :RX < :RECV                :60070001 0A
+                               TMLUWB  :TX > :SEND                :20000001 00
+                                                                              HALUCI  :RX < :RECV                :40000001 00
+                                             HALUCI  :RX < :RECV                :60010001 01
+            TMLUWB  :TX > :SEND                :2004000E 03E40201 00E40301 14E43402 E803
+        HALUCI  :RX < :RECV                :6E060001 02
+                                                       UWBAPI  :WARN :processProprietaryNtf: unhandled oid 0x6
+                              HALUCI  :RX < :RECV                :40040002 0000
+                                                                               TMLUWB  :TX > :SEND                :20040030 03E46013 03010102 00020002 01020000 00030201 000100E4 61060101 01000000 E4620D02 01010300 00000201 03000000
+                                                                        HALUCI  :RX < :RECV                :60070001 0A
+                                       UCICORE :WARN :Retrying last sent command as FW asked for retry (CORE_GENERIC_ERROR_NTF -> STATUS_MESSAGE_RETRY)
+                                                                       TMLUWB  :TX > :SEND                :20040030 03E46013 03010102 00020002 01020000 00030201 000100E4 61060101 01000000 E4620D02 01010300 00000201 03000000
+                                                                HALUCI  :RX < :RECV                :40040002 0000
+                                 TMLUWB  :TX > :SEND                :2F21000D 05020A03 01BC3A02 BC3A03BC 3A
+                           HALUCI  :RX < :RECV                :4F210001 00
+                                                                          TMLUWB  :TX > :SEND                :2F21000D 09020A03 01BC3A02 BC3A03BC 3A
+                                                                    HALUCI  :RX < :RECV                :4F210001 00
+                                   TMLUWB  :TX > :SEND                :2F21000D 06020A03 01BC3A02 BC3A03BC 3A
+                             HALUCI  :RX < :RECV                :4F210001 00
+                                                                            TMLUWB  :TX > :SEND                :2F21000D 08020A03 01B43A02 B43A03B4 3A
+                                                                      HALUCI  :RX < :RECV                :4F210001 00
+                                     TMLUWB  :TX > :SEND                :2F2100F7 0562F401 016FCECD CE97D619 E1DDEFF9 00880F98 1AC4244C 308337AF D1E0CFC1 D47FDFB7 ED21FD8B 0BA618ED 242F2F61 357CD131 D28AD681 DFABEC4F FC750BC4 18912354 2C1E34AE CF6DD3DE D95FE29C EDB3FBDE 0963161E 21CD2B48 359ACDB0 D22CDA24 E3F4EDDD FACD086C 16E622A9 2E783797 CCA8D1B6 D829E2B3 EE89FEBE 0ECB1CAC 28713243 39BECBC0 CFB8D690 E113F1D4 02221248 1EE6281A 324139B5 CA3CCFF0 D639E4AC F4EE0374 0FE0184E 23B22F3A 38F0C711 D09DD987 E6B9F51D 03380CF2 12641C64 2C2D36BD C68CCF0A DA37E71D F53B0258 0B031030 19F2257C 2F3EC8BC CD5CD956 E70CF3E8 FF770AC5 10DB1789 1CE932
+                                                                             HALUCI  :RX < :RECV                :4F210001 00
+                                            TMLUWB  :TX > :SEND                :2F2100F7 0962F401 01EFB741 C067CDD3 DD50F05F 00000BBA 155F2780 379E4120 B8B6BEF7 CA13DD40 EF94FE22 0B8219DC 29703769 4074BA29 C19CCBBE DBACED23 FE990C96 1B062BE3 37CD3FF2 BB6EC246 CCFDDACB EC08FFA3 0F2D1F64 2D893867 3FC3BCA9 C2BBCC2A DC35EE18 019A1166 20A42D38 38633F91 BDBEC304 CE1CDE27 F04301F1 114D22F0 2F0F3A3B 41F9BD94 C4EBCD86 DC53EF30 01BB113E 23BB31AB 3C674477 BD23C4CB CB22D849 ECC402C0 131F2316 32733E9E 458FBB3D C29BC9AB D5B5EA98 038A14D3 21083012 3C4043D3 BB03BFE8 C65ED549 EB8702CC 13B11D89 29353811 4863BC54 BE98C381 D624ECA7 FDEB0F44 1C3D2897 396C47
+    HALUCI  :RX < :RECV                :4F210001 00
+                                                   TMLUWB  :TX > :SEND                :2F2100F7 0562F401 0225E505 E89EEB0D F166F7D4 FDE103F8 07790AE6 0FFB0EC2 DC56DDE7 E058E847 F115FCD3 05080EB1 135618C5 1722D30F D6B3DA11 E26BEC7B FB820770 11931BC3 203E21B2 CBA8D088 D75DDE01 E9B2FBB6 089A1342 21BA2910 31D1C717 CD55D56C DCABE62D FC650A23 164925AF 2FAA383A C7F4CBBE D370DB90 E5EDFCA5 0C881798 26F131C6 388EC8D1 CCFAD35B DBF7E5D5 FD4F0EB1 1659246E 3298356B CB85CFC7 D564DCB6 E73AFE6C 0E3F1408 1D922BA8 33B5CF64 D36DD858 DEBAEAA7 FECD0DE4 12D814C7 1DF32EE3 D5F8D86B DCCCE2FA EE00FF6A 0CAD137D 1689180C 1C93DCB9 DE2CE20A E918F384 FE130951 11CF17DE 16C724
+           HALUCI  :RX < :RECV                :4F210001 00
+                                                          TMLUWB  :TX > :SEND                :2F2100F7 0962F401 027AD38D D812E0D7 E96FF480 FE260810 107416C1 1DE020FC CC21D277 D91AE48B F0E2FD17 0CB917B5 1FE126BF 2D8AC597 CC15D5E0 DF53ED23 FDFD0E03 1D60278A 2D553386 BE82C6E4 D0FDDCA7 EBBEFCF0 0FA41F82 2B2B322C 3734BCFB C2A1CD9D DB2BEC2C FDC80FE8 215D2FC7 36663D03 BDB5C27E CC97DB04 EE43FFAC 0F75232F 339D3BBF 3F03BFF8 C447CE21 DDA5EF81 0148100C 238233F0 3FCC43CE C281C951 D2FDDF75 F06602ED 10A720D8 30903D2E 4163CAA3 D086D833 E4DDF14D 02C410D5 1D432B8C 32653DC8 D350D915 E023E97E F31C0100 10EB1BF8 23EA27C4 376DDD33 E106E6A2 EC9DF47B FF000D6D 172B1B56 26FB2A
+                  HALUCI  :RX < :RECV                :4F210001 00
+                                                                 TMLUWB  :TX > :SEND                :2F21000A 05030702 01A3DD02 A541
+                                                    HALUCI  :RX < :RECV                :4F210001 00
+                   TMLUWB  :TX > :SEND                :2F21000A 09030702 01E7D802 4E48
+      HALUCI  :RX < :RECV                :4F210001 00
+                                                     TMLUWB  :TX > :SEND                :2F21000A 05660702 01A23702 A6E7
+                                        HALUCI  :RX < :RECV                :4F210001 00
+       TMLUWB  :TX > :SEND                :2F21000A 09660702 01E63202 4FEE
+                                                                          HALUCI  :RX < :RECV                :4F210001 00
+                                         TMLUWB  :TX > :SEND                :20040004 01010101
+               HALUCI  :RX < :RECV                :40040002 0000
+                                                                TMLUWB  :TX > :SEND                :20040006 01E40402 F401
+                                          HALUCI  :RX < :RECV                :40040002 0000
+           TMLUWB  :TX > :SEND                :20040005 01E43301 01
+                                                                   HALUCI  :RX < :RECV                :40040002 0000
+                                    TMLUWB  :TX > :SEND                :20030000
+ HALUCI  :RX < :RECV                :4003008A 00250002 F7070102 F7070204 01000200 03040100 02000401 030502AF 0106027F 0007011F 08010309 01020A01 070B0101 0C01010D 01010E01 0F0F010B 10010311 013F1205 FFFFFFFF 0713010F 14010115 01011601 0317010A 18011419 01011A01 00A0017F A104000F 0000A201 F8A30103 A4020001 A5020100 A6030011 22E30002 0008E301 01AEE302 010C
+                                    TMLUWB  :TX > :SEND                :20020000
+ HALUCI  :RX < :RECV                :40020066 00020002 00020002 005C0012 53523135 305F5052 4F445F49 4F545F52 4F570103 46430102 03020017 03103847 3450312D 3932B236 46300600 1B000401 64050200 00600302 00096103 02000963 0101A002 0203A108 312E302E 30000000 A208302E 372E3500 0000
+                                   UWBAPI  :WARN :parseDeviceInfo: unknown param Id 0xA2
+        APP     :INFO :Device Name                    : SR150_PROD_IOT_ROW
+
+                                                                          APP     :INFO :Firmware Version               : 46.43.01
+
+                                                  BluetoothLEHost_SetGenericCallback
+BluetoothLEHost_Init
+Ble_Initialize
+Ble_SetBDAddr
+App_NvmRead
+App_NvmRead
+nfc init
+        App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_Initialized
+App_GenericCallback
+ApApp_GenericCallback
+p_RegisterGattServerCallback
+BluetoothLEHost_Initialized : 0x13
+                                  App_RegisterLeCbCallbacks
+aliro_StartAdvertising
+AliroBle_RequestAdvertisementData
+BLE_DYNAMIC_TAG:DEBUG: AliroRD_BLEGetDynamicTag plaintext: 000000000000006037a98886abcdef01
+           BLE_DYNAMIC_TAG:DEBUG: AliroRD_BLEGetDynamicTag ciphertext: 4dce2459477de0d36bb366f917f0ef34
+                       BLE_ADV_IND:DEBUG: service_uuid: f2ff
+                                                            BLE_ADV_IND:DEBUG: ble_config: c0
+             BLE_ADV_IND:DEBUG: tx_power_level_dbm: 00
+                                                      BLE_ADV_IND:DEBUG: truncated_identifier: 00113344667799aa
+                               BLE_ADV_IND:DEBUG: truncated_sub_identifier: 1133
+                                                                                BLE_ADV_IND:DEBUG: dynamic_tag_expiry_timestamp: abcdef01
+                                                         BLE_ADV_IND:DEBUG: RFU: 00
+   BLE_ADV_IND:DEBUG: dynamic_tag: 4dce2459477de0
+                                                 BluetoothLEHost_StartAdvertising
+BluApp_GenericCallback
+etoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_AdvertiserHandler
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_AdvertiserHandler
+App_AdvertisingCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+AliroBle_AdvertisingCallback
+gAdvertisingStateChanged_c
+11 bytes read :
+                PN7642 boot ok
+                              Elapsed PN Boot Time: 6 ms
+data read out done
+                  pn7642_wait_for_tag
+                                     6 bytes write :
+                                                     4 bytes read :
+                                                                    41 03 01 00
+tag cmd sent OK
+               App_ConnectionCallback
+App_AdvertisingCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+AliroBle_ConnectionCallback
+AliroBle_Connected
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+AliroBle_AdvertisingCallback
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_ConnectionCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+AliroBle_ConnectionCallback
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_GattServerCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_HandleHostMessageInput_Gatt
+AliroBle_GattServerCallback
+App_GenericCallback
+gEvtAttributeWritten_c:
+0x0 0x1
+AliroBle_AccessControlAttWritten
+aliro_handle_user_device_connected
+SESSION:DEBUG: AliroTS_Init
+                           check
+AliroTS_Init fail: -1476SESSION:DEBUG: AliroTS_Deinit
+                                                     PROFILER:INFO : + Aliro Profiler Session Traces
+                     PROFILER:INFO : |T_at (ms)   |Nesting Lvl|Function Name                                                   |T_total (ms)|
+                                                             PROFILER:INFO : |           0|          0|aliro_handle_init                                               |          88|
+                     PROFILER:INFO : |           2|          1|  AliroECC_EntropyInit                                          |          22|
+                                                             PROFILER:INFO : |          25|          1|  AliroECCPK_PrivKeyInitRaw                                     |           1|
+                     PApp_L2caLeControlCallback
+ROFILER:INFO : |          25|          2|    AliroECCPK_InitCtxRawInternal                               |           0|
+                                       PROFILER:INFO : |          26|          2|    AliroECCPK_InitCtxRawInternal                               |           0|
+                                                                               PROFILER:INFO : |          27|          1|  AliroECCPK_PrivKeyInitRaw                                     |           1|
+                                       PROFILER:INFO : |          27|          2|    AliroECCPK_InitCtxRawInternal                               |           0|
+                                                                               PROFILER:INFO : |          28|          2|    AliroECCPK_InitCtxRawInternal                               |           0|
+                                       PROFILER:INFO : |          31|          1|  AliroECCPK_CopyKeyPair                                        |           3|
+                                                                               PROFILER:INFO : |          31|          2|    AliroECCPK_CopyMbedtlsPublicKey                             |           2|
+                                       PROFILER:INFO : |          33|          2|    AliroECCPK_CopyMbedtlsPrivateKey                            |           1|
+                                                                               PROFILER:INFO : |          34|          1|  AliroECCPK_CopyKeyPair                                        |           2|
+                                       PROFILER:INFO : |          34|          2|    AliroECCPK_CopyMbedtlsPublicKey                             |           1|
+                                                                               PROFILER:INFO : |          35|          2|    AliroECCPK_CopyMbedtlsPrivateKey                            |           1|
+                                       PROFILER:INFO : |        5520|          0|AliroBLE_FillAdvIndServiceData                                  |          62|
+                                                                               PROFILER:INFO : |        5530|          1|  AliroCrypto_Encrypt_AES128_ECB                                |           0|
+                                       PROFILER:INFO : |      346996|          0|AliroTransactionSession                                         |          14|
+                                                                               PROFILER:INFO : - Aliro Profiler Session Traces
+                                              BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_HandleHostMessageInput_Gatt
+App_HandleHostMessageInput_L2ca
+AliroBle_L2capPsmControlCallback
+App_GenericCallback
+App_L2caLeControlCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_HandleHostMessageInput_Gatt
+App_HandleHostMessageInput_L2ca
+AliroBle_L2capPsmControlCallback
+gL2ca_LePsmConnectionComplete_c
+App_L2caLeDataCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_HandleHostMessageInput_Gatt
+App_HandleHostMessageInput_L2ca
+AliroBle_L2capPsmDataCallback
+BLE_MSG RX:
+02 05 00 0c 00 0a a5 08 80 02 00 00 5c 02 01 00
+App_PostCallbackMessage
+BluetoothLEHost_HandleMessages::mAppCbInputQueue
+AliroBle_Msghandler
+152 AliroTS_ProcessResponseData fail: -1588
+ === LPI2C board2board polling example ===
+Master will send data :
+0x5a  0xc0  0x00  0xff  0xfc
+
+68 LPI2C_MasterStart: 900
+113 WAIT_TIME: 100
+Receive sent data from slave :125 LPI2C_MasterStart: 900
+
+Received:
+
+0x13  0x00  0x00  0x00  0x00
+
+
+End of LPI2C example .
+Compiled: Jan 27 2025 11:40:07
+StartTask_NFC
+StartTask_BLE
+AppReaderBleTask
+APP_InitBle
+App_CheckNbuCompatibility
+APP_InitServices
+aliro_handle_init
+check
+check
+check
+READER :DEBUG: Init
+                   READER :DEBUG: reader_identifier.global_group: 00113344667799aa00113344667799aa
+                  READER :DEBUG: reader_identifier.sub_group: 113344667799aa00113344667799aa00
+              READER :DEBUG: group_resolving_key: 00000000000000000000000000000000
+  READER :DEBUG: fast_transaction_supported: 01
+                                               READER :DEBUG: spsm: 8000
+                                                                        READER :DEBUG: request_transaction_identifier_func: 0x109e1
+                                                   READER :DEBUG: request_ephemeral_key_pair_func: 0x10a65
+                          check
+check
+handle_init done with success
+                             EXAMPLE_UWB:DEBUG: Aliro_UwbInitHardware
+                                                                     FWDNLD  :INFO :FWDL Directly from host
+                           AppReaderTask
+HALUCI  :INFO :Starting FW download
+                                   HALUCI  :INFO :FW Download done.
+                                                                   HALUCI  :RX < :RECV                :60010001 00
+                                  TMLUWB  :TX > :SEND                :2E000002 7304
+   HALUCI  :RX < :RECV                :4E000001 00
+                                                  HALUCI  :RX < :RECV                :60010001 01
+                 TMLUWB  :TX > :SEND                :20000001 00
+                                                                HALUCI  :RX < :RECV                :60070001 0A
+                               TMLUWB  :TX > :SEND                :20000001 00
+                                                                              HALUCI  :RX < :RECV                :40000001 00
+                                             HALUCI  :RX < :RECV                :60010001 01
+            TMLUWB  :TX > :SEND                :2004000E 03E40201 00E40301 14E43402 E803
+        HALUCI  :RX < :RECV                :6E060001 02
+                                                       UWBAPI  :WARN :processProprietaryNtf: unhandled oid 0x6
+                              HALUCI  :RX < :RECV                :40040002 0000
+                                                                               TMLUWB  :TX > :SEND                :20040030 03E46013 03010102 00020002 01020000 00030201 000100E4 61060101 01000000 E4620D02 01010300 00000201 03000000
+                                                                        HALUCI  :RX < :RECV                :60070001 0A
+                                       UCICORE :WARN :Retrying last sent command as FW asked for retry (CORE_GENERIC_ERROR_NTF -> STATUS_MESSAGE_RETRY)
+                                                                       TMLUWB  :TX > :SEND                :20040030 03E46013 03010102 00020002 01020000 00030201 000100E4 61060101 01000000 E4620D02 01010300 00000201 03000000
+                                                                HALUCI  :RX < :RECV                :40040002 0000
+                                 TMLUWB  :TX > :SEND                :2F21000D 05020A03 01BC3A02 BC3A03BC 3A
+                           HALUCI  :RX < :RECV                :4F210001 00
+                                                                          TMLUWB  :TX > :SEND                :2F21000D 09020A03 01BC3A02 BC3A03BC 3A
+                                                                    HALUCI  :RX < :RECV                :4F210001 00
+                                   TMLUWB  :TX > :SEND                :2F21000D 06020A03 01BC3A02 BC3A03BC 3A
+                             HALUCI  :RX < :RECV                :4F210001 00
+                                                                            TMLUWB  :TX > :SEND                :2F21000D 08020A03 01B43A02 B43A03B4 3A
+                                                                      HALUCI  :RX < :RECV                :4F210001 00
+                                     TMLUWB  :TX > :SEND                :2F2100F7 0562F401 016FCECD CE97D619 E1DDEFF9 00880F98 1AC4244C 308337AF D1E0CFC1 D47FDFB7 ED21FD8B 0BA618ED 242F2F61 357CD131 D28AD681 DFABEC4F FC750BC4 18912354 2C1E34AE CF6DD3DE D95FE29C EDB3FBDE 0963161E 21CD2B48 359ACDB0 D22CDA24 E3F4EDDD FACD086C 16E622A9 2E783797 CCA8D1B6 D829E2B3 EE89FEBE 0ECB1CAC 28713243 39BECBC0 CFB8D690 E113F1D4 02221248 1EE6281A 324139B5 CA3CCFF0 D639E4AC F4EE0374 0FE0184E 23B22F3A 38F0C711 D09DD987 E6B9F51D 03380CF2 12641C64 2C2D36BD C68CCF0A DA37E71D F53B0258 0B031030 19F2257C 2F3EC8BC CD5CD956 E70CF3E8 FF770AC5 10DB1789 1CE932
+                                                                             HALUCI  :RX < :RECV                :4F210001 00
+                                            TMLUWB  :TX > :SEND                :2F2100F7 0962F401 01EFB741 C067CDD3 DD50F05F 00000BBA 155F2780 379E4120 B8B6BEF7 CA13DD40 EF94FE22 0B8219DC 29703769 4074BA29 C19CCBBE DBACED23 FE990C96 1B062BE3 37CD3FF2 BB6EC246 CCFDDACB EC08FFA3 0F2D1F64 2D893867 3FC3BCA9 C2BBCC2A DC35EE18 019A1166 20A42D38 38633F91 BDBEC304 CE1CDE27 F04301F1 114D22F0 2F0F3A3B 41F9BD94 C4EBCD86 DC53EF30 01BB113E 23BB31AB 3C674477 BD23C4CB CB22D849 ECC402C0 131F2316 32733E9E 458FBB3D C29BC9AB D5B5EA98 038A14D3 21083012 3C4043D3 BB03BFE8 C65ED549 EB8702CC 13B11D89 29353811 4863BC54 BE98C381 D624ECA7 FDEB0F44 1C3D2897 396C47
+    HALUCI  :RX < :RECV                :4F210001 00
+                                                   TMLUWB  :TX > :SEND                :2F2100F7 0562F401 0225E505 E89EEB0D F166F7D4 FDE103F8 07790AE6 0FFB0EC2 DC56DDE7 E058E847 F115FCD3 05080EB1 135618C5 1722D30F D6B3DA11 E26BEC7B FB820770 11931BC3 203E21B2 CBA8D088 D75DDE01 E9B2FBB6 089A1342 21BA2910 31D1C717 CD55D56C DCABE62D FC650A23 164925AF 2FAA383A C7F4CBBE D370DB90 E5EDFCA5 0C881798 26F131C6 388EC8D1 CCFAD35B DBF7E5D5 FD4F0EB1 1659246E 3298356B CB85CFC7 D564DCB6 E73AFE6C 0E3F1408 1D922BA8 33B5CF64 D36DD858 DEBAEAA7 FECD0DE4 12D814C7 1DF32EE3 D5F8D86B DCCCE2FA EE00FF6A 0CAD137D 1689180C 1C93DCB9 DE2CE20A E918F384 FE130951 11CF17DE 16C724
+           HALUCI  :RX < :RECV                :4F210001 00
+                                                          TMLUWB  :TX > :SEND                :2F2100F7 0962F401 027AD38D D812E0D7 E96FF480 FE260810 107416C1 1DE020FC CC21D277 D91AE48B F0E2FD17 0CB917B5 1FE126BF 2D8AC597 CC15D5E0 DF53ED23 FDFD0E03 1D60278A 2D553386 BE82C6E4 D0FDDCA7 EBBEFCF0 0FA41F82 2B2B322C 3734BCFB C2A1CD9D DB2BEC2C FDC80FE8 215D2FC7 36663D03 BDB5C27E CC97DB04 EE43FFAC 0F75232F 339D3BBF 3F03BFF8 C447CE21 DDA5EF81 0148100C 238233F0 3FCC43CE C281C951 D2FDDF75 F06602ED 10A720D8 30903D2E 4163CAA3 D086D833 E4DDF14D 02C410D5 1D432B8C 32653DC8 D350D915 E023E97E F31C0100 10EB1BF8 23EA27C4 376DDD33 E106E6A2 EC9DF47B FF000D6D 172B1B56 26FB2A
+                  HALUCI  :RX < :RECV                :4F210001 00
+                                                                 TMLUWB  :TX > :SEND                :2F21000A 05030702 01A3DD02 A541
+                                                    HALUCI  :RX < :RECV                :4F210001 00
+                   TMLUWB  :TX > :SEND                :2F21000A 09030702 01E7D802 4E48
+      HALUCI  :RX < :RECV                :4F210001 00
+                                                     TMLUWB  :TX > :SEND                :2F21000A 05660702 01A23702 A6E7
+                                        HALUCI  :RX < :RECV                :4F210001 00
+       TMLUWB  :TX > :SEND                :2F21000A 09660702 01E63202 4FEE
+                                                                          HALUCI  :RX < :RECV                :4F210001 00
+                                         TMLUWB  :TX > :SEND                :20040004 01010101
+               HALUCI  :RX < :RECV                :40040002 0000
+                                                                TMLUWB  :TX > :SEND                :20040006 01E40402 F401
+                                          HALUCI  :RX < :RECV                :40040002 0000
+           TMLUWB  :TX > :SEND                :20040005 01E43301 01
+                                                                   HALUCI  :RX < :RECV                :40040002 0000
+                                    TMLUWB  :TX > :SEND                :20030000
+ HALUCI  :RX < :RECV                :4003008A 00250002 F7070102 F7070204 01000200 03040100 02000401 030502AF 0106027F 0007011F 08010309 01020A01 070B0101 0C01010D 01010E01 0F0F010B 10010311 013F1205 FFFFFFFF 0713010F 14010115 01011601 0317010A 18011419 01011A01 00A0017F A104000F 0000A201 F8A30103 A4020001 A5020100 A6030011 22E30002 0008E301 01AEE302 010C
+                                    TMLUWB  :TX > :SEND                :20020000
+ HALUCI  :RX < :RECV                :40020066 00020002 00020002 005C0012 53523135 305F5052 4F445F49 4F545F52 4F570103 46430102 03020017 03103847 3450312D 3932B236 46300600 1B000401 64050200 00600302 00096103 02000963 0101A002 0203A108 312E302E 30000000 A208302E 372E3500 0000
+                                   UWBAPI  :WARN :parseDeviceInfo: unknown param Id 0xA2
+        APP     :INFO :Device Name                    : SR150_PROD_IOT_ROW
+
+                                                                          APP     :INFO :Firmware Version               : 46.43.01
+
+                                                  BluetoothLEHost_SetGenericCallback
+BluetoothLEHost_Init
+Ble_Initialize
+Ble_SetBDAddr
+App_NvmRead
+App_NvmRead
+nfc init
+        App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_Initialized
+App_GenericCallback
+ApApp_GenericCallback
+p_RegisterGattServerCallback
+BluetoothLEHost_Initialized : 0x13
+                                  App_RegisterLeCbCallbacks
+aliro_StartAdvertising
+AliroBle_RequestAdvertisementData
+BLE_DYNAMIC_TAG:DEBUG: AliroRD_BLEGetDynamicTag plaintext: 000000000000006037a98886abcdef01
+           BLE_DYNAMIC_TAG:DEBUG: AliroRD_BLEGetDynamicTag ciphertext: 4dce2459477de0d36bb366f917f0ef34
+                       BLE_ADV_IND:DEBUG: service_uuid: f2ff
+                                                            BLE_ADV_IND:DEBUG: ble_config: c0
+             BLE_ADV_IND:DEBUG: tx_power_level_dbm: 00
+                                                      BLE_ADV_IND:DEBUG: truncated_identifier: 00113344667799aa
+                               BLE_ADV_IND:DEBUG: truncated_sub_identifier: 1133
+                                                                                BLE_ADV_IND:DEBUG: dynamic_tag_expiry_timestamp: abcdef01
+                                                         BLE_ADV_IND:DEBUG: RFU: 00
+   BLE_ADV_IND:DEBUG: dynamic_tag: 4dce2459477de0
+                                                 BluetoothLEHost_StartAdvertising
+BluApp_GenericCallback
+etoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_AdvertiserHandler
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_AdvertiserHandler
+App_AdvertisingCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+AliroBle_AdvertisingCallback
+gAdvertisingStateChanged_c
+11 bytes read :
+                PN7642 boot ok
+                              Elapsed PN Boot Time: 6 ms
+data read out done
+                  pn7642_wait_for_tag
+                                     6 bytes write :
+                                                     4 bytes read :
+                                                                    41 03 01 00
+tag cmd sent OK
+               App_ConnectionCallback
+App_AdvertisingCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+AliroBle_ConnectionCallback
+AliroBle_Connected
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+AliroBle_AdvertisingCallback
+App_GenericCallback
+App_ConnectionCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+AliroBle_ConnectionCallback
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+App_GattServerCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_HandleHostMessageInput_Gatt
+AliroBle_GattServerCallback
+App_GenericCallback
+gEvtAttributeWritten_c:
+0x0 0x1
+AliroBle_AccessControlAttWritten
+aliro_handle_user_device_connected
+SESSION:DEBUG: AliroTS_Init
+                           check
+AliroTS_Init fail: -1476SESSION:DEBUG: AliroTS_Deinit
+                                                     PROFILER:INFO : + Aliro Profiler Session Traces
+                     PROFILER:INFO : |T_at (ms)   |Nesting Lvl|Function Name                                                   |T_total (ms)|
+                                                             PROFILER:INFO : |           0|          0|aliro_handle_init                                               |          88|
+                     PApp_L2caLeControlCallback
+ROFILER:INFO : |           2|          1|  AliroECC_EntropyInit                                          |          22|
+                                       PROFILER:INFO : |          25|          1|  AliroECCPK_PrivKeyInitRaw                                     |           1|
+                                                                               PROFILER:INFO : |          25|          2|    AliroECCPK_InitCtxRawInternal                               |           0|
+                                       PROFILER:INFO : |          26|          2|    AliroECCPK_InitCtxRawInternal                               |           0|
+                                                                               PROFILER:INFO : |          27|          1|  AliroECCPK_PrivKeyInitRaw                                     |           1|
+                                       PROFILER:INFO : |          27|          2|    AliroECCPK_InitCtxRawInternal                               |           0|
+                                                                               PROFILER:INFO : |          28|          2|    AliroECCPK_InitCtxRawInternal                               |           0|
+                                       PROFILER:INFO : |          31|          1|  AliroECCPK_CopyKeyPair                                        |           3|
+                                                                               PROFILER:INFO : |          32|          2|    AliroECCPK_CopyMbedtlsPublicKey                             |           1|
+                                       PROFILER:INFO : |          33|          2|    AliroECCPK_CopyMbedtlsPrivateKey                            |           1|
+                                                                               PROFILER:INFO : |          34|          1|  AliroECCPK_CopyKeyPair                                        |           2|
+                                       PROFILER:INFO : |          34|          2|    AliroECCPK_CopyMbedtlsPublicKey                             |           1|
+                                                                               PROFILER:INFO : |          35|          2|    AliroECCPK_CopyMbedtlsPrivateKey                            |           1|
+                                       PROFILER:INFO : |        5520|          0|AliroBLE_FillAdvIndServiceData                                  |          63|
+                                                                               PROFILER:INFO : |        5530|          1|  AliroCrypto_Encrypt_AES128_ECB                                |           0|
+                                       PROFILER:INFO : |       79430|          0|AliroTransactionSession                                         |          14|
+                                                                               PROFILER:INFO : - Aliro Profiler Session Traces
+                                              BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_HandleHostMessageInput_Gatt
+App_HandleHostMessageInput_L2ca
+AliroBle_L2capPsmControlCallback
+App_GenericCallback
+App_L2caLeControlCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_GenericHandler
+BluetoothLEHost_GenericCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_HandleHostMessageInput_Gatt
+App_HandleHostMessageInput_L2ca
+AliroBle_L2capPsmControlCallback
+gL2ca_LePsmConnectionComplete_c
+App_L2caLeDataCallback
+BluetoothLEHost_HandleMessages::mHostAppInputQueue
+App_HandleHostMessageInput
+App_HandleHostMessageInput_Gap
+App_HandleHostMessageInput_Gatt
+App_HandleHostMessageInput_L2ca
+AliroBle_L2capPsmDataCallback
+BLE_MSG RX:
+02 05 00 0c 00 0a a5 08 80 02 00 00 5c 02 01 00
+App_PostCallbackMessage
+BluetoothLEHost_HandleMessages::mAppCbInputQueue
+AliroBle_Msghandler
+152 AliroTS_ProcessResponseData fail: -1588
+t
