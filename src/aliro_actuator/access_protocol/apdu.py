@@ -49,8 +49,9 @@ from aliro_actuator.access_protocol.errors import (
 )
 from aliro_actuator.access_protocol.tlv import TLV, TLVIndex, TlvError
 from aliro_actuator.transport_protocol import TransportProtocolBase
-from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
+from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType, Notification_ID, Event_AttributeID
 from aliro_actuator.transport_protocol.message import Message
+from aliro_actuator.transport_protocol.errors import TimeoutError
 
 import cbor2
 
@@ -1288,32 +1289,59 @@ class APDU:
         commands: list[Command],
         transport_layer: TransportProtocolBase,
         skip_command: int | None = None,
+        timeout: int | None = None,
     ) -> Response:
+        response_pending = True
         if len(commands) == 1:
             Global.logger.debug("Command fits in one message, no chaining required")
             command_chaining_required = False
             Global.logger.info("Sending {} command".format(command_name))
-            await transport_layer.send_message(commands[0])
+            await transport_layer.send_message(commands[0], timeout=timeout)
+            expect_busy = transport_layer.was_timer_started()
 
-            Global.logger.info("Waiting for {} response".format(command_name))
-            response_str, header, id = await transport_layer.get_message()
-            self.check_ble_message_type_for_response(header, id)
-            Global.logger.info("Received response")
-            response = Response.create_from_bytestring(response_str)
+            while response_pending:
+                Global.logger.info("Waiting for {} response".format(command_name))
+                response_str, header, id = await transport_layer.get_message()
+                if (header is not None and header == ProtocolType.NOTIFICATION) and (
+                    id is not None and id == Notification_ID.EVENT) and (
+                    response_str is not None and response_str[0] == Event_AttributeID.BUSY):
+                    # Received busy event
+                    if expect_busy:
+                        continue
+                    raise UnexpectedBLEMessageError(
+                        "Received unexpected busy event ble message "
+                    )
+                self.check_ble_message_type_for_response(header, id)
+                Global.logger.info("Received response")
+                response = Response.create_from_bytestring(response_str)
+                response_pending = False
         else:
             Global.logger.debug("Command chaining required")
             command_chaining_required = True
             for index, command in enumerate(commands):
                 if skip_command is not None and index == skip_command:
                     continue
+                response_pending = True
                 Global.logger.info("Sending {} command".format(command_name))
-                await transport_layer.send_message(command)
+                await transport_layer.send_message(command, timeout=timeout)
+                expect_busy = transport_layer.was_timer_started()
 
-                Global.logger.info("Waiting for {} response".format(command_name))
-                response_str, header, id = await transport_layer.get_message()
-                self.check_ble_message_type_for_response(header, id)
-                Global.logger.info("Received response")
-                response = Response.create_from_bytestring(response_str)
+                while response_pending:
+                    Global.logger.info("Waiting for {} response".format(command_name))
+                    response_str, header, id = await transport_layer.get_message()
+                    if (header is not None and header == ProtocolType.NOTIFICATION) and (
+                        id is not None and id == Notification_ID.EVENT) and (
+                        response_str is not None and response_str[0] == Event_AttributeID.BUSY):
+                        # Received busy event
+                        if expect_busy:
+                            continue
+                        raise UnexpectedBLEMessageError(
+                            "Received unexpected busy event ble message "
+                        )
+                    self.check_ble_message_type_for_response(header, id)
+                    Global.logger.info("Received response")
+                    response = Response.create_from_bytestring(response_str)
+                    response_pending = False
 
         Global.logger.debug("All parts of the command chain are send")
         total_response_data = bytearray()
@@ -1327,6 +1355,7 @@ class APDU:
             Global.logger.info("No response chaining required")
             response_chaining_required = False
         while chaining_remaining is not None:
+            response_pending = True
             response_chaining_required = True
             Global.logger.info("Response chaining is required")
             expected_response_size = chaining_remaining
@@ -1334,16 +1363,28 @@ class APDU:
                 expected_response_size = self.maximum_response_apdu
             get_response = self.create_get_response_command(expected_response_size)
             Global.logger.info("Sending GET RESPONSE command")
-            await transport_layer.send_message(get_response[0])
+            await transport_layer.send_message(get_response[0], timeout=timeout)
+            expect_busy = transport_layer.was_timer_started()
 
-            Global.logger.info("Waiting for GET RESPONSE response")
-            response_str, header, id = await transport_layer.get_message()
-            self.check_ble_message_type_for_response(header, id)
-            Global.logger.info("Received response")
-            response = Response.create_from_bytestring(response_str)
-            if response.data is not None:
-                total_response_data.extend(response.data)
-            chaining_remaining = self.check_chaining_response(response)
+            while response_pending:
+                Global.logger.info("Waiting for GET RESPONSE response")
+                response_str, header, id = await transport_layer.get_message()
+                if (header is not None and header == ProtocolType.NOTIFICATION) and (
+                    id is not None and id == Notification_ID.EVENT) and (
+                    response_str is not None and response_str[0] == Event_AttributeID.BUSY):
+                    # Received busy event
+                    if expect_busy:
+                        continue
+                    raise UnexpectedBLEMessageError(
+                        "Received unexpected busy event ble message "
+                    )
+                self.check_ble_message_type_for_response(header, id)
+                Global.logger.info("Received response")
+                response = Response.create_from_bytestring(response_str)
+                if response.data is not None:
+                    total_response_data.extend(response.data)
+                chaining_remaining = self.check_chaining_response(response)
+                response_pending = False
 
         total_response_data.extend(response.status.to_bytes(2, "big"))
         response = Response.create_from_bytestring(bytes(total_response_data))
@@ -1355,6 +1396,7 @@ class APDU:
         self,
         command_bytes: bytes,
         transport_layer: TransportProtocolBase,
+        timeout: int,
     ) -> Command:
         command = Command.create_from_bytestring(command_bytes)
 
@@ -1368,14 +1410,32 @@ class APDU:
         if command.data is not None:
             total_payload = bytearray(command.data)
 
+        requires_timer = transport_layer.was_timer_started()
+
         while command.chaining_control_bit:
+            response_pending = True
             response = Response.create_from_parameters(status=StatusBytes.SUCCESS)
-            await transport_layer.send_message(response)
-            command_str, header, id = await transport_layer.get_message()
-            self.check_ble_message_type_for_command(header, id)
-            command = Command.create_from_bytestring(command_str)
-            if command.data is not None:
-                total_payload.extend(command.data)
+            if requires_timer:
+                await transport_layer.send_message(response, timeout=timeout)
+            else:
+                await transport_layer.send_message(response, timeout=None)
+                
+            while response_pending:
+                command_str, header, id = await transport_layer.get_message()
+                if (header is not None and header == ProtocolType.NOTIFICATION) and (
+                    id is not None and id == Notification_ID.EVENT) and (
+                    command_str is not None and command_str[0] == Event_AttributeID.BUSY):
+                    # Received busy event
+                    if requires_timer:
+                        continue
+                    raise UnexpectedBLEMessageError(
+                        "Received unexpected busy event ble message "
+                    )
+                self.check_ble_message_type_for_command(header, id)
+                command = Command.create_from_bytestring(command_str)
+                if command.data is not None:
+                    total_payload.extend(command.data)
+                response_pending = False
                 
         command = Command.create_from_parameters(
             command.cla,
@@ -1392,28 +1452,42 @@ class APDU:
         self,
         responses: list[Response],
         transport_layer: TransportProtocolBase,
+        timeout: int | None = None,
     ) -> None:
         if len(responses) == 1:
             Global.logger.debug("Response fits in one message, no chaining required")
-            await transport_layer.send_message(responses[0])
+            await transport_layer.send_message(responses[0], timeout=timeout)
             return
 
         Global.logger.debug("Response chaining required")
         for response in responses:
             Global.logger.debug("Sending response")
-            await transport_layer.send_message(response)
+            await transport_layer.send_message(response, timeout=timeout)
             if response.status == StatusBytes.SUCCESS:
                 Global.logger.debug("Last response send")
                 break
+            expect_busy = transport_layer.was_timer_started()
 
+            response_pending = True
             Global.logger.info("Waiting for GET RESPONSE command")
-            command_str, header, id = await transport_layer.get_message()
-            self.check_ble_message_type_for_command(header, id)
-            command = self.parse_command(command_str)
-            if command.ins != INS.GET_RESPONSE:
-                Global.logger.error("Received command other than GET RESPONSE")
-                raise InvalidINSError(command.to_bytes())
-            Global.logger.info("Received GET RESPONSE command")
+            while response_pending:
+                command_str, header, id = await transport_layer.get_message()
+                if (header is not None and header == ProtocolType.NOTIFICATION) and (
+                    id is not None and id == Notification_ID.EVENT) and (
+                    command_str is not None and command_str[0] == Event_AttributeID.BUSY):
+                    # Received busy event
+                    if expect_busy:
+                        continue
+                    raise UnexpectedBLEMessageError(
+                        "Received unexpected busy event ble message "
+                    )
+                self.check_ble_message_type_for_command(header, id)
+                command = self.parse_command(command_str)
+                if command.ins != INS.GET_RESPONSE:
+                    Global.logger.error("Received command other than GET RESPONSE")
+                    raise InvalidINSError(command.to_bytes())
+                Global.logger.info("Received GET RESPONSE command")
+                response_pending = False
 
     def check_ble_message_type_for_response(
         self, header: int | None, id: int | None

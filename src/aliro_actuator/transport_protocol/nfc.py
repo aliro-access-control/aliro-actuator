@@ -45,6 +45,9 @@ class NFC(TransportProtocolBase):
         self.mode = mode
         self.driver.initialize(mode)
 
+    def was_timer_started(self):
+        return False
+
     async def disconnect(self) -> None:
         self.driver.disconnect()
 
@@ -57,6 +60,7 @@ class NFC(TransportProtocolBase):
     async def send_message(
         self,
         message: bytes | Message,
+        timeout: int | None = None,
     ) -> None:
         if isinstance(message, BleMessage):
             raise UnexpectedMessageTypeError(

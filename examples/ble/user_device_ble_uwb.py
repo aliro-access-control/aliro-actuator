@@ -41,6 +41,7 @@ async def main():
         transport_protocol=TransportProtocol.BLE_UWB,
         access_credentials=access_credentials,
         mailbox=0x20,
+        timeout=None # 1500ms
     )
     await user_device.single_transaction(False)
 
