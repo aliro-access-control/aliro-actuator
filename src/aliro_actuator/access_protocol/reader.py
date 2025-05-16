@@ -300,9 +300,7 @@ class Reader(Device):
         self.timeout = timeout
         self.advertisement_version = advertisement_version
 
-        self._protocol_version = PROTOCOL_VERSION 
-
-        Global.logger.info("Initialized Reader")
+        Global.logger.info("Initialized Reader") 
 
     async def handle_timeout(self):
         # Send general error event
