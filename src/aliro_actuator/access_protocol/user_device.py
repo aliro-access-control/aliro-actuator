@@ -324,7 +324,7 @@ class UserDevice(Device):
                     if self.session is None:
                         raise SessionError("starting session failed")
                     message = await self.wait_for_message()
-                    if (message.header == ProtocolType.NOTIFICATION) and (
+                    if isinstance(message, BleMessage) and (message.header == ProtocolType.NOTIFICATION) and (
                         message.id == Notification_ID.EVENT) and (
                         message.payload is not None and message.payload[0] == Event_AttributeID.BUSY):
                         # Received busy event
@@ -451,6 +451,8 @@ class UserDevice(Device):
                             return
                         case INS.EXCHANGE:
                             await self.handle_exchange(message)
+                        case INS.ENVELOPE:
+                            await self.handle_envelope(message)
                         case _:
                             raise NotImplementedError(
                                 "command: {} not implemented".format(message.ins)
