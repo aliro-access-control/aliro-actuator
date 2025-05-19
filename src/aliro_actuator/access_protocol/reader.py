@@ -664,7 +664,7 @@ class Reader(Device):
             auth0_response = await self.command_auth0(
                 transaction=transaction_type,
                 authentication_policy=authentication_policy,
-                protocol_version=self.protocol_version(),
+                protocol_version=PROTOCOL_VERSION,
                 reader_epubk=self.session.get_reader_epubkey().as_bytes(),
                 transaction_identifier=self.session.transaction_identifier,
                 reader_identifier=self.reader_identifier,
