@@ -12,14 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cbor2
+
 
 class Document:
-    def store(self) -> None:
-        pass
+    data = None
 
-    def retrieve(self) -> None:
-        pass
+    def __init__(self, cbor_data: bytes):
+        self.data = cbor_data
+
+    def store(self, cbor_data: bytes):
+        self.data = cbor_data
+
+    def retrieve(self) -> bytes:
+        return self.data
 
     def get_timestamp(self) -> bytes | None:
-        # todo
-        return None
+        '''Return "signed" timestamp from IssuerAuth'''
+        try:
+            data_dict = cbor2.loads(self.data)
+            issuer_auth = cbor2.loads(cbor2.loads(data_dict["1"]["2"][2]).value)
+            dt = issuer_auth["6"]["1"]
+            return dt.isoformat('T', 'seconds').replace('+00:00', 'Z').encode('utf-8')
+        except KeyError:
+            return None
+        except TypeError:
+            return None
