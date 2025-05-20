@@ -2,7 +2,7 @@
 Before use with the actuator, the murata firmware needs to be updated. 
 The firmware file can be found in the aliro-th-additions folder. 
 (run `git submodule init` and `git submodule update` if this folder is missing.)
-The firmware file is named `uwb_ble_device_fw-v05.00.00.bin` (or a later version). 
+The firmware file is named `uwb_ble_device_fw-v05.00.03` (or a later version). 
 The murata can be updated with the DK6Programmer tool, or with MCUxpresso and a debugger.
 
 ## Using DK6Programmer (windows only)
@@ -44,4 +44,4 @@ Inside the aliro-th-additions folder there is also the firmware that is loaded f
 This firmware enables the UWB chip to be used for CCC ranging sessions along with the ucitool.
 This firmware does not need to be loaded by the user manually, the upload is done automatically by the ucitool.
 
-Firmware for uwb: `aliro_IOT.SR150_MAINLINE_PROD_FW_46.42.01_c366707f17a03.bin`
+Firmware for uwb: `ALIRO_IOT_SR150_FW_v46.43.14.bin`
