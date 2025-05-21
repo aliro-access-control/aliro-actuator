@@ -2,7 +2,7 @@
 Before use with the actuator, the murata firmware needs to be updated. 
 The firmware file can be found in the aliro-th-additions folder. 
 (run `git submodule init` and `git submodule update` if this folder is missing.)
-The firmware file is named `uwb_ble_device_fw-v05.00.03` (or a later version). 
+The firmware file is named `uwb_ble_device_fw-v05.00.03.bin` (or a later version). 
 The murata can be updated with the DK6Programmer tool, or with MCUxpresso and a debugger.
 
 ## Using DK6Programmer (windows only)
