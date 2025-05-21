@@ -166,7 +166,7 @@ class BLEUWB(TransportProtocolBase):
             value = bytearray()
             value.extend(int.to_bytes(version, 2, "big"))
             value.append(0x01) # Features Supported Length 
-            value.append(0x03) # support time synch
+            value.append(0x03 | (features[0] & 0x04)) # support time sync. and/or LE_coded_phy 
             await self.driver.handle_GATT_layer_write_characteristic(
                 primary_service, value
             )
