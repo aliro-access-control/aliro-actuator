@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from aliro_actuator.access_document.access_credential import AccessDocument
+from aliro_actuator.access_document.access_document import AccessDocument
 from aliro_actuator.access_document.revocation_document import RevocationDocument
 from aliro_actuator.access_protocol.apdu import (
     APDU,

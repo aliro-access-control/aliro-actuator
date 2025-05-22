@@ -19,10 +19,6 @@ ID_MAX = 16
 
 
 class AccessDocument(Document):
-    def __init__(self) -> None:
-        self.issuer_auth = IssuerAuth()
-        # self.data_elements = []
-
     def parse(self) -> None:
         pass
 
