@@ -57,6 +57,14 @@ class WRAPPED_RDS:
     TAG = "WRAPPED_RDS"
 
 
+class TEST_KDF_FEATURE:
+    TAG_ID = [102]
+    TAG = "TEST_KDF_FEATURE"
+    LEN = 1
+    DISABLE = 0
+    ENABLE = 1
+
+
 class UCIHoppingConfig(IntEnum):
     NO_HOPPING = 0
     ADAPTIVE_HOPPING_MODULO = 2
@@ -274,8 +282,8 @@ class MurataUWBDriver(MurataBaseDriver):
 
         uci.set_vendor_app_config(
             self.dh,
-            config=uci.VENDOR_APP_CFG.TEST_KDF_FEATURE,
-            value=uci.VENDOR_APP_CFG.TEST_KDF_FEATURE.ENABLE,
+            config=TEST_KDF_FEATURE,
+            value=TEST_KDF_FEATURE.ENABLE,
             session_id=self.session_handle_dh,
         )
 
