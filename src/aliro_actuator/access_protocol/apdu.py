@@ -1718,6 +1718,23 @@ class APDU:
         )
         return self.create_response(data_bytes.to_bytes(), status)
 
+    def create_auth0_response_with_wrong_tag_value(
+        self, credential_epubk: bytes, status: int, cryptogram: bytes | None = None
+    ) -> list[Response]:
+        Global.logger.info("Creating AUTH0 response")
+        Auth0.CREDENTIAL_EPUBK_TAG = 0x80
+        data_tlv: list[tuple[int, bytes | list]] = [
+            (Auth0.CREDENTIAL_EPUBK_TAG, credential_epubk) # Giving a wrong Auth0 tag
+        ]
+        if cryptogram is not None:
+            data_tlv.append((Auth0.CRYPTOGRAM_TAG, cryptogram))
+
+        data_bytes = TLV(data_tlv)
+        Global.logger.debug(
+            "Response contains TLV structure: {}".format(data_bytes.to_print())
+        )
+        return self.create_response(data_bytes.to_bytes(), status)
+    
     def create_load_cert_command(self, compressed_reader_cert: bytes) -> list[Command]:
         Global.logger.info("Creating LOAD CERT command")
         return self.create_command(

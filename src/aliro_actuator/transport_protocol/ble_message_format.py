@@ -383,7 +383,6 @@ class BleMessage(Message):
             RangingMessage_AttributeID.SECURE_RANGING_OVER_UWB_RADIO_FAILED,
             RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED,
         ]:
-            # if self.attribute.id != RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
             raise BLEMessageError(
                 self.to_bytes(),
                 "Invalid attribute in ble message: 0x{:02x}".format(self.attribute.id),
