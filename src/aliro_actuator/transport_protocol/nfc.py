@@ -40,7 +40,7 @@ class NFC(TransportProtocolBase):
         reader_group_identifier_list: list = [],
         spsm: bytes = bytes.fromhex("0080"),
         timeout: float | None = None,
-        advertisment_version: int = 0x00,
+        advertisement_version: int = 0x00,
     ) -> None:
         self.mode = mode
         self.driver.initialize(mode)

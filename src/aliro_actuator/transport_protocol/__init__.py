@@ -35,6 +35,8 @@ class TransportProtocolBase(ABC):
         group_resolving_key: bytes = 16 * bytes.fromhex("00"),
         reader_group_identifier_list: list = [],
         spsm: bytes = bytes.fromhex("0080"),
+        timeout: float | None = None,
+        advertisement_version: int = 0x00,
     ) -> None:
         pass
 
