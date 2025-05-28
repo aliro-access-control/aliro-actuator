@@ -1627,7 +1627,7 @@ class Reader(Device):
                     case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME:
                         await self.send_ranging_session_resume_request()
                     case RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED:
-                        await self.send_ranging_session_suspend_request()
+                        await self.transport_protocol.stop_ranging()
                     case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_SETUP_LATER | RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME_LATER | RangingMessage_AttributeID.SECURE_RANGING_OVER_UWB_RADIO_FAILED:
                         raise NotImplementedError
             elif (
