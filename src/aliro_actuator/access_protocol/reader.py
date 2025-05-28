@@ -1645,11 +1645,13 @@ class Reader(Device):
 
                 val = await self.transport_protocol.get_ranging_data()
                 Global.logger.info(f"Ranging distance: {val}")
+                '''
                 await self.send_ranging_session_suspend_request()
                 await self.reader_status_status_changed(
                     ReaderStatusInformation_Values.UNSECURED,
                     OperationSourceInformation_Values.UNSPECIFIED,
                 )
+                '''
             elif (
                 header == ProtocolType.UWB_RANGING_SERVICE
                 and id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST
