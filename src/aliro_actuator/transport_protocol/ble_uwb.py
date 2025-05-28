@@ -170,13 +170,13 @@ class BLEUWB(TransportProtocolBase):
             Global.logger.debug(
                 "Read features from reader: {!r}".format(hexlify(features))
             )
-            self.time_sync_0 = (features[0] & 0x01) == 0x01
-            self.time_sync_1 = (features[0] & 0x02) == 0x02
+            self.time_sync_0 = 0x01
+            self.time_sync_1 = 0x01
             self.LE_coded_phy = (features[0] & 0x04) == 0x04
             value = bytearray()
             value.extend(int.to_bytes(version, 2, "big"))
-            value.append(0x01)  # Features Supported Length
-            value.append(features[0] & 0x07)
+            value.append(0x01) # Features Supported Length 
+            value.append(0x03 | (features[0] & 0x04)) # support time sync. and/or LE_coded_phy 
             await self.driver.handle_GATT_layer_write_characteristic(
                 primary_service, value
             )
