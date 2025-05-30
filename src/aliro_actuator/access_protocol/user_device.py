@@ -2608,7 +2608,7 @@ class UserSession:
 
         if hasattr(self, "access_credential"):
             Global.logger.info("Checking Access Credential")
-             if self.access_credential.has_identifier(self.reader_group_identifier):
+            if self.access_credential.has_identifier(self.reader_group_identifier):
                 reader_public_key = self.access_credential.get_reader_public_key(
                     self.reader_group_identifier
                 )
