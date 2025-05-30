@@ -217,6 +217,7 @@ class Reader(Device):
         mode: ReaderMode = ReaderMode.TEST,
         timeout: float | None = None,
         advertisement_version: int = 0x00,
+        enable_uwb: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -300,6 +301,7 @@ class Reader(Device):
 
         self.timeout = timeout
         self.advertisement_version = advertisement_version
+        self.enable_uwb = enable_uwb
 
         Global.logger.info("Initialized Reader") 
 
@@ -341,9 +343,10 @@ class Reader(Device):
         ):
             # Setup UWB session id
             Global.logger.info(f"Transaction ID: {self.session.transaction_identifier}")
-            await self.transport_protocol.driver.session_init(
-                session_id=self.session.transaction_identifier[-4:]
-            )
+            if self.enable_uwb:
+                await self.transport_protocol.driver.session_init(
+                    session_id=self.session.transaction_identifier[-4:]
+                )
             await self.wait_for_initiate_access_protocol_notification(rke=rke)
         else:
             await self.handle_select(EXPEDITED_PHASE_AID, check_apdu_length)
@@ -371,6 +374,7 @@ class Reader(Device):
             spsm=self.spsm,
             timeout=self.timeout,
             advertisement_version=self.advertisement_version,
+            enable_uwb=self.enable_uwb,
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Connection established")

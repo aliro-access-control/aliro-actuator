@@ -80,10 +80,12 @@ class BLEUWB(TransportProtocolBase):
         LE_coded_phy: bool = True,
         timeout: float | None = None,
         advertisement_version: int = 0x00,
+        enable_uwb: bool = True,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
         self.spsm = spsm
+        self.enable_uwb = enable_uwb
 
         # In case uci is open close it before trying to initialize again
         if hasattr(self, "driver"):
@@ -98,6 +100,7 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.uci_initialize(
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
+                enable_uwb=self.enable_uwb,
             )
             await self.driver.setup_gatt_database(
                 self.spsm,
@@ -124,6 +127,7 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.uci_initialize(
                 dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
+                enable_uwb=self.enable_uwb,
             )
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
@@ -304,7 +308,8 @@ class BLEUWB(TransportProtocolBase):
         return await self.driver.get_uwb_config_id()
 
     async def set_session_key(self, ursk: bytes) -> None:
-        await self.driver.set_session_key(ursk)
+        if self.enable_uwb:
+            await self.driver.set_session_key(ursk)
 
     async def get_session_key(self) -> bytes:
         return await self.driver.get_session_key()

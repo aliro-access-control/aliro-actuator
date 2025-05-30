@@ -182,6 +182,7 @@ class UserDevice(Device):
         support_step_up_notify: bool = True,
         support_step_up_update_doc: bool = True,
         timeout: float | None = None,
+        enable_uwb: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
 
@@ -230,6 +231,7 @@ class UserDevice(Device):
         
         self.timeout = timeout
         self._timer = None
+        self.enable_uwb = enable_uwb
 
     async def handle_timeout(self):
         # Send general error event
@@ -276,7 +278,8 @@ class UserDevice(Device):
             Mode.USER_DEVICE,
             group_resolving_key=self.group_resolving_key,
             reader_group_identifier_list=reader_group_list,
-            timeout=self.timeout
+            timeout=self.timeout,
+            enable_uwb=self.enable_uwb
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Connection established")
@@ -1083,9 +1086,10 @@ class UserDevice(Device):
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
         ):
-            await self.transport_protocol.driver.session_init(
-                session_id=self.session.transaction_identifier[-4:]
-            )
+            if self.enable_uwb:
+                await self.transport_protocol.driver.session_init(
+                    session_id=self.session.transaction_identifier[-4:]
+                )
 
         Global.logger.info("Looking up access credential")
         for access_credential in self.access_credentials:
@@ -1227,9 +1231,10 @@ class UserDevice(Device):
             self.transport_protocol_type == TransportProtocol.BLE_UWB
             or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
         ):
-            await self.transport_protocol.driver.session_init(
-                session_id=self.session.transaction_identifier[-4:]
-            )
+            if self.enable_uwb:
+                await self.transport_protocol.driver.session_init(
+                    session_id=self.session.transaction_identifier[-4:]
+                )
 
         Global.logger.info("Looking up access credential")
         for access_credential in self.access_credentials:
