@@ -1006,6 +1006,8 @@ class UserDevice(Device):
                 ]:
                     Global.logger.info("Setting up BLE encryption")
                     self.session.set_ble_encryption(self.transport_protocol)
+                    Global.logger.info("Setting up UWB secure ranging")
+                    await self.transport_protocol.set_session_key(self.session.UR_SK)
 
                 doc_timestamp = None
                 revoke_timestamp = None
