@@ -41,6 +41,7 @@ class NFC(TransportProtocolBase):
         spsm: bytes = bytes.fromhex("0080"),
         timeout: float | None = None,
         advertisement_version: int = 0x00,
+        enable_uwb: bool = True,
     ) -> None:
         self.mode = mode
         self.driver.initialize(mode)
