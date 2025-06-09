@@ -34,7 +34,5 @@ class Document:
             issuer_auth = cbor2.loads(cbor2.loads(data_dict["1"]["2"][2]).value)
             dt = issuer_auth["6"]["1"]
             return dt.isoformat('T', 'seconds').replace('+00:00', 'Z').encode('utf-8')
-        except KeyError:
-            return None
-        except TypeError:
+        except (KeyError, TypeError, cbor2.CBORError):
             return None
