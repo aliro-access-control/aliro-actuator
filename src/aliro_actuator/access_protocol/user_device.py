@@ -1703,8 +1703,13 @@ class UserDevice(Device):
                                 Global.logger.info("Invalid importance level {}".format(importanceLevel))
                                 raise AccessProtocolError
                         else:
-                            Global.logger.info("Invalid tag")
-                            raise AccessProtocolError
+                            if tag == 0xC2:
+                                descriptor = []
+                                descriptor = tlv.get_all_bytes_of_tag(0xC2)
+                                Global.logger.info("received Reader descriptor: {!r}".format(hexlify(descriptor)))
+                            else:
+                                Global.logger.info("Invalid tag")
+                                raise AccessProtocolError
 
         Global.logger.info("Handling read requests")
         read_data: list[tuple[int, bytes]] = []
