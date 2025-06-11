@@ -63,7 +63,20 @@ class TEST_KDF_FEATURE:
     LEN = 1
     DISABLE = 0
     ENABLE = 1
-
+    
+class PSDU_LOG_NTF:
+    TAG_ID = [49]
+    TAG = "PSDU_LOG_NTF"
+    LEN = 1
+    DISABLE = 0
+    ENABLE = 1
+    
+class MAC_PAYLOAD_ENCRYPTION:
+    TAG_ID = [0]
+    TAG = "MAC_PAYLOAD_ENCRYPTION"
+    LEN = 1
+    PLAIN = 0
+    ENCRYPTED = 1
 
 class UCIHoppingConfig(IntEnum):
     NO_HOPPING = 0
@@ -280,10 +293,23 @@ class MurataUWBDriver(MurataBaseDriver):
             session_id=self.session_handle_dh,
         )
 
+        # Enable UWB extra logging
         uci.set_vendor_app_config(
             self.dh,
             config=TEST_KDF_FEATURE,
             value=TEST_KDF_FEATURE.ENABLE,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_vendor_app_config(
+            self.dh,
+            config=PSDU_LOG_NTF,
+            value=PSDU_LOG_NTF.ENABLE,
+            session_id=self.session_handle_dh,
+        )
+        uci.set_vendor_app_config(
+            self.dh,
+            config=MAC_PAYLOAD_ENCRYPTION,
+            value=MAC_PAYLOAD_ENCRYPTION.PLAIN,
             session_id=self.session_handle_dh,
         )
 
