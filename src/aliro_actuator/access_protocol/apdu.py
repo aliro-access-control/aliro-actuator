@@ -17,6 +17,8 @@ from __future__ import annotations
 from binascii import hexlify
 from enum import IntEnum
 
+import cbor2
+
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.defines import (
     AUTHENTICATION_TAG_SIZE,
@@ -47,12 +49,10 @@ from aliro_actuator.access_protocol.errors import (
     MessageTooLongError,
     UnexpectedBLEMessageError,
 )
-from aliro_actuator.access_protocol.tlv import TLV, TLVIndex, TlvError
+from aliro_actuator.access_protocol.tlv import TLV, TlvError, TLVIndex
 from aliro_actuator.transport_protocol import TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_message_format import AP_ID, ProtocolType
 from aliro_actuator.transport_protocol.message import Message
-
-import cbor2
 
 # See Aliro spec 8.3
 APDU_COMMAND_MAX_DATA_LENGTH = 255
@@ -155,6 +155,11 @@ class ReaderStatus(IntEnum):
     READER_STATE_JAMMED = 0x0102
     READER_STARTED_SECURE = 0x0180
     READER_STARTED_UNSECURE = 0x0181
+    READER_STATE_UNKNOWN = 0x0182
+
+    @property
+    def is_success(self) -> bool:
+        return self >> 8 == 1
 
 
 class StatusBytes(IntEnum):
