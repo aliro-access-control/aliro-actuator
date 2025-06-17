@@ -1682,31 +1682,31 @@ class UserDevice(Device):
                         raise AccessProtocolError
                     Global.logger.info("received error notification: {!r}".format(hexlify(error)))
             else:
-                if tag & 0x9F00 != 0x9F00:
-                    Global.logger.info("tag does not match with 0xC1 or 0x9Fxx")
-                    raise AccessProtocolError
+                if tag == 0xC2:
+                    descriptor = []
+                    descriptor = tlv.get_all_bytes_of_tag(0xC2)
+                    Global.logger.info("received Reader descriptor: {!r}".format(hexlify(descriptor)))
                 else:
-                    Global.logger.info("Notify Credential Issuer backend or application")
-                    if tag & 0x9FC0 == 0x9F00:
-                        Global.logger.info("Request to send data to a bound application on User Device")
+                    if tag & 0x9F00 != 0x9F00:
+                        Global.logger.info("tag does not match with 0xC1 or 0x9Fxx")
+                        raise AccessProtocolError
                     else:
-                        if tag & 0x9FC0 == 0x9F40:
-                            Global.logger.info("Request to send data to the Credential Issuer backend")
-                            if tag & 0x9F10 == 0x9F10:
-                                Global.logger.info("Request is time sensitive")
-                            else:
-                                Global.logger.info("Request is not time sensitive")
-                            importanceLevel = tag & 0x0007
-                            if 0 <= importanceLevel < 5:
-                                Global.logger.info("Importance level: {}".format(importanceLevel))
-                            else:
-                                Global.logger.info("Invalid importance level {}".format(importanceLevel))
-                                raise AccessProtocolError
+                        Global.logger.info("Notify Credential Issuer backend or application")
+                        if tag & 0x9FC0 == 0x9F00:
+                            Global.logger.info("Request to send data to a bound application on User Device")
                         else:
-                            if tag == 0xC2:
-                                descriptor = []
-                                descriptor = tlv.get_all_bytes_of_tag(0xC2)
-                                Global.logger.info("received Reader descriptor: {!r}".format(hexlify(descriptor)))
+                            if tag & 0x9FC0 == 0x9F40:
+                                Global.logger.info("Request to send data to the Credential Issuer backend")
+                                if tag & 0x9F10 == 0x9F10:
+                                    Global.logger.info("Request is time sensitive")
+                                else:
+                                    Global.logger.info("Request is not time sensitive")
+                                importanceLevel = tag & 0x0007
+                                if 0 <= importanceLevel < 5:
+                                    Global.logger.info("Importance level: {}".format(importanceLevel))
+                                else:
+                                    Global.logger.info("Invalid importance level {}".format(importanceLevel))
+                                    raise AccessProtocolError
                             else:
                                 Global.logger.info("Invalid tag")
                                 raise AccessProtocolError
