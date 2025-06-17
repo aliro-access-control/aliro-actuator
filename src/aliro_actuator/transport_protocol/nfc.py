@@ -61,7 +61,7 @@ class NFC(TransportProtocolBase):
             raise UnexpectedMessageTypeError(
                 "It is not possible to send BLE messages using NFC"
             )
-        elif isinstance(message, APDUMessage):
+        if isinstance(message, APDUMessage):
             message_bytes = message.to_bytes()
         elif isinstance(message, bytes):
             message_bytes = message
