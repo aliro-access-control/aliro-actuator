@@ -1685,7 +1685,7 @@ class UserDevice(Device):
                 if tag == 0xC2:
                     descriptor = []
                     descriptor = tlv.get_all_bytes_of_tag(0xC2)
-                    Global.logger.info("received Reader descriptor: {!r}".format(hexlify(descriptor)))
+                    Global.logger.info("received Reader descriptor: {!r}".format(hexlify(bytes(descriptor))))
                 else:
                     if tag & 0x9F00 != 0x9F00:
                         Global.logger.info("tag does not match with 0xC1 or 0x9Fxx")
