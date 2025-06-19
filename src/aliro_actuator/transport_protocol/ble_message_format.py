@@ -188,6 +188,7 @@ class BleMessage(Message):
         if self.attribute.id not in [
             Event_AttributeID.BUSY,
             Event_AttributeID.GENERAL_ERROR,
+            Event_AttributeID.READER_DESCRIPTOR,
         ]:
             raise BLEMessageError(
                 self.to_bytes(),
@@ -211,6 +212,11 @@ class BleMessage(Message):
                 int.from_bytes(self.attribute.value, "big"),
                 GeneralError_Values,
             )
+            offset = self.attribute.length
+            if offset < len(self.payload):
+                attribute = BleAttribute.from_bytes(self.payload[offset:None])
+                self.reader_descriptor = attribute.value
+            
         Global.logger.info("Parsing Event done")
 
     def _parse_reader_status_changed_payload(self) -> None:
@@ -1059,6 +1065,7 @@ class RKERequest_AttributeID(IntEnum):
 class Event_AttributeID(IntEnum):
     BUSY = 0x00
     GENERAL_ERROR = 0x01
+    READER_DESCRIPTOR = 0x02
 
 
 class ReaderStatusChanged_AttributeID(IntEnum):
