@@ -112,17 +112,17 @@ class BleMessage(Message):
             case Notification_ID.EVENT:
                 self._parse_event_payload()
             case Notification_ID.RANGING:
-                self._parse_ranging_initiation_payload()
+                self._parse_ranging_payload()
             case Notification_ID.READER_STATUS_CHANGED:
                 self._parse_reader_status_changed_payload()
             case Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED:
                 self._parse_access_protocol_completed_payload()
             case Notification_ID.RKE_REQUEST:
-                raise NotImplementedError
+                self._parse_rke_request_payload()
             case Notification_ID.INITIATE_ACCESS_PROTOCOL:
                 self._parse_initiate_access_protocol()
             case Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE:
-                raise NotImplementedError
+                self._parse_initiate_access_protocol(rke=True)
 
     def _parse_uwb_ranging_service_payload(
         self, ble_encryption: EncryptionEngine | None = None
@@ -188,6 +188,7 @@ class BleMessage(Message):
         if self.attribute.id not in [
             Event_AttributeID.BUSY,
             Event_AttributeID.GENERAL_ERROR,
+            Event_AttributeID.READER_DESCRIPTOR,
         ]:
             raise BLEMessageError(
                 self.to_bytes(),
@@ -211,6 +212,11 @@ class BleMessage(Message):
                 int.from_bytes(self.attribute.value, "big"),
                 GeneralError_Values,
             )
+            offset = self.attribute.length
+            if offset < len(self.payload):
+                attribute = BleAttribute.from_bytes(self.payload[offset:None])
+                self.reader_descriptor = attribute.value
+            
         Global.logger.info("Parsing Event done")
 
     def _parse_reader_status_changed_payload(self) -> None:
@@ -271,8 +277,24 @@ class BleMessage(Message):
             ReaderStatusInformation_Values,
         )
         Global.logger.info("Parsing Reader Status Access Protocol Completed done")
+        
+    def _parse_rke_request_payload(self) -> None:
+        Global.logger.info("Parsing RKE request Completed")
+        self.attribute = BleAttribute.from_bytes(self.payload)
+        if self.attribute.id != RKERequest_AttributeID.ACTION:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute in ble message: 0x{:02x}".format(self.attribute.id),
+            )
+        if self.attribute.value is None:
+            raise BLEMessageError(
+                self.to_bytes(),
+                "Invalid attribute length in ble message",
+            )
+        self.rke_action = self.attribute.value
+        Global.logger.info("Parsing RKE request Completed done")
 
-    def _parse_initiate_access_protocol(self) -> None:
+    def _parse_initiate_access_protocol(self, rke: bool = False) -> None:
         Global.logger.info("Parsing Initiate Access Protocol")
         self.attribute = BleAttribute.from_bytes(self.payload)
         if self.attribute.id != InitiateAccessProtocol_AttributeID.PROPRIETARY_INFO:
@@ -286,6 +308,8 @@ class BleMessage(Message):
                 self.to_bytes(),
                 "Invalid attribute length in ble message",
             )
+            
+        self.rke = rke
 
         try:
             proprietary_tlv = TLV.from_bytes(self.attribute.value)
@@ -354,10 +378,17 @@ class BleMessage(Message):
         )
         Global.logger.info("Parsing Initiate Access Protocol done")
 
-    def _parse_ranging_initiation_payload(self) -> None:
+    def _parse_ranging_payload(self) -> None:
         Global.logger.info("Parsing ranging initiation")
         self.attribute = BleAttribute.from_bytes(self.payload)
-        if self.attribute.id != RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
+        if self.attribute.id not in [
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION,
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME,
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION_SETUP_LATER,
+            RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME_LATER,
+            RangingMessage_AttributeID.SECURE_RANGING_OVER_UWB_RADIO_FAILED,
+            RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED,
+        ]:
             raise BLEMessageError(
                 self.to_bytes(),
                 "Invalid attribute in ble message: 0x{:02x}".format(self.attribute.id),
@@ -609,13 +640,34 @@ class BleMessage(Message):
     def create_initiate_access_protocol(
         proprietary_info: bytes,
         ble_encryption: EncryptionEngine | None = None,
+        rke: bool = False,
     ) -> BleMessage:
         attribute = BleAttribute(
             InitiateAccessProtocol_AttributeID.PROPRIETARY_INFO, proprietary_info
         )
+        if rke:
+            id = Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE
+        else:
+            id = Notification_ID.INITIATE_ACCESS_PROTOCOL
         ble_message = BleMessage(
             ProtocolType.NOTIFICATION,
-            Notification_ID.INITIATE_ACCESS_PROTOCOL,
+            id,
+            attribute.to_bytes(),
+        )
+        ble_message._encrypt(ble_encryption)
+        return ble_message
+    
+    @staticmethod
+    def create_rke_request(
+        action: bytes, 
+        ble_encryption: EncryptionEngine | None = None
+    ) -> BleMessage:
+        attribute = BleAttribute(
+            RKERequest_AttributeID.ACTION, action
+        )
+        ble_message = BleMessage(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.RKE_REQUEST,
             attribute.to_bytes(),
         )
         ble_message._encrypt(ble_encryption)
@@ -628,6 +680,19 @@ class BleMessage(Message):
     ) -> BleMessage:
         data = errorcode.to_bytes(1, "big")
         attribute = BleAttribute(Event_AttributeID.GENERAL_ERROR, data)
+        ble_message = BleMessage(
+            ProtocolType.NOTIFICATION,
+            Notification_ID.EVENT,
+            attribute.to_bytes(),
+        )
+        ble_message._encrypt(ble_encryption)
+        return ble_message
+
+    @staticmethod
+    def create_busy_event_message(
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        attribute = BleAttribute(Event_AttributeID.BUSY, None)
         ble_message = BleMessage(
             ProtocolType.NOTIFICATION,
             Notification_ID.EVENT,
@@ -952,7 +1017,7 @@ class BleMessage(Message):
         uwb_time0: bytes,
         ble_encryption: EncryptionEngine | None = None,
     ) -> BleMessage:
-        data = sts_index0.to_bytes(2, "big")
+        data = sts_index0.to_bytes(4, "big")
         sts_index0_attr = BleAttribute(UWB_AttributeID.STS_INDEX0, data)
         uwb_time0_attr = BleAttribute(UWB_AttributeID.UWB_TIME0, uwb_time0)
 
@@ -967,15 +1032,40 @@ class BleMessage(Message):
         )
         message._encrypt(ble_encryption)
         return message
-
+    
+    @staticmethod
+    def create_ranging_messsage_suspended(
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        data = BleAttribute(RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED)
+        message = BleMessage(
+            ProtocolType.NOTIFICATION, Notification_ID.RANGING, data.to_bytes()
+        )
+        message._encrypt(ble_encryption)
+        return message
+    
+    @staticmethod
+    def create_ranging_message_resume(
+        ble_encryption: EncryptionEngine | None = None,
+    ) -> BleMessage:
+        data = BleAttribute(RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME)
+        message = BleMessage(
+            ProtocolType.NOTIFICATION, Notification_ID.RANGING, data.to_bytes()
+        )
+        message._encrypt(ble_encryption)
+        return message
 
 class InitiateAccessProtocol_AttributeID(IntEnum):
     PROPRIETARY_INFO = 0x00
+    
+class RKERequest_AttributeID(IntEnum):
+    ACTION = 0x00
 
 
 class Event_AttributeID(IntEnum):
     BUSY = 0x00
     GENERAL_ERROR = 0x01
+    READER_DESCRIPTOR = 0x02
 
 
 class ReaderStatusChanged_AttributeID(IntEnum):

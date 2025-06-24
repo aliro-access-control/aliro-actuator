@@ -60,12 +60,18 @@ class UserDeviceMurataDriver(
                 ", ".join(str(hexlify(x)) for x in self.reader_group_identifier_list)
             )
         )
-        advertisement_info = await self.search_for_device(
-            ALIRO_SERVICE_UUID,
-            True,
-            self.group_resolving_key,
-            self.reader_group_identifier_list,
-        )
+        while True:
+            advertisement_info = await self.search_for_device(
+                ALIRO_SERVICE_UUID,
+                True,
+                self.group_resolving_key,
+                self.reader_group_identifier_list,
+            )
+            if advertisement_info.BLE_UWB_supported or advertisement_info.BLE_only_supported:
+                # Fine
+                break
+            Global.logger.info("Rescan as BLE or UWB was not supported")
+            
         await self.stop_scanning()
         await self.connect(
             advertisement_info.address_type,

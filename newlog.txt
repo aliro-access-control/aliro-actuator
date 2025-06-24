@@ -1,0 +1,22 @@
+C:\_ddm\Aliro\aliro-certification-tool\test_collections\aliro\support\aliro_actuator\venv\Lib\site-packages\aliro_actuator\hw_driver\murata_driver
+DEBUG    | 2025-01-27 15:40:28.566 | logging:callHandlers:1706 | Using proactor: IocpProactor
+DEBUG    | 2025-01-27 15:40:28.579 | aliro_actuator.trust_framework.key:__init__:83 | created public key object: b'043928f322019d4757893bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee'
+DEBUG    | 2025-01-27 15:40:28.580 | aliro_actuator.trust_framework.key:__init__:83 | created public key object: b'04742df736d0fc9be978c45b00e8fdf7cea684ea105ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c759f31e8ccf17e3efa'
+DEBUG    | 2025-01-27 15:40:28.581 | aliro_actuator.trust_framework.key:__init__:187 | loaded private key from PEM
+DEBUG    | 2025-01-27 15:40:28.583 | aliro_actuator.trust_framework.access_credential:__init__:38 | Creating Access Credential
+DEBUG    | 2025-01-27 15:40:28.583 | aliro_actuator.trust_framework.access_credential:__init__:40 | Using user device private key: b'f6f601cac64e2d4e47e9b2d1d0408680cef95e4e84b5ecee64d3401773bf9426'
+DEBUG    | 2025-01-27 15:40:28.583 | aliro_actuator.trust_framework.access_credential:__init__:45 | Using user device public key: b'04742df736d0fc9be978c45b00e8fdf7cea684ea105ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c759f31e8ccf17e3efa'
+DEBUG    | 2025-01-27 15:40:28.583 | aliro_actuator.trust_framework.access_credential:__init__:51 | Reader id key list:
+DEBUG    | 2025-01-27 15:40:28.583 | aliro_actuator.trust_framework.access_credential:__init__:53 | Reader group identifier: b'00113344667799aa00113344667799aa'
+DEBUG    | 2025-01-27 15:40:28.584 | aliro_actuator.trust_framework.access_credential:__init__:54 | Reader group identifier key: b'043928f322019d4757893bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee'
+INFO     | 2025-01-27 15:40:28.584 | aliro_actuator.access_protocol.device:__init__:49 | Using BLE and UWB for data transport
+INFO     | 2025-01-27 15:40:28.586 | aliro_actuator.access_protocol.user_device:transaction_initiation:212 | Start Transaction Initiation
+INFO     | 2025-01-27 15:40:28.587 | aliro_actuator.access_protocol.user_device:setup_connection:239 | Setting up connection
+INFO     | 2025-01-27 15:40:28.595 | logging:callHandlers:1706 | 	[DEVICE]	Initialize Device: RHODES Port:COM6
+INFO     | 2025-01-27 15:40:28.615 | aliro_actuator.hw_driver.murata_driver.uwb_driver:uci_initialize:80 | Initialize UCI device.
+INFO     | 2025-01-27 15:40:28.615 | aliro_actuator.hw_driver.murata_driver.uwb_driver:uci_initialize:94 | Upload UWB device firmware. (This can take a while)
+PowerUp TX:ff040000
+PowerUp RX1:ff01020304
+INFO     | 2025-01-27 15:40:28.979 | logging:callHandlers:1706 | 	[HBCI]		Fw download in progress...
+INFO     | 2025-01-27 15:40:42.847 | logging:callHandlers:1706 | 	[HBCI]		Fw download success. Image Size: 226880 Time Taken: 13.86785888671875 secs
+INFO     | 2025-01-27 15:40:43.159 | logging:callHandlers:1706 | firmware has been downloaded successfully

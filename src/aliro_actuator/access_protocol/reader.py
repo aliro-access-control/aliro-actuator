@@ -84,12 +84,16 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     ReaderStatusInformation_Values,
     Supplementary_Service_ID,
     UWB_RangingService_ID,
+    Event_AttributeID,
+    RangingMessage_AttributeID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
 from aliro_actuator.transport_protocol.errors import (
+    BLEMessageError,
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
     UnexpectedMessageTypeError,
+    TimeoutError,
 )
 from aliro_actuator.trust_framework.certificate import Certificate
 from aliro_actuator.trust_framework.errors import InvalidKeyError
@@ -212,6 +216,8 @@ class Reader(Device):
         reader_system_issuer_ca: PublicKey | None = None,
         mode: ReaderMode = ReaderMode.TEST,
         timeout: float | None = None,
+        advertisement_version: int = 0x00,
+        enable_uwb: bool = True,
     ):
         super().__init__(transport_protocol, transport_override)
         Global.logger.info(
@@ -294,8 +300,16 @@ class Reader(Device):
         self.mode = mode
 
         self.timeout = timeout
+        self.advertisement_version = advertisement_version
+        self.enable_uwb = enable_uwb
 
-        Global.logger.info("Initialized Reader")
+        Global.logger.info("Initialized Reader") 
+
+    async def handle_timeout(self):
+        # Send general error event
+        Global.logger.info("Command timed out")
+        await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.UNKNOWN_ERROR)
+        await self.transaction_termination()
 
     @property
     def reader_identifier(self) -> bytes:
@@ -313,7 +327,9 @@ class Reader(Device):
     def reader_group_sub_identifier(self) -> bytes:
         return self._reader_identifier.get_group_sub()
 
-    async def transaction_initiation(self, check_apdu_length: bool = False) -> None:
+    async def transaction_initiation(
+        self, check_apdu_length: bool = False, rke: bool = False
+    ) -> None:
         """
         Initializes the hardware and sets up a connection to the card.
         """
@@ -327,10 +343,11 @@ class Reader(Device):
         ):
             # Setup UWB session id
             Global.logger.info(f"Transaction ID: {self.session.transaction_identifier}")
-            await self.transport_protocol.driver.session_init(
-                session_id=self.session.transaction_identifier[-4:]
-            )
-            await self.wait_for_initiate_access_protocol_notification()
+            if self.enable_uwb:
+                await self.transport_protocol.driver.session_init(
+                    session_id=self.session.transaction_identifier[-4:]
+                )
+            await self.wait_for_initiate_access_protocol_notification(rke=rke)
         else:
             await self.handle_select(EXPEDITED_PHASE_AID, check_apdu_length)
         Global.logger.info("Transaction Initiation Done")
@@ -356,6 +373,8 @@ class Reader(Device):
             group_resolving_key=self.group_resolving_key,
             spsm=self.spsm,
             timeout=self.timeout,
+            advertisement_version=self.advertisement_version,
+            enable_uwb=self.enable_uwb,
         )
         await self.transport_protocol.wait_for_connection()
         Global.logger.info("Connection established")
@@ -470,16 +489,20 @@ class Reader(Device):
 
         await self.transaction_termination()
 
-    async def wait_for_initiate_access_protocol_notification(self) -> None:
+    async def wait_for_initiate_access_protocol_notification(
+        self, rke: bool = False
+    ) -> None:
         if self.session is None:
             raise SessionError("No Session")
 
+        if rke:
+            expected_id = Notification_ID.INITIATE_ACCESS_PROTOCOL_RKE
+        else:
+            expected_id = Notification_ID.INITIATE_ACCESS_PROTOCOL
+
         Global.logger.info("Waiting for Initiate access protocol notification")
         response_str, header, id = await self.transport_protocol.get_message()
-        if (
-            header != ProtocolType.NOTIFICATION
-            or id != Notification_ID.INITIATE_ACCESS_PROTOCOL
-        ):
+        if header != ProtocolType.NOTIFICATION or id != expected_id:
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
                 "initiate_access_protocol message",
@@ -503,6 +526,7 @@ class Reader(Device):
             PROTOCOL_VERSION
             not in self.session.expedited_phase_supported_protocol_versions
         ):
+            await self.transport_protocol.disconnect()
             raise AccessProtocolError(
                 "User does not support protocol version used by reader"
             )
@@ -1310,9 +1334,13 @@ class Reader(Device):
         )
 
         Global.logger.info("Sending AUTH0 command")
-        response = await self.apdu.handle_chaining_send_command(
-            "AUTH0", command, self.transport_protocol
-        )
+        try:
+            response = await self.apdu.handle_chaining_send_command(
+                "AUTH0", command, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response, INS.AUTH0)
@@ -1357,9 +1385,13 @@ class Reader(Device):
             expected_response, reader_sig, certificate_data
         )
 
-        response = await self.apdu.handle_chaining_send_command(
-            "AUTH1", command, self.transport_protocol
-        )
+        try:
+            response = await self.apdu.handle_chaining_send_command(
+                "AUTH1", command, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response, INS.AUTH1, encryption)
@@ -1423,9 +1455,13 @@ class Reader(Device):
         """
         command = self.apdu.create_envelope_command(request, encryption)
 
-        response = await self.apdu.handle_chaining_send_command(
-            "ENVELOPE", command, self.transport_protocol
-        )
+        try:
+            response = await self.apdu.handle_chaining_send_command(
+                "ENVELOPE", command, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response, INS.ENVELOPE, encryption)
@@ -1444,9 +1480,13 @@ class Reader(Device):
         """
         command = self.apdu.create_load_cert_command(compressed_cert)
 
-        response = await self.apdu.handle_chaining_send_command(
-            "LOAD CERT", command, self.transport_protocol
-        )
+        try:
+            response = await self.apdu.handle_chaining_send_command(
+                "LOAD CERT", command, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response, INS.LOAD_CERT)
@@ -1483,9 +1523,13 @@ class Reader(Device):
             encryption=encryption,
         )
 
-        response = await self.apdu.handle_chaining_send_command(
-            "EXCHANGE", command, self.transport_protocol
-        )
+        try:
+            response = await self.apdu.handle_chaining_send_command(
+                "EXCHANGE", command, self.transport_protocol, timeout=self.timeout
+            )
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
         Global.logger.info("Received response")
         response = self.apdu.parse_response(response, INS.EXCHANGE, encryption)
@@ -1536,20 +1580,24 @@ class Reader(Device):
             BleMessage: the received ble message.
         """
         Global.logger.info("Waiting for ble message")
-        command_str, header, id = await self.transport_protocol.get_message()
-        if header is not None and id is not None:
-            Global.logger.info(
-                "Received BLE message with header: 0x{:02x} and id: 0x{:02x}".format(
-                    header, id
+        try:
+            command_str, header, id = await self.transport_protocol.get_message()
+            if header is not None and id is not None:
+                Global.logger.info(
+                    "Received BLE message with header: 0x{:02x} and id: 0x{:02x}".format(
+                        header, id
+                    )
                 )
-            )
-            message = BleMessage(header, id, command_str)
-        else:
-            raise AccessProtocolError(
-                "Received unexpected message while waiting for BLE message : "
-                "{!r}".format(hexlify(message.to_bytes()))
-            )
-        return message
+                message = BleMessage(header, id, command_str)
+            else:
+                raise AccessProtocolError(
+                    "Received unexpected message while waiting for BLE message : "
+                    "{!r}".format(hexlify(message.to_bytes()))
+                )
+            return message
+        except TimeoutError:
+            await self.handle_timeout()
+            raise TimeoutError
 
     async def ranging_loop(self) -> None:
         while True:
@@ -1560,15 +1608,35 @@ class Reader(Device):
                     message = BleMessage(header, id, payload)
                 else:
                     raise UnexpectedMessageTypeError
+                if (header == ProtocolType.NOTIFICATION) and (
+                    id == Notification_ID.EVENT) and (
+                    payload is not None and payload[0] == Event_AttributeID.BUSY):
+                    # Received busy event
+                    if True == self.transport_protocol.was_timer_started():
+                        continue
             except NoDeviceConnectedError:
                 break
+            except TimeoutError:
+                await self.handle_timeout()
+                raise TimeoutError
+
             if (
                 header == ProtocolType.SUPPLEMENTARY_SERVICE
                 and id == Supplementary_Service_ID.TIME_SYNC
             ):
                 self.handle_timesync(message)
             elif header == ProtocolType.NOTIFICATION and id == Notification_ID.RANGING:
-                await self.handle_initiate_ranging(message)
+                message.parse_payload(self.session.get_ble_encryption())
+                Global.logger.info("Payload[0] = %x" %(payload[0]))
+                match message.attribute.id:
+                    case RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
+                        await self.handle_initiate_ranging(message)
+                    case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME:
+                        await self.send_ranging_session_resume_request()
+                    case RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED:
+                        await self.transport_protocol.stop_ranging()
+                    case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_SETUP_LATER | RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME_LATER | RangingMessage_AttributeID.SECURE_RANGING_OVER_UWB_RADIO_FAILED:
+                        raise NotImplementedError
             elif (
                 header == ProtocolType.UWB_RANGING_SERVICE
                 and id == UWB_RangingService_ID.RANGING_SESSION_SETUP_M2
@@ -1583,11 +1651,13 @@ class Reader(Device):
 
                 val = await self.transport_protocol.get_ranging_data()
                 Global.logger.info(f"Ranging distance: {val}")
+                '''
                 await self.send_ranging_session_suspend_request()
                 await self.reader_status_status_changed(
                     ReaderStatusInformation_Values.UNSECURED,
                     OperationSourceInformation_Values.UNSPECIFIED,
                 )
+                '''
             elif (
                 header == ProtocolType.UWB_RANGING_SERVICE
                 and id == UWB_RangingService_ID.RANGING_SESSION_SUSPEND_REQUEST
@@ -1616,13 +1686,46 @@ class Reader(Device):
                     id,
                 )
 
+    async def handle_rke_request(self) -> None:
+        Global.logger.info("Waiting for RKE request message")
+        payload, header, id = await self.transport_protocol.get_message()
+        if header is not None and id is not None:
+            message = BleMessage(header, id, payload)
+        else:
+            raise UnexpectedMessageTypeError
+        if header == ProtocolType.NOTIFICATION and id == Notification_ID.RKE_REQUEST:
+            message.parse_payload(self.session.get_ble_encryption())
+        else:
+            raise UnexpectedBLEMessageError(
+                "Received unexpected ble message while waiting for "
+                "RKE request message",
+                header,
+                id,
+            )
+
+        self.rke_action = message.rke_action
+
     def handle_timesync(self, message: BleMessage) -> None:
         Global.logger.info("Handling time sync message")
         message.parse_payload(self.session.get_ble_encryption())
 
+    async def send_ranging_message_suspended(self) -> None:
+        """
+        Used to trigger the Reader to initiate a new UWB ranging session
+        """
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        Global.logger.info("Sending ranging suspended ble message")
+
+        message = BleMessage.create_ranging_messsage_suspended(
+            self.session.get_ble_encryption()
+        )
+        await self.transport_protocol.send_message(message)
+        
     async def handle_initiate_ranging(self, message: BleMessage) -> None:
         Global.logger.info("Handling initiate ranging message")
-        message.parse_payload(self.session.get_ble_encryption())
+        #message.parse_payload(self.session.get_ble_encryption())
         await self.send_ranging_session_setup_m1()
 
     def common_sync_code_index(
@@ -1661,7 +1764,11 @@ class Reader(Device):
 
     async def handle_ranging_setup_m2(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session setup message M2")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except (BLEMessageError, IndexError) as error:
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
 
         Global.logger.info(
             f"uwb_config_id = {int.from_bytes(message.uwb_configuration_id.value, 'big')}"
@@ -1699,7 +1806,12 @@ class Reader(Device):
         Finish setting up the ranging session and collect distance measurement
         """
         Global.logger.info("Handling ranging session setup message M4")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except (BLEMessageError, IndexError) as error:
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
+
         await self.transport_protocol.set_sts_index0(
             int.from_bytes(message.sts_index0.value, "big")
         )
@@ -1718,7 +1830,11 @@ class Reader(Device):
 
     async def handle_ranging_session_suspend_request(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session suspend request")
-        message.parse_payload(self.session.get_ble_encryption())
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except (BLEMessageError, IndexError) as error:
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
 
         await self.send_ranging_session_suspend_response()
 
@@ -1765,7 +1881,7 @@ class Reader(Device):
             vendor_specific,
             self.session.get_ble_encryption(),
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_setup_m3(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -1794,7 +1910,7 @@ class Reader(Device):
             vendor_specific,
             self.session.get_ble_encryption(),
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_suspend_request(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -1807,7 +1923,7 @@ class Reader(Device):
             uwb_session_id,
             self.session.get_ble_encryption(),
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_suspend_response(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -1834,7 +1950,7 @@ class Reader(Device):
             uwb_session_id,
             self.session.get_ble_encryption(),
         )
-        await self.transport_protocol.send_message(message)
+        await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_session_resume_response(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -1851,6 +1967,22 @@ class Reader(Device):
         )
 
         await self.transport_protocol.start_ranging()
+        await self.transport_protocol.send_message(message)
+
+    async def send_event(self, attribute: Event_AttributeID, errorcode: int | None) -> None:
+        if not isinstance(self.transport_protocol, BLEUWB):
+            raise InvalidProtocolTypeError
+
+        if self.session is None:
+            raise SessionError("No Session")
+
+        Global.logger.info("Sending event")
+
+        if Event_AttributeID.BUSY == attribute:
+            message = BleMessage.create_busy_event_message(self.session.get_ble_encryption())
+        elif Event_AttributeID.GENERAL_ERROR == attribute:
+            message = BleMessage.create_error_event_message(errorcode, self.session.get_ble_encryption())
+
         await self.transport_protocol.send_message(message)
 
 
