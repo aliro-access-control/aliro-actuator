@@ -717,8 +717,9 @@ class Reader(Device):
                 )
         else:
             await self.decrypt_cryptogram(auth0_response.cryptogram)
-            Global.logger.info("Setting up UWB secure ranging")
-            await self.transport_protocol.set_session_key(self.session.UR_SK)
+            if self.transport_protocol_type == TransportProtocol.BLE_UWB:
+                Global.logger.info("Setting up UWB secure ranging")
+                await self.transport_protocol.set_session_key(self.session.UR_SK)
             
         self.chaining_response = auth0_response.response_chaining
 
