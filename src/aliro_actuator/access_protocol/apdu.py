@@ -1325,6 +1325,7 @@ class APDU:
             command_chaining_required = True
             
             for index, command in enumerate(commands):
+                response_pending = True
                 if skip_command is not None and index == skip_command:
                     continue
                 Global.logger.info("Sending {} command".format(command_name))
