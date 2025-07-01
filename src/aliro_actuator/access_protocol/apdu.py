@@ -2056,8 +2056,8 @@ class APDU:
             if bytes_left < max_data_length:
                 # last message in chain
                 chain_status = status
-            elif bytes_left > 0xFD:
-                bytes_left = 0xFD
+            elif bytes_left > 0xFF:
+                bytes_left = 0xFF
                 chain_status = StatusBytes.MORE_DATA_AVAILABLE | bytes_left
             else:
                 chain_status = StatusBytes.MORE_DATA_AVAILABLE | bytes_left
