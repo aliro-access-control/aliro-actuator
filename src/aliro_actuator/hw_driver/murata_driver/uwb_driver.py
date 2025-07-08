@@ -23,7 +23,7 @@ DEFAULT_SR150_FIRMWARE_PATH = (
     ACTUATOR_ROOT_PATH
     / "third_party"
     / "aliro-th-additions"
-    / "ALIRO_IOT_SR150_FW_v46.43.A3.bin"
+    / "ALIRO_IOT_SR150_FW_v46.43.14.bin"
 )
 
 
@@ -62,6 +62,7 @@ class MurataUWBDriver(MurataBaseDriver):
         self,
         dev_role: int,
         dev_type: int,
+        enable_uwb: bool = True,
     ) -> None:
         Global.logger.info("Initialize UCI device.")
         if dev_role not in [
@@ -76,44 +77,48 @@ class MurataUWBDriver(MurataBaseDriver):
         self.dh.disable_ntf_prints()
         self.dh.disable_uci_prints()
 
-        Global.logger.info("Upload UWB device firmware. (This can take a while)")
+        if enable_uwb:
+            Global.logger.info("Upload UWB device firmware. (This can take a while)")
         await asyncio.to_thread(
             uci.device_creation,
             self.dh,
             fw=DEFAULT_SR150_FIRMWARE_PATH,
-            skip_fw_download=False,
+            skip_fw_download=not enable_uwb,
         )
-        await asyncio.to_thread(
-            uci.device_init,
-            self.dh,
-            board=uci.PLATFORM.RHODES,
-            variant=uci.BOARD_VARIANT.V4,
-        )
+        
+        self.dh.device.flush_port()
+        if enable_uwb:
+            await asyncio.to_thread(
+                uci.device_init,
+                self.dh,
+                board=uci.PLATFORM.RHODES,
+                variant=uci.BOARD_VARIANT.V4,
+            )
 
-        # fmt: off
-        await self.set_device_config(
-            config=uci.DEVICE_CFG.ANTENNA_RX_IDX_DEFINE,
-            value=[
-                0x03, 0x01, 0x01, 0x02, 0x00, 0x02, 0x00, 0x02, 0x01, 0x02, 0x00,
-                0x00, 0x00, 0x03, 0x02, 0x01, 0x00, 0x01, 0x00,
-            ],
-        )
+            # fmt: off
+            await self.set_device_config(
+                config=uci.DEVICE_CFG.ANTENNA_RX_IDX_DEFINE,
+                value=[
+                    0x03, 0x01, 0x01, 0x02, 0x00, 0x02, 0x00, 0x02, 0x01, 0x02, 0x00,
+                    0x00, 0x00, 0x03, 0x02, 0x01, 0x00, 0x01, 0x00,
+                ],
+            )
 
-        await self.set_device_config(
-            config=uci.DEVICE_CFG.ANTENNA_TX_IDX_DEFINE,
-            value=[0x01, 0x01, 0x01, 0x00, 0x00, 0x00],
-        )
-        await self.set_device_config(
-            config=uci.DEVICE_CFG.ANTENNAS_RX_PAIR_DEFINE,
-            value=[
-                0x02, 0x01, 0x01, 0x03, 0x00, 0x00, 0x00,
-                0x02, 0x01, 0x03, 0x00, 0x00, 0x00,
-            ],
-        )
-        # fmt: on
+            await self.set_device_config(
+                config=uci.DEVICE_CFG.ANTENNA_TX_IDX_DEFINE,
+                value=[0x01, 0x01, 0x01, 0x00, 0x00, 0x00],
+            )
+            await self.set_device_config(
+                config=uci.DEVICE_CFG.ANTENNAS_RX_PAIR_DEFINE,
+                value=[
+                    0x02, 0x01, 0x01, 0x03, 0x00, 0x00, 0x00,
+                    0x02, 0x01, 0x03, 0x00, 0x00, 0x00,
+                ],
+            )
+            # fmt: on
 
-        Global.logger.info("Calibrate device.")
-        await self.set_calibration()
+            Global.logger.info("Calibrate device.")
+            await self.set_calibration()
 
     def check_response(self, response):
         if (response.fields['UCI_STATUS'].name != 'STATUS_OK'):

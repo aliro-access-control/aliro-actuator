@@ -1,0 +1,50 @@
+C:\_ddm\Aliro\aliro-certification-tool\test_collections\aliro\support\aliro_actuator\venv\Lib\site-packages\aliro_actuator\hw_driver\murata_driver
+DEBUG    | 2025-01-27 11:59:45.685 | logging:callHandlers:1706 | Using proactor: IocpProactor
+DEBUG    | 2025-01-27 11:59:45.700 | aliro_actuator.trust_framework.key:__init__:83 | created public key object: b'043928f322019d4757893bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee'
+DEBUG    | 2025-01-27 11:59:45.700 | aliro_actuator.trust_framework.key:__init__:83 | created public key object: b'04742df736d0fc9be978c45b00e8fdf7cea684ea105ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c759f31e8ccf17e3efa'
+DEBUG    | 2025-01-27 11:59:45.700 | aliro_actuator.trust_framework.key:__init__:187 | loaded private key from PEM
+DEBUG    | 2025-01-27 11:59:45.700 | aliro_actuator.trust_framework.access_credential:__init__:38 | Creating Access Credential
+DEBUG    | 2025-01-27 11:59:45.700 | aliro_actuator.trust_framework.access_credential:__init__:40 | Using user device private key: b'f6f601cac64e2d4e47e9b2d1d0408680cef95e4e84b5ecee64d3401773bf9426'
+DEBUG    | 2025-01-27 11:59:45.700 | aliro_actuator.trust_framework.access_credential:__init__:45 | Using user device public key: b'04742df736d0fc9be978c45b00e8fdf7cea684ea105ae574c1505a2c24ab6198e3125b7f1b7e1d134c55ece69681ba8ecc18a3836dc5199c759f31e8ccf17e3efa'
+DEBUG    | 2025-01-27 11:59:45.700 | aliro_actuator.trust_framework.access_credential:__init__:51 | Reader id key list:
+DEBUG    | 2025-01-27 11:59:45.716 | aliro_actuator.trust_framework.access_credential:__init__:53 | Reader group identifier: b'00113344667799aa00113344667799aa'
+DEBUG    | 2025-01-27 11:59:45.716 | aliro_actuator.trust_framework.access_credential:__init__:54 | Reader group identifier key: b'043928f322019d4757893bde6a0fe5e13e3e537b9ca0f549c0bd2f40f79060252a0a4f291192157a95cb6eb202759428c00cd834998c5d0eab192ee8873c5d34ee'
+INFO     | 2025-01-27 11:59:45.716 | aliro_actuator.access_protocol.device:__init__:49 | Using BLE and UWB for data transport
+INFO     | 2025-01-27 11:59:45.717 | aliro_actuator.access_protocol.user_device:transaction_initiation:212 | Start Transaction Initiation
+INFO     | 2025-01-27 11:59:45.717 | aliro_actuator.access_protocol.user_device:setup_connection:239 | Setting up connection
+INFO     | 2025-01-27 11:59:45.748 | logging:callHandlers:1706 | 	[DEVICE]	Initialize Device: RHODES Port:COM6
+INFO     | 2025-01-27 11:59:45.763 | aliro_actuator.hw_driver.murata_driver.uwb_driver:uci_initialize:80 | Initialize UCI device.
+INFO     | 2025-01-27 11:59:45.763 | aliro_actuator.hw_driver.murata_driver.uwb_driver:uci_initialize:94 | Upload UWB device firmware. (This can take a while)
+PowerUp TX:ff040000
+PowerUp RX1:ff01020304
+INFO     | 2025-01-27 11:59:46.134 | logging:callHandlers:1706 | 	[HBCI]		Fw download in progress...
+INFO     | 2025-01-27 11:59:59.528 | logging:callHandlers:1706 | 	[HBCI]		Fw download success. Image Size: 226880 Time Taken: 13.394142150878906 secs
+INFO     | 2025-01-27 11:59:59.833 | logging:callHandlers:1706 | firmware has been downloaded successfully
+INFO     | 2025-01-27 12:00:01.998 | aliro_actuator.hw_driver.murata_driver.uwb_driver:uci_initialize:130 | Calibrate device.
+INFO     | 2025-01-27 12:00:02.361 | aliro_actuator.hw_driver.murata_driver.uwb_driver:get_capabilities:318 | Retrive UWB capabilities
+INFO     | 2025-01-27 12:00:02.394 | aliro_actuator.hw_driver.murata_driver:setup_connection:36 | setup ble connection
+INFO     | 2025-01-27 12:00:02.394 | aliro_actuator.hw_driver.murata_driver.gap_driver:stop_scanning:205 | Stop Scanning
+DEBUG    | 2025-01-27 12:00:02.394 | aliro_actuator.hw_driver.murata_driver.base_driver:write:84 | writing to Murata: b'02481b000053'
+[b'\x02', 72, 128, 2, 0, 0, 0, 202]
+[b'\x02', 72, 155, 2, 0, 12, 1, 220]
+DEBUG    | 2025-01-27 12:00:02.411 | aliro_actuator.hw_driver.murata_driver.base_driver:wait_for_confirm:176 | confirm received
+DEBUG    | 2025-01-27 12:00:02.412 | aliro_actuator.hw_driver.murata_driver.gap_driver:stop_scanning:213 | Scanning Stopped
+INFO     | 2025-01-27 12:00:02.414 | aliro_actuator.hw_driver.murata_driver.gap_driver:start_scanning:184 | Start Scanning
+DEBUG    | 2025-01-27 12:00:02.414 | aliro_actuator.hw_driver.murata_driver.base_driver:write:84 | writing to Murata: b'02481a0f000100000110000000000100100010004c'
+DEBUG    | 2025-01-27 12:00:02.418 | aliro_actuator.hw_driver.murata_driver.base_driver:wait_for_message:158 | Unexpected Command received:
+DEBUG    | 2025-01-27 12:00:02.418 | aliro_actuator.hw_driver.murata_driver.fsci:print:99 | FSCI message:
+DEBUG    | 2025-01-27 12:00:02.419 | aliro_actuator.hw_driver.murata_driver.fsci:print:100 | OpGroup: GAP
+DEBUG    | 2025-01-27 12:00:02.419 | aliro_actuator.hw_driver.murata_driver.fsci:print:103 | OpCode: SCANNING_EVENT_COMMAND_FAILED
+DEBUG    | 2025-01-27 12:00:02.419 | aliro_actuator.hw_driver.murata_driver.fsci:print:121 | Length: 0x2
+DEBUG    | 2025-01-27 12:00:02.420 | aliro_actuator.hw_driver.murata_driver.fsci:print:122 | Data: b'0c01'
+DEBUG    | 2025-01-27 12:00:02.420 | aliro_actuator.hw_driver.murata_driver.fsci:print:138 | CRC: b'dc'
+[b'\x02', 72, 128, 2, 0, 0, 0, 202]
+[b'\x02', 72, 155, 2, 0, 12, 1, 220]
+DEBUG    | 2025-01-27 12:00:02.426 | aliro_actuator.hw_driver.murata_driver.base_driver:wait_for_confirm:176 | confirm received
+DEBUG    | 2025-01-27 12:00:02.428 | aliro_actuator.hw_driver.murata_driver.base_driver:wait_for_message:158 | Unexpected Command received:
+DEBUG    | 2025-01-27 12:00:02.428 | aliro_actuator.hw_driver.murata_driver.fsci:print:99 | FSCI message:
+DEBUG    | 2025-01-27 12:00:02.429 | aliro_actuator.hw_driver.murata_driver.fsci:print:100 | OpGroup: GAP
+DEBUG    | 2025-01-27 12:00:02.429 | aliro_actuator.hw_driver.murata_driver.fsci:print:103 | OpCode: SCANNING_EVENT_COMMAND_FAILED
+DEBUG    | 2025-01-27 12:00:02.430 | aliro_actuator.hw_driver.murata_driver.fsci:print:121 | Length: 0x2
+DEBUG    | 2025-01-27 12:00:02.431 | aliro_actuator.hw_driver.murata_driver.fsci:print:122 | Data: b'0c01'
+DEBUG    | 2025-01-27 12:00:02.432 | aliro_actuator.hw_driver.murata_driver.fsci:print:138 | CRC: b'dc'

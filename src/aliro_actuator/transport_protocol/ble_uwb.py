@@ -25,6 +25,7 @@ from aliro_actuator.hw_driver.murata_driver import (
 from aliro_actuator.hw_driver.murata_driver.errors import (
     DeviceDisconnectedError,
     DeviceNotFoundError,
+    NoResponseError,
 )
 from aliro_actuator.transport_protocol import (
     ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION,
@@ -37,14 +38,15 @@ from aliro_actuator.transport_protocol.errors import (
     TransportProtocolError,
     UnexpectedMessageTypeError,
     UnknownVersionRequestedError,
+    TimeoutError,
 )
 from aliro_actuator.transport_protocol.message import Message
 
-DEFAULT_PORT = "/dev/ttyUSB0"
+import os
+DEFAULT_PORT = os.getenv("TH_MURATA_COM", "/dev/ttyUSB0")
 DEFAULT_BAUDRATE = "230400"
 SUPPORTED_VERSIONS = [0x0100]
 CURRENT_VERSION = 0x0100
-
 
 class BLEUWB(TransportProtocolBase):
     def __init__(
@@ -60,6 +62,7 @@ class BLEUWB(TransportProtocolBase):
             self.baudrate = baudrate
         else:
             self.baudrate = DEFAULT_BAUDRATE
+        self.timeout = None
 
     async def initialization(
         self,
@@ -76,10 +79,13 @@ class BLEUWB(TransportProtocolBase):
         time_sync_1: bool = True,
         LE_coded_phy: bool = True,
         timeout: float | None = None,
+        advertisement_version: int = 0x00,
+        enable_uwb: bool = True,
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
         self.spsm = spsm
+        self.enable_uwb = enable_uwb
 
         # In case uci is open close it before trying to initialize again
         if hasattr(self, "driver"):
@@ -94,6 +100,7 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.uci_initialize(
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
+                enable_uwb=self.enable_uwb,
             )
             await self.driver.setup_gatt_database(
                 self.spsm,
@@ -107,7 +114,7 @@ class BLEUWB(TransportProtocolBase):
                 reader_group_identifier=reader_group_identifier,
                 reader_group_sub_identifier=reader_group_sub_identifier,
                 group_resolving_key=self.group_resolving_key,
-                advertisement_version=ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION,
+                advertisement_version=advertisement_version,
                 notification=notification,
                 BLE_UWB_supported=BLE_UWB_supported,
                 BLE_only_supported=BLE_only_supported,
@@ -120,6 +127,7 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.uci_initialize(
                 dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
+                enable_uwb=self.enable_uwb,
             )
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
@@ -127,6 +135,12 @@ class BLEUWB(TransportProtocolBase):
                 spsm=self.spsm,
                 timeout=timeout,
             )
+
+    def was_timer_started(self):
+        if self.timeout is not None:
+            Global.logger.debug("Timer was started")
+            return True
+        return False
 
     async def disconnect(self, raise_errors: bool = False) -> None:
         if len(self.driver.connected_devices) == 0:
@@ -167,6 +181,7 @@ class BLEUWB(TransportProtocolBase):
             value.extend(int.to_bytes(version, 2, "big"))
             value.append(0x01) # Features Supported Length 
             value.append(0x03 | (features[0] & 0x04)) # support time sync. and/or LE_coded_phy 
+
             await self.driver.handle_GATT_layer_write_characteristic(
                 primary_service, value
             )
@@ -195,6 +210,7 @@ class BLEUWB(TransportProtocolBase):
                 self.BLE_only_supported,
             ) = await self.driver.wait_for_connection()
             if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
+                await self.disconnect()
                 raise TransportProtocolError("Invalid BLE advertisement version")
             self.ble_version = CURRENT_VERSION
             await self.handle_GATT_layer(self.ble_version)
@@ -207,6 +223,7 @@ class BLEUWB(TransportProtocolBase):
     async def send_message(
         self,
         message: bytes | Message,
+        timeout: int | None = None,
     ) -> None:
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
@@ -242,9 +259,11 @@ class BLEUWB(TransportProtocolBase):
             "Sending data using BLE: {!r}".format(hexlify(message_bytes))
         )
         try:
+            self.driver.set_timeout(None)
             await self.driver.send_le_cb_data(
                 self.driver.connected_devices[0], message_bytes
             )
+            self.timeout = timeout
         except (DeviceDisconnectedError, DeviceNotFoundError) as error:
             raise NoDeviceConnectedError from error
 
@@ -252,11 +271,15 @@ class BLEUWB(TransportProtocolBase):
         if len(self.driver.connected_devices) == 0:
             raise NoDeviceConnectedError
         try:
+            self.driver.set_timeout(self.timeout)
             message_bytes = await self.driver.wait_for_data(
                 self.driver.connected_devices[0]
             )
         except (DeviceDisconnectedError, DeviceNotFoundError) as error:
             raise NoDeviceConnectedError from error
+        except NoResponseError:
+            # Timeout
+            raise TimeoutError
         Global.logger.info("Received message: {!r}".format(hexlify(message_bytes)))
         message = BleMessage.from_bytes(message_bytes)
 
@@ -285,7 +308,8 @@ class BLEUWB(TransportProtocolBase):
         return await self.driver.get_uwb_config_id()
 
     async def set_session_key(self, ursk: bytes) -> None:
-        await self.driver.set_session_key(ursk)
+        if self.enable_uwb:
+            await self.driver.set_session_key(ursk)
 
     async def get_session_key(self) -> bytes:
         return await self.driver.get_session_key()

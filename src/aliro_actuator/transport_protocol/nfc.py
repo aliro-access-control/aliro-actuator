@@ -40,9 +40,14 @@ class NFC(TransportProtocolBase):
         reader_group_identifier_list: list = [],
         spsm: bytes = bytes.fromhex("0080"),
         timeout: float | None = None,
+        advertisement_version: int = 0x00,
+        enable_uwb: bool = True,
     ) -> None:
         self.mode = mode
         self.driver.initialize(mode)
+
+    def was_timer_started(self):
+        return False
 
     async def disconnect(self) -> None:
         self.driver.disconnect()
@@ -56,6 +61,7 @@ class NFC(TransportProtocolBase):
     async def send_message(
         self,
         message: bytes | Message,
+        timeout: int | None = None,
     ) -> None:
         if isinstance(message, BleMessage):
             raise UnexpectedMessageTypeError(
