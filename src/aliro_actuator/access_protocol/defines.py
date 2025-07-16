@@ -119,15 +119,19 @@ class ControlFlow:
 
 class Exchange:
     # command
+    ATOMIC_TAG = 0x8C
     READ_TAG = 0x87
     WRITE_TAG = 0x8A
     SET_TAG = 0x95
-    MAILBOX_TAG = 0xB9
+    MAILBOX_TAG = 0xBA
     NOTIFY_TAG = 0xAE
+    NOTIFY_ERROR_TAG = 0x82
+    NOTIFY_DESCRIPTOR_TAG = 0xB5
     READER_STATUS_TAG = 0x97
     URSK_TAG = 0x98
     UPDATE_DOC_TAG = 0x81
 
+    ATOMIC_LEN = 1
     READ_LEN = 4
     SET_LEN = 5
     READER_STATUS_LEN = 2
