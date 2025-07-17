@@ -1133,7 +1133,9 @@ class ReaderStatusInformation_Values(IntEnum):
     SECURED = 0
     UNSECURED = 1
     JAMMED = 2
-    UNKNOWN = 3
+    STARTED_SECURE = 0x80
+    STARTED_UNSECURE = 0x81
+    UNKNOWN = 0x82
 
 
 class SupplementaryService_AttributeID(IntEnum):
