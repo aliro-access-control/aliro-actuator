@@ -300,7 +300,7 @@ class Command(APDUMessage):
                 message.extend(len(data).to_bytes(3, "big"))
                 message.extend(data)
         if le is not None:
-            if le < 256:
+            if le < 256 and len(data) < 256:
                 le_len = 1
             elif len(data) == 0:
                 le_len = 3
@@ -2091,7 +2091,7 @@ class APDU:
 
             if le is None:
                 le_len = 0
-            elif le < 256:
+            elif le < 256 and len(data) < 256:
                 le_len = 1
             elif lc_len == 0:
                 le_len = 3
