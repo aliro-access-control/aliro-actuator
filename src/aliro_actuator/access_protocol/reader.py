@@ -2173,8 +2173,12 @@ class ReaderSession:
 
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
+            info.append(Auth0.VENDOR_SPECIFIC_TAG)
+            info.append(len(self.command_vendor_extension))
             info.extend(self.command_vendor_extension)
         if self.response_vendor_extension is not None:
+            info.append(Auth0.RE_VENDOR_SPECIFIC_TAG)
+            info.append(len(self.response_vendor_extension))
             info.extend(self.response_vendor_extension)
 
         salt = create_salt(
@@ -2217,8 +2221,12 @@ class ReaderSession:
         Global.logger.debug("Deriving key (volatile fast)")
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
+            info.append(Auth0.VENDOR_SPECIFIC_TAG)
+            info.append(len(self.command_vendor_extension))
             info.extend(self.command_vendor_extension)
         if self.response_vendor_extension is not None:
+            info.append(Auth0.RE_VENDOR_SPECIFIC_TAG)
+            info.append(len(self.response_vendor_extension))
             info.extend(self.response_vendor_extension)
 
         salt = create_salt(
@@ -2256,8 +2264,12 @@ class ReaderSession:
         Global.logger.debug("Deriving key (persistent)")
         info = bytearray(self.credential_ephemeral_key.get_x().to_bytes(32, "big"))
         if self.command_vendor_extension is not None:
+            info.append(Auth0.VENDOR_SPECIFIC_TAG)
+            info.append(len(self.command_vendor_extension))
             info.extend(self.command_vendor_extension)
         if self.response_vendor_extension is not None:
+            info.append(Auth0.RE_VENDOR_SPECIFIC_TAG)
+            info.append(len(self.response_vendor_extension))
             info.extend(self.response_vendor_extension)
 
         salt = create_salt(
