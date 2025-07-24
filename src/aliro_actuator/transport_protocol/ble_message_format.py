@@ -418,6 +418,11 @@ class BleMessage(Message):
         self.uwb_session_id.check_tag(UWB_AttributeID.UWB_SESSION_IDENTIFIER)
         offset += self.uwb_session_id.length
 
+        if offset < len(self.payload):
+            self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
+            self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
+
+
     def _parse_ranging_session_setup_m2(self) -> None:
         self.uwb_configuration_id = BleAttribute.from_bytes(self.payload)
         self.uwb_configuration_id.check_tag(
@@ -457,8 +462,9 @@ class BleMessage(Message):
         )
         offset += self.hopping_configuration_bitmask.length
 
-        self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
-        self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
+        if offset < len(self.payload):
+            self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
+            self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
 
     def _parse_ranging_session_setup_m3(self) -> None:
         self.ran_multiplier = BleAttribute.from_bytes(self.payload)
@@ -495,6 +501,10 @@ class BleMessage(Message):
         self.mac_mode.check_tag(UWB_AttributeID.MAC_MODE)
         offset += self.mac_mode.length
 
+        if offset < len(self.payload):
+            self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
+            self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
+
     def _parse_ranging_session_setup_m4(self) -> None:
         self.sts_index0 = BleAttribute.from_bytes(self.payload)
         self.sts_index0.check_tag(UWB_AttributeID.STS_INDEX0)
@@ -510,6 +520,11 @@ class BleMessage(Message):
 
         self.sync_code_index = BleAttribute.from_bytes(self.payload[offset:None])
         self.sync_code_index.check_tag(UWB_AttributeID.SYNC_CODE_INDEX)
+        offset += self.sync_code_index.length
+
+        if offset < len(self.payload):
+            self.vendor_specific = BleAttribute.from_bytes(self.payload[offset:None])
+            self.vendor_specific.check_tag(UWB_AttributeID.VENDOR_SPECIFIC, optional=True)
 
     def _parse_ranging_session_suspend_request(self) -> None:
         self.uwb_session_id = BleAttribute.from_bytes(self.payload)
