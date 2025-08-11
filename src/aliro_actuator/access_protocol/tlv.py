@@ -40,7 +40,7 @@ class TLVIndex(IntEnum):
     TLV_AUTH1_RSP_RD_AUTH = 13
     TLV_AUTH1_RSP_UD_AUTH = 14
     TLV_EXCHANGE_CMD = 15
-    TLV_EXCHANGE_CMD_B9 = 16
+    TLV_EXCHANGE_CMD_BA = 16
     
 
 expectedTags = {
@@ -59,8 +59,8 @@ expectedTags = {
     TLVIndex.TLV_AUTH1_RSP_B2: [0x30], # AUTH1 response B2 sub tags
     TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 reader authentication data fields
     TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [0x4D, 0x86, 0x87, 0x4C, 0x93], # AUTH1 user device authentication data fields
-    TLVIndex.TLV_EXCHANGE_CMD: [0xB9, 0xAE, 0x97, 0x98, 0x81], # EXCHANGE command
-    TLVIndex.TLV_EXCHANGE_CMD_B9: [0x87, 0x8A, 0x95] # EXCHANGE command B9 sub tags
+    TLVIndex.TLV_EXCHANGE_CMD: [0xBA, 0xAE, 0x97, 0x98, 0x81], # EXCHANGE command
+    TLVIndex.TLV_EXCHANGE_CMD_BA: [0x8C, 0x87, 0x8A, 0x95] # EXCHANGE command BA sub tags
 }
 
 expectedLength = {
@@ -80,7 +80,7 @@ expectedLength = {
     TLVIndex.TLV_AUTH1_RSP_RD_AUTH: [32, 32, 32, 16, 4], # AUTH1 reader authentication data fields
     TLVIndex.TLV_AUTH1_RSP_UD_AUTH: [32, 32, 32, 16, 4], # AUTH1 user device authentication data fields
     TLVIndex.TLV_EXCHANGE_CMD: [-1, -1, 2, 0, -1], # EXCHANGE command
-    TLVIndex.TLV_EXCHANGE_CMD_B9: [4, -1, 5], # EXCHANGE command B9 sub tags
+    TLVIndex.TLV_EXCHANGE_CMD_BA: [1, 4, -1, 5], # EXCHANGE command BA sub tags
 }
 
 class TlvError(AccessProtocolError):
