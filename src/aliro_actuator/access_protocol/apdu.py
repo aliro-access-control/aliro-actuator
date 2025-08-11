@@ -738,15 +738,24 @@ class Command(APDUMessage):
             )
 
             if self.mailbox_commands is not None:
-                self.atomic_session: bool | None = self.mailbox_commands[0] == 0x01
-                Global.logger.debug("atomic session: {}".format(self.atomic_session))
+                Global.logger.debug("Verify mailbox commands")
+                TLV.verifySequence(self.mailbox_commands, TLVIndex.TLV_EXCHANGE_CMD_BA)
 
-                self.mailbox_commands_tlv = TLV.from_bytes(self.mailbox_commands[1:])
+                self.mailbox_commands_tlv = TLV.from_bytes(self.mailbox_commands)
                 Global.logger.debug(
                     "mailbox_commands contains TLV structure: {}".format(
-                        self.payload_tlv.to_print()
+                        self.mailbox_commands_tlv.to_print()
                     )
                 )
+                self.atomic_session = bool.from_bytes(
+                    self._get_bytes_from_TLV(
+                        "Atomic_session",
+                        Exchange.ATOMIC_SESSION_TAG,
+                        Exchange.ATOMIC_SESSION_LEN,
+                        tlv_data=self.mailbox_commands_tlv,
+                    )
+                )
+
                 self.read_requests = self._get_multiple_optional_bytes_from_TLV(
                     "Read_request",
                     Exchange.READ_TAG,
@@ -790,7 +799,7 @@ class Command(APDUMessage):
             self.notify = self._get_optional_bytes_from_TLV(
                 "Notify", 
                 Exchange.NOTIFY_TAG,
-                max_length=256,
+                max_length=250,
                 tlv_data=self.payload_tlv
             )
 
