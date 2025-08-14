@@ -42,6 +42,7 @@ from aliro_actuator.access_protocol.defines import (
     PROTOCOL_VERSION,
     STEPUP_PHASE_AID,
     Auth0,
+    Exchange,
     Select,
     TransportProtocol,
 )
@@ -1667,51 +1668,45 @@ class UserDevice(Device):
         Global.logger.info("Handling notifications")
         if exchange_command.notify is not None:
             tlvList = TLV.to_tlv_list(TLV.from_bytes(exchange_command.notify).to_data())
-            if len(tlvList) > 1:
-                Global.logger.info("Too much sub-TLVs for EXCHANGE[Notify], found {}.".format(len(tlvList)))
-                raise AccessProtocolError
-            else:
-                # Get the (only) tag
-                tlv = TLV.from_bytes(exchange_command.notify)
+            Global.logger.info("Found {} sub-TLVs for EXCHANGE[Notify].".format(len(tlvList)))
+            for tlv in tlvList:
                 tag = tlv.to_tag()
 
-            Global.logger.info("Sub TLV tag detected: " + str(hex(tag)))
-            if tag == 0xC1:
-                errors = []
-                errors = tlv.get_all_bytes_of_tag(0xC1)
-                for error in errors:
-                    if error is None:
-                        raise AccessProtocolError
-                    Global.logger.info("received error notification: {!r}".format(hexlify(error)))
-            else:
-                if tag == 0xC2:
+                Global.logger.info("Sub TLV tag detected: " + str(hex(tag)))
+                if tag == Exchange.READER_ERROR_TAG:
+                    errors = []
+                    errors = tlv.get_all_bytes_of_tag(tag)
+                    for error in errors:
+                        if error is None:
+                            raise AccessProtocolError
+                        Global.logger.info("received error notification: {!r}".format(hexlify(error)))
+                elif tag == Exchange.READER_DESCRIPTOR_TAG:
                     descriptor = []
-                    descriptor = tlv.get_all_bytes_of_tag(0xC2)
+                    descriptor = tlv.get_all_bytes_of_tag(tag)
                     Global.logger.info("received Reader descriptor: ", hexlify(b''.join(descriptor)).decode())
-                else:
-                    if tag & 0x9F00 != 0x9F00:
-                        Global.logger.info("tag does not match with 0xC1 or 0x9Fxx")
-                        raise AccessProtocolError
-                    else:
-                        Global.logger.info("Notify Credential Issuer backend or application")
-                        if tag & 0x9FC0 == 0x9F00:
-                            Global.logger.info("Request to send data to a bound application on User Device")
+                elif tag & 0xFF00 == 0x9F00:
+                    Global.logger.info("Notify Credential Issuer backend or application")
+                    if tag & 0xFFE0 == 0x9F20:
+                        Global.logger.info("Request to send data to a bound application on User Device")
+                    elif tag & 0xFFE0 == 0x9F40:
+                        Global.logger.info("Request to send data to the Credential Issuer backend")
+                        if tag & 0xFF10 == 0x9F10:
+                            Global.logger.info("Request is time sensitive")
                         else:
-                            if tag & 0x9FC0 == 0x9F40:
-                                Global.logger.info("Request to send data to the Credential Issuer backend")
-                                if tag & 0x9F10 == 0x9F10:
-                                    Global.logger.info("Request is time sensitive")
-                                else:
-                                    Global.logger.info("Request is not time sensitive")
-                                importanceLevel = tag & 0x0007
-                                if 0 <= importanceLevel < 5:
-                                    Global.logger.info("Importance level: {}".format(importanceLevel))
-                                else:
-                                    Global.logger.info("Invalid importance level {}".format(importanceLevel))
-                                    raise AccessProtocolError
-                            else:
-                                Global.logger.info("Invalid tag")
-                                raise AccessProtocolError
+                            Global.logger.info("Request is not time sensitive")
+                        importanceLevel = tag & 0x0007
+                        if 0 <= importanceLevel < 5:
+                            Global.logger.info("Importance level: {}".format(importanceLevel))
+                        else:
+                            Global.logger.info("Invalid importance level {}".format(importanceLevel))
+                            raise AccessProtocolError
+                    else:
+                        Global.logger.info("Invalid tag")
+                        raise AccessProtocolError
+                else:
+                    Global.logger.info("tag does not match with {}, {} or 0x9Fxx".format(
+                        hex(Exchange.READER_ERROR_TAG), hex(Exchange.READER_STATUS_TAG)))
+                    raise AccessProtocolError
 
         Global.logger.info("Handling read requests")
         read_data: list[tuple[int, bytes]] = []

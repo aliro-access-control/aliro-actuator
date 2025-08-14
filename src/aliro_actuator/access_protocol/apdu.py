@@ -803,6 +803,33 @@ class Command(APDUMessage):
                 tlv_data=self.payload_tlv
             )
 
+            if self.notify is not None:
+                Global.logger.debug("Verify notification data for User Device")
+                TLV.verifySequence(self.notify, TLVIndex.TLV_EXCHANGE_CMD_AE)
+
+                self.notify_tlv = TLV.from_bytes(self.notify)
+                Global.logger.debug(
+                    "notify data contains TLV structure: {}".format(
+                        self.notify_tlv.to_print()
+                    )
+                )
+
+                self.reader_error = self._get_optional_bytes_from_TLV(
+                    "Reader_error",
+                    Exchange.READER_ERROR_TAG,
+                    Exchange.READER_ERROR_LEN,
+                    tlv_data=self.notify_tlv,
+                )
+
+                self.reader_descriptor = self._get_optional_bytes_from_TLV(
+                    "Reader_descriptor",
+                    Exchange.READER_DESCRIPTOR_TAG,
+                    tlv_data=self.notify_tlv,
+                )
+            else:
+                self.reader_error = None
+                self.reader_descriptor = None
+
             self.ursk = self._get_optional_bytes_from_TLV(
                 "URSK",
                 Exchange.URSK_TAG,
