@@ -826,9 +826,40 @@ class Command(APDUMessage):
                     Exchange.READER_DESCRIPTOR_TAG,
                     tlv_data=self.notify_tlv,
                 )
+
+                if self.reader_descriptor is not None:
+                    TLV.verifySequence(self.reader_descriptor, TLVIndex.TLV_EXCHANGE_CMD_B5)
+
+                    self.reader_descriptor_tlv = TLV.from_bytes(self.reader_descriptor)
+                    Global.logger.debug(
+                        "reader descriptor data contains TLV structure: {}".format(
+                            self.reader_descriptor_tlv.to_print()
+                        )
+                    )
+
+                    self.reader_vendor_id = self._get_bytes_from_TLV(
+                        "Reader_Vendor_ID",
+                        0x04,
+                        3,
+                        tlv_data=self.reader_descriptor_tlv,
+                    )
+
+                    self.reader_product_id = self._get_bytes_from_TLV(
+                        "Reader_Product_ID",
+                        0x80,
+                        tlv_data=self.reader_descriptor_tlv,
+                    )
+                    self.reader_firmware_version = self._get_bytes_from_TLV(
+                        "Reader_Firmware_Version",
+                        0x81,
+                        tlv_data=self.reader_descriptor_tlv,
+                    )
             else:
                 self.reader_error = None
                 self.reader_descriptor = None
+                self.reader_vendor_id = None
+                self.reader_product_id = None
+                self.reader_firmware_version = None
 
             self.ursk = self._get_optional_bytes_from_TLV(
                 "URSK",

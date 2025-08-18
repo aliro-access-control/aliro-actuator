@@ -42,6 +42,7 @@ class TLVIndex(IntEnum):
     TLV_EXCHANGE_CMD = 15
     TLV_EXCHANGE_CMD_BA = 16
     TLV_EXCHANGE_CMD_AE = 17
+    TLV_EXCHANGE_CMD_B5 = 18
 
 
 expectedTags = {
@@ -64,6 +65,7 @@ expectedTags = {
     TLVIndex.TLV_EXCHANGE_CMD_BA: [0x8C, 0x87, 0x8A, 0x95], # EXCHANGE command BA sub tags
     TLVIndex.TLV_EXCHANGE_CMD_AE: [0x82, 0xB5, 0x9F00], # EXCHANGE command AE sub tags (check only first byte of
                                                         # tag 0x9Fxx, handle second byte later on)
+    TLVIndex.TLV_EXCHANGE_CMD_B5: [0x04, 0x80, 0x81], # EXCHANGE command B5 sub tags
 }
 
 expectedLength = {
@@ -85,6 +87,7 @@ expectedLength = {
     TLVIndex.TLV_EXCHANGE_CMD: [-1, -1, 2, 0, -1], # EXCHANGE command
     TLVIndex.TLV_EXCHANGE_CMD_BA: [1, 4, -1, 5], # EXCHANGE command BA sub tags
     TLVIndex.TLV_EXCHANGE_CMD_AE: [2, -1, -1], # EXCHANGE command AE sub tags
+    TLVIndex.TLV_EXCHANGE_CMD_B5: [3, -1, -1], # EXCHANGE command B5 sub tags
 }
 
 class TlvError(AccessProtocolError):
