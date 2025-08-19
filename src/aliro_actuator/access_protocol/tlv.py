@@ -412,11 +412,17 @@ class TLV:
             if (i<=buflen):
                 tags.append(tag)
 
-            # once the whole TLV structure is parsed, check the order is as expected
-            it = iter(checkedTags)
-            if (i >= buflen):
-                if all(i in it for i in tags) == False:
-                    raise TlvError(
-                        "Wrong sequence of TLV tags {} not matching {}".format(', '.join(hex(x) for x in tags),
-                                                                               ', '.join(hex(x) for x in checkedTags)))
+            # There is no strict order for mailbox commands, just check the tags are valid
+            if idx == TLVIndex.TLV_EXCHANGE_CMD_BA:
+                if not set(tags).issubset(set(checkedTags)):
+                    raise TlvError("Wrong TLV tags {} in mailbox commands {}".format(
+                        ', '.join(hex(x) for x in tags), ', '.join(hex(x) for x in checkedTags)))
+            else:
+                # once the whole TLV structure is parsed, check the order is as expected
+                it = iter(checkedTags)
+                if (i >= buflen):
+                    if all(i in it for i in tags) == False:
+                        raise TlvError(
+                            "Wrong sequence of TLV tags {} not matching {}".format(
+                                ', '.join(hex(x) for x in tags), ', '.join(hex(x) for x in checkedTags)))
 
