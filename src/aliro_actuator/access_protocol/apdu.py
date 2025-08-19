@@ -741,7 +741,7 @@ class Command(APDUMessage):
                 Global.logger.debug("Verify mailbox commands")
                 TLV.verifySequence(self.mailbox_commands, TLVIndex.TLV_EXCHANGE_CMD_BA)
 
-                self.mailbox_commands_tlv = TLV.from_bytes(self.mailbox_commands)
+                self.mailbox_commands_tlv = TLV.from_bytes(self.mailbox_commands, recursive=False)
                 Global.logger.debug(
                     "mailbox_commands contains TLV structure: {}".format(
                         self.mailbox_commands_tlv.to_print()
@@ -807,7 +807,7 @@ class Command(APDUMessage):
                 Global.logger.debug("Verify notification data for User Device")
                 TLV.verifySequence(self.notify, TLVIndex.TLV_EXCHANGE_CMD_AE)
 
-                self.notify_tlv = TLV.from_bytes(self.notify)
+                self.notify_tlv = TLV.from_bytes(self.notify, recursive=False)
                 Global.logger.debug(
                     "notify data contains TLV structure: {}".format(
                         self.notify_tlv.to_print()
@@ -904,6 +904,50 @@ class Command(APDUMessage):
         self.domain_specific_data = self._get_optional_bytes_from_TLV(
             "Domain specific data", ControlFlow.DOMAIN_SPECIFIC_TAG
         )
+        if self.domain_specific_data is not None:
+            self.domain_specific_data_tlv = TLV.from_bytes(self.domain_specific_data)
+            Global.logger.debug(
+                "Domain specific data contains TLV structure: {}".format(
+                    self.domain_specific_data_tlv.to_print()
+                )
+            )
+            self.reader_descriptor = self._get_bytes_from_TLV(
+                "Reader_descriptor",
+                Exchange.READER_DESCRIPTOR_TAG,
+                tlv_data=self.domain_specific_data_tlv,
+            )
+            if self.reader_descriptor is not None:
+                TLV.verifySequence(self.reader_descriptor, TLVIndex.TLV_EXCHANGE_CMD_B5)
+
+                self.reader_descriptor_tlv = TLV.from_bytes(self.reader_descriptor)
+                Global.logger.debug(
+                    "reader descriptor data contains TLV structure: {}".format(
+                        self.reader_descriptor_tlv.to_print()
+                    )
+                )
+
+                self.reader_vendor_id = self._get_bytes_from_TLV(
+                    "Reader_Vendor_ID",
+                    0x04,
+                    3,
+                    tlv_data=self.reader_descriptor_tlv,
+                )
+
+                self.reader_product_id = self._get_bytes_from_TLV(
+                    "Reader_Product_ID",
+                    0x80,
+                    tlv_data=self.reader_descriptor_tlv,
+                )
+                self.reader_firmware_version = self._get_bytes_from_TLV(
+                    "Reader_Firmware_Version",
+                    0x81,
+                    tlv_data=self.reader_descriptor_tlv,
+                )
+        else:
+            self.reader_descriptor = None
+            self.reader_vendor_id = None
+            self.reader_product_id = None
+            self.reader_firmware_version = None
 
         self._check_le(0)
         Global.logger.info("Done parsing CONTROL FLOW command")
