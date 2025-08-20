@@ -1667,7 +1667,7 @@ class UserDevice(Device):
 
         Global.logger.info("Handling notifications")
         if exchange_command.notify is not None:
-            tlvList = TLV.to_tlv_list(TLV.from_bytes(exchange_command.notify).to_data())
+            tlvList = TLV.to_tlv_list(TLV.from_bytes(exchange_command.notify, recursive=False).to_data())
             Global.logger.info("Found {} sub-TLVs for EXCHANGE[Notify].".format(len(tlvList)))
             for tlv in tlvList:
                 tag = tlv.to_tag()

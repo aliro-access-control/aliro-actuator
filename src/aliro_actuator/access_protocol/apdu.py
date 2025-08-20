@@ -905,7 +905,7 @@ class Command(APDUMessage):
             "Domain specific data", ControlFlow.DOMAIN_SPECIFIC_TAG
         )
         if self.domain_specific_data is not None:
-            self.domain_specific_data_tlv = TLV.from_bytes(self.domain_specific_data)
+            self.domain_specific_data_tlv = TLV.from_bytes(self.domain_specific_data, recursive=False)
             Global.logger.debug(
                 "Domain specific data contains TLV structure: {}".format(
                     self.domain_specific_data_tlv.to_print()
