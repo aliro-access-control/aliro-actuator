@@ -2430,8 +2430,12 @@ class UserSession:
             self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
         )
         if self.command_vendor_extension is not None:
+            info.append(Auth0.VENDOR_SPECIFIC_TAG)
+            info.append(len(self.command_vendor_extension))
             info.extend(self.command_vendor_extension)
         if self.response_vendor_extension is not None:
+            info.append(Auth0.RE_VENDOR_SPECIFIC_TAG)
+            info.append(len(self.response_vendor_extension))
             info.extend(self.response_vendor_extension)
 
         proprietary_information = create_proprietary_information(
@@ -2478,8 +2482,12 @@ class UserSession:
             self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
         )
         if self.command_vendor_extension is not None:
+            info.append(Auth0.VENDOR_SPECIFIC_TAG)
+            info.append(len(self.command_vendor_extension))
             info.extend(self.command_vendor_extension)
         if self.response_vendor_extension is not None:
+            info.append(Auth0.RE_VENDOR_SPECIFIC_TAG)
+            info.append(len(self.response_vendor_extension))
             info.extend(self.response_vendor_extension)
 
         proprietary_information = create_proprietary_information(
@@ -2522,8 +2530,12 @@ class UserSession:
             self.credential_ephemeral.get_public_key().get_x().to_bytes(32, "big")
         )
         if self.command_vendor_extension is not None:
+            info.append(Auth0.VENDOR_SPECIFIC_TAG)
+            info.append(len(self.command_vendor_extension))
             info.extend(self.command_vendor_extension)
         if self.response_vendor_extension is not None:
+            info.append(Auth0.RE_VENDOR_SPECIFIC_TAG)
+            info.append(len(self.response_vendor_extension))
             info.extend(self.response_vendor_extension)
 
         proprietary_information = create_proprietary_information(
