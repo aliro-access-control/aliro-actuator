@@ -753,7 +753,7 @@ class Command(APDUMessage):
                         Exchange.ATOMIC_SESSION_TAG,
                         Exchange.ATOMIC_SESSION_LEN,
                         tlv_data=self.mailbox_commands_tlv,
-                    )
+                    ), "big"
                 )
 
                 self.read_requests = self._get_multiple_optional_bytes_from_TLV(
