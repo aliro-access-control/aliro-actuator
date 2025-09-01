@@ -1892,10 +1892,10 @@ class UserDevice(Device):
                     message.reason_code.name
                 )
             )
-            if hasattr(message, "reader_descriptor"):
+            if message.reader_descriptor is not None:
                 Global.logger.warning(
                     "Received Reader descriptor: {}".format(
-                        message.reader_descriptor
+                        hexlify(message.reader_descriptor)
                     )
                 )
         else:

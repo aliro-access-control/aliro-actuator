@@ -4,7 +4,7 @@ from binascii import hexlify
 from enum import IntEnum
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.defines import AUTHENTICATION_TAG_SIZE, Select
+from aliro_actuator.access_protocol.defines import AUTHENTICATION_TAG_SIZE, ReaderDescriptor, Select
 from aliro_actuator.access_protocol.encryption import EncryptionEngine
 from aliro_actuator.access_protocol.tlv import TLV, TlvError
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
@@ -216,6 +216,36 @@ class BleMessage(Message):
             if offset < len(self.payload):
                 attribute = BleAttribute.from_bytes(self.payload[offset:None])
                 self.reader_descriptor = attribute.value
+                try:
+                    reader_descriptor_tlv = TLV.from_bytes(self.reader_descriptor, recursive=True)
+                except TlvError as error:
+                    raise BLEMessageError(
+                        self.to_bytes(),
+                        "Reader Descriptor attribute is not a valid TLV",
+                    ) from error
+                self.reader_descriptor_tlv = self._get_TLV_from_TLV(
+                    "Reader_Descriptor",
+                    ReaderDescriptor.READER_DESCRIPTOR_TAG,
+                    tlv_data=reader_descriptor_tlv,
+                )
+                self.reader_vendor_id = self._get_bytes_from_TLV(
+                    "Reader_Vendor_ID",
+                    ReaderDescriptor.READER_VENDOR_ID_TAG,
+                    ReaderDescriptor.READER_VENDOR_ID_LEN,
+                    tlv_data=self.reader_descriptor_tlv,
+                )
+                self.reader_product_id = self._get_bytes_from_TLV(
+                    "Reader_Product_ID",
+                    ReaderDescriptor.READER_PRODUCT_ID_TAG,
+                    tlv_data=self.reader_descriptor_tlv,
+                )
+                self.reader_firmware_version = self._get_bytes_from_TLV(
+                    "Reader_Firmware_Version",
+                    ReaderDescriptor.READER_FIRMWARE_VERSION_TAG,
+                    tlv_data=self.reader_descriptor_tlv,
+                )
+            else:
+                self.reader_descriptor = None
             
         Global.logger.info("Parsing Event done")
 

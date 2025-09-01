@@ -27,6 +27,7 @@ from aliro_actuator.access_protocol.defines import (
     Auth1,
     ControlFlow,
     Exchange,
+    ReaderDescriptor,
     Select,
 )
 from aliro_actuator.access_protocol.encryption import (
@@ -839,19 +840,19 @@ class Command(APDUMessage):
 
                     self.reader_vendor_id = self._get_bytes_from_TLV(
                         "Reader_Vendor_ID",
-                        0x04,
-                        3,
+                        ReaderDescriptor.READER_VENDOR_ID_TAG,
+                        ReaderDescriptor.READER_VENDOR_ID_LEN,
                         tlv_data=self.reader_descriptor_tlv,
                     )
 
                     self.reader_product_id = self._get_bytes_from_TLV(
                         "Reader_Product_ID",
-                        0x80,
+                        ReaderDescriptor.READER_PRODUCT_ID_TAG,
                         tlv_data=self.reader_descriptor_tlv,
                     )
                     self.reader_firmware_version = self._get_bytes_from_TLV(
                         "Reader_Firmware_Version",
-                        0x81,
+                        ReaderDescriptor.READER_FIRMWARE_VERSION_TAG,
                         tlv_data=self.reader_descriptor_tlv,
                     )
             else:
@@ -928,19 +929,19 @@ class Command(APDUMessage):
 
                 self.reader_vendor_id = self._get_bytes_from_TLV(
                     "Reader_Vendor_ID",
-                    0x04,
-                    3,
+                    ReaderDescriptor.READER_VENDOR_ID_TAG,
+                    ReaderDescriptor.READER_VENDOR_ID_LEN,
                     tlv_data=self.reader_descriptor_tlv,
                 )
 
                 self.reader_product_id = self._get_bytes_from_TLV(
                     "Reader_Product_ID",
-                    0x80,
+                    ReaderDescriptor.READER_PRODUCT_ID_TAG,
                     tlv_data=self.reader_descriptor_tlv,
                 )
                 self.reader_firmware_version = self._get_bytes_from_TLV(
                     "Reader_Firmware_Version",
-                    0x81,
+                    ReaderDescriptor.READER_FIRMWARE_VERSION_TAG,
                     tlv_data=self.reader_descriptor_tlv,
                 )
         else:
