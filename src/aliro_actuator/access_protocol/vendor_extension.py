@@ -6,6 +6,8 @@ VENDOR_EXTENSION_VENDOR_ID_TAG = 0x04
 
 class VendorExtension:
     def __init__(self, vendor_id: bytes, data: TLV):
+        if len(vendor_id) != 3:
+            raise TlvError
         self.vendor_id = vendor_id
         self.data = data
 
@@ -24,6 +26,9 @@ class VendorExtension:
         """
         list = TLV.from_bytes(data)
         root = list.get_all_of_tag(VENDOR_EXTENSION_TAG)
+        if len(root) == 0:
+            raise TlvError
+
         ret = []
         for section in root:
             if section.data[0][0] != VENDOR_EXTENSION_VENDOR_ID_TAG:
