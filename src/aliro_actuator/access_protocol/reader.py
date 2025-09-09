@@ -1628,7 +1628,7 @@ class Reader(Device):
                 Global.logger.info("Payload[0] = %x" %(payload[0]))
                 match message.attribute.id:
                     case RangingMessage_AttributeID.INITIATE_RANGING_SESSION:
-                        await self.handle_initiate_ranging(message)
+                        await self.send_ranging_session_setup_m1()
                     case RangingMessage_AttributeID.INITIATE_RANGING_SESSION_RESUME:
                         await self.send_ranging_session_resume_request()
                     case RangingMessage_AttributeID.RANGING_SESSION_SUSPENDED:
