@@ -119,17 +119,22 @@ class ControlFlow:
 
 class Exchange:
     # command
+    ATOMIC_SESSION_TAG = 0x8C
     READ_TAG = 0x87
     WRITE_TAG = 0x8A
     SET_TAG = 0x95
-    MAILBOX_TAG = 0xB9
+    READER_ERROR_TAG = 0x82
+    READER_DESCRIPTOR_TAG = 0xB5
+    MAILBOX_TAG = 0xBA
     NOTIFY_TAG = 0xAE
     READER_STATUS_TAG = 0x97
     URSK_TAG = 0x98
     UPDATE_DOC_TAG = 0x81
 
+    ATOMIC_SESSION_LEN = 1
     READ_LEN = 4
     SET_LEN = 5
+    READER_ERROR_LEN = 2
     READER_STATUS_LEN = 2
     URSK_LEN = 0
 
@@ -150,3 +155,12 @@ class UserDeviceAuth:
     TRANSACTION_IDENTIFIER_TAG = 0x4C
     USAGE_TAG = 0x93
     USAGE = bytes.fromhex("4E887B4C")
+
+
+class ReaderDescriptor:
+    READER_DESCRIPTOR_TAG = 0xB5
+    READER_VENDOR_ID_TAG = 0x04
+    READER_PRODUCT_ID_TAG = 0x80
+    READER_FIRMWARE_VERSION_TAG = 0x81
+
+    READER_VENDOR_ID_LEN = 0x03

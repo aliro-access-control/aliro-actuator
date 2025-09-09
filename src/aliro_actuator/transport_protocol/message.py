@@ -198,20 +198,31 @@ class Message:
         Returns:
             bytes | None: the element requested, None if not found
         """
+        if tlv_data is None:
+            if hasattr(self, "tlv_data"):
+                tlv_data = self.tlv_data
+            else:
+                raise AttributeError
         try:
-            return self._get_bytes_from_TLV(
-                value_name,
-                tag,
-                length,
-                max_length,
-                tlv_data,
+            value_bytes = tlv_data.get_bytes(tag)
+            if length is not None and len(value_bytes) != length:
+                raise self.invalid_data_error(
+                    self.to_bytes(), f"{value_name} has invalid length"
+                )
+            if max_length is not None and len(value_bytes) > max_length:
+                raise self.invalid_data_error(
+                    self.to_bytes(), f"{value_name} has invalid length"
+                )
+            Global.logger.info(value_name + " (tag 0x{:02x}) present".format(tag))
+            Global.logger.debug(
+                "{} value: {!r}".format(value_name, hexlify(value_bytes))
             )
-        except self.invalid_data_error:
+        except IndexError:
             Global.logger.info(
-                "No {} (tag 0x{:02x}) found "
-                "(this tag is optional)".format(value_name, tag)
+                "No {} (tag 0x{:02x}) found (this tag is optional)".format(value_name, tag)
             )
             return None
+        return value_bytes
 
     def _get_multiple_optional_bytes_from_TLV(
         self,
