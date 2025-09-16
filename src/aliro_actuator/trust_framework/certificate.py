@@ -38,6 +38,14 @@ class Certificate:
     default_validity_not_after = bytes.fromhex("3439303130313030303030305A")
     default_subject = bytes.fromhex("7375626A656374")
 
+    serial_number_max_len = 20
+    issuer_max_len = 32
+    validity_not_before_min_len = 13
+    validity_not_before_max_len = 15
+    validity_not_after_min_len = 13
+    validity_not_after_max_len = 15
+    subject_max_len = 32
+
     def __init__(
         self,
         key_info_subject_public_key: bytes,
@@ -222,14 +230,24 @@ class Certificate:
             tag, value = decoder.read()
             while tag.nr < 5:
                 if tag.nr == 0:
+                    if len(value) > self.serial_number_max_len:
+                        raise CertificateDecodingError("serial number incorrect length")
                     serial_number = value
                 if tag.nr == 1:
+                    if len(value) > self.issuer_max_len:
+                        raise CertificateDecodingError("issuer incorrect length")
                     issuer = value
                 if tag.nr == 2:
+                    if len(value) > self.validity_not_before_max_len or len(value) < self.validity_not_before_min_len:
+                        raise CertificateDecodingError("not before incorrect length")
                     validity_not_before = value
                 if tag.nr == 3:
+                    if len(value) > self.validity_not_after_max_len or len(value) < self.validity_not_after_min_len:
+                        raise CertificateDecodingError("not after incorrect length")
                     validity_not_after = value
                 if tag.nr == 4:
+                    if len(value) > self.subject_max_len:
+                        raise CertificateDecodingError("subject incorrect length")
                     subject = value
                 tag, value = decoder.read()
 
@@ -265,14 +283,26 @@ class Certificate:
         encoder.write(PROFILE, Numbers.OctetString)
         encoder.enter(Numbers.Sequence)
         if self.serial_number != self.default_serial_number:
+            if len(self.serial_number) > self.serial_number_max_len:
+                raise ValueError("Serial number has incorrect length")
             encoder.write(self.serial_number, 0, cls=Classes.Context)
         if self.issuer != self.default_issuer:
+            if len(self.issuer) > self.issuer_max_len:
+                raise ValueError("Issuer has incorrect length")
             encoder.write(self.issuer, 1, cls=Classes.Context)
         if self.validity_not_before != self.default_validity_not_before:
+            if len(self.validity_not_before) > self.validity_not_before_max_len or \
+             len(self.validity_not_before) < self.validity_not_before_min_len:
+                raise ValueError("Not Before has incorrect length")
             encoder.write(self.validity_not_before, 2, cls=Classes.Context)
         if self.validity_not_after != self.default_validity_not_after:
+            if len(self.validity_not_after) > self.validity_not_after_max_len or \
+             len(self.validity_not_after) < self.validity_not_after_min_len:
+                raise ValueError("Not After has incorrect length")
             encoder.write(self.validity_not_after, 3, cls=Classes.Context)
         if self.subject != self.default_subject:
+            if len(self.subject) > self.subject_max_len:
+                raise ValueError("Subject has incorrect length")
             encoder.write(self.subject, 4, cls=Classes.Context)
         encoder.write(self.key_info_subject_public_key, 5, cls=Classes.Context)
         encoder.write(self.signature, 6, cls=Classes.Context)
