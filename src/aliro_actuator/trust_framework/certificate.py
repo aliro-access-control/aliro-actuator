@@ -301,7 +301,7 @@ class Certificate:
                 raise ValueError("Not After has incorrect length")
             encoder.write(self.validity_not_after, 3, cls=Classes.Context)
         if self.subject != self.default_subject:
-            if len(self.subject) > self.issuer_max_len:
+            if len(self.subject) > self.subject_max_len:
                 raise ValueError("Subject has incorrect length")
             encoder.write(self.subject, 4, cls=Classes.Context)
         encoder.write(self.key_info_subject_public_key, 5, cls=Classes.Context)
