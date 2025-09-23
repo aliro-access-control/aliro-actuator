@@ -612,6 +612,7 @@ class Command(APDUMessage):
             "vendor specific extension",
             Auth0.VENDOR_SPECIFIC_TAG,
             max_length=Auth0.VENDOR_SPECIFIC_MAX_LEN,
+            tlv_data=TLV.from_bytes(self.data, recursive=False),
         )
 
         self._check_le()
