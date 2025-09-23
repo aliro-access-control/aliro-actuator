@@ -433,14 +433,14 @@ class Command(APDUMessage):
             Global.logger.info("Valid P1 found: 0x{:02x}".format(self.p1))
             Global.logger.info("Valid P2 found: 0x{:02x}".format(self.p2))
 
-    def _check_le(self, expected_le: int = 256) -> None:
+    def _check_le(self, expected_le: int | None = None) -> None:
         """
         Check if le is valid.
 
         Most commands require the send value to be 0,
         which means a maximum expected response of 256
         """
-        if self.le != expected_le:
+        if expected_le is not None and self.le != expected_le:
             raise InvalidLeError(self.as_bytes)
         else:
             le = self.le
