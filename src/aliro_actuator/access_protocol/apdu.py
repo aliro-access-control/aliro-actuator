@@ -58,7 +58,7 @@ from aliro_actuator.transport_protocol.errors import TimeoutError
 
 # See Aliro spec 8.3
 APDU_COMMAND_MAX_DATA_LENGTH = 255
-APDU_RESPONSE_MAX_DATA_LENGTH = 254
+APDU_RESPONSE_MAX_DATA_LENGTH = 256
 
 MAX_VALUE_BYTE = 0xFF
 MAX_VALUE_2_BYTES = 0xFFFF
