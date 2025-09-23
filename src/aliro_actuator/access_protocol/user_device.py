@@ -31,6 +31,7 @@ from aliro_actuator.access_protocol.apdu import (
     Command,
     StatusBytes,
     Transaction,
+    APDU_RESPONSE_MAX_DATA_LENGTH,
 )
 from aliro_actuator.access_protocol.authentication import (
     create_reader_authentication,
@@ -348,6 +349,8 @@ class UserDevice(Device):
                     break
                 try:
                     if isinstance(message, Command):
+                        # Set APDU response data length to expected number of bytes indicated in Le field
+                        self.apdu.apdu_response_length = message.le
                         match message.ins:
                             case INS.SELECT:
                                 await self.handle_select(message)
@@ -380,6 +383,10 @@ class UserDevice(Device):
                 except NoDeviceConnectedError:
                     # try to reconnect in outer loop
                     break
+                finally:
+                    if isinstance(message, Command):
+                        # Set APDU response data length back to default max value
+                        self.apdu.apdu_response_length = APDU_RESPONSE_MAX_DATA_LENGTH
 
     async def ranging_loop(self) -> None:
         while True:
