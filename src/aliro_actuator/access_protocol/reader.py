@@ -41,6 +41,7 @@ from aliro_actuator.access_protocol.defines import (
     EXPEDITED_PHASE_AID,
     PROTOCOL_VERSION,
     STEPUP_PHASE_AID,
+    Auth0,
     Auth1,
     Exchange,
     TransportProtocol,
