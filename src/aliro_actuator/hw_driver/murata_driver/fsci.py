@@ -39,6 +39,20 @@ class ConfirmStatus(IntEnum):
     LE_PSM_ALREADY_REGISTERED = 0x03F5
 
 
+class L2CapConnectionResult(IntEnum):
+    Successful = 0x0000 
+    LePsmNotSupported = 0x0002
+    NoResourcesAvailable = 0x0004
+    InsufficientAuthentication = 0x0005
+    InsufficientAuthorization = 0x0006
+    InsufficientEncryptionKeySize = 0x0007
+    InsufficientEncryption = 0x0008
+    InvalidSourceCid = 0x0009
+    SourceCidAlreadyAllocated = 0x000A 
+    CommandRejected = 0x0100
+    ResponseTimeout = 0xFFFE
+
+
 class AdvertisementInfo:
     def __init__(self, message: Message) -> None:
         adv_ind = message.get_advertising_data()
@@ -73,6 +87,8 @@ class Message:
 
         if checksum is not None and self.checksum != checksum:
             raise InvalidChecksumError(self.checksum, checksum)
+        
+        self.result_error = None
 
     def get_op_group(self) -> int:
         return self.op_group
@@ -266,7 +282,7 @@ class Message:
             return characteristic
         raise NotImplementedError
 
-    def check_for_error(self) -> None:
+    def check_for_error(self, expected_error: int | None = None) -> None:
         if self.op_group == OpGroup.GATT and self.op_code in [
             OpCodeGATT.PROCEDURE_READ_CHARACTERISTIC_VALUE,
             OpCodeGATT.PROCEDURE_WRITE_CHARACTERISTIC_VALUE,
@@ -274,8 +290,12 @@ class Message:
             device_id = self.data[0]
             result = self.data[1]
             if result == 0x01:
-                error = self.data[2:4]
-                raise ErrorReturnedError(int.from_bytes(error, "little"))
+                self.result_error = int.from_bytes(self.data[2:4], "little")
+                if expected_error is not None:
+                    if self.result_error != expected_error:
+                        raise ErrorReturnedError(self.result_error, expected=[expected_error])
+                else:
+                    raise ErrorReturnedError(self.result_error )
             return
         elif (
             self.op_group == OpGroup.L2CAP
@@ -284,8 +304,13 @@ class Message:
             if self.data[0] == 0x01:
                 connection_complete_structure = self.data[1:]
                 result = int.from_bytes(connection_complete_structure[-2:], "little")
-                if result != 0x0000:
-                    raise ErrorReturnedError(result)
+                if result != L2CapConnectionResult.Successful:
+                    self.result_error = result
+                    if expected_error is not None:
+                        if self.result_error != expected_error:
+                            raise ErrorReturnedError(self.result_error, expected=[expected_error])
+                    else:
+                        raise ErrorReturnedError(self.result_error)
             return
         raise NotImplementedError
 
