@@ -45,8 +45,10 @@ from aliro_actuator.transport_protocol.message import Message
 import os
 DEFAULT_PORT = os.getenv("TH_MURATA_COM", "/dev/ttyUSB0")
 DEFAULT_BAUDRATE = "230400"
-SUPPORTED_VERSIONS = [0x0100]
-CURRENT_VERSION = 0x0100
+ALIRO_BLE_UWB_PROTOCOL_VERSION = 0x0100
+SUPPORTED_VERSIONS = [ALIRO_BLE_UWB_PROTOCOL_VERSION]
+ALIRO_BLE_UWB_INVALID_VERSION = 0x01FF
+INVALID_VERSIONS = [ALIRO_BLE_UWB_INVALID_VERSION]
 
 class BLEUWB(TransportProtocolBase):
     def __init__(
@@ -81,6 +83,7 @@ class BLEUWB(TransportProtocolBase):
         timeout: float | None = None,
         advertisement_version: int = 0x00,
         enable_uwb: bool = True,
+        reader_supported_ble_uwb_versions: list[int] | None = None
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
@@ -95,8 +98,10 @@ class BLEUWB(TransportProtocolBase):
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port, self.baudrate)
             )
-
-            self.supported_versions = SUPPORTED_VERSIONS
+            if reader_supported_ble_uwb_versions is not None:
+                self.supported_versions = reader_supported_ble_uwb_versions
+            else:
+                self.supported_versions = SUPPORTED_VERSIONS
             await self.driver.uci_initialize(
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
@@ -212,7 +217,7 @@ class BLEUWB(TransportProtocolBase):
             if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
                 await self.disconnect()
                 raise TransportProtocolError("Invalid BLE advertisement version")
-            self.ble_version = CURRENT_VERSION
+            self.ble_version = ALIRO_BLE_UWB_PROTOCOL_VERSION
             await self.handle_GATT_layer(self.ble_version)
 
         if self.mode == Mode.USER_DEVICE:
