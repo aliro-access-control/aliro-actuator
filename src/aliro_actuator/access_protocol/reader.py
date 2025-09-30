@@ -440,13 +440,36 @@ class Reader(Device):
             self.session.transaction_identifier = self.transaction_identifier_list.pop(
                 0
             )
-
-        if self.ephemeral_key_list is None or len(self.ephemeral_key_list) == 0:
-            self.session.generate_ephemeral_key()
-        else:
-            self.session.generate_ephemeral_key(self.ephemeral_key_list.pop(0))
-
+        # Pre-generate reader ephemeral key before transaction starts
+        self.generate_reader_ephemeral_key()
         self.failure_process_started = False
+
+    def generate_reader_ephemeral_key(self):
+        if self.ephemeral_key_list is None or len(self.ephemeral_key_list) == 0:
+            self.ephemeral_key_list = [KeyPair()]
+            Global.logger.info(
+                "Generated reader ephemeral keypair, with public key: {!r}".format(
+                    hexlify(self.ephemeral_key_list[0].get_public_key_as_bytes())
+                )
+            )
+        else:
+            for key in self.ephemeral_key_list:
+                Global.logger.info(
+                    "Using pre-generated reader ephemeral keypair, with public key: {!r}".format(
+                        hexlify(key.get_public_key_as_bytes())
+                    )
+                )
+
+    def set_reader_ephemeral_key(self):
+        # Generate a new ephemeral key if no pre-generated keys exist
+        if not self.ephemeral_key_list:
+            self.generate_reader_ephemeral_key()
+        self.session.reader_ephemeral = self.ephemeral_key_list.pop(0)
+        Global.logger.info(
+            "Set reader ephemeral keypair, with public key: {!r}".format(
+                hexlify(self.session.reader_ephemeral.get_public_key_as_bytes())
+            )
+        )
 
     def end_session(self) -> None:
         """
@@ -650,6 +673,9 @@ class Reader(Device):
         """
         if self.session is None:
             raise SessionError("No Session")
+
+        # New reader ephemeral key is set whenever sending an Auth0 command
+        self.set_reader_ephemeral_key()
 
         if (
             transaction_type == Transaction.FAST
@@ -2007,6 +2033,7 @@ class ReaderSession:
         self.encryption_stepup: EncryptionEngine | None = None
         self.ble_encryption_engine: EncryptionEngine | None = None
         self.reader_system_issuer_ca = reader_system_issuer_ca
+        self.reader_ephemeral: KeyPair | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -2087,23 +2114,6 @@ class ReaderSession:
 
     def get_credential_ephemeral_key(self) -> bytes:
         return self.credential_ephemeral_key.as_bytes()
-
-    def generate_ephemeral_key(self, ephemeral_key: KeyPair | None = None) -> None:
-        if ephemeral_key is None:
-            self.reader_ephemeral = KeyPair()
-            Global.logger.info(
-                "Generated reader ephemeral keypair, with public key: {!r}".format(
-                    hexlify(self.reader_ephemeral.get_public_key_as_bytes())
-                )
-            )
-        else:
-            self.reader_ephemeral = ephemeral_key
-            Global.logger.info("Generated reader ephemeral keypair")
-            Global.logger.info(
-                "Set reader ephemeral keypair, with public key: {!r}".format(
-                    hexlify(self.reader_ephemeral.get_public_key_as_bytes())
-                )
-            )
 
     def get_reader_epubkey(self) -> PublicKey:
         return self.reader_ephemeral.get_public_key()

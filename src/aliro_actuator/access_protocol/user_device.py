@@ -737,10 +737,35 @@ class UserDevice(Device):
         Global.logger.info("Starting new session")
         self.session = UserSession(self.supported_versions, self.vendor_extension)
 
+        # Pre-generate access credential ephemeral key before transaction starts
+        self.generate_credential_ephemeral_key()
+
+    def generate_credential_ephemeral_key(self):
         if self.ephemeral_key_list is None or len(self.ephemeral_key_list) == 0:
-            self.session.generate_ephemeral_key()
+            self.ephemeral_key_list = [KeyPair()]
+            Global.logger.info(
+                "Generated user credential ephemeral keypair, with public key: {!r}".format(
+                    hexlify(self.ephemeral_key_list[0].get_public_key_as_bytes())
+                )
+            )
         else:
-            self.session.generate_ephemeral_key(self.ephemeral_key_list.pop(0))
+            for key in self.ephemeral_key_list:
+                Global.logger.info(
+                    "Using pre-generated user credential ephemeral keypair, with public key: {!r}".format(
+                        hexlify(key.get_public_key_as_bytes())
+                    )
+                )
+
+    def set_credential_ephemeral_key(self):
+        # Generate a new credential ephemeral key if no pre-generated keys exist
+        if not self.ephemeral_key_list:
+            self.generate_credential_ephemeral_key()
+        self.session.credential_ephemeral = self.ephemeral_key_list.pop(0)
+        Global.logger.info(
+            "Set user credential ephemeral keypair, with public key: {!r}".format(
+                hexlify(self.session.credential_ephemeral.get_public_key_as_bytes())
+            )
+        )
 
     def end_session(self) -> None:
         """
@@ -1060,6 +1085,9 @@ class UserDevice(Device):
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             raise SessionError("unexpected state for auth0 command: {}".format(state))
 
+        # New user credential ephemeral key is set whenever sending an Auth0 response
+        self.set_credential_ephemeral_key()
+
         Global.logger.info("Handling AUTH0 Command")
         if (
             auth0_command.expedited_phase_protocol_version
@@ -1206,6 +1234,9 @@ class UserDevice(Device):
             state = self.session.state
             await self.failure_process(StatusBytes.INVALID_INSTRUCTION)
             raise SessionError("unexpected state for auth0 command: {}".format(state))
+
+        # New user credential ephemeral key is set whenever sending an Auth0 response
+        self.set_credential_ephemeral_key()
 
         Global.logger.info("Handling AUTH0 Command")
         if (
@@ -2350,6 +2381,7 @@ class UserSession:
         self.response_vendor_extension = vendor_extension
         self.ursk_available: bool = False
         self.ble_encryption_engine: EncryptionEngine | None = None
+        self.credential_ephemeral: KeyPair | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -2393,12 +2425,6 @@ class UserSession:
 
     def set_access_credential(self, access_credential: AccessCredential) -> None:
         self.access_credential = access_credential
-
-    def generate_ephemeral_key(self, ephemeral_key: KeyPair | None = None) -> None:
-        if ephemeral_key is None:
-            self.credential_ephemeral = KeyPair()
-        else:
-            self.credential_ephemeral = ephemeral_key
 
     def get_credential_epubkey(self) -> PublicKey:
         return self.credential_ephemeral.get_public_key()
