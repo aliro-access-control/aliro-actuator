@@ -79,7 +79,7 @@ class MurataL2CAPDriver(MurataBaseDriver):
         await self.wait_for_confirm(OpGroup.L2CAP)
 
     async def connect_le_psm(
-        self, device_id: int, psm: bytes, initial_credits: int, expected_error: int | None = None
+        self, device_id: int, psm: bytes, initial_credits: int, expected_status: int | None = None
     ) -> int | Message:
         Global.logger.debug("Connect Le PSM")
         data = bytearray()
@@ -102,10 +102,10 @@ class MurataL2CAPDriver(MurataBaseDriver):
                 OpCodeL2CAP.LE_PSM_CONNECTION_COMPLETE,
             )
             try:
-                response.check_for_error(expected_error)
+                response.check_for_error(expected_status)
                 break
             except ErrorReturnedError as error:
-                if error.error_code == L2CapConnectionResult.LePsmNotSupported or error.error_code == L2CapConnectionResult.ResponseTimeout:
+                if expected_status is None and (error.error_code in [L2CapConnectionResult.LePsmNotSupported, L2CapConnectionResult.ResponseTimeout]):
                     Global.logger.debug(
                         "other side is not yet ready for l2cap, try again later"
                     )
@@ -113,9 +113,8 @@ class MurataL2CAPDriver(MurataBaseDriver):
                     continue
                 else:
                     raise error
-        Global.logger.debug("LE PSM connection Complete")
-        if response.result_error is not None:
-            Global.logger.debug(f"LE PSM connection result: {L2CapConnectionResult(response.result_error).name}")
+        Global.logger.debug(f"LE PSM connection Complete ({L2CapConnectionResult(response.fsci_status).name})")
+        if response.fsci_status != L2CapConnectionResult.Successful:
             return response
         return self.channel_ids[device_id]
 

@@ -88,7 +88,7 @@ class Message:
         if checksum is not None and self.checksum != checksum:
             raise InvalidChecksumError(self.checksum, checksum)
         
-        self.result_error = None
+        self.fsci_status = None
 
     def get_op_group(self) -> int:
         return self.op_group
@@ -282,7 +282,7 @@ class Message:
             return characteristic
         raise NotImplementedError
 
-    def check_for_error(self, expected_error: int | None = None) -> None:
+    def check_for_error(self, expected_status: int | None = None) -> None:
         if self.op_group == OpGroup.GATT and self.op_code in [
             OpCodeGATT.PROCEDURE_READ_CHARACTERISTIC_VALUE,
             OpCodeGATT.PROCEDURE_WRITE_CHARACTERISTIC_VALUE,
@@ -290,12 +290,12 @@ class Message:
             device_id = self.data[0]
             result = self.data[1]
             if result == 0x01:
-                self.result_error = int.from_bytes(self.data[2:4], "little")
-                if expected_error is not None:
-                    if self.result_error != expected_error:
-                        raise ErrorReturnedError(self.result_error, expected=[expected_error])
+                self.fsci_status = int.from_bytes(self.data[2:4], "little")
+                if expected_status is not None:
+                    if self.fsci_status != expected_status:
+                        raise ErrorReturnedError(self.fsci_status, expected=[expected_status])
                 else:
-                    raise ErrorReturnedError(self.result_error )
+                    raise ErrorReturnedError(self.fsci_status)
             return
         elif (
             self.op_group == OpGroup.L2CAP
@@ -303,14 +303,13 @@ class Message:
         ):
             if self.data[0] == 0x01:
                 connection_complete_structure = self.data[1:]
-                result = int.from_bytes(connection_complete_structure[-2:], "little")
-                if result != L2CapConnectionResult.Successful:
-                    self.result_error = result
-                    if expected_error is not None:
-                        if self.result_error != expected_error:
-                            raise ErrorReturnedError(self.result_error, expected=[expected_error])
-                    else:
-                        raise ErrorReturnedError(self.result_error)
+                self.fsci_status = int.from_bytes(connection_complete_structure[-2:], "little")
+                if expected_status is not None:
+                    if self.fsci_status != expected_status:
+                        raise ErrorReturnedError(self.fsci_status, expected=[expected_status])
+                else:
+                    if self.fsci_status != L2CapConnectionResult.Successful:
+                        raise ErrorReturnedError(self.fsci_status)
             return
         raise NotImplementedError
 
