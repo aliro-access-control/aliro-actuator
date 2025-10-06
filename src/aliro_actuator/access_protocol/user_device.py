@@ -201,7 +201,7 @@ class UserDevice(Device):
 
         if mailbox is None:
             self.mailbox = None
-        if isinstance(mailbox, int):
+        elif isinstance(mailbox, int):
             self.mailbox = Mailbox(
                 size=mailbox,
                 read_permission=mailbox_read,
