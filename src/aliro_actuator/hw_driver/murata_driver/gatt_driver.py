@@ -10,6 +10,7 @@ from aliro_actuator.hw_driver.murata_driver.gatt import (
     Properties,
     Service,
     UuidType,
+    UUID,
 )
 from aliro_actuator.hw_driver.murata_driver.opcodes import (
     OpCodeGATT,
@@ -423,6 +424,30 @@ class MurataGATTClientDriver(MurataBaseDriver):
             OpCodeGATT.PROCEDURE_DISCOVER_ALL_PRIMARY_SERVICES,
         )
         Global.logger.debug("All primary services discovered")
+        return response.get_services()
+    
+    async def discover_primary_services_by_uuid(
+            self, device_id: int, uuid: bytes, uuid_type: UuidType = UuidType.uuid_16_bits, no_services: int = 0x01
+    ) -> list:
+        Global.logger.debug("Discover primary services by UUID")
+        data = bytearray()
+        data.extend(int.to_bytes(device_id, 1, "little"))
+        data.extend(UUID(type=uuid_type, value=uuid).to_bytes())
+        data.append(no_services)
+
+        message = Message(
+            OpGroup.GATT,
+            OpCodeGATT.DISCOVER_PRIMARY_SERVICES_BY_UUID,
+            len(data),
+            data,
+        )
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GATT)
+        response = await self.wait_for_message(
+            OpGroup.GATT,
+            OpCodeGATT.PROCEDURE_DISCOVER_PRIMARY_SERVICES_BY_UUID,
+        )
+        Global.logger.debug("Primary services discovered by UUID")
         return response.get_services()
 
     async def discover_all_characteristics_of_service(

@@ -92,16 +92,16 @@ class UserDeviceMurataDriver(
 
     async def handle_GATT_layer_get_primary_service(self) -> Service:
         Global.logger.debug("GATT get primary service")
-        services = await self.discover_all_primary_services(self.connected_devices[0])
-        primary_service = None
+        services = await self.discover_primary_services_by_uuid(self.connected_devices[0], uuid=ALIRO_SERVICE_UUID)
+        aliro_service = None
         for service in services:
             if service.get_uuid() == ALIRO_SERVICE_UUID:
-                primary_service = service
+                aliro_service = service
                 break
         else:
             raise GATTError("primary service not found")
         primary_service = await self.discover_all_characteristics_of_service(
-            self.connected_devices[0], primary_service, no_characteristics=0x02
+            self.connected_devices[0], aliro_service, no_characteristics=0x02
         )
         return primary_service
 
