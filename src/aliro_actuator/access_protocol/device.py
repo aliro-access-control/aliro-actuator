@@ -20,7 +20,13 @@ Implements the access protocol part of the aliro protocol
 """
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.apdu import APDU
+from aliro_actuator.access_protocol.apdu import (
+    APDU,
+    APDU_COMMAND_MAX_DATA_LENGTH,
+    APDU_RESPONSE_MAX_DATA_LENGTH, 
+    BLE_COMMAND_MAX_DATA_LENGTH, 
+    BLE_RESPONSE_MAX_DATA_LENGTH,
+    )
 from aliro_actuator.access_protocol.defines import TransportProtocol
 from aliro_actuator.transport_protocol import TransportProtocolBase
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
@@ -34,8 +40,15 @@ class Device:
         transport_protocol: TransportProtocol,
         transport_override: TransportProtocolBase | None = None,
     ):
-        self.apdu = APDU()
         self.transport_protocol_type = transport_protocol
+        match transport_protocol:
+            case TransportProtocol.NFC:
+                self.apdu = APDU(transport_protocol, APDU_COMMAND_MAX_DATA_LENGTH, APDU_RESPONSE_MAX_DATA_LENGTH)
+            case TransportProtocol.BLE_UWB:
+                self.apdu = APDU(transport_protocol, BLE_COMMAND_MAX_DATA_LENGTH, BLE_RESPONSE_MAX_DATA_LENGTH)
+            case TransportProtocol.SOCKET_NFC | TransportProtocol.SOCKET_BLE:
+                self.apdu = APDU(transport_protocol)
+            
         if transport_override is not None:
             self.transport_protocol: TransportProtocolBase = transport_override
             Global.logger.info("data transport protocol overridden, using custom type")
