@@ -45,8 +45,10 @@ from aliro_actuator.transport_protocol.message import Message
 import os
 DEFAULT_PORT = os.getenv("TH_MURATA_COM", "/dev/ttyUSB0")
 DEFAULT_BAUDRATE = "230400"
-SUPPORTED_VERSIONS = [0x0100]
-CURRENT_VERSION = 0x0100
+ALIRO_BLE_UWB_PROTOCOL_VERSION = 0x0100
+SUPPORTED_VERSIONS = [ALIRO_BLE_UWB_PROTOCOL_VERSION]
+ALIRO_BLE_UWB_INVALID_VERSION = 0x01FF
+INVALID_VERSIONS = [ALIRO_BLE_UWB_INVALID_VERSION]
 
 class BLEUWB(TransportProtocolBase):
     def __init__(
@@ -81,6 +83,7 @@ class BLEUWB(TransportProtocolBase):
         timeout: float | None = None,
         advertisement_version: int = 0x00,
         enable_uwb: bool = True,
+        reader_supported_ble_uwb_versions: list[int] | None = None
     ) -> None:
         self.mode = mode
         self.group_resolving_key = group_resolving_key
@@ -95,8 +98,10 @@ class BLEUWB(TransportProtocolBase):
             self.driver: ReaderMurataDriver | UserDeviceMurataDriver = (
                 ReaderMurataDriver(self.port, self.baudrate)
             )
-
-            self.supported_versions = SUPPORTED_VERSIONS
+            if reader_supported_ble_uwb_versions is not None:
+                self.supported_versions = reader_supported_ble_uwb_versions
+            else:
+                self.supported_versions = SUPPORTED_VERSIONS
             await self.driver.uci_initialize(
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
@@ -151,7 +156,7 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.disconnect(self.driver.connected_devices[0])
             await self.driver.close_uci()
 
-    async def handle_GATT_layer(self, version: int) -> None:
+    async def handle_GATT_layer(self, version: int | None = None) -> None:
         if self.mode == Mode.USER_DEVICE and isinstance(
             self.driver, UserDeviceMurataDriver
         ):
@@ -174,6 +179,14 @@ class BLEUWB(TransportProtocolBase):
             Global.logger.debug(
                 "Read features from reader: {!r}".format(hexlify(features))
             )
+
+            if version is None:
+                # User Device shall select the highest common supported version if no specific version is given
+                try:
+                    version = max(set(SUPPORTED_VERSIONS) & set(self.supported_versions))
+                except ValueError:
+                    raise UnknownVersionRequestedError
+
             self.time_sync_0 = 0x01
             self.time_sync_1 = 0x01
             self.LE_coded_phy = (features[0] & 0x04) == 0x04
@@ -185,40 +198,43 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.handle_GATT_layer_write_characteristic(
                 primary_service, value
             )
-            return
+            return version
         raise TransportProtocolError
 
     async def wait_for_connection(self) -> None:
-        if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
-            await self.driver.wait_for_connection()
-            self.ble_version, self.features = await self.driver.wait_for_write()
-            Global.logger.info(
-                "Checking ble version requested by User Device: 0x{:4x}".format(
-                    self.ble_version
+        try:
+            if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
+                await self.driver.wait_for_connection()
+                self.ble_version, self.features = await self.driver.wait_for_write()
+                Global.logger.info(
+                    "Checking ble version requested by User Device: 0x{:4x}".format(
+                        self.ble_version
+                    )
                 )
-            )
-            if self.ble_version not in self.supported_versions:
-                raise UnknownVersionRequestedError
-            Global.logger.info("Valid ble version requested by User Device")
-        if self.mode == Mode.USER_DEVICE and isinstance(
-            self.driver, UserDeviceMurataDriver
-        ):
-            (
-                advertisement_version,
-                self.notification,
-                self.BLE_UWB_supported,
-                self.BLE_only_supported,
-            ) = await self.driver.wait_for_connection()
-            if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
-                await self.disconnect()
-                raise TransportProtocolError("Invalid BLE advertisement version")
-            self.ble_version = CURRENT_VERSION
-            await self.handle_GATT_layer(self.ble_version)
+                if self.ble_version not in self.supported_versions:
+                    raise UnknownVersionRequestedError
+                Global.logger.info("Valid ble version requested by User Device")
+            if self.mode == Mode.USER_DEVICE and isinstance(
+                self.driver, UserDeviceMurataDriver
+            ):
+                (
+                    advertisement_version,
+                    self.notification,
+                    self.BLE_UWB_supported,
+                    self.BLE_only_supported,
+                ) = await self.driver.wait_for_connection()
+                if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
+                    await self.disconnect()
+                    raise TransportProtocolError("Invalid BLE advertisement version")
+                self.ble_version = await self.handle_GATT_layer()
 
-        if self.mode == Mode.USER_DEVICE:
-            await self.driver.setup_l2cap_connection_user(self.spsm)
-        if self.mode == Mode.READER:
-            await self.driver.setup_l2cap_connection_reader(self.spsm)
+            if self.mode == Mode.USER_DEVICE:
+                await self.driver.setup_l2cap_connection_user(self.spsm)
+            if self.mode == Mode.READER:
+                await self.driver.setup_l2cap_connection_reader(self.spsm)
+        except UnknownVersionRequestedError:
+            await self.disconnect()
+            raise TransportProtocolError("Invalid Aliro BLE UWB Protocol Version")
 
     async def send_message(
         self,
