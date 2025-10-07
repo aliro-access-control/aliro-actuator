@@ -831,12 +831,16 @@ class UserDevice(Device):
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
 
-        Global.logger.info("Sending initiate ranging ble message")
+        if not self.session.ursk_available:
+            Global.logger.info("Sending general error URSK unavailable")
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.URSK_UNAVAILABLE)
+        else:
+            Global.logger.info("Sending initiate ranging ble message")
 
-        message = BleMessage.create_initiate_ranging_session(
-            self.session.get_ble_encryption()
-        )
-        await self.transport_protocol.send_message(message, timeout=self.timeout)
+            message = BleMessage.create_initiate_ranging_session(
+                self.session.get_ble_encryption()
+            )
+            await self.transport_protocol.send_message(message, timeout=self.timeout)
 
     async def send_ranging_message_suspended(self) -> None:
         """
