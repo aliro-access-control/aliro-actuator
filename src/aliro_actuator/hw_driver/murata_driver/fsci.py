@@ -216,8 +216,8 @@ class Message:
     def get_services(
         self,
     ) -> list[Service]:
-        if ((self.op_group == OpGroup.GATT and self.op_code == OpCodeGATT.PROCEDURE_DISCOVER_ALL_PRIMARY_SERVICES) or 
-            (self.op_group == OpGroup.GATT and self.op_code == OpCodeGATT.PROCEDURE_DISCOVER_PRIMARY_SERVICES_BY_UUID)):
+        if self.op_group == OpGroup.GATT and self.op_code in (OpCodeGATT.PROCEDURE_DISCOVER_ALL_PRIMARY_SERVICES, 
+                                                              OpCodeGATT.PROCEDURE_DISCOVER_PRIMARY_SERVICES_BY_UUID):
             # device_id = self.data[0]
             result = self.data[1]
             if result == 0x01:
