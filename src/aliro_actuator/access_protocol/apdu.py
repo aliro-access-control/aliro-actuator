@@ -1408,6 +1408,7 @@ class APDU:
         self.transport = transport
         self.apdu_command_length = apdu_command_length
         self.apdu_response_length = apdu_response_length
+        self._apdu_max_response_length = self.apdu_response_length
 
     @property
     def apdu_command_length(self) -> int:
@@ -1424,7 +1425,11 @@ class APDU:
     @apdu_response_length.setter
     def apdu_response_length(self, response_length: int) -> None:
         self._apdu_response_data_length = response_length
-    
+
+    @property
+    def apdu_max_response_length(self) -> int:
+        # Read-only property used to keep and restore the default maximum APDU response length 
+        return self._apdu_max_response_length
 
     def set_extended_length(self, command_length: int, response_length: int) -> None:
         self.support_extended_length_apdu = True
@@ -2293,11 +2298,14 @@ class APDU:
         if not self.support_extended_length_apdu:
             if data is not None and len(data) > self.apdu_response_length:
                 # Chaining required
-                return self.create_response_chain(
+                response =  self.create_response_chain(
                     data, status, self.apdu_response_length
                 )
             else:
-                return [Response.create_from_parameters(data, status)]
+                response =  [Response.create_from_parameters(data, status)]
+            # Set APDU response data length back to default max value after creating the response
+            self.apdu_response_length = self.apdu_max_response_length
+            return response
         else:
             # extended length supported
             if data is not None and len(data) + 2 > self.maximum_command_apdu:
