@@ -93,7 +93,6 @@ from aliro_actuator.transport_protocol.ble_message_format import (
     RangingMessage_AttributeID,
 )
 from aliro_actuator.transport_protocol.ble_uwb import BLEUWB
-from aliro_actuator.transport_protocol.nfc import NFC
 from aliro_actuator.transport_protocol.errors import (
     InvalidProtocolTypeError,
     NoDeviceConnectedError,
@@ -351,8 +350,6 @@ class UserDevice(Device):
                     break
                 try:
                     if isinstance(message, Command):
-                        # Set APDU response data length to expected number of bytes indicated in Le field
-                        self.apdu.apdu_response_length = message.le
                         match message.ins:
                             case INS.SELECT:
                                 await self.handle_select(message)
@@ -385,13 +382,6 @@ class UserDevice(Device):
                 except NoDeviceConnectedError:
                     # try to reconnect in outer loop
                     break
-                finally:
-                    if isinstance(message, Command):
-                        # Set APDU response data length back to default max value
-                        if isinstance(self.transport_protocol, NFC):
-                            self.apdu.apdu_response_length = APDU_RESPONSE_MAX_DATA_LENGTH
-                        elif isinstance(self.transport_protocol, BLEUWB):
-                            self.apdu.apdu_response_length = BLE_RESPONSE_MAX_DATA_LENGTH
 
     async def ranging_loop(self) -> None:
         while True:
@@ -2043,6 +2033,9 @@ class UserDevice(Device):
             command = await self.apdu.handle_chaining_receive_command(
                 command_str, self.transport_protocol, timeout=self.timeout
             )
+            # Set APDU response data length used in chaining to the expected number of bytes indicated in Le field
+            if command.le < self.apdu.apdu_response_length:
+                self.apdu.apdu_response_length = command.le
         except TimeoutError:
             await self.handle_timeout()
             raise TimeoutError
