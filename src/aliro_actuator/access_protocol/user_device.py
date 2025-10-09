@@ -2034,7 +2034,7 @@ class UserDevice(Device):
                 command_str, self.transport_protocol, timeout=self.timeout
             )
             # Set APDU response data length used in chaining to the expected number of bytes indicated in Le field
-            if command.le < self.apdu.apdu_response_length:
+            if command.le < self.apdu.apdu_max_response_length:
                 self.apdu.apdu_response_length = command.le
         except TimeoutError:
             await self.handle_timeout()

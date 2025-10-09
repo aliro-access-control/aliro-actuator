@@ -2323,24 +2323,22 @@ class APDU:
         max_data_length: int = APDU_RESPONSE_MAX_DATA_LENGTH,
     ) -> list[Response]:
         response_list = []
-        index = 0
-        while len(data) > index:
-            bytes_left = len(data) - index
-            if bytes_left < max_data_length:
+        bytes_left = len(data)
+        for idx in range(0, len(data), max_data_length):
+            if bytes_left <= max_data_length:
                 # last message in chain
                 chain_status = status
-            elif bytes_left > 0xFF:
-                bytes_left = 0xFF
-                chain_status = StatusBytes.MORE_DATA_AVAILABLE | bytes_left
+            elif max_data_length < bytes_left <= max_data_length + 0xFF:
+                chain_status = StatusBytes.MORE_DATA_AVAILABLE | (bytes_left - max_data_length)
             else:
-                chain_status = StatusBytes.MORE_DATA_AVAILABLE | bytes_left
+                chain_status = StatusBytes.MORE_DATA_AVAILABLE
 
             response_list.append(
                 Response.create_from_parameters(
-                    data[index : index + max_data_length], chain_status
+                    data[idx : idx + max_data_length], chain_status
                 )
             )
-            index += max_data_length
+            bytes_left -= max_data_length
         return response_list
 
     def create_error_response(self, status_bytes: int) -> Response:
