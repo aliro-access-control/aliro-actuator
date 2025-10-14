@@ -1015,6 +1015,10 @@ class Response(APDUMessage):
         else:
             Global.logger.info("Valid status found: 0x{:02x}".format(self.status))
 
+    def _check_empty_data(self):
+        if self.data is not None and len(self.data) > 0:
+            raise InvalidResponseDataError(self.as_bytes, f"Expected empty response data field")
+
     @classmethod
     def create_from_bytestring(cls, bytestring: bytes) -> Response:
         """
@@ -1333,6 +1337,7 @@ class Response(APDUMessage):
         Parse this response as a Auth1 response.
         """
         Global.logger.info("Parsing LOAD CERT response:")
+        self._check_empty_data()
         self._check_status()
         Global.logger.info("Done parsing LOAD CERT response")
 
@@ -1382,6 +1387,7 @@ class Response(APDUMessage):
         Parse this response as a control_flow response.
         """
         Global.logger.info("Parsing CONTROL FLOW response:")
+        self._check_empty_data()
         self._check_status()
         Global.logger.info("Done parsing CONTROL FLOW response")
 
