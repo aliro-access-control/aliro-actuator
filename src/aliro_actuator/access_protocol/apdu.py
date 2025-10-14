@@ -29,6 +29,7 @@ from aliro_actuator.access_protocol.defines import (
     Exchange,
     ReaderDescriptor,
     Select,
+    TransportProtocol,
 )
 from aliro_actuator.access_protocol.encryption import (
     EncryptionEngine,
@@ -59,6 +60,17 @@ from aliro_actuator.transport_protocol.errors import TimeoutError
 # See Aliro spec 8.3
 APDU_COMMAND_MAX_DATA_LENGTH = 255
 APDU_RESPONSE_MAX_DATA_LENGTH = 256
+
+# Aliro BLE Message Format
+AP_PROTOCOL_HEADER = 1
+AP_MESSAGE_ID = 1
+AP_LENGTH = 2
+BLE_L2CAP_MAX_MPS = 247
+BLE_MAX_PAYLOAD = BLE_L2CAP_MAX_MPS - AP_PROTOCOL_HEADER - AP_MESSAGE_ID - AP_LENGTH
+# Substract header length (CLA, INS, P1, P2)
+BLE_COMMAND_MAX_DATA_LENGTH = BLE_MAX_PAYLOAD - 4
+# Substract status (SW1, SW2)
+BLE_RESPONSE_MAX_DATA_LENGTH = BLE_MAX_PAYLOAD - 2
 
 MAX_VALUE_BYTE = 0xFF
 MAX_VALUE_2_BYTES = 0xFFFF
@@ -1386,12 +1398,17 @@ class APDU:
     support_extended_length_apdu: bool (set to true to support extended length APDU's, see 8.3 Aliro spec)
     """
 
-    def __init__(self) -> None:
+    def __init__(self, 
+                 transport: TransportProtocol = TransportProtocol.NFC, 
+                 apdu_command_length: int = APDU_COMMAND_MAX_DATA_LENGTH,
+                 apdu_response_length: int = APDU_RESPONSE_MAX_DATA_LENGTH) -> None:
         self.support_extended_length_apdu = False
         self.maximum_command_apdu = 0
         self.maximum_response_apdu = 0
-        self.apdu_command_length = APDU_COMMAND_MAX_DATA_LENGTH
-        self.apdu_response_length = APDU_RESPONSE_MAX_DATA_LENGTH
+        self.transport = transport
+        self.apdu_command_length = apdu_command_length
+        self.apdu_response_length = apdu_response_length
+        self._apdu_max_response_length = self.apdu_response_length
 
     @property
     def apdu_command_length(self) -> int:
@@ -1408,7 +1425,11 @@ class APDU:
     @apdu_response_length.setter
     def apdu_response_length(self, response_length: int) -> None:
         self._apdu_response_data_length = response_length
-    
+
+    @property
+    def apdu_max_response_length(self) -> int:
+        # Read-only property used to keep and restore the default maximum APDU response length 
+        return self._apdu_max_response_length
 
     def set_extended_length(self, command_length: int, response_length: int) -> None:
         self.support_extended_length_apdu = True
@@ -2196,7 +2217,7 @@ class APDU:
         if (
             not self.support_extended_length_apdu
             and le is not None
-            and le > self.apdu_response_length
+            and le > APDU_RESPONSE_MAX_DATA_LENGTH
         ):
             raise MessageTooLongError("requested response longer than allowed")
 
@@ -2206,6 +2227,21 @@ class APDU:
             max_data_len = self.apdu_command_length
             
         if not self.support_extended_length_apdu:
+            # Account for Lc and Le fields in BLE payload
+            if self.transport == TransportProtocol.BLE_UWB:
+                if len(data) == 0:
+                    lc_len = 0
+                elif len(data) < 256:
+                    lc_len = 1
+                else:
+                    raise MessageTooLongError
+                
+                if le is None:
+                    le_len = 0
+                elif le < 256:
+                    le_len = 1
+            
+                max_data_len = max_data_len - lc_len - le_len
             while len(data) > max_data_len:
                 data_list.append(data[:max_data_len])
                 data = data[max_data_len:]
@@ -2262,11 +2298,14 @@ class APDU:
         if not self.support_extended_length_apdu:
             if data is not None and len(data) > self.apdu_response_length:
                 # Chaining required
-                return self.create_response_chain(
+                response =  self.create_response_chain(
                     data, status, self.apdu_response_length
                 )
             else:
-                return [Response.create_from_parameters(data, status)]
+                response =  [Response.create_from_parameters(data, status)]
+            # Set APDU response data length back to default max value after creating the response
+            self.apdu_response_length = self.apdu_max_response_length
+            return response
         else:
             # extended length supported
             if data is not None and len(data) + 2 > self.maximum_command_apdu:
@@ -2284,24 +2323,22 @@ class APDU:
         max_data_length: int = APDU_RESPONSE_MAX_DATA_LENGTH,
     ) -> list[Response]:
         response_list = []
-        index = 0
-        while len(data) > index:
-            bytes_left = len(data) - index
-            if bytes_left < max_data_length:
+        bytes_left = len(data)
+        for idx in range(0, len(data), max_data_length):
+            if bytes_left <= max_data_length:
                 # last message in chain
                 chain_status = status
-            elif bytes_left > 0xFF:
-                bytes_left = 0xFF
-                chain_status = StatusBytes.MORE_DATA_AVAILABLE | bytes_left
+            elif max_data_length < bytes_left <= max_data_length + 0xFF:
+                chain_status = StatusBytes.MORE_DATA_AVAILABLE | (bytes_left - max_data_length)
             else:
-                chain_status = StatusBytes.MORE_DATA_AVAILABLE | bytes_left
+                chain_status = StatusBytes.MORE_DATA_AVAILABLE
 
             response_list.append(
                 Response.create_from_parameters(
-                    data[index : index + max_data_length], chain_status
+                    data[idx : idx + max_data_length], chain_status
                 )
             )
-            index += max_data_length
+            bytes_left -= max_data_length
         return response_list
 
     def create_error_response(self, status_bytes: int) -> Response:
