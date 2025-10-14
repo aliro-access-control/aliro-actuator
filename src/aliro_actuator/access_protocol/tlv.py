@@ -48,9 +48,9 @@ class TLVIndex(IntEnum):
 expectedTags = {
     TLVIndex.TLV_SELECT_RSP: [0x6F], # SELECT command
     TLVIndex.TLV_SELECT_RSP_6F: [0x84, 0xA5], # SELECT 6F sub tags
-    TLVIndex.TLV_SELECT_RSP_A5: [0x80, 0x5C, 0x7F66, 0xB3], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [0x80, 0x5C, 0x7F66, 0xB3, 0xB7], # SELECT A5 sub tags
     TLVIndex.TLV_SELECT_RSP_7F66: [0x02], # SELECT 7F66 sub tags
-    TLVIndex.TLV_CONTROLFLOW_CMD: [0x41, 0x42, 0x43], # CONTROL FLOW command
+    TLVIndex.TLV_CONTROLFLOW_CMD: [0x41, 0x42, 0x63], # CONTROL FLOW command
     TLVIndex.TLV_AUTH0_CMD: [0x41, 0x42, 0x5C, 0x87, 0x4C, 0x4D, 0xB1], # AUTH0 command
     TLVIndex.TLV_AUTH0_RSP: [0x86, 0x9D, 0xB2], # AUTH0 response
     TLVIndex.TLV_AUTH0_RSP_9D: [0x5E, 0x91, 0x92], # AUTH0 response 9D sub tags
@@ -71,7 +71,7 @@ expectedTags = {
 expectedLength = {
     TLVIndex.TLV_SELECT_RSP: [-1], # SELECT command
     TLVIndex.TLV_SELECT_RSP_6F: [9, -1], # SELECT 6F sub tags
-    TLVIndex.TLV_SELECT_RSP_A5: [2, -1, 8, -1], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [2, -1, 8, -1, -1], # SELECT A5 sub tags
     TLVIndex.TLV_SELECT_RSP_7F66: [2], # SELECT 7F66 sub tags
     TLVIndex.TLV_CONTROLFLOW_CMD: [1, 1, -1], # CONTROL FLOW command
     TLVIndex.TLV_AUTH0_CMD: [1, 1, 2, 65, 16, 32, -1], # AUTH0 command
