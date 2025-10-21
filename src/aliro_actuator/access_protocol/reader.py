@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import os
 from binascii import hexlify
-from enum import Enum
+from enum import Enum, IntEnum
 
 import ucitool.base_uci.helpers.uci_helper as uci
 
@@ -117,6 +117,12 @@ class ReaderMode(Enum):
     TEST = 0  # Every error raises an Exception
     READER = 1  # Strictly follows spec, may ignore errors if so noted in the spec, and
     # sends failure messages
+
+
+class ReaderFailureState(IntEnum):
+    READER_STATUS = 0
+    STATUS_WORD = 1
+    B1_B2_ERROR = 2
 
 
 class ReaderStorage:
@@ -479,12 +485,14 @@ class Reader(Device):
         Global.logger.info("Ending session")
         self.session = None
 
-    async def failure_process(self, error_code: int = 0x00) -> None:
+    async def failure_process(self, error_code: int = 0x00, failure_state: int = ReaderFailureState.READER_STATUS) -> None:
         """
         Should be called when a failure state has occurred.
         Destroys all session bound keys and data.
-        If transport protocol is NFC, a control_flow command indicating failure is send.
-        If transport protocol is BLE, a failure event message is send.
+        Failure state indicates the reader failure processing behavior.
+        If transport protocol is NFC, a control_flow or exchange command indicating failure is send.
+        If transport protocol is BLE, an exchange command and/or a failure event message is send.
+        See Section 8.3.3.1 Failure process, Table 8-2 for reference.
         """
         if self.failure_process_started:
             # we are already handling a failure, don't send another failure message
@@ -497,15 +505,31 @@ class Reader(Device):
                 self.transport_protocol_type == TransportProtocol.NFC
                 or self.transport_protocol_type == TransportProtocol.SOCKET_NFC
             ):
-                if self.session is None or self.session.encryption_expedited is None:
+                # Send CONTROL FLOW if secure channel is not established or the APDU response has SW error or EXCHANGE response indicates B1|B2 error code
+                if (
+                    self.session is None or 
+                    self.session.encryption_expedited is None or 
+                    failure_state in (ReaderFailureState.STATUS_WORD, ReaderFailureState.B1_B2_ERROR)
+                    ):
                     s2 = S2(error_code)
                     await self.handle_control_flow(s2)
+                # Send EXCHANGE command with Reader Status tag
                 else:
                     await self.handle_exchange(False, reader_status=error_code)
             if (
                 self.transport_protocol_type == TransportProtocol.BLE_UWB
                 or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
             ):
+                if (
+                    self.session is None or 
+                    self.session.encryption_expedited is None or 
+                    failure_state in (ReaderFailureState.STATUS_WORD, ReaderFailureState.B1_B2_ERROR)
+                    ):
+                    pass
+                # Send EXCHANGE command with Reader Status tag
+                else:
+                    await self.handle_exchange(False, reader_status=error_code)
+                # Send Event Message with General Error
                 await self.handle_error_event_ble_message(
                     GeneralError_Values.UNKNOWN_ERROR
                 )
