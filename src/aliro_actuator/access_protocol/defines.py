@@ -111,7 +111,7 @@ class ControlFlow:
     # command
     S1_TAG = 0x41
     S2_TAG = 0x42
-    DOMAIN_SPECIFIC_TAG = 0x43
+    DOMAIN_SPECIFIC_TAG = 0x63
 
     S1_LEN = 1
     S2_LEN = 1
@@ -164,3 +164,12 @@ class ReaderDescriptor:
     READER_FIRMWARE_VERSION_TAG = 0x81
 
     READER_VENDOR_ID_LEN = 0x03
+
+
+class UserDeviceDescriptor:
+    USERDEVICE_DESCRIPTOR_TAG = 0xB7
+    USERDEVICE_VENDOR_ID_TAG = 0x04
+    USERDEVICE_PRODUCT_ID_TAG = 0x80
+    USERDEVICE_FIRMWARE_VERSION_TAG = 0x81
+
+    USERDEVICE_VENDOR_ID_LEN = 0x03

@@ -28,6 +28,7 @@ from aliro_actuator.access_protocol.defines import (
     ControlFlow,
     Exchange,
     ReaderDescriptor,
+    UserDeviceDescriptor,
     Select,
     TransportProtocol,
 )
@@ -1146,6 +1147,47 @@ class Response(APDUMessage):
             max_length=Select.MAX_VENDOR_SPECIFIC_LEN,
             tlv_data=self.proprietary_tlv,
         )
+
+        self.user_device_descriptor = self._get_optional_bytes_from_TLV(
+            "User_device_descriptor",
+            UserDeviceDescriptor.USERDEVICE_DESCRIPTOR_TAG,
+            tlv_data=self.proprietary_tlv,
+        )
+
+        if self.user_device_descriptor is not None:
+            TLV.verifySequence(self.user_device_descriptor, TLVIndex.TLV_EXCHANGE_CMD_B5)
+
+            self.user_device_descriptor_tlv = TLV.from_bytes(self.user_device_descriptor)
+            Global.logger.debug(
+                "user device descriptor data contains TLV structure: {}".format(
+                    self.user_device_descriptor_tlv.to_print()
+                )
+            )
+
+            self.user_device_vendor_id = self._get_bytes_from_TLV(
+                "User_Device_Vendor_ID",
+                UserDeviceDescriptor.USERDEVICE_VENDOR_ID_TAG,
+                UserDeviceDescriptor.USERDEVICE_VENDOR_ID_LEN,
+                tlv_data=self.user_device_descriptor_tlv,
+            )
+
+            self.user_device_product_id = self._get_bytes_from_TLV(
+                "User_Device_Product_ID",
+                UserDeviceDescriptor.USERDEVICE_PRODUCT_ID_TAG,
+                tlv_data=self.user_device_descriptor_tlv,
+            )
+            self.user_device_firmware_version = self._get_bytes_from_TLV(
+                "User_Device_Firmware_Version",
+                UserDeviceDescriptor.USERDEVICE_FIRMWARE_VERSION_TAG,
+                tlv_data=self.user_device_descriptor_tlv,
+            )
+
+        else:
+            self.user_device_descriptor = None
+            self.user_device_vendor_id = None
+            self.user_device_product_id = None
+            self.user_device_firmware_version = None
+
         Global.logger.info("Done parsing SELECT response")
 
     def parse_as_envelope(self, encryption: EncryptionEngine | None = None) -> None:
