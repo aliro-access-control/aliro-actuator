@@ -231,23 +231,23 @@ class Certificate:
             while tag.nr < 5:
                 if tag.nr == 0:
                     if len(value) > self.serial_number_max_len:
-                        raise CertificateDecodingError("serial number incorrect length")
+                        raise CertificateDecodingError(compressed_certificate, "serial number incorrect length")
                     serial_number = value
                 if tag.nr == 1:
                     if len(value) > self.issuer_max_len:
-                        raise CertificateDecodingError("issuer incorrect length")
+                        raise CertificateDecodingError(compressed_certificate, "issuer incorrect length")
                     issuer = value
                 if tag.nr == 2:
                     if len(value) > self.validity_not_before_max_len or len(value) < self.validity_not_before_min_len:
-                        raise CertificateDecodingError("not before incorrect length")
+                        raise CertificateDecodingError(compressed_certificate, "not before incorrect length")
                     validity_not_before = value
                 if tag.nr == 3:
                     if len(value) > self.validity_not_after_max_len or len(value) < self.validity_not_after_min_len:
-                        raise CertificateDecodingError("not after incorrect length")
+                        raise CertificateDecodingError(compressed_certificate, "not after incorrect length")
                     validity_not_after = value
                 if tag.nr == 4:
                     if len(value) > self.subject_max_len:
-                        raise CertificateDecodingError("subject incorrect length")
+                        raise CertificateDecodingError(compressed_certificate, "subject incorrect length")
                     subject = value
                 tag, value = decoder.read()
 
