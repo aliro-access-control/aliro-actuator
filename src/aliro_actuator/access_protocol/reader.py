@@ -628,7 +628,7 @@ class Reader(Device):
                     "Response status does not indicate success, "
                     "status: 0x{:04x}".format(error.status)
                 )
-            await self.failure_process(S2.NONE)
+            await self.failure_process(S2.NONE, failure_state=ReaderFailureState.STATUS_WORD)
             raise error
         except InvalidResponseError as error:
             Global.logger.error("SELECT response format invalid")
@@ -729,7 +729,7 @@ class Reader(Device):
                 "Response status does not indicate success, "
                 "status: 0x{:04x}".format(error.status)
             )
-            await self.failure_process(S2.NONE)
+            await self.failure_process(S2.NONE, failure_state=ReaderFailureState.STATUS_WORD)
             raise error
         except InvalidResponseError as error:
             Global.logger.error("AUTH0 response format invalid")
@@ -866,9 +866,9 @@ class Reader(Device):
                 "Response status does not indicate success, "
                 "status: 0x{:04x}".format(error.status)
             )
-            await self.failure_process(S2.NONE)
+            await self.failure_process(S2.NONE, failure_state=ReaderFailureState.STATUS_WORD)
             raise error
-        except InvalidResponseError as error:
+        except (InvalidResponseDataError, InvalidResponseError) as error:
             Global.logger.error("LOAD CERT response format invalid")
             await self.failure_process(S2.NONE)
             raise error
@@ -927,7 +927,7 @@ class Reader(Device):
                 "Response status does not indicate success, "
                 "status: 0x{:04x}".format(error.status)
             )
-            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            await self.failure_process(S2.NONE, failure_state=ReaderFailureState.STATUS_WORD)
             raise error
         except InvalidResponseError as error:
             Global.logger.error("AUTH1 response format invalid")
@@ -1077,9 +1077,9 @@ class Reader(Device):
                 "Response status does not indicate success, "
                 "status: 0x{:04x}".format(error.status)
             )
-            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            await self.failure_process(S2.NONE, failure_state=ReaderFailureState.STATUS_WORD)
             raise error
-        except (InvalidResponseError, VerificationError) as error:
+        except (InvalidResponseDataError, InvalidResponseError, VerificationError) as error:
             Global.logger.error("CONTROL FLOW response format invalid")
             await self.failure_process(ReaderStatus.INVALID_DATA_FORMAT)
             raise error
@@ -1200,7 +1200,7 @@ class Reader(Device):
                 "Response status does not indicate success, "
                 "status: 0x{:04x}".format(error.status)
             )
-            await self.failure_process(ReaderStatus.INVALID_DATA_CONTENT)
+            await self.failure_process(S2.NONE, failure_state=ReaderFailureState.STATUS_WORD)
             raise error
         except InvalidResponseError as error:
             Global.logger.error("EXCHANGE response format invalid")
@@ -1213,14 +1213,14 @@ class Reader(Device):
 
         Global.logger.info("Handling EXCHANGE response")
         if len(response.status_code) != 4:
-            await self.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            await self.failure_process(ReaderStatus.STATUS_WORD_ERROR, failure_state=ReaderFailureState.B1_B2_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE payload status has invalid length: {!r}".format(
                     response.status_code
                 )
             )
         if response.status_code != bytes.fromhex("00020000"):
-            await self.failure_process(ReaderStatus.STATUS_WORD_ERROR)
+            await self.failure_process(ReaderStatus.STATUS_WORD_ERROR, failure_state=ReaderFailureState.B1_B2_ERROR)
             raise AccessProtocolError(
                 "EXCHANGE returned error status at end of payload: {!r}".format(
                     response.status_code
