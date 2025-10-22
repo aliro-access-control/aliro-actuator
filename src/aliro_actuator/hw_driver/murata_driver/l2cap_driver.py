@@ -76,7 +76,10 @@ class MurataL2CAPDriver(MurataBaseDriver):
             data,
         )
         self.write(message)
-        await self.wait_for_confirm(OpGroup.L2CAP)
+        await self.wait_for_confirm(
+            OpGroup.L2CAP,
+            [ConfirmStatus.SUCCESS, ConfirmStatus.LE_PSM_NOT_REGISTERED],
+        )
 
     async def connect_le_psm(
         self, device_id: int, psm: bytes, initial_credits: int, expected_status: int | None = None

@@ -149,10 +149,12 @@ class BLEUWB(TransportProtocolBase):
 
     async def disconnect(self, raise_errors: bool = False) -> None:
         if len(self.driver.connected_devices) == 0:
+            await self.driver.deregister_le_psm(self.spsm)
             await self.driver.close_uci()
             if raise_errors:
                 raise NoDeviceConnectedError
         else:
+            await self.driver.deregister_le_psm(self.spsm)
             await self.driver.disconnect(self.driver.connected_devices[0])
             await self.driver.close_uci()
 
