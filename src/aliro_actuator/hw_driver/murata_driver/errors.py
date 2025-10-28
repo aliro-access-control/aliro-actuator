@@ -68,6 +68,19 @@ class GATTError(MurataError):
     pass
 
 
+class L2CAPError(MurataError):
+    """
+    Raised when an error in the L2CAP layer is found.
+    """
+
+    def __init__(self, error_code: int, error_mesage: str | None = None) -> None:
+        self.error_code = error_code
+        message = "L2CAP Error (status=0x{:04X}).".format(error_code)
+        if error_mesage:
+            message += " {}".format(error_mesage)
+        super().__init__(message)
+
+
 class InvalidChecksumError(FSCIError):
     """
     Raised when a message contains an invalid checksum.

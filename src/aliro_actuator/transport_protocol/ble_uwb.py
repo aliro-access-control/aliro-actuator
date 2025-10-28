@@ -154,6 +154,7 @@ class BLEUWB(TransportProtocolBase):
                 raise NoDeviceConnectedError
         else:
             await self.driver.disconnect(self.driver.connected_devices[0])
+            await self.driver.deregister_le_psm(self.spsm)
             await self.driver.close_uci()
 
     async def handle_GATT_layer(self, version: int | None = None) -> None:
