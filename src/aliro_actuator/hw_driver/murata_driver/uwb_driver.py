@@ -55,7 +55,7 @@ class HoppingConfig(IntEnum):
     NO_HOPPING = 0x80
     CONTINUOUS_HOPPING_MODULO = 0x40
     ADAPTIVE_HOPPING_MODULO = 0x20
-    DEFAULT_HOPPING_SEQUENCE = 0X8
+    DEFAULT_HOPPING_SEQUENCE = 0X10
 
 class MurataUWBDriver(MurataBaseDriver):
     async def uci_initialize(
