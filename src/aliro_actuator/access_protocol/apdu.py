@@ -900,7 +900,7 @@ class Command(APDUMessage):
         self._check_cla(False)
         self._check_ins(INS.CONTROL_FLOW)
         self._check_parameters(0x00, 0x00)
-        self._parse_tlv()
+        self._parse_tlv(False)
         Global.logger.debug("Data needs to be verified during handling")
         Global.logger.debug(
             "Data contains TLV structure: {}".format(self.tlv_data.to_print())
