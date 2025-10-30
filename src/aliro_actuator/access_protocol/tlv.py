@@ -28,28 +28,30 @@ class TLVIndex(IntEnum):
     TLV_SELECT_RSP_6F = 1
     TLV_SELECT_RSP_A5 = 2
     TLV_SELECT_RSP_7F66 = 3
-    TLV_CONTROLFLOW_CMD = 4
-    TLV_AUTH0_CMD = 5
-    TLV_AUTH0_RSP = 6
-    TLV_AUTH0_RSP_9D = 7 
-    TLV_AUTH0_RSP_B2 = 8 
-    TLV_AUTH1_CMD = 9 
-    TLV_AUTH1_RSP = 10 
-    TLV_AUTH1_RSP_9D = 11
-    TLV_AUTH1_RSP_B2 = 12
-    TLV_AUTH1_RSP_RD_AUTH = 13
-    TLV_AUTH1_RSP_UD_AUTH = 14
-    TLV_EXCHANGE_CMD = 15
-    TLV_EXCHANGE_CMD_BA = 16
-    TLV_EXCHANGE_CMD_AE = 17
-    TLV_EXCHANGE_CMD_B5 = 18
+    TLV_SELECT_RSP_B7 = 4
+    TLV_CONTROLFLOW_CMD = 5
+    TLV_AUTH0_CMD = 6
+    TLV_AUTH0_RSP = 7
+    TLV_AUTH0_RSP_9D = 8 
+    TLV_AUTH0_RSP_B2 = 9 
+    TLV_AUTH1_CMD = 10
+    TLV_AUTH1_RSP = 11 
+    TLV_AUTH1_RSP_9D = 12
+    TLV_AUTH1_RSP_B2 = 13
+    TLV_AUTH1_RSP_RD_AUTH = 14
+    TLV_AUTH1_RSP_UD_AUTH = 15
+    TLV_EXCHANGE_CMD = 16
+    TLV_EXCHANGE_CMD_BA = 17
+    TLV_EXCHANGE_CMD_AE = 18
+    TLV_EXCHANGE_CMD_B5 = 19
 
 
 expectedTags = {
-    TLVIndex.TLV_SELECT_RSP: [0x6F], # SELECT command
+    TLVIndex.TLV_SELECT_RSP: [0x6F, 0xB7], # SELECT command
     TLVIndex.TLV_SELECT_RSP_6F: [0x84, 0xA5], # SELECT 6F sub tags
-    TLVIndex.TLV_SELECT_RSP_A5: [0x80, 0x5C, 0x7F66, 0xB3, 0xB7], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [0x80, 0x5C, 0x7F66, 0xB3], # SELECT A5 sub tags
     TLVIndex.TLV_SELECT_RSP_7F66: [0x02], # SELECT 7F66 sub tags
+    TLVIndex.TLV_SELECT_RSP_B7: [0x04, 0x80, 0x81], # SELECT B7 sub tags
     TLVIndex.TLV_CONTROLFLOW_CMD: [0x41, 0x42, 0x63], # CONTROL FLOW command
     TLVIndex.TLV_AUTH0_CMD: [0x41, 0x42, 0x5C, 0x87, 0x4C, 0x4D, 0xB1], # AUTH0 command
     TLVIndex.TLV_AUTH0_RSP: [0x86, 0x9D, 0xB2], # AUTH0 response
@@ -71,8 +73,9 @@ expectedTags = {
 expectedLength = {
     TLVIndex.TLV_SELECT_RSP: [-1], # SELECT command
     TLVIndex.TLV_SELECT_RSP_6F: [9, -1], # SELECT 6F sub tags
-    TLVIndex.TLV_SELECT_RSP_A5: [2, -1, 8, -1, -1], # SELECT A5 sub tags
+    TLVIndex.TLV_SELECT_RSP_A5: [2, -1, 8, -1], # SELECT A5 sub tags
     TLVIndex.TLV_SELECT_RSP_7F66: [2], # SELECT 7F66 sub tags
+    TLVIndex.TLV_SELECT_RSP_B7: [3, -1, -1], # SELECT B7 sub tags
     TLVIndex.TLV_CONTROLFLOW_CMD: [1, 1, -1], # CONTROL FLOW command
     TLVIndex.TLV_AUTH0_CMD: [1, 1, 2, 65, 16, 32, -1], # AUTH0 command
     TLVIndex.TLV_AUTH0_RSP: [65, 64, -1], # AUTH0 response
