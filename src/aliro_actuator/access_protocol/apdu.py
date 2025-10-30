@@ -1148,16 +1148,15 @@ class Response(APDUMessage):
             tlv_data=self.proprietary_tlv,
         )
 
-        self.user_device_descriptor = self._get_optional_bytes_from_TLV(
+        self.user_device_descriptor_tlv = self._get_optional_TLV_from_TLV(
             "User_device_descriptor",
             UserDeviceDescriptor.USERDEVICE_DESCRIPTOR_TAG,
-            tlv_data=self.proprietary_tlv,
         )
 
-        if self.user_device_descriptor is not None:
-            TLV.verifySequence(self.user_device_descriptor, TLVIndex.TLV_EXCHANGE_CMD_B5)
+        if self.user_device_descriptor_tlv is not None:
+            self.user_device_descriptor = self.user_device_descriptor_tlv.to_bytes()
+            TLV.verifySequence(self.user_device_descriptor, TLVIndex.TLV_SELECT_RSP_B7)
 
-            self.user_device_descriptor_tlv = TLV.from_bytes(self.user_device_descriptor)
             Global.logger.debug(
                 "user device descriptor data contains TLV structure: {}".format(
                     self.user_device_descriptor_tlv.to_print()
