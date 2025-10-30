@@ -2108,6 +2108,11 @@ class ReaderSession:
         self.maximum_command_apdu = initiate_ap_notification.maximum_command_apdu
         self.maximum_response_apdu = initiate_ap_notification.maximum_response_apdu
         self.proprietary_tlv = initiate_ap_notification.proprietary_tlv
+        self.vendor_specific_extensions = initiate_ap_notification.vendor_specific_extensions
+        self.user_device_descriptor = initiate_ap_notification.user_device_descriptor
+        self.user_device_vendor_id = initiate_ap_notification.user_device_vendor_id
+        self.user_device_product_id = initiate_ap_notification.user_device_product_id
+        self.user_device_firmware_version = initiate_ap_notification.user_device_firmware_version
 
     @property
     def transaction_identifier(self) -> bytes:
