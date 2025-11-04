@@ -63,6 +63,7 @@ class MurataUWBDriver(MurataBaseDriver):
         dev_role: int,
         dev_type: int,
         enable_uwb: bool = True,
+        skip_fw_download: bool = False,
     ) -> None:
         Global.logger.info("Initialize UCI device.")
         if dev_role not in [
@@ -83,7 +84,7 @@ class MurataUWBDriver(MurataBaseDriver):
             uci.device_creation,
             self.dh,
             fw=DEFAULT_SR150_FIRMWARE_PATH,
-            skip_fw_download=not enable_uwb,
+            skip_fw_download=not enable_uwb or skip_fw_download,
         )
         
         self.dh.device.flush_port()
