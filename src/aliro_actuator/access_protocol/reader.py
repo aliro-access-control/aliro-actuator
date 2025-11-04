@@ -2097,6 +2097,10 @@ class ReaderSession:
         self.maximum_response_apdu = select_response.maximum_response_apdu
         self.proprietary_tlv = select_response.proprietary_tlv
         self.vendor_specific_extensions = select_response.vendor_specific_extensions
+        self.user_device_descriptor = select_response.user_device_descriptor
+        self.user_device_vendor_id = select_response.user_device_vendor_id
+        self.user_device_product_id = select_response.user_device_product_id
+        self.user_device_firmware_version = select_response.user_device_firmware_version
 
     def set_initiate_access_protocol_info(
         self, initiate_ap_notification: BleMessage
