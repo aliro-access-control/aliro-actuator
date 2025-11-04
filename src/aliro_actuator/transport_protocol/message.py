@@ -28,7 +28,7 @@ class Message:
             result.append(version)
         return result
 
-    def _parse_tlv(self) -> None:
+    def _parse_tlv(self, recursive: bool | None = None) -> None:
         """
         Parse the data field of this Message as TLV values (BER-TLV, ISO 7816-4).
 
@@ -38,7 +38,7 @@ class Message:
         """
         try:
             if hasattr(self, "data") and self.data is not None:
-                self.tlv_data = TLV.from_bytes(self.data)
+                self.tlv_data = TLV.from_bytes(self.data, recursive)
             else:
                 raise self.invalid_data_error(
                     self.to_bytes(),
