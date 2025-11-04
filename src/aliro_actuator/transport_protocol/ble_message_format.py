@@ -4,9 +4,9 @@ from binascii import hexlify
 from enum import IntEnum
 
 from aliro_actuator import Global
-from aliro_actuator.access_protocol.defines import AUTHENTICATION_TAG_SIZE, ReaderDescriptor, Select
+from aliro_actuator.access_protocol.defines import AUTHENTICATION_TAG_SIZE, ReaderDescriptor, Select, UserDeviceDescriptor
 from aliro_actuator.access_protocol.encryption import EncryptionEngine
-from aliro_actuator.access_protocol.tlv import TLV, TlvError
+from aliro_actuator.access_protocol.tlv import TLV, TlvError, TLVIndex
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.transport_protocol.errors import BLEMessageError
 from aliro_actuator.transport_protocol.message import Message
@@ -342,7 +342,7 @@ class BleMessage(Message):
         self.rke = rke
 
         try:
-            proprietary_tlv = TLV.from_bytes(self.attribute.value)
+            proprietary_information_tlv = TLV.from_bytes(self.attribute.value)
         except TlvError as error:
             raise BLEMessageError(
                 self.to_bytes(),
@@ -352,7 +352,7 @@ class BleMessage(Message):
         self.proprietary_tlv = self._get_TLV_from_TLV(
             "Proprietary",
             Select.PROPRIETARY_TAG,
-            tlv_data=proprietary_tlv,
+            tlv_data=proprietary_information_tlv,
         )
 
         self.application_type = self._get_int_from_TLV(
@@ -406,6 +406,47 @@ class BleMessage(Message):
             Select.VENDOR_SPECIFIC_TAG,
             tlv_data=self.proprietary_tlv,
         )
+
+        self.user_device_descriptor_tlv = self._get_optional_TLV_from_TLV(
+            "User_device_descriptor",
+            UserDeviceDescriptor.USERDEVICE_DESCRIPTOR_TAG,
+            tlv_data=proprietary_information_tlv
+        )
+
+        if self.user_device_descriptor_tlv is not None:
+            self.user_device_descriptor = self.user_device_descriptor_tlv.to_bytes()
+            TLV.verifySequence(self.user_device_descriptor, TLVIndex.TLV_SELECT_RSP_B7)
+
+            Global.logger.debug(
+                "user device descriptor data contains TLV structure: {}".format(
+                    self.user_device_descriptor_tlv.to_print()
+                )
+            )
+
+            self.user_device_vendor_id = self._get_bytes_from_TLV(
+                "User_Device_Vendor_ID",
+                UserDeviceDescriptor.USERDEVICE_VENDOR_ID_TAG,
+                UserDeviceDescriptor.USERDEVICE_VENDOR_ID_LEN,
+                tlv_data=self.user_device_descriptor_tlv,
+            )
+
+            self.user_device_product_id = self._get_bytes_from_TLV(
+                "User_Device_Product_ID",
+                UserDeviceDescriptor.USERDEVICE_PRODUCT_ID_TAG,
+                tlv_data=self.user_device_descriptor_tlv,
+            )
+            self.user_device_firmware_version = self._get_bytes_from_TLV(
+                "User_Device_Firmware_Version",
+                UserDeviceDescriptor.USERDEVICE_FIRMWARE_VERSION_TAG,
+                tlv_data=self.user_device_descriptor_tlv,
+            )
+
+        else:
+            self.user_device_descriptor = None
+            self.user_device_vendor_id = None
+            self.user_device_product_id = None
+            self.user_device_firmware_version = None
+        
         Global.logger.info("Parsing Initiate Access Protocol done")
 
     def _parse_ranging_payload(self) -> None:
