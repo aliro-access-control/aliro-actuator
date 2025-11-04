@@ -106,6 +106,7 @@ class BLEUWB(TransportProtocolBase):
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
                 enable_uwb=self.enable_uwb,
+                skip_fw_download=True,
             )
             await self.driver.setup_gatt_database(
                 self.spsm,
@@ -133,6 +134,7 @@ class BLEUWB(TransportProtocolBase):
                 dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
                 enable_uwb=self.enable_uwb,
+                skip_fw_download=True,
             )
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
