@@ -71,7 +71,7 @@ expectedTags = {
 }
 
 expectedLength = {
-    TLVIndex.TLV_SELECT_RSP: [-1], # SELECT command
+    TLVIndex.TLV_SELECT_RSP: [-1, -1], # SELECT command
     TLVIndex.TLV_SELECT_RSP_6F: [9, -1], # SELECT 6F sub tags
     TLVIndex.TLV_SELECT_RSP_A5: [2, -1, 8, -1], # SELECT A5 sub tags
     TLVIndex.TLV_SELECT_RSP_7F66: [2], # SELECT 7F66 sub tags
