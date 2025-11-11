@@ -113,7 +113,7 @@ from aliro_actuator.trust_framework.reader_identifier import ReaderIdentifier
 class UserMode(Enum):
     TEST = 0  # Every error raises an Exception
     USER = 1  # Strictly follows spec, may ignore errors if so noted in the spec
-    
+
 class RkeAction(IntEnum):
     SECURE = 0
     UNSECURE = 1
@@ -231,7 +231,7 @@ class UserDevice(Device):
 
         self.support_step_up_notify = support_step_up_notify
         self.support_step_up_update_doc = support_step_up_update_doc
-        
+
         self.timeout = timeout
         self._timer = None
         self.enable_uwb = enable_uwb
@@ -801,7 +801,7 @@ class UserDevice(Device):
         proprietary_tlv = TLV(proprietary_list)
         message = BleMessage.create_initiate_access_protocol(proprietary_tlv.to_bytes(), rke=rke)
         await self.transport_protocol.send_message(message, timeout=self.timeout)
-        
+
     async def send_rke_request(self, action: int = 0) -> None:
         """
         Used by BLE, after a connection is established to request RKE action.
@@ -889,7 +889,7 @@ class UserDevice(Device):
             self.session.get_ble_encryption()
         )
         await self.transport_protocol.send_message(message)
-        
+
     async def send_ranging_session_setup_m2(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
             raise InvalidProtocolTypeError
@@ -1149,7 +1149,7 @@ class UserDevice(Device):
                 "Could not find key for reader identifier in access credential: "
                 "{!r}".format(hexlify(self.session.reader_group_identifier))
             )
-            
+
         if hasattr(auth0_command, "tlv_check"):
             command_status = auth0_command.tlv_check
         else:
@@ -1160,7 +1160,7 @@ class UserDevice(Device):
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
             await self.response_auth0(
-                self.session.get_credential_epubkey().as_bytes(),
+                credential_epubk=self.session.get_credential_epubkey().as_bytes(),
                 command_status=command_status
             )
         elif self.session.get_transaction_type() == Transaction.FAST:
@@ -1199,11 +1199,11 @@ class UserDevice(Device):
                     credential_signed_timestamp=doc_timestamp,
                     revocation_signed_timestamp=revoke_timestamp,
                 )
+                self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
             else:
                 Global.logger.info("Kpersistent not found, assigning random cryptogram")
                 cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
-
-            self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
+                self.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
             await self.response_auth0(
                 credential_epubk=self.session.get_credential_epubkey().as_bytes(),
@@ -1299,7 +1299,7 @@ class UserDevice(Device):
                 "Could not find key for reader identifier in access credential: "
                 "{!r}".format(hexlify(self.session.reader_group_identifier))
             )
-            
+
         if hasattr(auth0_command, "tlv_check"):
             command_status = auth0_command.tlv_check
         else:
@@ -1310,7 +1310,7 @@ class UserDevice(Device):
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
             await self.response_auth0_with_wrong_tag_value(
-                self.session.get_credential_epubkey().as_bytes(),
+                credential_epubk=self.session.get_credential_epubkey().as_bytes(),
                 command_status=command_status
             )
         elif self.session.get_transaction_type() == Transaction.FAST:
@@ -1351,11 +1351,11 @@ class UserDevice(Device):
                     credential_signed_timestamp=doc_timestamp,
                     revocation_signed_timestamp=revoke_timestamp,
                 )
+                self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
             else:
                 Global.logger.info("Kpersistent not found, assigning random cryptogram")
                 cryptogram = urandom(Auth0.CRYPTOGRAM_LEN)
-
-            self.session.update_state(UserSessionState.AUTH0_FAST_DONE)
+                self.session.update_state(UserSessionState.AUTH0_STD_DONE)
 
             await self.response_auth0_with_wrong_tag_value(
                 credential_epubk=self.session.get_credential_epubkey().as_bytes(),
@@ -2173,7 +2173,7 @@ class UserDevice(Device):
             status = StatusBytes.SUCCESS
         else:
             status = StatusBytes.COMMAND_NOT_COMPLIANT
-            
+
         auth0_response = self.apdu.create_auth0_response(
             credential_epubk, status, cryptogram
         )
