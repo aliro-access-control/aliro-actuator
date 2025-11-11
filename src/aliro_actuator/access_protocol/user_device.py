@@ -1941,6 +1941,7 @@ class UserDevice(Device):
     async def wait_for_ble_message(
         self,
         expected_command: INS | list[INS] | None = None,
+        handle_optional_reader_status_changed: bool = False,
     ) -> BleMessage:
         """
         Waits until a ble message is received.
@@ -1949,9 +1950,9 @@ class UserDevice(Device):
             expected_command (INS | list[INS] | None, optional): INS or list of INS with
             expected commands. raises UnexpectedCommandError if another command is
             received. Defaults to None.
-            encryption (EncryptionEngine | None, optional): Used for decrypting
-            messages.
-            Not required for every command. Defaults to None.
+            handle_optional_reader_status_changed (bool, optional): Used for handling an optional
+            reader status changed notification message.
+            Not required for every command. Defaults to False.
 
         Raises:
             InvalidCLAError: Raised when the received command has an invalid CLA.
@@ -1964,12 +1965,18 @@ class UserDevice(Device):
         Returns:
             BleMessage: the received ble message.
         """
-        message = await self.wait_for_message(expected_command)
-        if not isinstance(message, BleMessage):
-            raise AccessProtocolError(
-                "Received unexpected command while waiting for BLE message : "
-                "{!r}".format(hexlify(message.to_bytes()))
-            )
+        while True:
+            message = await self.wait_for_message(expected_command)
+            if not isinstance(message, BleMessage):
+                raise AccessProtocolError(
+                    "Received unexpected command while waiting for BLE message : "
+                    "{!r}".format(hexlify(message.to_bytes()))
+                )
+            if (message.header == ProtocolType.NOTIFICATION and message.id == Notification_ID.READER_STATUS_CHANGED
+                    and handle_optional_reader_status_changed):
+                self.handle_reader_status_changed_message(message)
+            else:
+                break
         return message
 
     async def wait_for_command(
