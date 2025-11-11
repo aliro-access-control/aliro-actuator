@@ -617,6 +617,9 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
+        # If you are issuing a SELECT command, previous extended length settings are no longer valid
+        self.apdu.reset_extended_length()
+
         Global.logger.info("Start handling SELECT with AID: {!r}".format(hexlify(aid)))
         try:
             response = await self.command_select(aid, check_apdu_length)

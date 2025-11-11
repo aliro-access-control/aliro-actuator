@@ -307,14 +307,14 @@ class Command(APDUMessage):
         message.append(p2)
 
         if len(data) > 0:
-            if len(data) < 256:
+            if len(data) < 256 and (le is None or le < 256):
                 message.append(len(data))
                 message.extend(data)
             else:
                 message.extend(len(data).to_bytes(3, "big"))
                 message.extend(data)
         if le is not None:
-            if le < 256:
+            if le < 256 and len(data) < 256:
                 le_len = 1
             elif len(data) == 0:
                 le_len = 3
@@ -1899,13 +1899,17 @@ class APDU:
             "Command contains TLV structure: {}".format(data.to_print())
         )
 
+        expected_response_size = 0x00
+        if self.support_extended_length_apdu:
+            expected_response_size = self.maximum_response_apdu
+
         return self.create_command(
             cla=0x80,
             ins=INS.AUTH0,
             p1=0x00,
             p2=0x00,
             data=bytes(data.to_bytes()),
-            le=0x00,
+            le=expected_response_size,
         )
 
     def create_auth0_response(
@@ -1980,13 +1984,17 @@ class APDU:
             "Command contains TLV structure: {}".format(data.to_print())
         )
 
+        expected_response_size = 0x00
+        if self.support_extended_length_apdu:
+            expected_response_size = self.maximum_response_apdu
+
         return self.create_command(
             cla=0x80,
             ins=INS.AUTH1,
             p1=0x00,
             p2=0x00,
             data=bytes(data.to_bytes()),
-            le=0x00,
+            le=expected_response_size,
         )
 
     def create_auth1_response(
@@ -2174,13 +2182,17 @@ class APDU:
         )
         payload = encrypted_payload + tag
 
+        expected_response_size = 0x00
+        if self.support_extended_length_apdu:
+            expected_response_size = self.maximum_response_apdu
+
         return self.create_command(
             cla=0x80,
             ins=INS.EXCHANGE,
             p1=0x00,
             p2=0x00,
             data=payload,
-            le=0x00,
+            le=expected_response_size,
         )
 
     def create_exchange_response(
@@ -2212,13 +2224,17 @@ class APDU:
         command_payload = TLV([])
         command_payload.add_value(0x53, cbor)
 
+        expected_response_size = 0x00
+        if self.support_extended_length_apdu:
+            expected_response_size = self.maximum_response_apdu
+
         return self.create_command(
             cla=0x00,
             ins=INS.ENVELOPE,
             p1=0x00,
             p2=0x00,
             data=bytes(command_payload.to_bytes()),
-            le=0x00,
+            le=expected_response_size,
         )
 
     def create_envelope_response(
@@ -2295,7 +2311,18 @@ class APDU:
             data_list.append(data)
 
         else:
-            if len(data) == 0:
+            if le is None:
+                le_len = 0
+            elif le < 256 and len(data) < 256:
+                le_len = 1
+            elif len(data) == 0:
+                le_len = 3
+            else:
+                le_len = 2
+
+            if le_len == 2:
+                lc_len = 3  # Extended LE is always extended LC
+            elif len(data) == 0:
                 lc_len = 0
             elif len(data) < 256:
                 lc_len = 1
@@ -2303,15 +2330,6 @@ class APDU:
                 lc_len = 3
             else:
                 raise MessageTooLongError
-
-            if le is None:
-                le_len = 0
-            elif le < 256:
-                le_len = 1
-            elif lc_len == 0:
-                le_len = 3
-            else:
-                le_len = 2
 
             max_data_length = self.maximum_command_apdu - 4 - lc_len - le_len
             while len(data) > max_data_length:
