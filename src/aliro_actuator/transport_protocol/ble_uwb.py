@@ -157,6 +157,9 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.deregister_le_psm(self.spsm)
             await self.driver.close_uci()
 
+    async def enable_update_connection_parameters(self, enable: bool = True) -> None:
+        await self.driver.enable_update_connection_parameters(self.driver.connected_devices[0], enable)
+
     async def handle_GATT_layer(self, version: int | None = None) -> None:
         if self.mode == Mode.USER_DEVICE and isinstance(
             self.driver, UserDeviceMurataDriver
@@ -206,6 +209,7 @@ class BLEUWB(TransportProtocolBase):
         try:
             if self.mode == Mode.READER and isinstance(self.driver, ReaderMurataDriver):
                 await self.driver.wait_for_connection()
+                await self.enable_update_connection_parameters()
                 self.ble_version, self.features = await self.driver.wait_for_write()
                 Global.logger.info(
                     "Checking ble version requested by User Device: 0x{:4x}".format(
@@ -227,6 +231,7 @@ class BLEUWB(TransportProtocolBase):
                 if advertisement_version != ALIRO_BLUETOOTH_LE_ADVERTISEMENT_VERSION:
                     await self.disconnect()
                     raise TransportProtocolError("Invalid BLE advertisement version")
+                await self.enable_update_connection_parameters()
                 self.ble_version = await self.handle_GATT_layer()
 
             if self.mode == Mode.USER_DEVICE:
