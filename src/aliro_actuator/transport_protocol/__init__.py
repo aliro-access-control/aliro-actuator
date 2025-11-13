@@ -61,3 +61,15 @@ class TransportProtocolBase(ABC):
     @abstractmethod
     async def get_message(self) -> tuple[bytes, int | None, int | None]:
         return b"", None, None
+
+    @property
+    @abstractmethod
+    def rx_timestamp(self) -> float:
+        """Get timestamp of last received message."""
+        pass
+
+    @rx_timestamp.setter
+    @abstractmethod
+    def rx_timestamp(self, value) -> None:
+        """Set timestamp of last received message."""
+        pass

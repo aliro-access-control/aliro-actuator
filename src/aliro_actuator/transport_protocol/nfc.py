@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import asyncio
+import time
 
 from aliro_actuator.access_protocol.apdu import APDUMessage
 from aliro_actuator.hw_driver.pn7160_driver import Driver
@@ -30,6 +31,17 @@ class NFC(TransportProtocolBase):
     def __init__(self, port: str | None = None) -> None:
         self.driver = Driver(port)
         self.mode: Mode | None = None
+        self._rx_timestamp = None
+
+    @property
+    def rx_timestamp(self) -> float | None:
+        """Get timestamp of last received message."""
+        return self._rx_timestamp
+
+    @rx_timestamp.setter
+    def rx_timestamp(self, value) -> None:
+        """Set timestamp of last received message."""
+        self._rx_timestamp = value
 
     async def initialization(
         self,
@@ -81,6 +93,8 @@ class NFC(TransportProtocolBase):
 
     async def get_message(self) -> tuple[bytes, int | None, int | None]:
         try:
-            return await asyncio.to_thread(self.driver.receive_message), None, None
+            message_bytes =  await asyncio.to_thread(self.driver.receive_message)
+            self.rx_timestamp = time.time()
+            return message_bytes, None, None
         except (NoTagError, NoReaderError) as error:
             raise NoDeviceConnectedError from error
