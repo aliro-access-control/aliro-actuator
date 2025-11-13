@@ -16,6 +16,7 @@ from binascii import hexlify
 from enum import Enum, IntEnum
 
 from os import urandom
+import asyncio
 import cbor2
 
 import ucitool.base_uci.helpers.uci_helper as uci
@@ -1158,10 +1159,14 @@ class UserDevice(Device):
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
-
-            await self.response_auth0(
-                credential_epubk=self.session.get_credential_epubkey().as_bytes(),
-                command_status=command_status
+            Global.logger.info("Creating shared keys")
+            self.session.set_shared_key()
+            await asyncio.gather(
+                asyncio.to_thread(self.session.derive_key_volatile, self.transport_protocol_type),
+                self.response_auth0(
+                    credential_epubk=self.session.get_credential_epubkey().as_bytes(), 
+                    command_status=command_status
+                    ),
             )
         elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
@@ -1177,15 +1182,15 @@ class UserDevice(Device):
                 self.session.derive_key_volatile_fast(
                     self.transport_protocol_type, kpersistent
                 )
-                self.session.create_encryption_engine_expedited()
                 if self.transport_protocol_type in [
                     TransportProtocol.BLE_UWB,
                     TransportProtocol.SOCKET_BLE,
                 ]:
-                    Global.logger.info("Setting up BLE encryption")
-                    self.session.set_ble_encryption(self.transport_protocol)
-                    Global.logger.info("Setting up UWB secure ranging")
-                    await self.transport_protocol.set_session_key(self.session.UR_SK)
+                    Global.logger.info("Setting up BLE encryption and UWB secure ranging")
+                    await asyncio.gather(
+                        asyncio.to_thread(self.session.set_ble_encryption, self.transport_protocol),
+                        self.transport_protocol.set_session_key(self.session.UR_SK),
+                    )
 
                 doc_timestamp = None
                 revoke_timestamp = None
@@ -1308,11 +1313,16 @@ class UserDevice(Device):
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
-
-            await self.response_auth0_with_wrong_tag_value(
-                credential_epubk=self.session.get_credential_epubkey().as_bytes(),
-                command_status=command_status
+            Global.logger.info("Creating shared keys")
+            self.session.set_shared_key()
+            await asyncio.gather(
+                asyncio.to_thread(self.session.derive_key_volatile, self.transport_protocol_type),
+                self.response_auth0_with_wrong_tag_value(
+                    credential_epubk=self.session.get_credential_epubkey().as_bytes(),
+                    command_status=command_status
+                    ),
             )
+
         elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
             Global.logger.info("Looking for Kpersistent in storage")
@@ -1327,7 +1337,6 @@ class UserDevice(Device):
                 self.session.derive_key_volatile_fast(
                     self.transport_protocol_type, kpersistent
                 )
-                self.session.create_encryption_engine_expedited()
                 if self.transport_protocol_type in [
                     TransportProtocol.BLE_UWB,
                     TransportProtocol.SOCKET_BLE,
@@ -1458,25 +1467,15 @@ class UserDevice(Device):
         await self.check_reader_authentication_data(auth1_command.reader_signature)
 
         try:
-            Global.logger.info("Creating shared keys")
-            self.session.set_shared_key()
-            self.session.derive_key_volatile(self.transport_protocol_type)
             if self.transport_protocol_type in [
                 TransportProtocol.BLE_UWB,
                 TransportProtocol.SOCKET_BLE,
             ]:
-                Global.logger.info("Setting up BLE encryption")
-                self.session.set_ble_encryption(self.transport_protocol)
-                Global.logger.info("Setting up UWB secure ranging")
-                await self.transport_protocol.set_session_key(self.session.UR_SK)
-
-            Global.logger.info("Creating Kpersistent")
-            self.storage.add_kpersistent(
-                kpersistent=self.session.derive_key_persistent(
-                    self.transport_protocol_type
-                ),
-                reader_group_sub_id=self.session.reader_group_sub_identifier,
-            )
+                Global.logger.info("Setting up BLE encryption and UWB secure ranging")
+                await asyncio.gather(
+                    asyncio.to_thread(self.session.set_ble_encryption, self.transport_protocol),
+                    self.transport_protocol.set_session_key(self.session.UR_SK),
+                )
         except KeyLookupFailed as error:
             # could not find reader public key
             await self.failure_process(StatusBytes.GENERIC_ERROR)
@@ -1511,17 +1510,25 @@ class UserDevice(Device):
         if self.revocation_document is not None:
             revoke_timestamp = RevocationDocument(self.revocation_document).get_timestamp()
 
-        await self.response_auth1(
-            self.session.access_credential.get_key_slot(),
-            self.session.access_credential.get_access_credential_public_key().as_bytes(),
-            auth1_command.expected_response,
-            signature,
-            self.session.encryption_expedited,
-            StatusBytes.SUCCESS,
-            signaling_bitmap=self.get_signaling_bitmap(),
-            credential_signed_timestamp=doc_timestamp,
-            revocation_signed_timestamp=revoke_timestamp,
-            extra_tlv=extra_tlv,
+        auth1_results = await asyncio.gather(
+            asyncio.to_thread(self.session.derive_key_persistent, self.transport_protocol_type),
+            self.response_auth1(
+                self.session.access_credential.get_key_slot(),
+                self.session.access_credential.get_access_credential_public_key().as_bytes(),
+                auth1_command.expected_response,
+                signature,
+                self.session.encryption_expedited,
+                StatusBytes.SUCCESS,
+                signaling_bitmap=self.get_signaling_bitmap(),
+                credential_signed_timestamp=doc_timestamp,
+                revocation_signed_timestamp=revoke_timestamp,
+                extra_tlv=extra_tlv,
+            ),
+        )
+        Global.logger.info("Add Kpersistent to storage")
+        self.storage.add_kpersistent(
+            kpersistent=auth1_results[0],
+            reader_group_sub_id=self.session.reader_group_sub_identifier,
         )
 
         Global.logger.info("Handling AUTH1 command done")
@@ -2559,6 +2566,8 @@ class UserSession:
         )
         Global.logger.debug("ble SK: {!r}".format(hexlify(self.ble_SK)))
         Global.logger.debug("UR SK: {!r}".format(hexlify(self.UR_SK)))
+
+        self.create_encryption_engine_expedited()
 
     def derive_key_persistent(self, transport_protocol: TransportProtocol) -> bytes:
         Global.logger.debug("Deriving key (persistent)")
