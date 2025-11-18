@@ -1523,7 +1523,7 @@ class APDU:
         else:
             Global.logger.debug("Command chaining required")
             command_chaining_required = True
-            
+
             for index, command in enumerate(commands):
                 response_pending = True
                 if skip_command is not None and index == skip_command:
@@ -1564,10 +1564,11 @@ class APDU:
             response_pending = True
             response_chaining_required = True
             Global.logger.info("Response chaining is required")
+            get_response_cla = commands[-1].cla
             expected_response_size = chaining_remaining
             if self.support_extended_length_apdu:
                 expected_response_size = self.maximum_response_apdu
-            get_response = self.create_get_response_command(expected_response_size)
+            get_response = self.create_get_response_command(expected_response_size, get_response_cla)
             Global.logger.info("Sending GET RESPONSE command")
             await transport_layer.send_message(get_response[0], timeout=timeout)
             expect_busy = transport_layer.was_timer_started()
@@ -2259,10 +2260,10 @@ class APDU:
 
         return self.create_response(response_payload.to_bytes(), status)
 
-    def create_get_response_command(self, expected_response_size: int) -> list[Command]:
+    def create_get_response_command(self, expected_response_size: int, cla: int = 0x80) -> list[Command]:
         Global.logger.info("Creating GET RESPONSE command")
         return self.create_command(
-            cla=0x00,
+            cla=cla,
             ins=INS.GET_RESPONSE,
             p1=0x00,
             p2=0x00,
