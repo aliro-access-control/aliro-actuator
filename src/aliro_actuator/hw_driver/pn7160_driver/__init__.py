@@ -46,7 +46,7 @@ DEFAULT_NCI_LIB_PATH = (
     / "libnfc_nci_linux-1.so.0.0.0"
 )
 
-RX_MAX = 0x100
+RX_MAX = 0x1000
 
 tag_status_change = threading.Condition()
 tag_available = False
