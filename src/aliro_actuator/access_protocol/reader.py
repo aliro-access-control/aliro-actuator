@@ -769,6 +769,7 @@ class Reader(Device):
                 Global.logger.info(
                     "No cryptogram send during a standard transaction (as expected)"
                 )
+            self.create_shared_keys()
         else:
             await self.decrypt_cryptogram(auth0_response.cryptogram)
             if self.transport_protocol_type == TransportProtocol.BLE_UWB:
@@ -895,11 +896,12 @@ class Reader(Device):
         if self.session is None:
             raise SessionError("No Session")
 
-        self.create_shared_keys()
         if self.transport_protocol_type in [
             TransportProtocol.BLE_UWB,
             TransportProtocol.SOCKET_BLE,
         ]:
+            Global.logger.info("Setting up BLE encryption")
+            self.session.set_ble_encryption(self.transport_protocol)
             Global.logger.info("Setting up UWB secure ranging")
             await self.transport_protocol.set_session_key(self.session.UR_SK)
 
@@ -985,12 +987,6 @@ class Reader(Device):
         Global.logger.info("Create shared keys")
         self.session.set_shared_key()
         self.session.derive_key_volatile(self.transport_protocol_type)
-        if self.transport_protocol_type in [
-            TransportProtocol.BLE_UWB,
-            TransportProtocol.SOCKET_BLE,
-        ]:
-            Global.logger.info("Setting up BLE encryption")
-            self.session.set_ble_encryption(self.transport_protocol)
 
     async def handle_auth1_credential_public_key(
         self,
