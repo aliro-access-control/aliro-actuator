@@ -1118,10 +1118,7 @@ class UserDevice(Device):
         Global.logger.info("Reader ephemeral key is a valid key")
 
         # Setup UWB session id
-        if (
-            self.transport_protocol_type == TransportProtocol.BLE_UWB
-            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
-        ):
+        if self.transport_protocol_type in [TransportProtocol.BLE_UWB, TransportProtocol.SOCKET_BLE]:
             if self.enable_uwb:
                 await self.transport_protocol.driver.session_init(
                     session_id=self.session.transaction_identifier[-4:]
@@ -1159,15 +1156,20 @@ class UserDevice(Device):
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
-            Global.logger.info("Creating shared keys")
-            self.session.set_shared_key()
-            await asyncio.gather(
-                asyncio.to_thread(self.session.derive_key_volatile, self.transport_protocol_type),
-                self.response_auth0(
-                    credential_epubk=self.session.get_credential_epubkey().as_bytes(), 
-                    command_status=command_status
-                    ),
-            )
+            try:
+                Global.logger.info("Creating shared keys")
+                self.session.set_shared_key()
+                await asyncio.gather(
+                    asyncio.to_thread(self.session.derive_key_volatile, self.transport_protocol_type),
+                    self.response_auth0(
+                        credential_epubk=self.session.get_credential_epubkey().as_bytes(), 
+                        command_status=command_status
+                        ),
+                )
+            except KeyLookupFailed as error:
+                # could not find reader public key
+                await self.failure_process(StatusBytes.GENERIC_ERROR)
+                raise error
         elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
             Global.logger.info("Looking for Kpersistent in storage")
@@ -1189,7 +1191,7 @@ class UserDevice(Device):
                     Global.logger.info("Setting up BLE encryption and UWB secure ranging")
                     await asyncio.gather(
                         asyncio.to_thread(self.session.set_ble_encryption, self.transport_protocol),
-                        self.transport_protocol.set_session_key(self.session.UR_SK),
+                        asyncio.to_thread(self.transport_protocol.set_session_key, self.session.UR_SK),
                     )
 
                 doc_timestamp = None
@@ -1313,15 +1315,20 @@ class UserDevice(Device):
         if self.session.get_transaction_type() == Transaction.STANDARD:
             Global.logger.info("Standard transaction requested")
             self.session.update_state(UserSessionState.AUTH0_STD_DONE)
-            Global.logger.info("Creating shared keys")
-            self.session.set_shared_key()
-            await asyncio.gather(
-                asyncio.to_thread(self.session.derive_key_volatile, self.transport_protocol_type),
-                self.response_auth0_with_wrong_tag_value(
-                    credential_epubk=self.session.get_credential_epubkey().as_bytes(),
-                    command_status=command_status
-                    ),
-            )
+            try:
+                Global.logger.info("Creating shared keys")
+                self.session.set_shared_key()
+                await asyncio.gather(
+                    asyncio.to_thread(self.session.derive_key_volatile, self.transport_protocol_type),
+                    self.response_auth0_with_wrong_tag_value(
+                        credential_epubk=self.session.get_credential_epubkey().as_bytes(),
+                        command_status=command_status
+                        ),
+                )
+            except KeyLookupFailed as error:
+                # could not find reader public key
+                await self.failure_process(StatusBytes.GENERIC_ERROR)
+                raise error
 
         elif self.session.get_transaction_type() == Transaction.FAST:
             Global.logger.info("Fast transaction requested")
@@ -1466,20 +1473,15 @@ class UserDevice(Device):
 
         await self.check_reader_authentication_data(auth1_command.reader_signature)
 
-        try:
-            if self.transport_protocol_type in [
-                TransportProtocol.BLE_UWB,
-                TransportProtocol.SOCKET_BLE,
-            ]:
-                Global.logger.info("Setting up BLE encryption and UWB secure ranging")
-                await asyncio.gather(
-                    asyncio.to_thread(self.session.set_ble_encryption, self.transport_protocol),
-                    self.transport_protocol.set_session_key(self.session.UR_SK),
-                )
-        except KeyLookupFailed as error:
-            # could not find reader public key
-            await self.failure_process(StatusBytes.GENERIC_ERROR)
-            raise error
+        if self.transport_protocol_type in [
+            TransportProtocol.BLE_UWB,
+            TransportProtocol.SOCKET_BLE,
+        ]:
+            Global.logger.info("Setting up BLE encryption and UWB secure ranging")
+            await asyncio.gather(
+                asyncio.to_thread(self.session.set_ble_encryption, self.transport_protocol),
+                asyncio.to_thread(self.transport_protocol.set_session_key, self.session.UR_SK),
+            )
 
         Global.logger.info("Creating user device authentication")
         device_authentication = create_user_device_authentication(
@@ -1511,7 +1513,6 @@ class UserDevice(Device):
             revoke_timestamp = RevocationDocument(self.revocation_document).get_timestamp()
 
         auth1_results = await asyncio.gather(
-            asyncio.to_thread(self.session.derive_key_persistent, self.transport_protocol_type),
             self.response_auth1(
                 self.session.access_credential.get_key_slot(),
                 self.session.access_credential.get_access_credential_public_key().as_bytes(),
@@ -1524,10 +1525,11 @@ class UserDevice(Device):
                 revocation_signed_timestamp=revoke_timestamp,
                 extra_tlv=extra_tlv,
             ),
+            asyncio.to_thread(self.session.derive_key_persistent, self.transport_protocol_type),
         )
         Global.logger.info("Add Kpersistent to storage")
         self.storage.add_kpersistent(
-            kpersistent=auth1_results[0],
+            kpersistent=auth1_results[1],
             reader_group_sub_id=self.session.reader_group_sub_identifier,
         )
 
