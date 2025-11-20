@@ -355,6 +355,9 @@ class BLEUWB(TransportProtocolBase):
 
     async def get_sts_index0(self) -> int:
         return await self.driver.get_sts_index0()
+    
+    async def get_last_sts_index0(self) -> int:
+        return await self.driver.get_last_sts_index0()
 
     async def set_sts_index0(self, sts_index0: int) -> None:
         await self.driver.set_sts_index0(sts_index0)

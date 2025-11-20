@@ -982,7 +982,10 @@ class UserDevice(Device):
             raise InvalidProtocolTypeError
 
         Global.logger.info("Sending ranging session resume response ble message")
-        sts_index0 = await self.transport_protocol.get_sts_index0()
+        sts_index0 = await self.transport_protocol.get_last_sts_index0()
+        # Increment last STS Index for the Resume Response Message
+        sts_index0 += 1
+        await self.transport_protocol.set_sts_index0(sts_index0)
         uwb_time0 = await self.transport_protocol.get_uwb_time0()
 
         message = BleMessage.create_ranging_session_resume_response(
