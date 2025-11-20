@@ -571,13 +571,14 @@ class MurataUWBDriver(MurataBaseDriver):
 
         while True:
             ntf = self.dh.wait_for_notification(ntf=uci.Cmds.RANGE_CCC_DATA, timeout=2)
-            distance = ntf.fields["DISTANCE"].val
-            if distance != invalid_dist:
-                Global.logger.debug(f"Ranging NTF dist: {distance}")
-                if distance < 50:
-                    return distance
-            else:
-                Global.logger.debug("Ranging Active NTF")
+            if ntf != None:
+                distance = ntf.fields["DISTANCE"].val
+                if distance != invalid_dist:
+                    Global.logger.debug(f"Ranging NTF dist: {distance}")
+                    if distance < 50:
+                        return distance
+                else:
+                    Global.logger.debug("Ranging Active NTF")
 
             # Get current time
             current_time = time.time()
