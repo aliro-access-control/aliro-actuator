@@ -246,3 +246,9 @@ class InvalidUWBSessionId(InvalidUWBParameter):
     Raised when an invalid uwb session id is received.
     """
     pass
+
+class InvalidSTSIndex(InvalidUWBParameter):
+    """
+    Raised when an invalid uwb session id is received.
+    """
+    pass

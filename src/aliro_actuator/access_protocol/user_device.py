@@ -67,6 +67,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidParameterError,
     InvalidPulseShapeCombo,
     InvalidSyncCodeIndex,
+    InvalidSTSIndex,
     InvalidUWBSessionId,
     SessionError,
     UnexpectedBLEMessageError,
@@ -724,11 +725,14 @@ class UserDevice(Device):
         Global.logger.info("Handling ranging session resume response")
         try:
             message.parse_payload(self.session.get_ble_encryption())
-            await self.transport_protocol.start_ranging()
-        except IndexError:
-            # Mismatch in parameters
-            # Generic error NTF with Wrong parameters
+        except (BLEMessageError, IndexError) as error:
             await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
+        sts_index0 = int.from_bytes(message.sts_index0.value, "big")
+        if 0 <= sts_index0 <= 0x3FFFFFFF:
+            await self.transport_protocol.start_ranging()
+        else:
+            raise InvalidSTSIndex
 
     def start_new_session(self) -> None:
         """
