@@ -1617,14 +1617,14 @@ class UserDevice(Device):
         else:
             self.session.update_state(UserSessionState.EXCHANGE_DONE)
 
-        if (
-            self.transport_protocol_type == TransportProtocol.BLE_UWB
-            or self.transport_protocol_type == TransportProtocol.SOCKET_BLE
-        ) and exchange_command.reader_status is not None:
-            raise AccessProtocolError(
-                "EXCHANGE command has reader status tag while using BLE"
-            )
-        elif exchange_command.reader_status is not None:
+        if exchange_command.reader_status is not None:
+            if (
+                self.transport_protocol_type in [TransportProtocol.BLE_UWB, TransportProtocol.SOCKET_BLE] 
+                and exchange_command.reader_status >> 8 != 0
+            ):
+                raise AccessProtocolError(
+                    "EXCHANGE command has reader status tag value with first byte not set to 0x00 while using BLE"    
+                )
             Global.logger.info(
                 "Received reader status: 0x{:04x}, transaction is completed".format(
                     exchange_command.reader_status.value
