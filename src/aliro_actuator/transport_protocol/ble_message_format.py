@@ -213,6 +213,7 @@ class BleMessage(Message):
                 GeneralError_Values,
             )
             offset = self.attribute.length
+            # Reader Descriptor Attribute ID may also be included with General Error
             if offset < len(self.payload):
                 attribute = BleAttribute.from_bytes(self.payload[offset:None])
                 self.reader_descriptor = attribute.value
@@ -246,6 +247,37 @@ class BleMessage(Message):
                 )
             else:
                 self.reader_descriptor = None
+        
+        elif self.attribute.id == Event_AttributeID.READER_DESCRIPTOR:
+            self.reader_descriptor = self.attribute.value
+            try:
+                reader_descriptor_tlv = TLV.from_bytes(self.reader_descriptor, recursive=True)
+            except TlvError as error:
+                raise BLEMessageError(
+                    self.to_bytes(),
+                    "Reader Descriptor attribute is not a valid TLV",
+                ) from error
+            self.reader_descriptor_tlv = self._get_TLV_from_TLV(
+                "Reader_Descriptor",
+                ReaderDescriptor.READER_DESCRIPTOR_TAG,
+                tlv_data=reader_descriptor_tlv,
+            )
+            self.reader_vendor_id = self._get_bytes_from_TLV(
+                "Reader_Vendor_ID",
+                ReaderDescriptor.READER_VENDOR_ID_TAG,
+                ReaderDescriptor.READER_VENDOR_ID_LEN,
+                tlv_data=self.reader_descriptor_tlv,
+            )
+            self.reader_product_id = self._get_bytes_from_TLV(
+                "Reader_Product_ID",
+                ReaderDescriptor.READER_PRODUCT_ID_TAG,
+                tlv_data=self.reader_descriptor_tlv,
+            )
+            self.reader_firmware_version = self._get_bytes_from_TLV(
+                "Reader_Firmware_Version",
+                ReaderDescriptor.READER_FIRMWARE_VERSION_TAG,
+                tlv_data=self.reader_descriptor_tlv,
+            )
             
         Global.logger.info("Parsing Event done")
 
