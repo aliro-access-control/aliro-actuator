@@ -94,7 +94,7 @@ class NFC(TransportProtocolBase):
     async def get_message(self) -> tuple[bytes, int | None, int | None]:
         try:
             message_bytes =  await asyncio.to_thread(self.driver.receive_message)
-            self.rx_timestamp = time.time()
+            self.rx_timestamp = self.driver.last_rx_timestamp
             return message_bytes, None, None
         except (NoTagError, NoReaderError) as error:
             raise NoDeviceConnectedError from error

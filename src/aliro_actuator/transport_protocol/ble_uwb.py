@@ -304,7 +304,7 @@ class BLEUWB(TransportProtocolBase):
             message_bytes = await self.driver.wait_for_data(
                 self.driver.connected_devices[0]
             )
-            self.rx_timestamp = time.time()
+            self.rx_timestamp = self.driver.last_rx_timestamp
         except (DeviceDisconnectedError, DeviceNotFoundError) as error:
             raise NoDeviceConnectedError from error
         except NoResponseError:
