@@ -430,8 +430,9 @@ class UserDevice(Device):
             except (InvalidCommandError, VerificationError):
                 await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                 return
-            except NoDeviceConnectedError:
-                return
+            except NoDeviceConnectedError as error:
+                Global.logger.warning(f"Terminating transaction: {error}")
+                raise
             try:
                 if isinstance(message, Command):
                     if (
@@ -477,8 +478,9 @@ class UserDevice(Device):
                 )
                 await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                 return
-            except NoDeviceConnectedError:
-                return
+            except NoDeviceConnectedError as error:
+                Global.logger.warning(f"Terminating transaction: {error}")
+                raise
 
     async def handle_ble_messages(self, message: BleMessage) -> bool:
         """Handles ble messages
