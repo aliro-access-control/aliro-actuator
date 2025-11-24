@@ -55,6 +55,7 @@ tag_handle = 0
 reader_status_change = threading.Condition()
 reader_available = False
 
+reader_lost = False
 data_received: bytes | None = None
 data_received_notify = threading.Condition()
 
@@ -99,7 +100,9 @@ def on_hostcard_emulation_activated(mode: int) -> None:
 @ctypes.CFUNCTYPE(None)
 def on_hostcard_emulation_deactivated() -> None:
     Global.logger.debug("NFC Reader lost")
+    global reader_lost
     global reader_available
+    reader_lost = True
     reader_available = False
     # notify data_received, so it can stop waiting for data
     with data_received_notify:
@@ -155,12 +158,19 @@ class Driver:
             self.nci.registerTagCallback(ctypes.byref(tagcallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x00, 0)
         elif self.mode == Mode.USER_DEVICE:
+            global reader_lost
+            reader_lost = False
             self.nci.nfcHce_registerHceCallback(ctypes.byref(hcecallback))
             self.nci.doEnableDiscovery(TECHNOLOGY_MASK.MASK_A, 0x00, 0x01, 0)
 
         Global.logger.info("PN7160 initialized, NFC discovery started")
 
     def disconnect(self) -> None:
+        if self.mode == Mode.USER_DEVICE:
+            try:
+                self.wait_for_reader_lost(timeout=1.0)
+            except TimeoutError:
+                pass
         self.nci.disableDiscovery()
 
     def wait_for_tag(self) -> None:
@@ -186,6 +196,14 @@ class Driver:
             if reader_available:
                 Global.logger.info("NFC reader found")
                 return
+
+    def wait_for_reader_lost(self, *, timeout: float | None = None) -> None:
+        Global.logger.info("Waiting for NFC Reader to be lost")
+        with data_received_notify:
+            if not data_received_notify.wait_for(lambda: reader_lost, timeout):
+                Global.logger.warning("Timeout waiting for NFC Reader to be lost")
+                raise TimeoutError("Timeout waiting for NFC Reader to be lost")
+        Global.logger.info("Waiting for NFC Reader to be lost completed")
 
     def send_message(self, message: bytes) -> None:
         if self.mode is None:
