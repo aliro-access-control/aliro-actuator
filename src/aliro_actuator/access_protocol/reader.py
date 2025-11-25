@@ -1798,9 +1798,7 @@ class Reader(Device):
 
         if self.common_hopping_conf & HoppingConfig.NO_HOPPING:
             await self.transport_protocol.set_hopping_mode(UCIHoppingConfig.NO_HOPPING)
-            self.common_hopping_conf = (
-                HoppingConfig.NO_HOPPING + HoppingConfig.DEFAULT_HOPPING_SEQUENCE
-            )
+            self.common_hopping_conf = HoppingConfig.NO_HOPPING
         elif self.common_hopping_conf & HoppingConfig.CONTINUOUS_HOPPING_MODULO:
             await self.transport_protocol.set_hopping_mode(
                 UCIHoppingConfig.CONTINUOUS_HOPPING_MODULO
