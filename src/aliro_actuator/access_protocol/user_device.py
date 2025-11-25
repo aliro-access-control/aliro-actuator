@@ -430,8 +430,9 @@ class UserDevice(Device):
             except (InvalidCommandError, VerificationError):
                 await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                 return
-            except NoDeviceConnectedError:
-                return
+            except NoDeviceConnectedError as error:
+                Global.logger.warning(f"Terminating transaction: {error}")
+                raise
             try:
                 if isinstance(message, Command):
                     if (
@@ -477,8 +478,9 @@ class UserDevice(Device):
                 )
                 await self.failure_process(StatusBytes.COMMAND_NOT_COMPLIANT)
                 return
-            except NoDeviceConnectedError:
-                return
+            except NoDeviceConnectedError as error:
+                Global.logger.warning(f"Terminating transaction: {error}")
+                raise
 
     async def handle_ble_messages(self, message: BleMessage) -> bool:
         """Handles ble messages
@@ -514,6 +516,7 @@ class UserDevice(Device):
             message.header == ProtocolType.NOTIFICATION
             and message.id == Notification_ID.READER_STATUS_ACCESS_PROTOCOL_COMPLETED
         ):
+            self.session.update_state(UserSessionState.BLE_READER_STATUS_AP_COMPLETED)
             self.handle_reader_status_access_protocol_completed_message(message)
             return True
         elif (
@@ -1922,7 +1925,11 @@ class UserDevice(Device):
     def handle_event_message(self, message: BleMessage) -> None:
         Global.logger.info("Handling Event message")
         message.check_header_and_id(ProtocolType.NOTIFICATION, Notification_ID.EVENT)
-        message.parse_payload(self.session.get_ble_encryption())
+        if self.session.state_valid(UserSessionState.BLE_READER_STATUS_AP_COMPLETED):
+            message.parse_payload(self.session.get_ble_encryption())
+        else:
+            # General Error and Busy events shall be sent in clear until Acces Protocol Completed Message 
+            message.parse_payload()
         if message.attribute.id == Event_AttributeID.GENERAL_ERROR:
             Global.logger.warning(
                 "Received General Error, with reason: {}".format(
@@ -1935,6 +1942,14 @@ class UserDevice(Device):
                         hexlify(message.reader_descriptor)
                     )
                 )
+        elif message.attribute.id == Event_AttributeID.READER_DESCRIPTOR:
+            Global.logger.info(
+                "Received Reader descriptor: {}".format(
+                    hexlify(message.reader_descriptor)
+                )
+            )
+        elif message.attribute.id == Event_AttributeID.BUSY:
+            Global.logger.info("Received Busy Event")
         else:
             raise NotImplementedError
 
@@ -2377,6 +2392,7 @@ class UserSessionState(Enum):
     ENVELOPE_DONE = 8
     STEPUP_EXCHANGE_DONE = 9
     TRANSACTION_COMPLETE = 10
+    BLE_READER_STATUS_AP_COMPLETED = 11
 
 
 class UserSession:
