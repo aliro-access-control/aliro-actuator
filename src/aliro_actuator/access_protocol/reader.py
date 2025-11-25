@@ -1870,9 +1870,8 @@ class Reader(Device):
         await self.transport_protocol.set_sts_index0(
             int.from_bytes(message.sts_index0.value, "big")
         )
-        await self.transport_protocol.set_uwb_time0(
-            int.from_bytes(message.uwb_time0.value, "big")
-        )
+        # TODO -> investigate setting UWB_INITIATION_TIME to correct value
+        await self.transport_protocol.set_uwb_time0(0)
         await self.transport_protocol.set_hop_mode_key(
             int.from_bytes(message.hop_mode_key.value, "big")
         )
