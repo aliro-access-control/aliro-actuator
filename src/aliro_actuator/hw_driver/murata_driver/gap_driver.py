@@ -178,6 +178,15 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                     "disconnected from device with device id: {}".format(device_id)
                 )
 
+    async def enable_update_connection_parameters(self, device_id: int, enable: bool = True) -> None:
+        Global.logger.debug("Enable Update Connection Parameters")
+        data = bytearray()
+        data.extend(int.to_bytes(device_id, 1, "little"))
+        data.extend(bool.to_bytes(enable, 1, "little"))
+        message = Message(OpGroup.GAP, OpCodeGAP.ENABLE_UPDATE_CONNECTION_PARAMETERS, len(data), data)
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GAP)
+
 
 class MurataGAPCentralDriver(MurataBaseDriver):
     async def start_scanning(self) -> None:
@@ -268,6 +277,15 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                 Global.logger.info(
                     "disconnected from device with device id: {}".format(device_id)
                 )
+
+    async def enable_update_connection_parameters(self, device_id: int, enable: bool = True) -> None:
+        Global.logger.debug("Enable Update Connection Parameters")
+        data = bytearray()
+        data.extend(int.to_bytes(device_id, 1, "little"))
+        data.extend(bool.to_bytes(enable, 1, "little"))
+        message = Message(OpGroup.GAP, OpCodeGAP.ENABLE_UPDATE_CONNECTION_PARAMETERS, len(data), data)
+        self.write(message)
+        await self.wait_for_confirm(OpGroup.GAP)
 
     async def search_for_device(
         self,
