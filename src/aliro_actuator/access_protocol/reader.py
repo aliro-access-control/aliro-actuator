@@ -64,6 +64,7 @@ from aliro_actuator.access_protocol.errors import (
     InvalidResponseError,
     InvalidStatusError,
     InvalidSyncCodeIndex,
+    InvalidSTSIndex,
     SessionError,
     UnexpectedBLEMessageError,
 )
@@ -1910,8 +1911,16 @@ class Reader(Device):
 
     async def handle_ranging_session_resume_response(self, message: BleMessage) -> None:
         Global.logger.info("Handling ranging session resume response")
-        message.parse_payload(self.session.get_ble_encryption())
-        await self.transport_protocol.start_ranging()
+        try:
+            message.parse_payload(self.session.get_ble_encryption())
+        except (BLEMessageError, IndexError) as error:
+            await self.send_event(Event_AttributeID.GENERAL_ERROR, GeneralError_Values.WRONG_PARAMETERS)
+            return
+        sts_index0 = int.from_bytes(message.sts_index0.value, "big")
+        if 0 <= sts_index0 <= 0x3FFFFFFF:
+            await self.transport_protocol.start_ranging()
+        else:
+            raise InvalidSTSIndex
 
     async def send_ranging_session_setup_m1(self) -> None:
         if not isinstance(self.transport_protocol, BLEUWB):
@@ -2014,7 +2023,10 @@ class Reader(Device):
             raise InvalidProtocolTypeError
 
         Global.logger.info("Sending ranging session resume response ble message")
-        sts_index0 = await self.transport_protocol.get_sts_index0()
+        sts_index0 = await self.transport_protocol.get_last_sts_index0()
+        # Increment last STS Index for the Resume Response Message
+        sts_index0 += 1
+        await self.transport_protocol.set_sts_index0(sts_index0)
         uwb_time0 = await self.transport_protocol.get_uwb_time0()
 
         message = BleMessage.create_ranging_session_resume_response(

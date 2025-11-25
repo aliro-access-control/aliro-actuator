@@ -497,6 +497,12 @@ class MurataUWBDriver(MurataBaseDriver):
             config=uci.APP_CFG.STS_INDEX,
         )
         return data.fields["STS_INDEX"].val
+    
+    async def get_last_sts_index0(self) -> int:
+        data = await self.get_config(
+            config=uci.APP_CFG.LAST_STS_INDEX_USED,
+        )
+        return data.fields["LAST_STS_INDEX_USED"].val
 
     async def set_sts_index0(self, sts_index0: int) -> None:
         await self.set_config(
