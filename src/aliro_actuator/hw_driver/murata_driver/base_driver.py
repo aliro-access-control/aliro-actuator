@@ -2,6 +2,7 @@ import asyncio
 from binascii import hexlify
 
 import serial
+import time
 import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import Global
@@ -39,6 +40,7 @@ class MurataBaseDriver:
         self.connected_devices: list[int] = []
         self.channel_ids: dict[int, int] = dict()
         self.enable_timeout = False
+        self.last_rx_timestamp: float | None = None
 
     def open(self) -> None:
         if not self.serial.isOpen:
@@ -69,6 +71,7 @@ class MurataBaseDriver:
             while True:  # Retry
                 packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
                 if packet is not None:
+                    self.last_rx_timestamp = time.perf_counter()
                     return packet
                 await asyncio.sleep(0.1)  # Prevent busy waiting
 

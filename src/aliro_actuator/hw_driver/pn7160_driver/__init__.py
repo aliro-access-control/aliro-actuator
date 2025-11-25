@@ -14,6 +14,7 @@
 
 import ctypes
 import threading
+import time
 from binascii import hexlify
 from pathlib import Path
 
@@ -137,6 +138,7 @@ class Driver:
                 "nci .so file not found at {}".format(self.nci_location)
             )
             raise NCINotFoundError
+        self.last_rx_timestamp: float | None = None
 
     def initialize(self, mode: Mode) -> None:
         Global.logger.debug("Starting PN7160 initialization")
@@ -242,6 +244,7 @@ class Driver:
 
         if self.mode == Mode.READER:
             if len(self.response) > 0:
+                self.last_rx_timestamp = time.perf_counter()
                 return bytes(self.response)
             else:
                 if not tag_available:
@@ -253,6 +256,7 @@ class Driver:
             if not reader_available:
                 raise NoReaderError
             if data_received is not None:
+                self.last_rx_timestamp = time.perf_counter()
                 message = bytes(data_received)
                 data_received = None
                 Global.logger.debug(
@@ -266,6 +270,7 @@ class Driver:
                 if not reader_available:
                     raise NoTagError
                 if data_received is not None:
+                    self.last_rx_timestamp = time.perf_counter()
                     message = bytes(data_received)
                     data_received = None
                     Global.logger.debug(

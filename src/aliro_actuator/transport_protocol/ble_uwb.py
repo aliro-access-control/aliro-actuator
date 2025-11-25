@@ -14,6 +14,7 @@
 
 from binascii import hexlify
 
+import time
 import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import Global
@@ -65,6 +66,17 @@ class BLEUWB(TransportProtocolBase):
         else:
             self.baudrate = DEFAULT_BAUDRATE
         self.timeout = None
+        self._rx_timestamp = None
+
+    @property
+    def rx_timestamp(self) -> float | None:
+        """Get timestamp of last received message."""
+        return self._rx_timestamp
+
+    @rx_timestamp.setter
+    def rx_timestamp(self, value) -> None:
+        """Set timestamp of last received message."""
+        self._rx_timestamp = value
 
     async def initialization(
         self,
@@ -297,6 +309,7 @@ class BLEUWB(TransportProtocolBase):
             message_bytes = await self.driver.wait_for_data(
                 self.driver.connected_devices[0]
             )
+            self.rx_timestamp = self.driver.last_rx_timestamp
         except (DeviceDisconnectedError, DeviceNotFoundError) as error:
             raise NoDeviceConnectedError from error
         except NoResponseError:
