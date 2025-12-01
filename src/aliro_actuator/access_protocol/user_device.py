@@ -1064,10 +1064,20 @@ class UserDevice(Device):
             await self.failure_process(StatusBytes.FILE_OR_APP_NOT_FOUND)
             raise InvalidAIDError(select_command.to_bytes(), select_command.aid)
 
+        max_cmd_apdu = None
+        max_rsp_apdu = None
+        if self.apdu.maximum_command_apdu != 0:
+            max_cmd_apdu = self.apdu.maximum_command_apdu
+        if self.apdu.maximum_response_apdu != 0:
+            max_rsp_apdu = self.apdu.maximum_response_apdu
+        self.session.set_select_proprietary_data(max_cmd_apdu, max_rsp_apdu)
+
         await self.response_select(
-            select_command.aid,
-            CSA_APPLICATION_TYPE,
-            self.supported_versions,
+            aid=select_command.aid,
+            type=CSA_APPLICATION_TYPE,
+            protocol_versions=self.supported_versions,
+            maximum_command_apdu=max_cmd_apdu,
+            maximum_response_apdu=max_rsp_apdu,
         )
         Global.logger.info("Handling SELECT command done")
 
@@ -2421,6 +2431,9 @@ class UserSession:
         self.ursk_available: bool = False
         self.ble_encryption_engine: EncryptionEngine | None = None
         self.credential_ephemeral: KeyPair | None = None
+        self.maximum_command_apdu: int | None = None
+        self.maximum_response_apdu: int | None = None
+        self.select_vendor_tlv: TLV | None = None
 
     @property
     def reader_identifier(self) -> bytes:
@@ -2447,6 +2460,16 @@ class UserSession:
         if self.state in state:
             return True
         return False
+
+    def set_select_proprietary_data(
+            self,
+            command_apdu: int | None = None,
+            response_apdu: int | None = None,
+            vendor_extension_tlv: TLV | None = None
+    ) -> None:
+        self.maximum_command_apdu = command_apdu
+        self.maximum_response_apdu = response_apdu
+        self.select_vendor_tlv = vendor_extension_tlv
 
     def set_auth0_data(
         self,
@@ -2501,6 +2524,9 @@ class UserSession:
         proprietary_information = create_proprietary_information(
             CSA_APPLICATION_TYPE,
             self.supported_versions,
+            self.maximum_command_apdu,
+            self.maximum_response_apdu,
+            self.select_vendor_tlv
         ).to_bytes()
         salt = create_salt(
             transport_protocol=transport_protocol,
@@ -2553,6 +2579,9 @@ class UserSession:
         proprietary_information = create_proprietary_information(
             CSA_APPLICATION_TYPE,
             self.supported_versions,
+            self.maximum_command_apdu,
+            self.maximum_response_apdu,
+            self.select_vendor_tlv
         ).to_bytes()
         salt = create_salt(
             transport_protocol=transport_protocol,
@@ -2601,6 +2630,9 @@ class UserSession:
         proprietary_information = create_proprietary_information(
             CSA_APPLICATION_TYPE,
             self.supported_versions,
+            self.maximum_command_apdu,
+            self.maximum_response_apdu,
+            self.select_vendor_tlv
         ).to_bytes()
         salt = create_salt(
             transport_protocol=transport_protocol,
