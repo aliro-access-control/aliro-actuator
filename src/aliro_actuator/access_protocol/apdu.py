@@ -446,14 +446,14 @@ class Command(APDUMessage):
             Global.logger.info("Valid P1 found: 0x{:02x}".format(self.p1))
             Global.logger.info("Valid P2 found: 0x{:02x}".format(self.p2))
 
-    def _check_le(self, expected_le: int | None = None) -> None:
+    def _check_le(self, expect_nonzero: bool = False) -> None:
         """
         Check if le is valid.
 
         Most commands require the send value to be 0,
         which means a maximum expected response of 256
         """
-        if expected_le is not None and self.le != expected_le:
+        if expect_nonzero and self.le == 0:
             raise InvalidLeError(self.as_bytes)
         else:
             le = self.le
@@ -487,7 +487,7 @@ class Command(APDUMessage):
         Global.logger.debug("Data needs to be verified during handling")
         Global.logger.debug("AID: {!r}".format(hexlify(self.aid)))
 
-        self._check_le()
+        self._check_le(expect_nonzero=True)
         Global.logger.info("Done parsing SELECT command")
 
     def parse_as_envelope(self, encryption: EncryptionEngine | None = None) -> None:
@@ -539,6 +539,7 @@ class Command(APDUMessage):
             Global.logger.debug(
                 "decrypted payload: {!r}".format(hexlify(self.decrypted_payload))
             )
+        self._check_le(expect_nonzero=True)
         Global.logger.info("Done parsing ENVELOPE command")
 
     def parse_as_get_response(self) -> None:
@@ -554,6 +555,7 @@ class Command(APDUMessage):
         self._check_parameters(0x00, 0x00)
         if self.data is not None:
             raise InvalidCommandDataError(self.as_bytes)
+        self._check_le()
         Global.logger.info("Done parsing GET RESPONSE command")
 
     def parse_as_auth0(self) -> None:
@@ -628,7 +630,7 @@ class Command(APDUMessage):
             tlv_data=TLV.from_bytes(self.data, recursive=False),
         )
 
-        self._check_le()
+        self._check_le(expect_nonzero=True)
         Global.logger.info("Done parsing AUTH0 command")
 
     def parse_as_load_cert(self) -> None:
@@ -692,7 +694,7 @@ class Command(APDUMessage):
             "Certificate data", Auth1.CERTIFICATE_TAG
         )
 
-        self._check_le()
+        self._check_le(expect_nonzero=True)
         Global.logger.info("Done parsing AUTH1 command")
 
     def parse_as_exchange(self, encryption: EncryptionEngine | None = None) -> None:
@@ -887,7 +889,7 @@ class Command(APDUMessage):
                 "Update_doc", Exchange.UPDATE_DOC_TAG, tlv_data=self.payload_tlv
             )
 
-        self._check_le()
+        self._check_le(expect_nonzero=True)
         Global.logger.info("Done parsing EXCHANGE command")
 
     def parse_as_control_flow(self) -> None:
@@ -964,7 +966,7 @@ class Command(APDUMessage):
             self.reader_product_id = None
             self.reader_firmware_version = None
 
-        self._check_le(0)
+        self._check_le()
         Global.logger.info("Done parsing CONTROL FLOW command")
 
 
