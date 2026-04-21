@@ -66,22 +66,28 @@ class MurataBaseDriver:
     def set_normal_timeout(self) -> None:
         self.serial.timeout = TIMEOUT
 
-    async def read(self) -> Message:
-        async def _read_packet():
-            while True:  # Retry
-                packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
+    async def _read_packet(self):
+        while True:  # Retry
+            try:
+                packet = await asyncio.wait_for(
+                    asyncio.to_thread(self.dh.device.fsci_read_packet),
+                    timeout=TIMEOUT
+                    )
                 if packet is not None:
                     self.last_rx_timestamp = time.perf_counter()
                     return packet
-                await asyncio.sleep(0.1)  # Prevent busy waiting
+            except asyncio.TimeoutError:
+                Global.logger.debug("Read packet timeout, retrying...")
+            await asyncio.sleep(TIMEOUT_LOW)  # Prevent busy waiting
 
+    async def read(self) -> Message:
         if self.timeout != None and self.enable_timeout == True:
             try:
-                packet = await asyncio.wait_for(_read_packet(), timeout=self.timeout)
+                packet = await asyncio.wait_for(self._read_packet(), timeout=self.timeout)
             except asyncio.TimeoutError:
                 raise NoResponseError
         else:
-            packet = await _read_packet() # No timeout
+            packet = await self._read_packet() # No timeout
 
         if len(packet) == 0:
             raise NoResponseError
