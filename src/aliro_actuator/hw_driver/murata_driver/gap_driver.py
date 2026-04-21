@@ -195,14 +195,14 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         data.append(0x01)  # scanning parameters included
         data.append(0x00)  # type (passive)
         data.extend(0x0100.to_bytes(2, "little"))  # interval (ms)
-        data.extend(0x0010.to_bytes(2, "little"))  # window (ms)
+        data.extend(0x0080.to_bytes(2, "little"))  # window (ms)
         data.append(0x00)  # own address type (public)
         data.append(0x00)  # filter policy (ScanAll)
-        data.append(0x00)  # filter duplicates
+        data.append(0x01)  # filter duplicates
         data.append(0x01)  # gLePhy1M_c
         data.append(0x00)  # gLePhyCoded_c
-        data.extend(0x0010.to_bytes(2, "little"))  # Duration
-        data.extend(0x0010.to_bytes(2, "little"))  # period
+        data.extend(0x0000.to_bytes(2, "little"))  # Duration
+        data.extend(0x0000.to_bytes(2, "little"))  # period
 
         message = Message(OpGroup.GAP, OpCodeGAP.START_SCANNING, len(data), data)
         self.write(message)
