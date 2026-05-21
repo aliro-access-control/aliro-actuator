@@ -168,7 +168,15 @@ class Driver:
         Global.logger.info("PN7160 initialized, NFC discovery started")
 
     def disconnect(self) -> None:
+        global reader_lost
+        global reader_available
         if self.mode == Mode.USER_DEVICE:
+            # Reader was not found, notify to stop waiting for it
+            if not reader_available:
+                with reader_status_change:
+                    Global.logger.debug("NFC Reader not available")
+                    reader_status_change.notify()
+                reader_lost = True
             try:
                 self.wait_for_reader_lost(timeout=1.0)
             except TimeoutError:
@@ -197,7 +205,7 @@ class Driver:
                 reader_status_change.wait()
             if reader_available:
                 Global.logger.info("NFC reader found")
-                return
+            return
 
     def wait_for_reader_lost(self, *, timeout: float | None = None) -> None:
         Global.logger.info("Waiting for NFC Reader to be lost")
