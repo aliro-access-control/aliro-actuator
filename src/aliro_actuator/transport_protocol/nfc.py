@@ -31,6 +31,7 @@ class NFC(TransportProtocolBase):
     def __init__(self, port: str | None = None) -> None:
         self.driver = Driver(port)
         self.mode: Mode | None = None
+        self.timeout = None
         self._rx_timestamp = None
 
     @property
@@ -57,6 +58,7 @@ class NFC(TransportProtocolBase):
     ) -> None:
         self.mode = mode
         self.driver.initialize(mode)
+        self.timeout = timeout
 
     def was_timer_started(self):
         return False
@@ -66,9 +68,21 @@ class NFC(TransportProtocolBase):
 
     async def wait_for_connection(self) -> None:
         if self.mode == Mode.USER_DEVICE:
-            await asyncio.to_thread(self.driver.wait_for_reader)
+            try:
+                await asyncio.wait_for(
+                    asyncio.to_thread(self.driver.wait_for_reader), 
+                    timeout=self.timeout
+                    )
+            except asyncio.TimeoutError as e:
+                raise NoReaderError("Timed out waiting for NFC reader") from e
         elif self.mode == Mode.READER:
-            await asyncio.to_thread(self.driver.wait_for_tag)
+            try:
+                await asyncio.wait_for(
+                    asyncio.to_thread(self.driver.wait_for_tag), 
+                    timeout=self.timeout
+                    )
+            except asyncio.TimeoutError as e:
+                raise NoTagError("Timed out waiting for NFC user tag") from e
 
     async def send_message(
         self,
