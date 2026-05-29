@@ -63,6 +63,7 @@ class MurataUWBDriver(MurataBaseDriver):
         dev_role: int,
         dev_type: int,
         enable_uwb: bool = True,
+        skip_firmware_download: bool = False,
     ) -> None:
         Global.logger.info("Initialize UCI device.")
         if dev_role not in [
@@ -76,14 +77,13 @@ class MurataUWBDriver(MurataBaseDriver):
 
         self.dh.disable_ntf_prints()
         self.dh.disable_uci_prints()
-
-        if enable_uwb:
+        if enable_uwb and not skip_firmware_download:
             Global.logger.info("Upload UWB device firmware. (This can take a while)")
         await asyncio.to_thread(
             uci.device_creation,
             self.dh,
             fw=DEFAULT_SR150_FIRMWARE_PATH,
-            skip_fw_download=not enable_uwb,
+            skip_fw_download=skip_firmware_download,
         )
         
         self.dh.device.flush_port()
@@ -94,7 +94,7 @@ class MurataUWBDriver(MurataBaseDriver):
                 board=uci.PLATFORM.RHODES,
                 variant=uci.BOARD_VARIANT.V4,
             )
-
+            Global.logger.info("Config device.")
             # fmt: off
             await self.set_device_config(
                 config=uci.DEVICE_CFG.ANTENNA_RX_IDX_DEFINE,

@@ -67,6 +67,15 @@ class BLEUWB(TransportProtocolBase):
             self.baudrate = DEFAULT_BAUDRATE
         self.timeout = None
         self._rx_timestamp = None
+        self.skip_firmware_download = False
+
+    @property
+    def skip_firmware_download(self) -> bool:
+        return self._skip_firmware_download
+    
+    @skip_firmware_download.setter
+    def skip_firmware_download(self, value: bool) -> None:
+        self._skip_firmware_download = value
 
     @property
     def rx_timestamp(self) -> float | None:
@@ -118,6 +127,7 @@ class BLEUWB(TransportProtocolBase):
                 dev_role=uci.APP_CFG.DEVICE_ROLE.RESPONDER,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLEE,
                 enable_uwb=self.enable_uwb,
+                skip_firmware_download=self.skip_firmware_download,
             )
             await self.driver.setup_gatt_database(
                 self.spsm,
@@ -145,6 +155,7 @@ class BLEUWB(TransportProtocolBase):
                 dev_role=uci.APP_CFG.DEVICE_ROLE.INITIATOR,
                 dev_type=uci.APP_CFG.DEVICE_TYPE.CONTROLLER,
                 enable_uwb=self.enable_uwb,
+                skip_firmware_download=self.skip_firmware_download,
             )
             await self.driver.setup_connection(
                 group_resolving_key=self.group_resolving_key,
