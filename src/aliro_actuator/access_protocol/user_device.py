@@ -2045,6 +2045,7 @@ class UserDevice(Device):
                 Global.logger.info(f"Caught exception: {error}")
                 # retry wait for message
         if not isinstance(message, APDUMessage):
+            await self.handle_ble_messages(message)
             raise UnexpectedBLEMessageError(
                 "Received unexpected ble message while waiting for "
                 "AP request message",
