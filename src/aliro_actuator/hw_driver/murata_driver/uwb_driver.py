@@ -83,7 +83,7 @@ class MurataUWBDriver(MurataBaseDriver):
             uci.device_creation,
             self.dh,
             fw=DEFAULT_SR150_FIRMWARE_PATH,
-            skip_fw_download=skip_firmware_download,
+            skip_fw_download=not(enable_uwb and not skip_firmware_download),
         )
         
         self.dh.device.flush_port()
