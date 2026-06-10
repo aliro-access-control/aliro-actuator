@@ -2,7 +2,7 @@ import asyncio
 from binascii import hexlify
 
 from aliro_actuator import Global
-from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver
+from aliro_actuator.hw_driver.murata_driver.base_driver import MurataBaseDriver, BleState
 from aliro_actuator.hw_driver.murata_driver.encryption import dynamic_tag_generation
 from aliro_actuator.hw_driver.murata_driver.endianness import change_endianness
 from aliro_actuator.hw_driver.murata_driver.errors import (
@@ -134,7 +134,8 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED
         )
-        Global.logger.debug("Advertising started")
+        self.ble_state = BleState.ADVERTISING
+        Global.logger.debug("Advertising started")     
 
     async def stop_advertising(self) -> None:
         Global.logger.info("Stop Advertising")
@@ -144,6 +145,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         await self.wait_for_message(
             OpGroup.GAP, OpCodeGAP.ADVERTISING_EVENT_STATE_CHANGED
         )
+        self.ble_state = BleState.IDLE
         Global.logger.debug("Advertising stopped")
 
     async def wait_for_connection_event(self) -> None:
@@ -152,7 +154,7 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
         )
         device_id = message.get_device_id()
         Global.logger.info("connected to device with device id: {}".format(device_id))
-
+        self.ble_state = BleState.CONNECTED
         self.connected_devices.append(device_id)
 
     async def disconnect(self, device_id: int) -> None:
@@ -177,6 +179,8 @@ class MurataGAPPeripheralDriver(MurataBaseDriver):
                 Global.logger.info(
                     "disconnected from device with device id: {}".format(device_id)
                 )
+        finally:
+            self.ble_state = BleState.IDLE
 
     async def enable_update_connection_parameters(self, device_id: int, enable: bool = True) -> None:
         Global.logger.debug("Enable Update Connection Parameters")
@@ -208,6 +212,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
         self.write(message)
         await self.wait_for_confirm(OpGroup.GAP)
         await self.wait_for_message(OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED)
+        self.ble_state = BleState.SCANNING
         Global.logger.debug("Scanning Started")
 
     async def stop_scanning(self, state_change: bool = True) -> None:
@@ -219,6 +224,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
             await self.wait_for_message(
                 OpGroup.GAP, OpCodeGAP.SCANNING_EVENT_STATE_CHANGED
             )
+            self.ble_state = BleState.IDLE
         Global.logger.debug("Scanning Stopped")
 
     async def connect(
@@ -251,6 +257,7 @@ class MurataGAPCentralDriver(MurataBaseDriver):
             OpGroup.GAP, OpCodeGAP.CONNECTION_EVENT_CONNECTED
         )
         self.connected_devices.append(response.get_device_id())
+        self.ble_state = BleState.CONNECTED
         Global.logger.info(
             "connected to device with device id: {}".format(self.connected_devices[-1])
         )
@@ -277,6 +284,8 @@ class MurataGAPCentralDriver(MurataBaseDriver):
                 Global.logger.info(
                     "disconnected from device with device id: {}".format(device_id)
                 )
+        finally:
+            self.ble_state = BleState.IDLE
 
     async def enable_update_connection_parameters(self, device_id: int, enable: bool = True) -> None:
         Global.logger.debug("Enable Update Connection Parameters")

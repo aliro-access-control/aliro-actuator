@@ -19,6 +19,7 @@ import ucitool.base_uci.helpers.uci_helper as uci
 
 from aliro_actuator import Global
 from aliro_actuator.access_protocol.apdu import Command, Response
+from aliro_actuator.hw_driver.murata_driver.base_driver import BleState
 from aliro_actuator.hw_driver.murata_driver import (
     ReaderMurataDriver,
     UserDeviceMurataDriver,
@@ -175,6 +176,12 @@ class BLEUWB(TransportProtocolBase):
             await self.driver.disconnect(self.driver.connected_devices[0])
         except IndexError:
             # No device connected
+            if self.mode == Mode.READER and self.driver.ble_state == BleState.ADVERTISING:
+                # Ensure reader stops advertising
+                await self.driver.stop_advertising()
+            elif self.mode == Mode.USER_DEVICE and self.driver.ble_state == BleState.SCANNING:
+                # Ensure user device stops scanning
+                await self.driver.stop_scanning()
             if raise_errors:
                 raise NoDeviceConnectedError
         finally:
