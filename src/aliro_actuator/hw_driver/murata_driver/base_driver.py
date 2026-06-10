@@ -1,5 +1,6 @@
 import asyncio
 from binascii import hexlify
+from enum import IntEnum
 
 import serial
 import time
@@ -27,6 +28,13 @@ TIMEOUT = 2  # seconds, normal operation
 TIMEOUT_LOW = 0.2  # seconds, for polling (lower so other processes can still run)
 
 
+class BleState(IntEnum):
+    IDLE = 0
+    ADVERTISING = 1
+    SCANNING = 2
+    CONNECTED = 3
+
+
 class MurataBaseDriver:
     def __init__(self, com_port: str, baudrate: int):
         self.com_port = com_port
@@ -41,6 +49,7 @@ class MurataBaseDriver:
         self.channel_ids: dict[int, int] = dict()
         self.enable_timeout = False
         self.last_rx_timestamp: float | None = None
+        self.ble_state = BleState.IDLE
 
     def open(self) -> None:
         if not self.serial.isOpen:
@@ -68,7 +77,14 @@ class MurataBaseDriver:
 
     async def _read_packet(self):
         while True:  # Retry
-            packet = await asyncio.to_thread(self.dh.device.fsci_read_packet)
+            read_task = asyncio.create_task(asyncio.to_thread(self.dh.device.fsci_read_packet))
+            try:
+                packet = await asyncio.shield(read_task)
+            except asyncio.CancelledError:
+                # Wait for fsci_read thread to finish before cancellation propagates
+                await read_task
+                Global.logger.debug("Fsci packet read task cancelled")
+                raise
             if packet is not None:
                 self.last_rx_timestamp = time.perf_counter()
                 return packet
@@ -157,6 +173,8 @@ class MurataBaseDriver:
                     )
                 except ErrorReturnedError:
                     pass  # just ignore message
+
+                self.ble_state = BleState.IDLE
                 raise DeviceDisconnectedError
             if (
                 response.get_op_group() != op_group
