@@ -2,7 +2,8 @@
 
 ## Overview
 
-This project implements the Aliro specification. 
+This repository contains Python examples that implement the Aliro specification. It is intended to be used alongside the aliro-certification-tool repository for testing and certification purposes.
+This is not a development SDK or reference design for building Aliro-compliant products. For product development guidance, please refer to the Aliro specification.
 
 The code is separated into 5 parts: the 4 parts as described in the Architecture
 overview of the specification (chapter 5.1) and the hardware drivers.
