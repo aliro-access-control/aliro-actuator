@@ -14,6 +14,7 @@
 
 import cbor2
 from aliro_actuator import Global
+from .utility import Utility
 
 
 class Document:
@@ -38,3 +39,6 @@ class Document:
         except (KeyError, TypeError, cbor2.CBORError) as err:
             Global.logger.warning(f"Failed to get document timestamp: {str(err)}")
             return None
+
+
+__all__ = ["Utility", "aliro", "examples", "mdl", "step-up"]
