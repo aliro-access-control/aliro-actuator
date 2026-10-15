@@ -1730,7 +1730,7 @@ class UserDevice(Device):
                 elif tag == Exchange.READER_DESCRIPTOR_TAG:
                     descriptor = []
                     descriptor = tlv.get_all_bytes_of_tag(tag)
-                    Global.logger.info("received Reader descriptor: ", hexlify(b''.join(descriptor)).decode())
+                    Global.logger.info("received Reader descriptor: {}".format(hexlify(b''.join(descriptor)).decode()))
                 elif tag & 0xFF00 == 0x9F00:
                     Global.logger.info("Notify Credential Issuer backend or application")
                     if tag & 0xFFE0 == 0x9F20:
