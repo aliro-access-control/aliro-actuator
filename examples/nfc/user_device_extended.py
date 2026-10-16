@@ -15,6 +15,8 @@
 import os
 import sys
 
+import cbor2
+
 PROJECT_PATH = os.path.join(os.getcwd(), "src/")
 sys.path.append(PROJECT_PATH)
 
@@ -38,7 +40,7 @@ async def main():
 
     private_key_pem = open("examples/nfc/issuer_private_key.pem", "rt")
     public_key_pem = open("examples/nfc/issuer_public_key.pem", "rt")
-    
+
     credential_keypair = KeyPair(private_key_pem.read(), public_key_pem.read())
     access_credentials = [AccessCredential(credential_keypair, reader_identifier_list)]
 
@@ -104,11 +106,17 @@ async def main():
         "CEAC3449AA9430F731A645F3B3C8C503160145613567616C69726F2D72613300"
     )
 
+    documents = {
+        document["5"]: cbor2.dumps(document, canonical=True)
+        for document in cbor2.loads(response)["2"]
+    }
+
     reader = UserDevice(
         transport_protocol=TransportProtocol.NFC,
         access_credentials=access_credentials,
         mailbox=0x20,
-        access_document=response,
+        access_document=documents["aliro-a"],
+        revocation_document=documents["aliro-r"],
         mode=UserMode.USER,
         maximum_command_apdu=1000,
         maximum_response_apdu=1000,
